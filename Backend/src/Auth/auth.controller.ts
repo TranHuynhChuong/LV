@@ -10,65 +10,50 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.guard';
-import { Response, Request } from 'express';
+import { Response, Request } from 'express'; // Sử dụng Response từ express
+import { Roles } from './auth.roles.decorator'; // Import the Roles decorator
 
 interface RequestWithCookies extends Request {
-  cookies: { refresh_token?: string };
+  cookies: { refresh_token?: string }; // Thêm kiểu cho cookies
 }
 
-@Controller('api/auth')
+@Controller('api/auth') // Đường dẫn cho controller
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('login-customer')
-  async signIn(
-    @Body() signInDto: { username: string; password: string },
-    @Res() res: Response
-  ) {
+  @Post('register')
+  async register(@Body() newCustomer: any, @Res() res: Response) {
     try {
-      const result = await this.authService.signIn(
-        signInDto.username,
-        signInDto.password,
+      const existingUser = await this.authService.register(newCustomer);
+      return res.status(201).json(existingUser);
+    } catch (error) {
+      console.error('Error during registration:', error);
+      throw new UnauthorizedException('Registration failed');
+    }
+  }
+
+  @Post('login-customer')
+  async loginCustomer(
+    @Body() { email, pass }: { email: string; pass: string },
+    @Res() res: Response
+  ): Promise<any> {
+    try {
+      const { access_token } = await this.authService.loginCustomer(
+        email,
+        pass,
         res
       );
-      return res.json(result);
+      return res.status(200).json({ access_token });
     } catch (error) {
-      console.log(error);
-      throw new UnauthorizedException('Username or password is incorrect');
+      console.error('Error during login:', error);
+      throw new UnauthorizedException('Login failed');
     }
   }
 
-  @Post('refresh-token')
-  async refreshAccessToken(
-    @Res() res: Response,
-    @Req() req: RequestWithCookies
-  ) {
-    const refresh_token = req.cookies?.refresh_token;
-
-    if (!refresh_token) {
-      throw new UnauthorizedException('No Refresh Token');
-    }
-
-    try {
-      const newAccessToken =
-        await this.authService.refreshAccessToken(refresh_token);
-
-      return res.json(newAccessToken);
-    } catch (error) {
-      console.log(error);
-      throw new UnauthorizedException('Invalid Refresh Token');
-    }
-  }
-
+  @Get()
   @UseGuards(AuthGuard)
-  @Get('logout')
-  logout(@Req() req: Request, @Res() res: Response) {
-    res.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-    });
-
-    return res.send({ message: 'Đăng xuất thành công' });
+  @Roles('admin', 'customer') // Apply the Roles decorator
+  test() {
+    return 'test';
   }
 }

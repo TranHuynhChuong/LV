@@ -1,18 +1,22 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-//import { UsersModule } from '../users/users.module';
-import { jwtConstants } from './constants';
+import { UsersModule } from '../Users/users.module';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    //UsersModule,
-    JwtModule.register({
-      global: true,
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' }, // Thời gian hết hạn token
+    ConfigModule.forRoot(), // Load biến môi trường
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('auth.jwtSecret'),
+        signOptions: { expiresIn: '15m' },
+      }),
     }),
+    UsersModule,
   ],
   providers: [AuthService],
   controllers: [AuthController],
