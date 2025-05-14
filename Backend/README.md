@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -96,3 +97,7 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+=======
+# LV-BE
+Back-end of book sales management web application
+>>>>>>> 6dd779541736334a19a8bea4de69b75653c5f666
