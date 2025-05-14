@@ -19,4 +19,8 @@ export default () => ({
     user: process.env.USER,
     pass: process.env.PASS,
   },
+  admin: {
+    code: process.env.CODE,
+    pass: process.env.PASS,
+  },
 });
