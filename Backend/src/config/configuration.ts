@@ -23,4 +23,5 @@ export default () => ({
     code: process.env.CODE,
     pass: process.env.PASS,
   },
+  frontendUrls: process.env.FE_URL ? process.env.FE_URL.split(',') : [],
 });
