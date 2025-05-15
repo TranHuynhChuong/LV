@@ -38,16 +38,71 @@ export class AuthController {
     @Res() res: Response
   ): Promise<any> {
     try {
-      const { access_token } = await this.authService.loginCustomer(
+      const { access_token, userId } = await this.authService.loginCustomer(
         email,
         pass,
         res
       );
-      return res.status(200).json({ access_token });
+      return res
+        .status(200)
+        .json({ access_token: access_token, userId: userId });
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
     }
+  }
+
+  @Post('login-staff')
+  async loginStaff(
+    @Body() { code, pass }: { code: string; pass: string },
+    @Res() res: Response
+  ): Promise<any> {
+    try {
+      const { access_token, userId } = await this.authService.loginStaff(
+        code,
+        pass,
+        res
+      );
+      return res
+        .status(200)
+        .json({ access_token: access_token, userId: userId });
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw new UnauthorizedException('Login failed');
+    }
+  }
+
+  @Get('refresh-token')
+  async refreshAccessToken(
+    @Res() res: Response,
+    @Req() req: RequestWithCookies
+  ) {
+    // Lấy refresh_token từ cookie của request
+    const refresh_token = req.cookies?.refresh_token;
+    if (!refresh_token) {
+      throw new UnauthorizedException('No Refresh Token');
+    }
+
+    try {
+      const newAccessToken =
+        await this.authService.refreshAccessToken(refresh_token);
+      return res.json(newAccessToken);
+    } catch (error) {
+      console.error('Error during token refresh:', error);
+      throw new UnauthorizedException('Invalid Refresh Token');
+    }
+  }
+
+  @Get('logout')
+  @UseGuards(AuthGuard)
+  logout(@Req() req: Request, @Res() res: Response) {
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+
+    return res.send({ message: 'Đăng xuất thành công' });
   }
 
   @Get()

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CustomersService } from '../Users/Customers/customer.service';
 import { CreateCustomerDto } from '../Users/Customers/customers.dto';
 import { StaffsService } from '../Users/Staffs/staffs.service';
@@ -11,6 +15,7 @@ import { ConfigService } from '@nestjs/config';
 export class AuthService {
   constructor(
     private CustomersService: CustomersService,
+    private StaffsService: StaffsService,
     private jwtService: JwtService,
     private configService: ConfigService
   ) {}
@@ -24,10 +29,10 @@ export class AuthService {
     userId: string,
     role: string
   ): Promise<string> {
-    const payload = { sub: userId, role };
+    const payload = { userId: userId, role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '15m', // Access Token hết hạn trong 15 phút
+      expiresIn: '30s', // Access Token hết hạn trong 15 phút
     });
   }
 
@@ -36,11 +41,41 @@ export class AuthService {
     userId: string,
     role: string
   ): Promise<string> {
-    const payload = { sub: userId, role };
+    const payload = { userId: userId, role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '7d', // Refresh Token hết hạn trong 7 ngày
+      expiresIn: '1m', // Refresh Token hết hạn trong 7 ngày
     });
+  }
+
+  async loginStaff(
+    code: string,
+    pass: string,
+    res: Response
+  ): Promise<{ access_token: string; userId: string; role: string }> {
+    const staff: any = await this.StaffsService.findByCode(code);
+    if (!staff) {
+      throw new NotFoundException('Khách hàng không tồn tại');
+    }
+
+    const isPasswordValid = await bcrypt.compare(pass, staff.NV_matKhau);
+    if (!isPasswordValid) {
+      throw new NotFoundException('Mật khẩu không chính xác');
+    }
+
+    const access_token = await this.generateAccessToken(staff._id, staff.role);
+    const refresh_token = await this.generateRefreshToken(
+      staff._id,
+      staff.role
+    );
+
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return { access_token, userId: staff._id, role: staff.role };
   }
 
   async loginCustomer(
@@ -52,7 +87,7 @@ export class AuthService {
     if (!customer) {
       throw new NotFoundException('Khách hàng không tồn tại');
     }
-    // So sánh mật khẩu đã mã hóa với mật khẩu người dùng nhập
+
     const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
     if (!isPasswordValid) {
       throw new NotFoundException('Mật khẩu không chính xác');
@@ -70,9 +105,33 @@ export class AuthService {
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Hết hạn sau 7 ngày
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { access_token, userId: customer.userId, role: 'customer' };
+    return { access_token, userId: customer._id, role: 'customer' };
+  }
+
+  async refreshAccessToken(
+    refresh_token: string
+  ): Promise<{ access_token: string }> {
+    try {
+      const payload: { userId: string; role: string } =
+        await this.jwtService.verifyAsync(refresh_token, {
+          secret: this.configService.get('auth.jwtSecret'),
+        });
+
+      // Tạo lại Access Token từ payload của Refresh Token
+      const access_token = await this.jwtService.signAsync(
+        { userId: payload.userId, role: payload.role },
+        {
+          secret: this.configService.get('auth.jwtSecret'),
+          expiresIn: '30s',
+        }
+      );
+      return { access_token };
+    } catch (err) {
+      console.error('Error verifying refresh token:', err);
+      throw new UnauthorizedException('Invalid Refresh Token');
+    }
   }
 }
