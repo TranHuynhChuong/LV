@@ -6,15 +6,18 @@ import {
   Param,
   Put,
   Delete,
-  UseGuards,
   InternalServerErrorException,
   BadRequestException,
+  UseGuards,
   Query,
 } from '@nestjs/common';
 import { CustomersService } from './Customers/customer.service';
 import { StaffsService } from './Staffs/staffs.service';
 import { CreateCustomerDto } from './Customers/customers.dto';
 import { CreateStaffDto } from './Staffs/staffs.dto';
+
+import { AuthGuard } from '../Auth/auth.guard';
+import { Roles } from '../Auth/auth.roles.decorator';
 
 @Controller('api/accounts')
 export class UsersController {
@@ -23,7 +26,9 @@ export class UsersController {
     private readonly staffService: StaffsService
   ) {}
 
-  @Get()
+  @UseGuards(AuthGuard)
+  @Roles('admin')
+  @Get('all')
   async getAll() {
     const result = {};
     try {
@@ -38,17 +43,7 @@ export class UsersController {
 
   /********************** Customer APIs ************************/
 
-  @Post('customer')
-  async createCustomer(@Body() createCustomerDto: CreateCustomerDto) {
-    try {
-      await this.customerService.create(createCustomerDto);
-      return { message: 'Customer created successfully' };
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể tạo khách hàng');
-    }
-  }
-
+  @UseGuards(AuthGuard)
   @Get('customer/:id')
   async getCustomerById(@Param('id') id: string) {
     try {
@@ -63,6 +58,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Put('customer/:id')
   async updateCustomer(
     @Param('id') id: string,
@@ -83,6 +79,8 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
   @Get('customer-all')
   async getAllCustomers(
     @Query('page') page: number,
@@ -98,8 +96,24 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
+  @Get('customer-get-by-email')
+  async getCustomerByEmail(@Query('email') email: string) {
+    try {
+      return await this.customerService.findByEmail(email);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'Lỗi khi lấy danh sách khách hàng'
+      );
+    }
+  }
+
   /********************** Staff APIs ************************/
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
   @Post('staff')
   async createStaff(@Body() createStaffDto: CreateStaffDto) {
     try {
@@ -111,6 +125,8 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string) {
     try {
@@ -125,6 +141,8 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
   @Put('staff/:id')
   async updateStaff(
     @Param('id') id: string,
@@ -142,6 +160,8 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Roles('admin')
   @Delete('staff/:id')
   async deleteStaff(@Param('id') id: string) {
     try {

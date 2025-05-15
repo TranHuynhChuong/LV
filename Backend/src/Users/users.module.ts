@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './users.controller';
 import { CustomersService } from './Customers/customer.service';
@@ -7,6 +7,7 @@ import { KHACH_HANG, KHACH_HANGSchema } from './Customers/customers.schema';
 import { StaffsService } from './Staffs/staffs.service';
 import { StaffsRepository } from './Staffs/staffs.repository';
 import { NHAN_VIEN, NHAN_VIENSchema } from './Staffs/staffs.schema';
+import { AuthModule } from 'src/Auth/auth.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { NHAN_VIEN, NHAN_VIENSchema } from './Staffs/staffs.schema';
     MongooseModule.forFeature([
       { name: NHAN_VIEN.name, schema: NHAN_VIENSchema },
     ]),
+    forwardRef(() => AuthModule),
   ],
   controllers: [UsersController],
   providers: [

@@ -11,8 +11,8 @@ export type NHAN_VIENDocument = NHAN_VIEN & Document;
   },
 })
 export class NHAN_VIEN {
-  @Prop({ type: String, unique: true, required: true })
-  NV_ma: string;
+  @Prop({ type: Number, unique: true, required: true })
+  NV_ma: number;
 
   @Prop({ type: String, required: true })
   NV_hoTen: string;

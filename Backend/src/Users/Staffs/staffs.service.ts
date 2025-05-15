@@ -7,7 +7,9 @@ export class StaffsService {
   constructor(private readonly Staff: StaffsRepository) {}
 
   async create(newStaff: CreateStaffDto) {
-    return this.Staff.create(newStaff);
+    const maxCode = await this.Staff.findMaxCode();
+    const newCode = maxCode + 1;
+    return this.Staff.create({ ...newStaff, NV_ma: newCode });
   }
 
   async findAll() {
@@ -18,7 +20,7 @@ export class StaffsService {
   }
 
   async findOneById(id: string) {
-    const Staff = await this.Staff.findOneById(id);
+    const Staff = await this.Staff.findById(id);
     if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
     return Staff;
   }

@@ -15,6 +15,16 @@ export class StaffsRepository {
     return await createdNhanVien.save();
   }
 
+  async findMaxCode(): Promise<number> {
+    const result = await this.Staff.find({})
+      .sort({ NV_ma: -1 }) // Sắp xếp giảm dần theo mã
+      .limit(1)
+      .select('NV_ma') // Chỉ lấy trường NV_ma
+      .lean();
+
+    return result.length > 0 ? result[0].NV_ma : 0;
+  }
+
   async findAll(): Promise<NHAN_VIEN[]> {
     return this.Staff.find({ NV_daXoa: false }) // Điều kiện NV_daXoa là false
       .populate({
@@ -24,7 +34,7 @@ export class StaffsRepository {
       .exec();
   }
 
-  async findOneById(id: string): Promise<NHAN_VIEN | null> {
+  async findById(id: string): Promise<NHAN_VIEN | null> {
     return this.Staff.findOne({ _id: id, NV_daXoa: false }) // Điều kiện NV_daXoa là false
       .populate({
         path: 'NV_nguoiThucHien',

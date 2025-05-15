@@ -9,9 +9,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Response, Request } from 'express';
+
 import { AuthGuard } from './auth.guard';
-import { Response, Request } from 'express'; // Sử dụng Response từ express
-import { Roles } from './auth.roles.decorator'; // Import the Roles decorator
+import { Roles } from './auth.roles.decorator';
 
 interface RequestWithCookies extends Request {
   cookies: { refresh_token?: string }; // Thêm kiểu cho cookies
@@ -58,14 +59,14 @@ export class AuthController {
     @Res() res: Response
   ): Promise<any> {
     try {
-      const { access_token, userId } = await this.authService.loginStaff(
+      const { access_token, userId, role } = await this.authService.loginStaff(
         code,
         pass,
         res
       );
       return res
         .status(200)
-        .json({ access_token: access_token, userId: userId });
+        .json({ access_token: access_token, userId: userId, role: role });
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
@@ -84,9 +85,13 @@ export class AuthController {
     }
 
     try {
-      const newAccessToken =
+      const { access_token, userId, role } =
         await this.authService.refreshAccessToken(refresh_token);
-      return res.json(newAccessToken);
+      return res.json({
+        access_token: access_token,
+        userId: userId,
+        role: role,
+      });
     } catch (error) {
       console.error('Error during token refresh:', error);
       throw new UnauthorizedException('Invalid Refresh Token');
@@ -107,7 +112,7 @@ export class AuthController {
 
   @Get()
   @UseGuards(AuthGuard)
-  @Roles('admin', 'customer') // Apply the Roles decorator
+  @Roles('admin', 'customer')
   test() {
     return 'test';
   }

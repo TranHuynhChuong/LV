@@ -32,7 +32,7 @@ export class AuthService {
     const payload = { userId: userId, role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '30s', // Access Token hết hạn trong 15 phút
+      expiresIn: '15m', // Access Token hết hạn trong 15 phút
     });
   }
 
@@ -44,7 +44,7 @@ export class AuthService {
     const payload = { userId: userId, role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '1m', // Refresh Token hết hạn trong 7 ngày
+      expiresIn: '1d', // Refresh Token hết hạn trong 7 ngày
     });
   }
 
@@ -53,17 +53,28 @@ export class AuthService {
     pass: string,
     res: Response
   ): Promise<{ access_token: string; userId: string; role: string }> {
-    const staff: any = await this.StaffsService.findByCode(code);
-    if (!staff) {
-      throw new NotFoundException('Khách hàng không tồn tại');
-    }
+    let staff: any;
 
-    const isPasswordValid = await bcrypt.compare(pass, staff.NV_matKhau);
-    if (!isPasswordValid) {
-      throw new NotFoundException('Mật khẩu không chính xác');
+    const adminCode = this.configService.get('admin.code');
+    const adminPass = this.configService.get('admin.pass');
+
+    if (code === adminCode && pass === adminPass) {
+      staff = { _id: adminCode, role: 'admin' };
+    } else {
+      staff = await this.StaffsService.findByCode(code);
+
+      if (!staff) {
+        throw new NotFoundException('Nhân viên không tồn tại');
+      }
+
+      const isPasswordValid = await bcrypt.compare(pass, staff.NV_matKhau);
+      if (!isPasswordValid) {
+        throw new NotFoundException('Mật khẩu không chính xác');
+      }
     }
 
     const access_token = await this.generateAccessToken(staff._id, staff.role);
+
     const refresh_token = await this.generateRefreshToken(
       staff._id,
       staff.role
@@ -72,10 +83,15 @@ export class AuthService {
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return { access_token, userId: staff._id, role: staff.role };
+    return {
+      access_token,
+      userId: staff._id,
+      role: staff.role,
+    };
   }
 
   async loginCustomer(
@@ -105,7 +121,7 @@ export class AuthService {
     res.cookie('refresh_token', refresh_token, {
       httpOnly: true,
       secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return { access_token, userId: customer._id, role: 'customer' };
@@ -113,7 +129,7 @@ export class AuthService {
 
   async refreshAccessToken(
     refresh_token: string
-  ): Promise<{ access_token: string }> {
+  ): Promise<{ access_token: string; userId: string; role: string }> {
     try {
       const payload: { userId: string; role: string } =
         await this.jwtService.verifyAsync(refresh_token, {
@@ -125,10 +141,10 @@ export class AuthService {
         { userId: payload.userId, role: payload.role },
         {
           secret: this.configService.get('auth.jwtSecret'),
-          expiresIn: '30s',
+          expiresIn: '15m',
         }
       );
-      return { access_token };
+      return { access_token, userId: payload.userId, role: payload.role };
     } catch (err) {
       console.error('Error verifying refresh token:', err);
       throw new UnauthorizedException('Invalid Refresh Token');

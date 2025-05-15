@@ -9,9 +9,6 @@ import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateStaffDto {
   @IsString()
-  NV_ma: string;
-
-  @IsString()
   NV_hoTen: string;
 
   @IsString()
