@@ -1,107 +1,106 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
+import { useForm } from 'react-hook-form';
+import { useAuthStore } from '@/stores/useAuthStore';
+
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+
+type LoginFormInputs = {
+  code: string;
+  password: string;
+};
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const form = useForm<LoginFormInputs>({
+    defaultValues: {
+      code: '',
+      password: '',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const onSubmit = async (data: LoginFormInputs) => {
+    if (!data.code || !data.password) {
+      // Trường code hoặc password rỗng thì không làm gì
+      return;
+    }
+
+    setServerError(null);
+    setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-staff`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Quan trọng để nhận cookie từ BE
-        body: JSON.stringify({ username, password }),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code: data.code, pass: data.password }),
       });
 
       if (!res.ok) {
-        throw new Error('Đăng nhập thất bại');
+        const errData = await res.json().catch(() => null);
+        const msg = errData?.message || 'Đăng nhập thất bại';
+        throw new Error(msg);
       }
 
-      const data = await res.json();
+      const result = await res.json();
 
-      console.log('Login data:', data); // Kiểm tra dữ liệu trả về từ server
-
-      // Lưu vào zustand store
-      useAuthStore.getState().setAuth(data.userId, data.accessToken, data.role);
-
-      if (data.role === 'admin') {
-        router.push('/admin');
-      } else if (data.role === 'manager') {
-        router.push('/manager');
-      } else if (data.role === 'sale') {
-        router.push('/sale');
-      } else throw new Error('Không có quyền truy cập');
+      useAuthStore.getState().setAuth(result.userId, result.access_token, result.role);
+      router.replace('/');
     } catch (err) {
-      setError('Sai email hoặc mật khẩu');
+      setServerError('Mã đăng nhập / Mật khẩu không đúng');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-white px-12 py-16 rounded-lg shadow-md w-lg">
-        <h2 className="text-3xl font-bold text-left mb-8">Đăng nhập</h2>
+    <Form {...form}>
+      <h1 className="text-2xl font-bold text-center mb-16">Đăng nhập</h1>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+        <FormField
+          control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mã đăng nhập</FormLabel>
+              <FormControl>
+                <Input placeholder="Mã đăng nhập" {...field} disabled={loading} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-        <div className="flex flex-col space-y-4 w-full">
-          <div className="flex flex-col">
-            <label htmlFor="username" className="text-sm font-semibold text-gray-700 mb-2">
-              Tên đăng nhập
-            </label>
-            <input
-              type="username"
-              id="username"
-              placeholder="Nhập tên đăng nhập"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                setError('');
-              }}
-              className="w-full px-4 py-2 border-1 rounded-md border-gray-300"
-              required
-            />
-          </div>
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mật khẩu</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Mật khẩu" {...field} disabled={loading} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-          <div className="flex flex-col">
-            <label htmlFor="pass" className="text-sm font-semibold text-gray-700 mb-2">
-              Mật khẩu
-            </label>
-            <input
-              type="password"
-              id="pass"
-              placeholder="Mật khẩu"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError('');
-              }}
-              className="w-full px-4 py-2 border-1 rounded-md"
-              required
-            />
-          </div>
+        <div className="h-10 w-full">
+          {serverError && (
+            <p className="text-sm font-medium text-red-600 text-center">{serverError}</p>
+          )}
         </div>
 
-        <div className="h-4 flex justify-center items-center my-4">
-          <p className="text-red-500 text-sm text-center">{error}</p>
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-gray-800 text-white py-2 mt-4 rounded-lg hover:bg-gray-900"
-        >
-          Đăng nhập
-        </button>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+        </Button>
       </form>
-    </div>
+    </Form>
   );
 }
