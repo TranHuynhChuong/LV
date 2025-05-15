@@ -1,14 +1,14 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import axios from 'axios';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import router from 'next/router';
 
 const api = axios.create({
-  baseURL: process.env.API,
+  baseURL: process.env.NEXT_PUBLIC_API,
   timeout: 10000,
+  withCredentials: true, // Nếu cookie dùng chung cho tất cả request
 });
 
-// ✅ Request interceptor
+// Request interceptor thêm access token
 api.interceptors.request.use(
   (config) => {
     const { accessToken } = useAuthStore.getState();
@@ -21,7 +21,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Response interceptor: auto refresh
+// Response interceptor auto refresh token
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -29,29 +29,24 @@ api.interceptors.response.use(
     const { setAuth, clearAuth } = useAuthStore.getState();
 
     const status = error.response?.status;
-    const code = error.response?.data?.code;
 
-    if (status === 401 || status === 403) {
-      // Nếu token hết hạn thì thử refresh
-      if (code === 'EXPIRED_TOKEN') {
-        try {
-          const res = await api.get('/auth/refresh-accesstoken', {
-            withCredentials: true,
-          });
-          const { accessToken, userId } = res.data;
-          if (accessToken) {
-            setAuth(userId, accessToken);
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return api(originalRequest); // gửi lại request
-          }
-        } catch (refreshError) {
-          clearAuth();
-          if (typeof window !== 'undefined') {
-            router.push('/login');
-          }
+    if (status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const res = await api.get('/auth/refresh-token', {
+          withCredentials: true,
+        });
+        const { access_token, userId, role } = res.data;
+        if (access_token) {
+          setAuth(userId, access_token, role);
+          originalRequest.headers = {
+            ...originalRequest.headers,
+            Authorization: `Bearer ${access_token}`,
+          };
+          return api(originalRequest); // Gọi lại request cũ
         }
-      } else {
-        // Nếu là không có quyền luôn thì logout
+      } catch (refreshError) {
+        console.error('Refresh token error:', refreshError);
         clearAuth();
         if (typeof window !== 'undefined') {
           router.push('/login');
