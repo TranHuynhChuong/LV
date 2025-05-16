@@ -15,7 +15,7 @@ import { AuthGuard } from './auth.guard';
 import { Roles } from './auth.roles.decorator';
 
 interface RequestWithCookies extends Request {
-  cookies: { refresh_token?: string }; // Thêm kiểu cho cookies
+  cookies: { token?: string }; // Thêm kiểu cho cookies
 }
 
 @Controller('api/auth') // Đường dẫn cho controller
@@ -23,13 +23,24 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() newCustomer: any, @Res() res: Response) {
+  async register(@Body() newCustomer: any) {
     try {
-      const existingUser = await this.authService.register(newCustomer);
-      return res.status(201).json(existingUser);
+      await this.authService.register(newCustomer);
+      return;
     } catch (error) {
       console.error('Error during registration:', error);
       throw new UnauthorizedException('Registration failed');
+    }
+  }
+
+  @Post('send-otp')
+  async checkEmail(@Body() { email }: { email: string }) {
+    try {
+      const otp = await this.authService.sendOtp(email);
+      return otp;
+    } catch (error) {
+      console.error('Error during send-otp:', error);
+      throw new Error(error);
     }
   }
 
@@ -39,14 +50,8 @@ export class AuthController {
     @Res() res: Response
   ): Promise<any> {
     try {
-      const { access_token, userId } = await this.authService.loginCustomer(
-        email,
-        pass,
-        res
-      );
-      return res
-        .status(200)
-        .json({ access_token: access_token, userId: userId });
+      const { userId } = await this.authService.loginCustomer(email, pass, res);
+      return res.status(200).json({ userId: userId });
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
@@ -59,54 +64,47 @@ export class AuthController {
     @Res() res: Response
   ): Promise<any> {
     try {
-      const { access_token, userId, role } = await this.authService.loginStaff(
+      const { userId, role } = await this.authService.loginStaff(
         code,
         pass,
         res
       );
-      return res
-        .status(200)
-        .json({ access_token: access_token, userId: userId, role: role });
+      return res.status(200).json({ userId: userId, role: role });
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
     }
   }
 
-  @Get('refresh-token')
-  async refreshAccessToken(
-    @Res() res: Response,
-    @Req() req: RequestWithCookies
-  ) {
-    // Lấy refresh_token từ cookie của request
-    const refresh_token = req.cookies?.refresh_token;
-    if (!refresh_token) {
-      throw new UnauthorizedException('No Refresh Token');
+  @Get('check-token')
+  async checkToken(@Res() res: Response, @Req() req: RequestWithCookies) {
+    const token = req.cookies?.token;
+    if (!token) {
+      throw new UnauthorizedException('No Token');
     }
 
     try {
-      const { access_token, userId, role } =
-        await this.authService.refreshAccessToken(refresh_token);
-      return res.json({
-        access_token: access_token,
-        userId: userId,
-        role: role,
-      });
+      await this.authService.checkToken(token);
+      return res.json({ valid: true });
     } catch (error) {
-      console.error('Error during token refresh:', error);
-      throw new UnauthorizedException('Invalid Refresh Token');
+      // Clear cookie khi token không hợp lệ hoặc hết hạn
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+      });
+      console.error('Error verifying token:', error);
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 
   @Get('logout')
-  @UseGuards(AuthGuard)
   logout(@Req() req: Request, @Res() res: Response) {
-    res.clearCookie('refresh_token', {
+    res.clearCookie('token', {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
     });
-
     return res.send({ message: 'Đăng xuất thành công' });
   }
 

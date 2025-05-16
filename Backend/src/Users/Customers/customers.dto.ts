@@ -1,21 +1,9 @@
-import {
-  IsString,
-  IsEmail,
-  IsDateString,
-  MinLength,
-  Matches,
-} from 'class-validator';
+import { IsString, IsEmail, MinLength, Matches } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateCustomerDto {
   @IsString()
   KH_hoTen: string;
-
-  @IsString()
-  KH_gioiTinh: string;
-
-  @IsDateString()
-  KH_ngaySinh: Date;
 
   @IsEmail()
   KH_email: string;

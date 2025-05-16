@@ -7,36 +7,13 @@ export class EmailService {
   private transporter;
 
   constructor(private configService: ConfigService) {
-    this.transporter = this.createTransporter();
-  }
-
-  private createTransporter(): nodemailer.Transporter {
-    const email = this.configService.get<string>('USER');
-    const pass = this.configService.get<string>('PASS');
-
-    if (!email || !pass) {
-      throw new Error('Email configuration (EMAIL and PASS) is missing.');
-    }
-
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: email,
-          pass: pass,
-        },
-      });
-
-      if (!transporter) {
-        throw new Error(
-          'Failed to create transporter: Transporter is undefined.'
-        );
-      }
-
-      return transporter as nodemailer.Transporter;
-    } catch (error) {
-      throw new Error(`Failed to create transporter: ${error.message}`);
-    }
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: this.configService.get<string>('email.user'),
+        pass: this.configService.get<string>('email.pass'),
+      },
+    });
   }
 
   sendOtpEmail(to: string, otpCode: string): void {
@@ -44,12 +21,16 @@ export class EmailService {
     const html = `
       <h3>Xác thực tài khoản</h3>
       <p>Mã OTP của bạn là: <strong>${otpCode}</strong></p>
-      <p>Mã có hiệu lực trong 5 phút.</p>
+      <p>Mã có hiệu lực trong 15 phút.</p>
     `;
 
+    console.log(
+      this.configService.get<string>('email.user'),
+      this.configService.get<string>('email.pass')
+    );
     this.transporter
       .sendMail({
-        from: this.configService.get<string>('EMAIL'),
+        from: this.configService.get<string>('email.user'),
         to,
         subject,
         html,
@@ -71,7 +52,7 @@ export class EmailService {
 
     this.transporter
       .sendMail({
-        from: this.configService.get<string>('EMAIL'),
+        from: this.configService.get<string>('email.user'),
         to,
         subject,
         html,
@@ -97,7 +78,7 @@ export class EmailService {
 
     this.transporter
       .sendMail({
-        from: this.configService.get<string>('EMAIL'),
+        from: this.configService.get<string>('email.user'),
         to,
         subject,
         html,

@@ -13,13 +13,13 @@ export class KHACH_HANG {
   @Prop({ type: String, required: true })
   KH_hoTen: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String })
   KH_gioiTinh: string;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date })
   KH_ngaySinh: Date;
 
-  @Prop({ type: String, unique: true, required: true })
+  @Prop({ type: String, unique: true })
   KH_email: string;
 
   @Prop({ type: String, required: true })

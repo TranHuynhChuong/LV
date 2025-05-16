@@ -5,19 +5,24 @@ import { UsersModule } from '../Users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthGuard } from './auth.guard';
+import { UtilModule } from 'src/Util/util.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Otp, OtpSchema } from './auth.otp.schema';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), // Load biến môi trường
+    ConfigModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('auth.jwtSecret'),
-        signOptions: { expiresIn: '15m' },
+        signOptions: { expiresIn: '1d' },
       }),
     }),
+    MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
     forwardRef(() => UsersModule),
+    UtilModule,
   ],
   providers: [AuthService, AuthGuard],
   controllers: [AuthController],

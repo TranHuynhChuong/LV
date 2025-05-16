@@ -4,47 +4,76 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CustomersService } from '../Users/Customers/customer.service';
-import { CreateCustomerDto } from '../Users/Customers/customers.dto';
 import { StaffsService } from '../Users/Staffs/staffs.service';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
+import { Otp } from './auth.otp.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { EmailService } from 'src/Util/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private CustomersService: CustomersService,
     private StaffsService: StaffsService,
+    private EmailService: EmailService,
     private jwtService: JwtService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    @InjectModel(Otp.name) private otp: Model<Otp>
   ) {}
 
-  async register(newCustomer: CreateCustomerDto): Promise<any> {
-    return await this.CustomersService.create(newCustomer);
+  async register(data: any): Promise<any> {
+    const { otp, name, email, password } = data;
+
+    const verifyOtp = await this.verifyOtp(email, otp);
+    if (!verifyOtp) {
+      throw new Error('Mã OTP không đúng hoặc hết hạn');
+    }
+    try {
+      const newCustomer = {
+        KH_hoTen: name,
+        KH_email: email,
+        KH_matKhau: password,
+      };
+      return await this.CustomersService.create(newCustomer);
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  // Tạo Access Token
-  private async generateAccessToken(
-    userId: string,
-    role: string
-  ): Promise<string> {
-    const payload = { userId: userId, role };
-    return await this.jwtService.signAsync(payload, {
-      secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '15m', // Access Token hết hạn trong 15 phút
-    });
+  async verifyOtp(email: string, code: string) {
+    const record = await this.otp.findOne({ email });
+    if (!record || record.code !== code || record.expiresAt < new Date()) {
+      return false;
+    }
+
+    return true;
   }
 
-  // Tạo Refresh Token
-  private async generateRefreshToken(
-    userId: string,
-    role: string
-  ): Promise<string> {
-    const payload = { userId: userId, role };
+  async sendOtp(email: string) {
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // OTP 6 số
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // +15 phút
+
+    await this.otp.findOneAndUpdate(
+      { email },
+      { code, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    this.EmailService.sendOtpEmail(email, code);
+
+    return code;
+  }
+
+  // Tạo Token
+  private async generateToken(userId: string, role: string): Promise<string> {
+    const payload = { userId: userId, role: role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '1d', // Refresh Token hết hạn trong 7 ngày
+      expiresIn: '1d',
     });
   }
 
@@ -52,14 +81,14 @@ export class AuthService {
     code: string,
     pass: string,
     res: Response
-  ): Promise<{ access_token: string; userId: string; role: string }> {
+  ): Promise<{ token: string; userId: string; role: string }> {
     let staff: any;
 
     const adminCode = this.configService.get('admin.code');
     const adminPass = this.configService.get('admin.pass');
 
     if (code === adminCode && pass === adminPass) {
-      staff = { _id: adminCode, role: 'admin' };
+      staff = { _id: adminCode, role: 'Admin' };
     } else {
       staff = await this.StaffsService.findByCode(code);
 
@@ -73,14 +102,9 @@ export class AuthService {
       }
     }
 
-    const access_token = await this.generateAccessToken(staff._id, staff.role);
+    const token = await this.generateToken(staff._id, staff.role);
 
-    const refresh_token = await this.generateRefreshToken(
-      staff._id,
-      staff.role
-    );
-
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
@@ -88,7 +112,7 @@ export class AuthService {
     });
 
     return {
-      access_token,
+      token,
       userId: staff._id,
       role: staff.role,
     };
@@ -98,7 +122,7 @@ export class AuthService {
     email: string,
     pass: string,
     res: Response
-  ): Promise<{ access_token: string; userId: string; role: string }> {
+  ): Promise<{ userId: string }> {
     const customer: any = await this.CustomersService.findByEmail(email);
     if (!customer) {
       throw new NotFoundException('Khách hàng không tồn tại');
@@ -109,45 +133,27 @@ export class AuthService {
       throw new NotFoundException('Mật khẩu không chính xác');
     }
 
-    const access_token = await this.generateAccessToken(
-      customer._id,
-      'customer'
-    );
-    const refresh_token = await this.generateRefreshToken(
-      customer._id,
-      'customer'
-    );
+    const token = await this.generateToken(customer._id, 'customer');
 
-    res.cookie('refresh_token', refresh_token, {
+    res.cookie('token', token, {
       httpOnly: true,
       secure: true,
       maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return { access_token, userId: customer._id, role: 'customer' };
+    return { userId: customer._id };
   }
 
-  async refreshAccessToken(
-    refresh_token: string
-  ): Promise<{ access_token: string; userId: string; role: string }> {
+  async checkToken(token: string): Promise<boolean> {
     try {
-      const payload: { userId: string; role: string } =
-        await this.jwtService.verifyAsync(refresh_token, {
-          secret: this.configService.get('auth.jwtSecret'),
-        });
-
-      // Tạo lại Access Token từ payload của Refresh Token
-      const access_token = await this.jwtService.signAsync(
-        { userId: payload.userId, role: payload.role },
-        {
-          secret: this.configService.get('auth.jwtSecret'),
-          expiresIn: '15m',
-        }
-      );
-      return { access_token, userId: payload.userId, role: payload.role };
-    } catch (err) {
-      console.error('Error verifying refresh token:', err);
-      throw new UnauthorizedException('Invalid Refresh Token');
+      // verify token, nếu không hợp lệ hoặc hết hạn sẽ ném lỗi
+      await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get('auth.jwtSecret'),
+      });
+      return true; // token hợp lệ
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 }
