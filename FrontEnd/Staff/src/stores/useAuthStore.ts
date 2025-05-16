@@ -1,18 +1,24 @@
-// src/store/authStore.ts
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 type AuthState = {
   userId: string | null;
-  accessToken: string | null;
   role: string | null;
-  setAuth: (accessToken: string, userId: string, role: string) => void;
+  setAuth: (userId: string, role: string) => void;
   clearAuth: () => void;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-  userId: null,
-  accessToken: null,
-  role: null,
-  setAuth: (accessToken, userId, role) => set({ userId, accessToken, role }),
-  clearAuth: () => set({ userId: null, accessToken: null, role: null }),
-}));
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      userId: null,
+      role: null,
+      setAuth: (userId, role) => set({ userId, role }),
+      clearAuth: () => set({ userId: null, role: null }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: typeof window !== 'undefined' ? createJSONStorage(() => localStorage) : undefined,
+    }
+  )
+);

@@ -1,63 +1,37 @@
-'use client';
-
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/useAuthStore';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axiosClient'; // axios instance đã cấu hình withCredentials
 
-type Props = {
-  children: ReactNode;
-  role?: string;
+type AuthGuardProps = {
+  readonly allowedRoles: readonly string[];
+  readonly children: React.ReactNode;
 };
 
-export function AuthGuard({ children, role }: Props) {
+export function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   const router = useRouter();
-  const { accessToken, setAuth, clearAuth, role: userRole } = useAuthStore();
+  const { role, clearAuth } = useAuthStore();
 
-  const [loading, setLoading] = useState(true); // trạng thái chờ check quyền
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkAuth() {
+    async function verifyToken() {
+      if (!role || !allowedRoles.includes(role)) {
+        router.replace('/login');
+        return;
+      }
       try {
-        if (!accessToken) {
-          // Gọi refresh token nếu chưa có
-          const res = await api.get('/auth/refresh-token', { withCredentials: true });
-          const { access_token, userId, role: newRole } = res.data;
-
-          if (!access_token) throw new Error('No access token');
-
-          setAuth(userId, access_token, newRole);
-
-          // Kiểm tra role ngay sau khi có token mới
-          if (role) {
-            const allowedRoles = role.split(',').map((r) => r.trim());
-            if (!allowedRoles.includes(newRole)) {
-              throw new Error('Role not allowed');
-            }
-          }
-        } else {
-          // Nếu đã có token rồi, kiểm tra role
-          if (role) {
-            const allowedRoles = role.split(',').map((r) => r.trim());
-            if (!allowedRoles.includes(userRole ?? '')) {
-              throw new Error('Role not allowed');
-            }
-          }
-        }
-
-        setLoading(false); // auth ok -> render UI
+        await api.get('/auth/check-token');
+        setLoading(false);
       } catch (error) {
         console.log(error);
-        clearAuth();
-        router.replace('/login'); // chuyển ngay, không render UI
       }
     }
 
-    checkAuth();
-  }, [accessToken, setAuth, clearAuth, role, router, userRole]);
+    verifyToken();
+  }, [role, allowedRoles, router, clearAuth]);
 
   if (loading) {
-    // Chờ check auth xong mới render UI, hoặc có thể hiển thị loading spinner
     return null;
   }
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/stores/useAuthStore';
-
+import api from '@/lib/axiosClient';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     if (!data.code || !data.password) {
-      // Trường code hoặc password rỗng thì không làm gì
+      // Nếu code hoặc password trống thì không làm gì
       return;
     }
 
@@ -36,22 +36,18 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-staff`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ code: data.code, pass: data.password }),
+      const res = await api.post('/auth/login-staff', {
+        code: data.code,
+        pass: data.password,
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        const msg = errData?.message || 'Đăng nhập thất bại';
-        throw new Error(msg);
+      if (res.status !== 200) {
+        throw new Error('Đăng nhập thất bại');
       }
 
-      const result = await res.json();
+      const result = res.data; // ✅ dùng tên khác
 
-      useAuthStore.getState().setAuth(result.userId, result.access_token, result.role);
+      useAuthStore.getState().setAuth(result.userId, result.role);
       router.replace('/');
     } catch (err) {
       setServerError('Mã đăng nhập / Mật khẩu không đúng');
