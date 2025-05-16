@@ -2,7 +2,6 @@
 
 import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +31,6 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
-  const initial = String(user.role).charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     const { clearAuth } = useAuthStore.getState();
@@ -48,11 +46,10 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer "
             >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{initial}</AvatarFallback>
-              </Avatar>
+              <div></div>
+
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.role}</span>
                 <span className="truncate text-xs">{user.code}</span>
@@ -68,10 +65,7 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{initial}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-sm leading-tight ml-4">
                   <span className="truncate font-semibold">{user.role}</span>
                   <span className="truncate text-xs">{user.code}</span>
                 </div>
@@ -79,15 +73,15 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push('/account')}>
+              <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push('/profile')}>
                 <BadgeCheck />
-                Account
+                Hồ sơ
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onSelect={handleLogout}>
               <LogOut />
-              Log out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

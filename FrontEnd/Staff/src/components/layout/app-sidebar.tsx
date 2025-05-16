@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import {
-  House,
   UserCog,
   ShoppingBag,
   ChartBar,
@@ -30,14 +29,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { userId, role } = useAuthStore();
 
   const fullNav = [
-    { title: 'Trang chủ', url: '/', icon: House },
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
     { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
     { title: 'Danh mục', url: '/categories', icon: ChartBar },
     { title: 'Đơn hàng', url: '/orders', icon: Package },
     { title: 'Khuyến mãi', url: '/promotions', icon: Percent },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
-    { title: 'Vận chuyển', url: '/shipmnents', icon: Truck },
+    { title: 'Vận chuyển', url: '/shipments', icon: Truck },
   ];
 
   type NavItem = { title: string; url: string; icon: LucideIcon };

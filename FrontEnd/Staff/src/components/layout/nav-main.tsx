@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { type LucideIcon } from 'lucide-react';
-
+import Link from 'next/link';
 import { Collapsible } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
@@ -43,10 +43,10 @@ export function NavMain({
                   }`}
                   asChild
                 >
-                  <a href={item.url} className="flex items-center gap-2 w-full">
+                  <Link href={item.url} className="flex items-center gap-2 w-full">
                     {item.icon && <item.icon className="w-4 h-4" />}
                     <span>{item.title}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </Collapsible>

@@ -16,6 +16,7 @@ export function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
 
   useEffect(() => {
     async function verifyToken() {
+      if (role === null) return;
       if (!role || !allowedRoles.includes(role)) {
         router.replace('/login');
         return;
