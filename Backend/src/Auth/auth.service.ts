@@ -1,12 +1,7 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CustomersService } from '../Users/Customers/customer.service';
 import { StaffsService } from '../Users/Staffs/staffs.service';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { Otp } from './auth.otp.schema';
@@ -73,15 +68,11 @@ export class AuthService {
     const payload = { userId: userId, role: role };
     return await this.jwtService.signAsync(payload, {
       secret: this.configService.get('auth.jwtSecret'),
-      expiresIn: '1d',
+      expiresIn: '6h',
     });
   }
 
-  async loginStaff(
-    code: string,
-    pass: string,
-    res: Response
-  ): Promise<{ token: string; userId: string; role: string }> {
+  async loginStaff(code: string, pass: string): Promise<{ token: string }> {
     let staff: any;
 
     const adminCode = this.configService.get('admin.code');
@@ -93,67 +84,30 @@ export class AuthService {
       staff = await this.StaffsService.findByCode(code);
 
       if (!staff) {
-        throw new NotFoundException('Nhân viên không tồn tại');
+        throw new NotFoundException('Thông tin đăng nhập không chính xác');
       }
 
       const isPasswordValid = await bcrypt.compare(pass, staff.NV_matKhau);
       if (!isPasswordValid) {
-        throw new NotFoundException('Mật khẩu không chính xác');
+        throw new NotFoundException('Thông tin đăng nhập không chính xác');
       }
     }
-
     const token = await this.generateToken(staff._id, staff.role);
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    return {
-      token,
-      userId: staff._id,
-      role: staff.role,
-    };
+    return { token: token };
   }
 
-  async loginCustomer(
-    email: string,
-    pass: string,
-    res: Response
-  ): Promise<{ userId: string }> {
+  async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
     const customer: any = await this.CustomersService.findByEmail(email);
     if (!customer) {
-      throw new NotFoundException('Khách hàng không tồn tại');
+      throw new NotFoundException('Thông tin đăng nhập không chính xác');
     }
 
     const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
     if (!isPasswordValid) {
-      throw new NotFoundException('Mật khẩu không chính xác');
+      throw new NotFoundException('Thông tin đăng nhập không chính xác');
     }
 
     const token = await this.generateToken(customer._id, 'customer');
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
-    return { userId: customer._id };
-  }
-
-  async checkToken(token: string): Promise<boolean> {
-    try {
-      // verify token, nếu không hợp lệ hoặc hết hạn sẽ ném lỗi
-      await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get('auth.jwtSecret'),
-      });
-      return true; // token hợp lệ
-    } catch (error) {
-      console.error('Error verifying token:', error);
-      throw new UnauthorizedException('Invalid or expired token');
-    }
+    return { token: token };
   }
 }

@@ -14,10 +14,6 @@ import { Response, Request } from 'express';
 import { AuthGuard } from './auth.guard';
 import { Roles } from './auth.roles.decorator';
 
-interface RequestWithCookies extends Request {
-  cookies: { token?: string }; // Thêm kiểu cho cookies
-}
-
 @Controller('api/auth') // Đường dẫn cho controller
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -46,12 +42,10 @@ export class AuthController {
 
   @Post('login-customer')
   async loginCustomer(
-    @Body() { email, pass }: { email: string; pass: string },
-    @Res() res: Response
+    @Body() { email, pass }: { email: string; pass: string }
   ): Promise<any> {
     try {
-      const { userId } = await this.authService.loginCustomer(email, pass, res);
-      return res.status(200).json({ userId: userId });
+      return await this.authService.loginCustomer(email, pass);
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
@@ -60,41 +54,13 @@ export class AuthController {
 
   @Post('login-staff')
   async loginStaff(
-    @Body() { code, pass }: { code: string; pass: string },
-    @Res() res: Response
+    @Body() { code, pass }: { code: string; pass: string }
   ): Promise<any> {
     try {
-      const { userId, role } = await this.authService.loginStaff(
-        code,
-        pass,
-        res
-      );
-      return res.status(200).json({ userId: userId, role: role });
+      return await this.authService.loginStaff(code, pass);
     } catch (error) {
       console.error('Error during login:', error);
       throw new UnauthorizedException('Login failed');
-    }
-  }
-
-  @Get('check-token')
-  async checkToken(@Res() res: Response, @Req() req: RequestWithCookies) {
-    const token = req.cookies?.token;
-    if (!token) {
-      throw new UnauthorizedException('No Token');
-    }
-
-    try {
-      await this.authService.checkToken(token);
-      return res.json({ valid: true });
-    } catch (error) {
-      // Clear cookie khi token không hợp lệ hoặc hết hạn
-      res.clearCookie('token', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-      });
-      console.error('Error verifying token:', error);
-      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 

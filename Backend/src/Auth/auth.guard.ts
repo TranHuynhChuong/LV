@@ -46,9 +46,23 @@ export class AuthGuard implements CanActivate {
     return true;
   }
 
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const token = request.cookies?.token;
-    return typeof token === 'string' ? token : undefined;
+  private extractTokenFromHeader(request: Request): string | null {
+    let authHeader =
+      request.headers['authorization'] || request.headers['Authorization'];
+
+    if (!authHeader) return null;
+
+    if (Array.isArray(authHeader)) {
+      authHeader = authHeader[0];
+    }
+
+    // Kiểm tra format "Bearer token"
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+      return typeof parts[1] === 'string' ? parts[1] : null;
+    }
+
+    return null;
   }
 
   private getRequiredRoles(context: ExecutionContext): string[] | undefined {

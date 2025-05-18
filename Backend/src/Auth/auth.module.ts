@@ -17,7 +17,7 @@ import { Otp, OtpSchema } from './auth.otp.schema';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('auth.jwtSecret'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: { expiresIn: '6h' },
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
