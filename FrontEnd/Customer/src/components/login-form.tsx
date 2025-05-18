@@ -8,10 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/axiosClient';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { login } from '@/services/authService';
 
-export default function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
+export default function LoginForm({ onForgotPassword }: { readonly onForgotPassword: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,16 +31,8 @@ export default function LoginForm({ onForgotPassword }: { onForgotPassword: () =
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login-customer', {
-        email: email,
-        pass: password,
-      });
+      await login(email, password);
 
-      if (res.status !== 200) {
-        throw new Error('Đăng nhập thất bại');
-      }
-      const result = res.data;
-      useAuthStore.getState().setAuth(result.userId);
       router.replace('/');
     } catch (err) {
       setError('Email / Mật khẩu không đúng');

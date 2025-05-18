@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react';
 import { User } from 'lucide-react';
 import Link from 'next/link';
-import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function Account() {
   const [open, setOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false); // <- NEW
-  const userId = useAuthStore((state) => state.userId);
+  const userId = null;
 
   useEffect(() => {
     setIsHydrated(true); // đánh dấu đã hydrate xong

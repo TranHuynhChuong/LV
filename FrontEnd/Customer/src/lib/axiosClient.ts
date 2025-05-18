@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '@/stores/useAuthStore';
+import Router from 'next/router';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API,
@@ -7,19 +7,26 @@ const api = axios.create({
   withCredentials: true, // Cookie sẽ tự gửi tự động
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const { clearAuth } = useAuthStore.getState();
     const status = error.response?.status;
 
-    console.log(status);
-    if (status === 401) {
-      clearAuth();
-      return Promise.reject(new Error(error?.message ?? 'Unauthorized'));
+    // Nếu lỗi 401 Unauthorized hoặc 403 Forbidden thì logout
+    if (status === 401 || status === 403) {
+      localStorage.removeItem('token');
+      Router.push('/');
     }
 
-    return Promise.reject(new Error(error?.message ?? 'An error occurred'));
+    return Promise.reject(error);
   }
 );
 
