@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useAuthStore } from '@/stores/useAuthStore';
 import { NavMain } from '@/components/layout/nav-main';
 import { NavUser } from '@/components/layout/nav-user';
 import Link from 'next/link';
@@ -26,7 +25,7 @@ import {
 } from 'lucide-react';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userId, role } = useAuthStore();
+  const { userId, role } = { userId: 'Admin', role: 'Admin' };
 
   const fullNav = [
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },

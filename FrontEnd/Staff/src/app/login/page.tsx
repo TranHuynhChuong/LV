@@ -3,8 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { useAuthStore } from '@/stores/useAuthStore';
-import api from '@/lib/axiosClient';
+import { login } from '@/services/authService';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -36,22 +35,14 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login-staff', {
-        code: data.code,
-        pass: data.password,
-      });
-
-      if (res.status !== 200) {
-        throw new Error('Đăng nhập thất bại');
+      await login(data.code, data.password);
+      router.push('/');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setServerError(err.message);
+      } else {
+        setServerError('Đã xảy ra lỗi không xác định');
       }
-
-      const result = res.data; // ✅ dùng tên khác
-
-      useAuthStore.getState().setAuth(result.userId, result.role);
-      router.replace('/');
-    } catch (err) {
-      setServerError('Mã đăng nhập / Mật khẩu không đúng');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }

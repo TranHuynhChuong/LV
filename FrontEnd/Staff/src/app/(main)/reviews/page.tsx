@@ -1,6 +1,6 @@
 'use client';
 
-import { AuthGuard } from '@/components/guard/AuthGuard';
+import AuthGuard from '@/components/guard/AuthGuard';
 import { useEffect } from 'react';
 import { useBreadcrumb } from '@/context/BreadcrumbContext';
 export default function Reviews() {

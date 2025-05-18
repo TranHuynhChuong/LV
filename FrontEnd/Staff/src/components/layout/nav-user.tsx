@@ -18,9 +18,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/useAuthStore';
-import api from '@/lib/axiosClient';
-
+import { logout } from '@/services/authService';
 export function NavUser({
   user,
 }: {
@@ -32,11 +30,9 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    const { clearAuth } = useAuthStore.getState();
-    await api.get('/auth/logout');
-    clearAuth();
-    router.push('/login');
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
   };
 
   return (
