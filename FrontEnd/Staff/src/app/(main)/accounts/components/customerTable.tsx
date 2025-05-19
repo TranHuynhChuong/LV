@@ -47,13 +47,13 @@ export default function CustomerTable() {
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
 
-  const limit = 10;
+  const limit = 12;
 
   const getCustomers = async (page: number) => {
     setIsLoading(true);
     try {
       const res = await api.get('/users/customers', {
-        params: { page: page + 1, limit },
+        params: { page: page, limit },
       });
 
       const { customers, total } = res.data;
@@ -67,7 +67,7 @@ export default function CustomerTable() {
       const mapped: Customer[] = customers.map((item: ApiCustomer) => ({
         name: item.KH_hoTen,
         email: item.KH_email,
-        createAt: item.KH_tao,
+        createAt: new Date(item.KH_tao).toLocaleString('vi-VN'),
       }));
 
       setData(mapped);

@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
-  const { userId } = useAuth();
+  const { userId, role } = useAuth();
   const unwrappedParams = use(params);
   const { id } = unwrappedParams;
   const router = useRouter();
@@ -156,7 +156,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Thông tin dữ liệu</SheetTitle>
-              {metadata && (
+              {metadata && role === 'Admin' && (
                 <div className=" text-sm space-y-3 mt-4">
                   <div className="">
                     <span className="font-medium ">Ngày tạo:</span>{' '}
