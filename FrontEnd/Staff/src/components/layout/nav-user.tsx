@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useRouter } from 'next/navigation';
 import { logout } from '@/services/authService';
+
 export function NavUser({
   user,
 }: {

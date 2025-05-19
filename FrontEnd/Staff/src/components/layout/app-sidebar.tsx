@@ -23,9 +23,10 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userId, role } = { userId: 'Admin', role: 'Admin' };
+  const { userId, role } = useAuth();
 
   const fullNav = [
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
