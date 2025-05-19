@@ -3,7 +3,7 @@
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Separator } from '@/components/ui/separator';
-
+import { Toaster } from '@/components/ui/sonner';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -41,19 +41,18 @@ function AppBreadcrumb() {
 
 export default function MainLayout({ children }: { readonly children: React.ReactNode }) {
   return (
-    <AuthGuard allowedRoles={['']}>
+    <AuthGuard allowedRoles={[]}>
       <BreadcrumbProvider>
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-white">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <AppBreadcrumb />
             </header>
-            <main className="flex flex-1 flex-col">
-              <div className="flex flex-1">{children}</div>
-            </main>
+            <main className="flex flex-1 bg-zinc-100 p-4">{children}</main>
+            <Toaster richColors position="bottom-right" duration={1000} />
           </SidebarInset>
         </SidebarProvider>
       </BreadcrumbProvider>
