@@ -31,11 +31,10 @@ export const KHACH_HANGSchema = SchemaFactory.createForClass(KHACH_HANG);
 KHACH_HANGSchema.pre('save', async function (next) {
   const user = this as KHACH_HANGDocument;
 
-  // Kiểm tra xem mật khẩu có bị thay đổi hay không, nếu có thì mã hóa nó
   if (user.isModified('KH_matKhau')) {
-    const saltRounds = 10; // Số vòng mã hóa
+    const saltRounds = 10;
     user.KH_matKhau = await bcrypt.hash(user.KH_matKhau, saltRounds);
   }
 
-  next(); // Tiếp tục với quá trình lưu
+  next();
 });
