@@ -10,7 +10,7 @@ export class Otp extends Document {
   @Prop({ required: true })
   code: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: { expireAfterSeconds: 0 } })
   expiresAt: Date;
 }
 

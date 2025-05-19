@@ -25,7 +25,7 @@ export class CustomersService {
   async findAll(page: number = 0, limit: number = 24) {
     const result = {};
 
-    result['customer'] = await this.CustomerRepository.findAll(page, limit);
+    result['customers'] = await this.CustomerRepository.findAll(page, limit);
     result['total'] = await this.CustomerRepository.countAll();
 
     return result;

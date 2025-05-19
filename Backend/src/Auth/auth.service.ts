@@ -79,7 +79,7 @@ export class AuthService {
     const adminPass = this.configService.get('admin.pass');
 
     if (code === adminCode && pass === adminPass) {
-      staff = { _id: adminCode, role: 'Admin' };
+      staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
     } else {
       staff = await this.StaffsService.findByCode(code);
 
@@ -87,12 +87,11 @@ export class AuthService {
         throw new NotFoundException('Thông tin đăng nhập không chính xác');
       }
 
-      const isPasswordValid = await bcrypt.compare(pass, staff.NV_matKhau);
-      if (!isPasswordValid) {
+      if (pass !== staff.NV_matKhau) {
         throw new NotFoundException('Thông tin đăng nhập không chính xác');
       }
     }
-    const token = await this.generateToken(staff._id, staff.role);
+    const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
     return { token: token };
   }
 
