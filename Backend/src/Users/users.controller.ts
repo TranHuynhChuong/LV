@@ -26,6 +26,22 @@ export class UsersController {
     private readonly staffService: StaffsService
   ) {}
 
+  @UseGuards(AuthGuard)
+  @Roles('Admin')
+  @Get('total')
+  async getTotal() {
+    try {
+      const staff = await this.staffService.countAll();
+      const customer = await this.customerService.countAll();
+      return { staff, customer };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(
+        'Lỗi khi lấy danh sách khách hàng'
+      );
+    }
+  }
+
   /********************** Customer APIs ************************/
 
   @UseGuards(AuthGuard)
