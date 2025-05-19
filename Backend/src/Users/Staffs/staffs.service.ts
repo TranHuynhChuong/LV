@@ -7,14 +7,18 @@ export class StaffsService {
   constructor(private readonly Staff: StaffsRepository) {}
 
   async create(newStaff: CreateStaffDto) {
-    const maxCode = await this.Staff.findMaxCode();
-    const newCode = maxCode + 1;
-    return this.Staff.create({ ...newStaff, NV_ma: newCode });
+    const lastCode = await this.Staff.findLastCode();
+    const length = 7;
+    const numericCode = parseInt(lastCode, 10);
+    const newNumericCode = numericCode + 1;
+    const newCode = newNumericCode.toString().padStart(length, '0');
+
+    return this.Staff.create({ ...newStaff, NV_id: newCode });
   }
 
   async findAll() {
     const result = {};
-    result['staff'] = await this.Staff.findAll();
+    result['staffs'] = await this.Staff.findAll();
     result['total'] = await this.Staff.countAll();
     return result;
   }
@@ -22,11 +26,30 @@ export class StaffsService {
   async findOneById(id: string) {
     const Staff = await this.Staff.findById(id);
     if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
-    return Staff;
+
+    let NV_idNV: {
+      NV_id: string;
+      NV_hoTen: string;
+      NV_email: string;
+      NV_soDienThoai: string;
+    } | null = null; // Khởi tạo null mặc định
+
+    const NV = await this.Staff.findByCode(Staff.NV_idNV);
+    if (NV) {
+      NV_idNV = {
+        NV_id: NV.NV_id,
+        NV_hoTen: NV.NV_hoTen,
+        NV_email: NV.NV_email,
+        NV_soDienThoai: NV.NV_soDienThoai,
+      };
+    }
+
+    return { staff: Staff, NV_idNV: NV_idNV };
   }
 
   async findByCode(code: string) {
     const staff = await this.Staff.findByCode(code);
+    console.log(staff);
     if (!staff) throw new NotFoundException('Không tìm thấy mã nhân viên');
     return staff;
   }

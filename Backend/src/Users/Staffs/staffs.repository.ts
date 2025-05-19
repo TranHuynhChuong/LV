@@ -15,41 +15,31 @@ export class StaffsRepository {
     return await createdNhanVien.save();
   }
 
-  async findMaxCode(): Promise<number> {
+  async findLastCode(): Promise<string> {
     const result = await this.Staff.find({})
-      .sort({ NV_ma: -1 }) // Sắp xếp giảm dần theo mã
+      .sort({ NV_id: -1 })
       .limit(1)
-      .select('NV_ma') // Chỉ lấy trường NV_ma
+      .select('NV_id')
       .lean();
 
-    return result.length > 0 ? result[0].NV_ma : 0;
+    if (result.length === 0) {
+      return '0000000';
+    }
+
+    const lastCode = result[0].NV_id;
+    return lastCode;
   }
 
   async findAll(): Promise<NHAN_VIEN[]> {
-    return this.Staff.find({ NV_daXoa: false }) // Điều kiện NV_daXoa là false
-      .populate({
-        path: 'NV_nguoiThucHien',
-        select: 'NV_hoTen',
-      })
-      .exec();
+    return this.Staff.find({ NV_daXoa: false }).exec();
   }
 
   async findById(id: string): Promise<NHAN_VIEN | null> {
-    return this.Staff.findOne({ _id: id, NV_daXoa: false }) // Điều kiện NV_daXoa là false
-      .populate({
-        path: 'NV_nguoiThucHien',
-        select: 'NV_hoTen',
-      })
-      .exec();
+    return this.Staff.findOne({ _id: id, NV_daXoa: false }).exec();
   }
 
   async findByCode(code: string): Promise<NHAN_VIEN | null> {
-    return this.Staff.findOne({ NV_ma: code, NV_daXoa: false }) // Điều kiện NV_daXoa là false
-      .populate({
-        path: 'NV_nguoiThucHien',
-        select: 'NV_hoTen',
-      })
-      .exec();
+    return this.Staff.findOne({ NV_id: code, NV_daXoa: false }).exec();
   }
 
   async update(id: string, updateNhanVienDto: any): Promise<NHAN_VIEN | null> {

@@ -14,32 +14,17 @@ import {
 import { CustomersService } from './Customers/customer.service';
 import { StaffsService } from './Staffs/staffs.service';
 import { CreateCustomerDto } from './Customers/customers.dto';
-import { CreateStaffDto } from './Staffs/staffs.dto';
+import { CreateStaffDto, UpdateStaffDto } from './Staffs/staffs.dto';
 
 import { AuthGuard } from '../Auth/auth.guard';
 import { Roles } from '../Auth/auth.roles.decorator';
 
-@Controller('api/accounts')
+@Controller('api/users')
 export class UsersController {
   constructor(
     private readonly customerService: CustomersService,
     private readonly staffService: StaffsService
   ) {}
-
-  @UseGuards(AuthGuard)
-  @Roles('admin')
-  @Get('all')
-  async getAll() {
-    const result = {};
-    try {
-      result['customer'] = await this.customerService.findAll();
-      result['staff'] = await this.staffService.findAll();
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException('Lỗi khi lấy dữ liệu từ server');
-    }
-  }
 
   /********************** Customer APIs ************************/
 
@@ -80,8 +65,8 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
-  @Get('customer-all')
+  @Roles('Admin')
+  @Get('customers')
   async getAllCustomers(
     @Query('page') page: number,
     @Query('limit') limit: number
@@ -97,7 +82,7 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
+  @Roles('Admin')
   @Get('customer-get-by-email')
   async getCustomerByEmail(@Query('email') email: string) {
     try {
@@ -111,9 +96,21 @@ export class UsersController {
   }
 
   /********************** Staff APIs ************************/
+  @UseGuards(AuthGuard)
+  @Roles('Admin')
+  @Get('staffs')
+  async getAll() {
+    try {
+      const result = await this.staffService.findAll();
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException('Lỗi khi lấy dữ liệu từ server');
+    }
+  }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
+  @Roles('Admin')
   @Post('staff')
   async createStaff(@Body() createStaffDto: CreateStaffDto) {
     try {
@@ -126,15 +123,12 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
+  @Roles('Admin')
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string) {
     try {
-      const staff = await this.staffService.findOneById(id);
-      if (!staff) {
-        throw new BadRequestException('Nhân viên không tồn tại');
-      }
-      return staff;
+      const result = await this.staffService.findOneById(id);
+      return result;
     } catch (error) {
       console.error(error);
       throw new BadRequestException('Không thể tìm thấy nhân viên');
@@ -142,11 +136,11 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
+  @Roles('Admin')
   @Put('staff/:id')
   async updateStaff(
     @Param('id') id: string,
-    @Body() updateStaffDto: CreateStaffDto
+    @Body() updateStaffDto: UpdateStaffDto
   ) {
     try {
       const updatedStaff = await this.staffService.update(id, updateStaffDto);
@@ -161,14 +155,11 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @Roles('admin')
+  @Roles('Admin')
   @Delete('staff/:id')
   async deleteStaff(@Param('id') id: string) {
     try {
-      const deletedStaff = await this.staffService.delete(id);
-      if (!deletedStaff) {
-        throw new BadRequestException('Không thể xóa nhân viên');
-      }
+      await this.staffService.delete(id);
       return { message: 'Nhân viên đã được xóa thành công' };
     } catch (error) {
       console.error(error);
