@@ -27,7 +27,6 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     if (!data.code || !data.password) {
-      // Nếu code hoặc password trống thì không làm gì
       return;
     }
 

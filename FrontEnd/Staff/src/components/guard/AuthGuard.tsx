@@ -11,8 +11,8 @@ interface JwtPayload {
 }
 
 interface AuthGuardProps {
-  allowedRoles?: string[];
-  children: ReactNode;
+  readonly allowedRoles?: string[];
+  readonly children: ReactNode;
 }
 
 export default function AuthGuard({ allowedRoles = [], children }: AuthGuardProps) {
@@ -26,22 +26,18 @@ export default function AuthGuard({ allowedRoles = [], children }: AuthGuardProp
       router.push('/login');
       return;
     }
-
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       const currentTime = Math.floor(Date.now() / 1000);
-
       if (decoded.exp < currentTime) {
         localStorage.removeItem('token');
         router.push('/login');
         return;
       }
-
       if (allowedRoles.length > 0 && !allowedRoles.includes(decoded.role)) {
         router.push('/login');
         return;
       }
-
       // Nếu qua hết các chốt, cho render UI
       setLoading(false);
     } catch {
@@ -53,6 +49,5 @@ export default function AuthGuard({ allowedRoles = [], children }: AuthGuardProp
   if (loading) {
     return null;
   }
-
   return <>{children}</>;
 }
