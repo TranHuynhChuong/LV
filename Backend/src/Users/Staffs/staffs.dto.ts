@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsEmail,
-  MinLength,
-  Matches,
-  IsMongoId,
-} from 'class-validator';
+import { IsString, IsEmail, MinLength, Matches } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateStaffDto {
@@ -28,8 +22,7 @@ export class CreateStaffDto {
   NV_matKhau: string;
 
   @IsString()
-  @IsMongoId({ message: 'ID người thực hiện không hợp lệ' })
-  NV_nguoiThucHien: string;
+  NV_idNV: string;
 }
 
 export class UpdateStaffDto extends PartialType(CreateStaffDto) {}
