@@ -4,7 +4,6 @@ import Router from 'next/router';
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API,
   timeout: 10000,
-  withCredentials: true, // Cookie sẽ tự gửi tự động
 });
 
 api.interceptors.request.use((config) => {

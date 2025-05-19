@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
+
 import api from '@/lib/axiosClient';
 import { useRouter } from 'next/navigation';
 
@@ -56,129 +56,115 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/register', {
+      await api.post('/auth/register', {
         otp: otp,
         name: name,
         email: email,
         password: password,
       });
 
-      if (res.status !== 201) {
-        throw new Error('Đăng nhập thất bại');
-      }
-      router.replace('/login');
+      router.replace('/');
     } catch (err) {
       setError('Email / Mật khẩu không đúng');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
-
     setError('');
-    console.log('✅ Đăng ký với:', { name, email, password });
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <Card className="w-full max-w-md shadow-lg">
-        <form onSubmit={handleSubmit}>
-          <CardHeader className="mb-6">
-            <CardTitle className="text-2xl text-center">Đăng ký</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <div className="flex items-center gap-2 mt-2">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSendOtp}
-                  className="cursor-pointer"
-                >
-                  Gửi mã
-                </Button>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="otp">Mã OTP</Label>
-              <Input id="otp" type="text" placeholder="Nhập mã OTP" required className="mt-2" />
-            </div>
-            <div>
-              <Label htmlFor="name">Họ tên</Label>
+    <Card className="w-full shadow-lg">
+      <form onSubmit={handleSubmit}>
+        <CardHeader className="mb-6">
+          <CardTitle className="text-2xl text-center">Đăng ký</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <div className="flex items-center gap-2 mt-2">
               <Input
-                id="name"
-                type="text"
-                placeholder="Nguyễn Văn A"
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 required
-                className="mt-2"
-                disabled={loading}
+                value={email}
+                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
               />
-            </div>
-
-            <div className="relative">
-              <Label htmlFor="password">Mật khẩu</Label>
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Nhập mật khẩu"
-                required
-                className="mt-2 pr-10"
-                disabled={loading}
-              />
-              <button
+              <Button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
-                disabled={loading}
+                variant="outline"
+                size="sm"
+                onClick={handleSendOtp}
+                className="cursor-pointer"
               >
-                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-              </button>
+                Gửi mã
+              </Button>
             </div>
+          </div>
+          <div>
+            <Label htmlFor="otp">Mã OTP</Label>
+            <Input id="otp" type="text" placeholder="Nhập mã OTP" required className="mt-2" />
+          </div>
+          <div>
+            <Label htmlFor="name">Họ tên</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Nguyễn Văn A"
+              required
+              className="mt-2"
+              disabled={loading}
+            />
+          </div>
 
-            <div className="relative">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Nhập lại mật khẩu"
-                required
-                className="mt-2 pr-10"
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
-              >
-                {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-              </button>
-            </div>
-
-            <div className="text-red-500 text-sm text-center mt-2 h-4">{error}</div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Đang đăng ký...' : 'Đăng ký'}
-            </Button>
-            <Link
-              href="/login"
+          <div className="relative">
+            <Label htmlFor="password">Mật khẩu</Label>
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Nhập mật khẩu"
+              required
+              className="mt-2 pr-10"
+              disabled={loading}
+            />
+            <button
               type="button"
-              className="hover:underline text-sm text-muted-foreground cursor-pointer text-center"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
+              disabled={loading}
             >
-              Quay lại đăng nhập
-            </Link>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+              {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </div>
+
+          <div className="relative">
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Nhập lại mật khẩu"
+              required
+              className="mt-2 pr-10"
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
+            >
+              {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </div>
+
+          <div className="text-red-500 text-sm text-center mt-2 h-4">{error}</div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

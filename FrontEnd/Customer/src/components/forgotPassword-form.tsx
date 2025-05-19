@@ -51,89 +51,87 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
   };
 
   return (
-    <div className="flex items-center justify-center py-8">
-      <Card className="w-full max-w-md shadow-lg">
-        <form onSubmit={handleSubmit}>
-          <CardHeader className="mb-6">
-            <CardTitle className="text-2xl text-center">Quên mật khẩu</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <div className="flex items-center gap-2 mt-2">
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSendOtp}
-                  className="cursor-pointer"
-                >
-                  Gửi mã
-                </Button>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="otp">Mã OTP</Label>
-              <Input id="otp" type="text" placeholder="Nhập mã OTP" required className="mt-2" />
-            </div>
-
-            <div className="relative">
-              <Label htmlFor="password">Mật khẩu mới</Label>
+    <Card className="w-full  shadow-lg">
+      <form onSubmit={handleSubmit}>
+        <CardHeader className="mb-6">
+          <CardTitle className="text-2xl text-center">Quên mật khẩu</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <div className="flex items-center gap-2 mt-2">
               <Input
-                id="password"
-                type={showNewPassword ? 'text' : 'password'}
-                placeholder="Nhập mật khẩu mới"
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 required
-                className="mt-2 pr-10"
+                value={email}
+                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
               />
-              <button
+              <Button
                 type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-8 text-gray-500 hover:text-gray-800 cursor-pointer"
+                variant="outline"
+                size="sm"
+                onClick={handleSendOtp}
+                className="cursor-pointer"
               >
-                {showNewPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-              </button>
+                Gửi mã
+              </Button>
             </div>
+          </div>
+          <div>
+            <Label htmlFor="otp">Mã OTP</Label>
+            <Input id="otp" type="text" placeholder="Nhập mã OTP" required className="mt-2" />
+          </div>
 
-            <div className="relative">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Nhập lại mật khẩu"
-                required
-                className="mt-2 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-8 text-gray-500 hover:text-gray-800 cursor-pointer"
-              >
-                {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
-              </button>
-            </div>
-            <div className="text-red-500 text-sm text-center mt-2 h-4">{error}</div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
-            <Button type="submit">Xác nhận</Button>
+          <div className="relative">
+            <Label htmlFor="password">Mật khẩu mới</Label>
+            <Input
+              id="password"
+              type={showNewPassword ? 'text' : 'password'}
+              placeholder="Nhập mật khẩu mới"
+              required
+              className="mt-2 pr-10"
+            />
             <button
               type="button"
-              className="hover:underline text-sm text-muted-foreground  cursor-pointer"
-              onClick={onBackToLogin}
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800 cursor-pointer"
             >
-              Quay lại đăng nhập
+              {showNewPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+          </div>
+
+          <div className="relative">
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Nhập lại mật khẩu"
+              required
+              className="mt-2 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800 cursor-pointer"
+            >
+              {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </div>
+          <div className="text-red-500 text-sm text-center mt-2 h-4">{error}</div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
+          <Button type="submit">Xác nhận</Button>
+          <button
+            type="button"
+            className="hover:underline text-sm text-muted-foreground  cursor-pointer"
+            onClick={onBackToLogin}
+          >
+            Quay lại đăng nhập
+          </button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }
