@@ -13,23 +13,20 @@ export class VAN_CHUYEN {
   @Prop({ type: Number, required: true })
   VC_id: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, default: 0 })
   VC_phi: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, default: 0 })
   VC_nkl: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, default: 0 })
   VC_phuPhi: number;
 
-  @Prop({ type: Number, required: true })
+  @Prop({ type: Number, required: true, default: 0 })
   VC_dvgtkl: number;
 
   @Prop({ type: Boolean, default: false })
   VC_daoXoa: boolean;
-
-  @Prop({ type: String, required: true })
-  KH_email: string;
 
   @Prop({ type: String, required: true })
   NV_id: string;
