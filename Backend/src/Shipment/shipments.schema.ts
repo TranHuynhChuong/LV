@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type VAN_CHUYENDocument = VAN_CHUYEN & Document;
+export type PHI_VAN_CHUYENDocument = PHI_VAN_CHUYEN & Document;
 
 @Schema({
   timestamps: {
@@ -9,7 +9,7 @@ export type VAN_CHUYENDocument = VAN_CHUYEN & Document;
     updatedAt: 'VC_capNhat',
   },
 })
-export class VAN_CHUYEN {
+export class PHI_VAN_CHUYEN {
   @Prop({ type: Number, required: true })
   VC_id: number;
 
@@ -32,4 +32,5 @@ export class VAN_CHUYEN {
   NV_id: string;
 }
 
-export const VAN_CHUYENSchema = SchemaFactory.createForClass(VAN_CHUYEN);
+export const PHI_VAN_CHUYENSchema =
+  SchemaFactory.createForClass(PHI_VAN_CHUYEN);
