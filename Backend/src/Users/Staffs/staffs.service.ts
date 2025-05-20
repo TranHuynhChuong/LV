@@ -7,7 +7,7 @@ export class StaffsService {
   constructor(private readonly Staff: StaffsRepository) {}
 
   async create(newStaff: CreateStaffDto) {
-    const lastCode = await this.Staff.findLastCode();
+    const lastCode = await this.Staff.findLastId();
     const length = 7;
     const numericCode = parseInt(lastCode, 10);
     const newNumericCode = numericCode + 1;
@@ -23,8 +23,8 @@ export class StaffsService {
     return result;
   }
 
-  async findByCode(id: string) {
-    const Staff = await this.Staff.findByCode(id);
+  async findById(id: string) {
+    const Staff = await this.Staff.findById(id);
     if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
 
     let NV_idNV: {
@@ -34,7 +34,7 @@ export class StaffsService {
       NV_soDienThoai: string;
     } | null = null; // Khởi tạo null mặc định
 
-    const NV = await this.Staff.findByCode(Staff.NV_idNV);
+    const NV = await this.Staff.findById(Staff.NV_idNV);
     if (NV) {
       NV_idNV = {
         NV_id: NV.NV_id,

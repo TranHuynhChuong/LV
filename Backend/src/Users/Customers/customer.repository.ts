@@ -26,14 +26,16 @@ export class CustomersRepository {
   }
 
   async update(
-    id: string,
+    email: string,
     updateDto: UpdateCustomerDto
   ): Promise<KHACH_HANG | null> {
-    return this.Customer.findByIdAndUpdate(id, updateDto, { new: true }).exec();
+    return this.Customer.findOneAndUpdate({ KH_email: email }, updateDto, {
+      new: true,
+    }).exec();
   }
 
-  async delete(id: string): Promise<KHACH_HANG | null> {
-    return this.Customer.findByIdAndDelete(id).exec();
+  async delete(email: string): Promise<KHACH_HANG | null> {
+    return this.Customer.findOneAndUpdate({ KH_email: email }).exec();
   }
 
   async countAll(): Promise<number> {

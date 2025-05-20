@@ -15,7 +15,7 @@ export class StaffsRepository {
     return await createdNhanVien.save();
   }
 
-  async findLastCode(): Promise<string> {
+  async findLastId(): Promise<string> {
     const result = await this.Staff.find({})
       .sort({ NV_id: -1 })
       .limit(1)
@@ -26,26 +26,26 @@ export class StaffsRepository {
       return '0000000';
     }
 
-    const lastCode = result[0].NV_id;
-    return lastCode;
+    const lastId = result[0].NV_id;
+    return lastId;
   }
 
   async findAll(): Promise<NHAN_VIEN[]> {
     return this.Staff.find({ NV_daXoa: false }).exec();
   }
 
-  async findByCode(code: string): Promise<NHAN_VIEN | null> {
-    return this.Staff.findOne({ NV_id: code, NV_daXoa: false }).exec();
+  async findById(id: string): Promise<NHAN_VIEN | null> {
+    return this.Staff.findOne({ NV_id: id, NV_daXoa: false }).exec();
   }
 
   async update(id: string, updateNhanVienDto: any): Promise<NHAN_VIEN | null> {
-    return this.Staff.findByIdAndUpdate({ NV_id: id }, updateNhanVienDto, {
+    return this.Staff.findOneAndUpdate({ NV_id: id }, updateNhanVienDto, {
       new: true,
     }).exec();
   }
 
   async delete(id: string): Promise<NHAN_VIEN | null> {
-    return this.Staff.findByIdAndUpdate(
+    return this.Staff.findOneAndUpdate(
       { NV_id: id },
       { NV_daXoa: true },
       { new: true }

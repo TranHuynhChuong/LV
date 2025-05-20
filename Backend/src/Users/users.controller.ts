@@ -128,7 +128,7 @@ export class UsersController {
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string) {
     try {
-      const result = await this.staffService.findByCode(id);
+      const result = await this.staffService.findById(id);
       return result;
     } catch (error) {
       console.error(error);
