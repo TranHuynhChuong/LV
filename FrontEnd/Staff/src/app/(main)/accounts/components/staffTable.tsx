@@ -51,7 +51,6 @@ export type Staff = {
   name: string;
   email: string;
   phone: string;
-  _id: string;
 };
 
 export default function StaffTable() {
@@ -70,7 +69,6 @@ export default function StaffTable() {
       const data = res.data;
 
       type ApiStaff = {
-        _id: string;
         NV_id: string;
         NV_vaiTro: string;
         NV_hoTen: string;
@@ -82,7 +80,6 @@ export default function StaffTable() {
 
       if (result.length > 0) {
         const mapped: Staff[] = result.map((staff: ApiStaff) => ({
-          _id: staff._id,
           id: staff.NV_id,
           role: staff.NV_vaiTro,
           name: staff.NV_hoTen,
@@ -111,7 +108,7 @@ export default function StaffTable() {
     if (!staff) return;
 
     try {
-      await api.delete(`/users/staff/${staff._id}`);
+      await api.delete(`/users/staff/${staff.id}`);
       await getData();
       setStaff(null);
       setDeleteDialogOpen(false);
@@ -123,7 +120,7 @@ export default function StaffTable() {
   };
 
   const handleDoubleClick = (staff: Staff) => {
-    router.push(`/accounts/staff/${staff._id}`);
+    router.push(`/accounts/staff/${staff.id}`);
   };
   const columns: ColumnDef<Staff>[] = [
     {
@@ -180,7 +177,7 @@ export default function StaffTable() {
               <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/accounts/staff/${staff._id}`}>Cập nhật</Link>
+                <Link href={`/accounts/staff/${staff.id}`}>Cập nhật</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {

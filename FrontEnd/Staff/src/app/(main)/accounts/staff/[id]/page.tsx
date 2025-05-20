@@ -6,16 +6,19 @@ import { useBreadcrumb } from '@/context/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
-import { useAuth } from '@/hooks/useAuth';
 import { Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
+interface AuthData {
+  userId: string | null;
+  role: string | null;
+}
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
-  const { userId, role } = useAuth();
+
   const unwrappedParams = use(params);
   const { id } = unwrappedParams;
   const router = useRouter();
@@ -39,6 +42,32 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     createdAt: string;
     updatedAt: string;
   } | null>(null);
+
+  const [authData, setAuthData] = useState<AuthData>({
+    userId: null,
+    role: null,
+  });
+
+  useEffect(() => {
+    async function fetchAuth() {
+      try {
+        const res = await fetch('/api/getAuth');
+        if (!res.ok) {
+          setAuthData({ userId: null, role: null });
+          router.replace('/login');
+          return;
+        }
+
+        const data = await res.json();
+        setAuthData({ userId: data.userId, role: data.role });
+      } catch (err) {
+        console.log(err);
+        setAuthData({ userId: null, role: null });
+      }
+    }
+
+    fetchAuth();
+  }, [router]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -109,7 +138,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
         NV_email: data.email,
         NV_vaiTro: data.role,
         NV_matKhau: data.password,
-        NV_idNV: userId,
+        NV_idNV: authData.userId,
       };
 
       await api.put(`/users/staff/${id}`, payload);
@@ -156,7 +185,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Thông tin dữ liệu</SheetTitle>
-              {metadata && role === 'Admin' && (
+              {metadata && authData.role === 'Admin' && (
                 <div className=" text-sm space-y-3 mt-4">
                   <div className="">
                     <span className="font-medium ">Ngày tạo:</span>{' '}

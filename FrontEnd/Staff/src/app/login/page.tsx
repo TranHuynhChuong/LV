@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { login } from '@/services/authService';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -32,16 +31,33 @@ export default function LoginPage() {
 
     setServerError(null);
     setLoading(true);
-
     try {
-      await login(data.code, data.password);
-      router.push('/');
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setServerError(err.message);
-      } else {
-        setServerError('Đã xảy ra lỗi không xác định');
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: data.code, pass: data.password }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Login failed:', errorData.message);
+        setServerError('Mã đăng nhập / Mật khẩu không đúng');
+        setLoading(false);
+        return;
       }
+
+      const resData = await res.json();
+
+      // Lưu userId và role vào localStorage
+      if (resData.userId && resData.role) {
+        localStorage.setItem('userId', resData.userId);
+        localStorage.setItem('role', resData.role);
+      }
+
+      router.push('/');
+    } catch (error) {
+      console.error('Login error:', error);
+      setServerError('Mã đăng nhập / Mật khẩu không đúng');
     } finally {
       setLoading(false);
     }
@@ -50,7 +66,14 @@ export default function LoginPage() {
   return (
     <Form {...form}>
       <h1 className="text-2xl font-bold text-center mb-16">Đăng nhập</h1>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit(onSubmit)(e);
+        }}
+        className="space-y-6"
+        noValidate
+      >
         <FormField
           control={form.control}
           name="code"

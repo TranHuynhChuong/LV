@@ -1,5 +1,3 @@
-'use client';
-
 import axios from 'axios';
 
 const api = axios.create({
@@ -8,26 +6,30 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+  async (config) => {
+    try {
+      const res = await fetch('/api/getAuth', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          config.headers['Authorization'] = `Bearer ${data.token}`;
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
-
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response) {
       const status = error.response.status;
       if (status === 401 || status === 403) {
-        localStorage.removeItem('token');
+        await fetch('/api/logout', { method: 'POST' });
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }

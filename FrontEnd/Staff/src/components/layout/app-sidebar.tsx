@@ -4,6 +4,7 @@ import * as React from 'react';
 import { NavMain } from '@/components/layout/nav-main';
 import { NavUser } from '@/components/layout/nav-user';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -23,10 +24,38 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
 
+interface AuthData {
+  userId: string | null;
+  role: string | null;
+}
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { userId, role } = useAuth();
+  const [authData, setAuthData] = useState<AuthData>({
+    userId: null,
+    role: null,
+  });
+  const router = useRouter();
+  useEffect(() => {
+    async function fetchAuth() {
+      try {
+        const res = await fetch('/api/getAuth');
+        if (!res.ok) {
+          setAuthData({ userId: null, role: null });
+          router.replace('/login');
+          return;
+        }
+
+        const data = await res.json();
+        setAuthData({ userId: data.userId, role: data.role });
+      } catch (err) {
+        console.log(err);
+        setAuthData({ userId: null, role: null });
+      }
+    }
+
+    fetchAuth();
+  }, [router]);
 
   const fullNav = [
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
@@ -41,18 +70,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   type NavItem = { title: string; url: string; icon: LucideIcon };
   let navMain: NavItem[] = [];
 
-  if (role === 'Admin') {
+  if (authData.role === 'Admin') {
     navMain = fullNav;
-  } else if (role === 'Manager') {
+  } else if (authData.role === 'Manager') {
     navMain = fullNav.filter((item) => item.url !== '/accounts');
-  } else if (role === 'Sales') {
+  } else if (authData.role === 'Sale') {
     navMain = fullNav.filter((item) => item.url === '/orders');
   }
 
   const data = {
     user: {
-      role: role ?? '',
-      code: userId ?? '',
+      role: authData.role ?? '',
+      code: authData.userId ?? '',
     },
     navMain,
   };
