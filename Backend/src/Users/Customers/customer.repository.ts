@@ -21,10 +21,6 @@ export class CustomersRepository {
     return this.Customer.find().skip(start).limit(limit).exec();
   }
 
-  async findById(id: string): Promise<KHACH_HANG | null> {
-    return this.Customer.findById(id).exec();
-  }
-
   async findByEmail(email: string): Promise<KHACH_HANG | null> {
     return this.Customer.findOne({ KH_email: email }).exec();
   }
