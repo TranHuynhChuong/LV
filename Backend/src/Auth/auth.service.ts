@@ -96,7 +96,7 @@ export class AuthService {
   }
 
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
-    const customer: any = await this.CustomersService.findByEmail(email);
+    const customer = await this.CustomersService.findByEmail(email);
     if (!customer) {
       throw new NotFoundException('Thông tin đăng nhập không chính xác');
     }
@@ -106,7 +106,7 @@ export class AuthService {
       throw new NotFoundException('Thông tin đăng nhập không chính xác');
     }
 
-    const token = await this.generateToken(customer._id, 'customer');
+    const token = await this.generateToken(customer.KH_email, 'customer');
     return { token: token };
   }
 }
