@@ -45,24 +45,9 @@ export class UsersController {
   /********************** Customer APIs ************************/
 
   @UseGuards(AuthGuard)
-  @Get('customer/:id')
-  async getCustomerById(@Param('id') id: string) {
-    try {
-      const customer = await this.customerService.findOne(id);
-      if (!customer) {
-        throw new BadRequestException('Khách hàng không tồn tại');
-      }
-      return customer;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể tìm thấy khách hàng');
-    }
-  }
-
-  @UseGuards(AuthGuard)
-  @Put('customer/:id')
+  @Put('customer/:email')
   async updateCustomer(
-    @Param('id') id: string,
+    @Param('email') id: string,
     @Body() updateCustomerDto: CreateCustomerDto
   ) {
     try {
@@ -143,7 +128,7 @@ export class UsersController {
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string) {
     try {
-      const result = await this.staffService.findOneById(id);
+      const result = await this.staffService.findByCode(id);
       return result;
     } catch (error) {
       console.error(error);
