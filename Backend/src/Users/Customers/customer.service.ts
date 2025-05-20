@@ -31,15 +31,6 @@ export class CustomersService {
     return result;
   }
 
-  /** Lấy 1 khách hàng theo ID */
-  async findOne(id: string) {
-    const customer = await this.CustomerRepository.findById(id);
-    if (!customer) {
-      throw new NotFoundException(`Không tìm thấy khách hàng với id ${id}`);
-    }
-    return customer;
-  }
-
   /** Cập nhật khách hàng **/
   async update(id: string, updateCustomer: UpdateCustomerDto) {
     const customer = await this.CustomerRepository.update(id, updateCustomer);
