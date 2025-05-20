@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
@@ -48,7 +49,7 @@ export class AuthController {
       return await this.authService.loginCustomer(email, pass);
     } catch (error) {
       console.error('Error during login:', error);
-      throw new UnauthorizedException('Login failed');
+      throw new NotFoundException('Login failed');
     }
   }
 
@@ -60,7 +61,7 @@ export class AuthController {
       return await this.authService.loginStaff(code, pass);
     } catch (error) {
       console.error('Error during login:', error);
-      throw new UnauthorizedException('Login failed');
+      throw new NotFoundException('Login failed');
     }
   }
 

@@ -1,9 +1,9 @@
+import { ShippingFeeModule } from './Shipment/shippingFee.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
 import { UsersModule } from './Users/users.module';
-//import { AuthModule } from './Auth/auth.module';
 import { UtilModule } from './Util/util.module';
 
 @Module({
@@ -21,6 +21,7 @@ import { UtilModule } from './Util/util.module';
     }),
     UsersModule,
     UtilModule,
+    ShippingFeeModule,
   ],
 })
 export class AppModule {}

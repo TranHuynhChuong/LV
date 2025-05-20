@@ -81,14 +81,14 @@ export class AuthService {
     if (code === adminCode && pass === adminPass) {
       staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
     } else {
-      staff = await this.StaffsService.findByCode(code);
-
-      if (!staff) {
-        throw new NotFoundException('Thông tin đăng nhập không chính xác');
+      const result = await this.StaffsService.findById(code);
+      staff = result.staff;
+      if (!result) {
+        throw new NotFoundException('Nhân viên không tồn tại');
       }
 
       if (pass !== staff.NV_matKhau) {
-        throw new NotFoundException('Thông tin đăng nhập không chính xác');
+        throw new NotFoundException('Mật khẩu không chính xác');
       }
     }
     const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
