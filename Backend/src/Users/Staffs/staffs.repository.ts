@@ -34,23 +34,19 @@ export class StaffsRepository {
     return this.Staff.find({ NV_daXoa: false }).exec();
   }
 
-  async findById(id: string): Promise<NHAN_VIEN | null> {
-    return this.Staff.findOne({ _id: id, NV_daXoa: false }).exec();
-  }
-
   async findByCode(code: string): Promise<NHAN_VIEN | null> {
     return this.Staff.findOne({ NV_id: code, NV_daXoa: false }).exec();
   }
 
   async update(id: string, updateNhanVienDto: any): Promise<NHAN_VIEN | null> {
-    return this.Staff.findByIdAndUpdate(id, updateNhanVienDto, {
+    return this.Staff.findByIdAndUpdate({ NV_id: id }, updateNhanVienDto, {
       new: true,
     }).exec();
   }
 
   async delete(id: string): Promise<NHAN_VIEN | null> {
     return this.Staff.findByIdAndUpdate(
-      id,
+      { NV_id: id },
       { NV_daXoa: true },
       { new: true }
     ).exec();

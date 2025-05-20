@@ -23,8 +23,8 @@ export class StaffsService {
     return result;
   }
 
-  async findOneById(id: string) {
-    const Staff = await this.Staff.findById(id);
+  async findByCode(id: string) {
+    const Staff = await this.Staff.findByCode(id);
     if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
 
     let NV_idNV: {
@@ -45,13 +45,6 @@ export class StaffsService {
     }
 
     return { staff: Staff, NV_idNV: NV_idNV };
-  }
-
-  async findByCode(code: string) {
-    const staff = await this.Staff.findByCode(code);
-    console.log(staff);
-    if (!staff) throw new NotFoundException('Không tìm thấy mã nhân viên');
-    return staff;
   }
 
   async update(id: string, dto: UpdateStaffDto) {
