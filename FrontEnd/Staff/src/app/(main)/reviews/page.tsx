@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 export default function Reviews() {
   const { setBreadcrumbs } = useBreadcrumb();
 

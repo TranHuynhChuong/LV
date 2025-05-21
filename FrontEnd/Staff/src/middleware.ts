@@ -14,15 +14,12 @@ const roleRequiredPaths: Record<string, string[]> = {
   '/categories': ['Manager', 'Admin'],
   '/promotions': ['Manager', 'Admin'],
   '/reviews': ['Manager', 'Admin'],
-  '/shipments': ['Manager', 'Admin'],
+  '/shipping': ['Manager', 'Admin'],
 };
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get('token')?.value;
-
-  console.log('Middleware chạy, path:', pathname);
-  console.log('Token:', token);
 
   // Nếu không có token và không phải trang login => redirect login
   if (!token && pathname !== '/login') {
