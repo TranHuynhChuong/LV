@@ -1,7 +1,7 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UsersModule } from '../Users/users.module';
+
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthGuard } from './auth.guard';
@@ -9,6 +9,7 @@ import { UtilModule } from 'src/Util/util.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Otp, OtpSchema } from './auth.otp.schema';
 
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -21,7 +22,6 @@ import { Otp, OtpSchema } from './auth.otp.schema';
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
-    forwardRef(() => UsersModule),
     UtilModule,
   ],
   providers: [AuthService, AuthGuard],
