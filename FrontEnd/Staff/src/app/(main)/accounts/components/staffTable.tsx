@@ -53,14 +53,19 @@ export type Staff = {
   phone: string;
 };
 
-export default function StaffTable() {
+export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSuccess?: () => void }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<Staff[]>([]);
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [staff, setStaff] = useState<Staff | null>(null);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
+    open: boolean;
+    id: string | null;
+  }>({
+    open: false,
+    id: null,
+  });
 
   const router = useRouter();
   const getData = async () => {
@@ -104,14 +109,18 @@ export default function StaffTable() {
   }, []);
 
   // Hàm xóa nhân viên
-  const handleConfirmDelete = async () => {
-    if (!staff) return;
+  const handleConfirmDelete = async (id: string) => {
+    if (!id) return;
 
     try {
-      await api.delete(`/users/staff/${staff.id}`);
-      await getData();
-      setStaff(null);
-      setDeleteDialogOpen(false);
+      await api.delete(`/users/staff/${id}`);
+      setData((prev) => prev.filter((item) => item.id !== id));
+      onDeleteSuccess?.();
+      setDeleteDialogOpen({
+        open: false,
+        id: null,
+      });
+
       toast.success('Xóa thành công!');
     } catch (error) {
       toast.error('Đã xảy ra lỗi!');
@@ -169,20 +178,23 @@ export default function StaffTable() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
-                <span className="sr-only">Open menu</span>
+                <span className="sr-only">Mở menu</span>
                 <MoreHorizontal />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/accounts/staff/${staff.id}`}>Cập nhật</Link>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href={`/accounts/${staff.id}`}>Cập nhật</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
+                className="cursor-pointer"
                 onClick={() => {
-                  setStaff(staff);
-                  setDeleteDialogOpen(true);
+                  setDeleteDialogOpen({
+                    open: true,
+                    id: staff.id,
+                  });
                 }}
               >
                 Xóa
@@ -230,7 +242,7 @@ export default function StaffTable() {
             onChange={(event) => table.getColumn('id')?.setFilterValue(event.target.value)}
             className="max-w-sm"
           />
-          <Link href="accounts/staff">
+          <Link href="accounts/new">
             <Button className="cursor-pointer">
               <Plus /> Thêm mới
             </Button>
@@ -304,7 +316,16 @@ export default function StaffTable() {
       </div>
 
       {/* Dialog xác nhận xóa */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog
+        open={isDeleteDialogOpen.open}
+        onOpenChange={(open) =>
+          setDeleteDialogOpen((prev) => ({
+            ...prev,
+            open,
+            id: open ? prev.id : null,
+          }))
+        }
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Bạn có chắc muốn xóa nhân viên này?</DialogTitle>
@@ -313,12 +334,16 @@ export default function StaffTable() {
           <DialogFooter className="flex justify-end gap-2">
             <Button
               variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
+              onClick={() => setDeleteDialogOpen({ open: false, id: null })}
               className="cursor-pointer"
             >
               Hủy
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} className="cursor-pointer">
+            <Button
+              variant="destructive"
+              onClick={() => handleConfirmDelete(isDeleteDialogOpen.id!)}
+              className="cursor-pointer"
+            >
               Xóa
             </Button>
           </DialogFooter>

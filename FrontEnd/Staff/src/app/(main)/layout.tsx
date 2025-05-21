@@ -13,7 +13,8 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
-import { BreadcrumbProvider, useBreadcrumb } from '@/context/BreadcrumbContext';
+import { BreadcrumbProvider, useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 function AppBreadcrumb() {
   const { breadcrumbs } = useBreadcrumb();
@@ -40,19 +41,21 @@ function AppBreadcrumb() {
 
 export default function MainLayout({ children }: { readonly children: React.ReactNode }) {
   return (
-    <BreadcrumbProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-white">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <AppBreadcrumb />
-          </header>
-          <main className="flex flex-1 bg-zinc-100 p-4">{children}</main>
-          <Toaster richColors position="bottom-right" duration={1000} />
-        </SidebarInset>
-      </SidebarProvider>
-    </BreadcrumbProvider>
+    <AuthProvider>
+      <BreadcrumbProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-white">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4" />
+              <AppBreadcrumb />
+            </header>
+            <main className="flex flex-1 bg-zinc-100 p-4">{children}</main>
+            <Toaster richColors position="bottom-right" duration={1000} />
+          </SidebarInset>
+        </SidebarProvider>
+      </BreadcrumbProvider>
+    </AuthProvider>
   );
 }

@@ -94,7 +94,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
   };
 
   return (
-    <>
+    <div className="w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1  space-y-4" noValidate>
           <div className="w-full p-6 space-y-6 bg-white shadow-sm rounded-md">
@@ -274,6 +274,6 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

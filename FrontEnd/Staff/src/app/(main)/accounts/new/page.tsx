@@ -1,52 +1,26 @@
 'use client';
 
-import AuthGuard from '@/components/guard/AuthGuard';
-import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useEffect } from 'react';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { toast } from 'sonner';
 import { StaffForm } from '../components/staffForm';
+import { useAuth } from '@/contexts/AuthContext';
 
-type Staff = {
+type New = {
   NV_matKhau: string;
   NV_vaiTro: string;
   NV_hoTen: string;
   NV_email: string;
   NV_soDienThoai: string;
 };
-interface AuthData {
-  userId: string | null;
-  role: string | null;
-}
-export default function Staff() {
-  const { setBreadcrumbs } = useBreadcrumb();
-  const [authData, setAuthData] = useState<AuthData>({
-    userId: null,
-    role: null,
-  });
+
+export default function New() {
   const router = useRouter();
-  useEffect(() => {
-    async function fetchAuth() {
-      try {
-        const res = await fetch('/api/getAuth');
-        if (!res.ok) {
-          setAuthData({ userId: null, role: null });
-          router.replace('/login');
-          return;
-        }
+  const { authData } = useAuth();
 
-        const data = await res.json();
-        setAuthData({ userId: data.userId, role: data.role });
-      } catch (err) {
-        console.log(err);
-        setAuthData({ userId: null, role: null });
-      }
-    }
-
-    fetchAuth();
-  }, [router]);
-
+  const { setBreadcrumbs } = useBreadcrumb();
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -77,16 +51,14 @@ export default function Staff() {
       router.back();
     } catch (error) {
       router.back();
-      toast.error('Đã xảy ra lỗi!');
+      toast.error('Lỗi khi tạo nhân viên!');
       console.error('Lỗi khi tạo nhân viên:', error);
     }
   };
 
   return (
-    <AuthGuard allowedRoles={['Admin']}>
-      <div className="w-full h-fit p-4">
-        <StaffForm onSubmit={handleOnsubmit} />
-      </div>
-    </AuthGuard>
+    <div className="w-full h-fit max-w-xl min-w-md">
+      <StaffForm onSubmit={handleOnsubmit} />
+    </div>
   );
 }

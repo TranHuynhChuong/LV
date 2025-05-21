@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import api from '@/lib/axiosClient';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -34,7 +34,7 @@ export default function Accounts() {
           <TabsTrigger value="cusstomer">Khách hàng ({customer})</TabsTrigger>
         </TabsList>
         <TabsContent value="staff">
-          <StaffTable></StaffTable>
+          <StaffTable onDeleteSuccess={() => setStaff((prev) => prev - 1)}></StaffTable>
         </TabsContent>
         <TabsContent value="cusstomer">
           <CustomerTable></CustomerTable>

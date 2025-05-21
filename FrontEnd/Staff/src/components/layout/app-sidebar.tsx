@@ -4,7 +4,7 @@ import * as React from 'react';
 import { NavMain } from '@/components/layout/nav-main';
 import { NavUser } from '@/components/layout/nav-user';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar,
   SidebarContent,
@@ -24,39 +24,9 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
-interface AuthData {
-  userId: string | null;
-  role: string | null;
-}
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [authData, setAuthData] = useState<AuthData>({
-    userId: null,
-    role: null,
-  });
-  const router = useRouter();
-  useEffect(() => {
-    async function fetchAuth() {
-      try {
-        const res = await fetch('/api/getAuth');
-        if (!res.ok) {
-          setAuthData({ userId: null, role: null });
-          router.replace('/login');
-          return;
-        }
-
-        const data = await res.json();
-        setAuthData({ userId: data.userId, role: data.role });
-      } catch (err) {
-        console.log(err);
-        setAuthData({ userId: null, role: null });
-      }
-    }
-
-    fetchAuth();
-  }, [router]);
-
+  const { authData } = useAuth();
   const fullNav = [
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
     { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
@@ -64,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { title: 'Đơn hàng', url: '/orders', icon: Package },
     { title: 'Khuyến mãi', url: '/promotions', icon: Percent },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
-    { title: 'Vận chuyển', url: '/shipments', icon: Truck },
+    { title: 'Vận chuyển', url: '/shipping', icon: Truck },
   ];
 
   type NavItem = { title: string; url: string; icon: LucideIcon };

@@ -23,7 +23,7 @@
     "@radix-ui/react-separator": "^1.1.6",
     "@radix-ui/react-slot": "^1.2.2",
     "@radix-ui/react-tabs": "^1.1.11",
-    "@radix-ui/react-tooltip": "^1.2.6",
+    "@radix-ui/react-tooltip": "^1.2.7",
     "@tanstack/react-table": "^8.21.3",
     "@types/cookie": "^0.6.0",
     "axios": "^1.9.0",

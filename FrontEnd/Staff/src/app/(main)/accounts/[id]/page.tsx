@@ -1,8 +1,7 @@
 'use client';
 
-import AuthGuard from '@/components/guard/AuthGuard';
 import { useEffect, useState, use } from 'react';
-import { useBreadcrumb } from '@/context/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
@@ -11,11 +10,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface AuthData {
-  userId: string | null;
-  role: string | null;
-}
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
 
@@ -43,31 +39,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     updatedAt: string;
   } | null>(null);
 
-  const [authData, setAuthData] = useState<AuthData>({
-    userId: null,
-    role: null,
-  });
-
-  useEffect(() => {
-    async function fetchAuth() {
-      try {
-        const res = await fetch('/api/getAuth');
-        if (!res.ok) {
-          setAuthData({ userId: null, role: null });
-          router.replace('/login');
-          return;
-        }
-
-        const data = await res.json();
-        setAuthData({ userId: data.userId, role: data.role });
-      } catch (err) {
-        console.log(err);
-        setAuthData({ userId: null, role: null });
-      }
-    }
-
-    fetchAuth();
-  }, [router]);
+  const { authData } = useAuth();
 
   useEffect(() => {
     setBreadcrumbs([
@@ -166,59 +138,53 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     return <></>;
   }
   return (
-    <AuthGuard allowedRoles={['Admin']}>
-      <div className="w-full max-w-xl h-fit flex space-x-2 relative">
-        {staffData && (
-          <StaffForm
-            defaultValues={staffData}
-            onSubmit={handleOnSubmit}
-            onDelete={handleOnDelete}
-          />
-        )}
+    <div className="w-full max-w-xl h-fit flex space-x-2 relative">
+      {staffData && (
+        <StaffForm defaultValues={staffData} onSubmit={handleOnSubmit} onDelete={handleOnDelete} />
+      )}
 
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="absolute top-4 right-8">
-              <Info></Info>
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Thông tin dữ liệu</SheetTitle>
-              {metadata && authData.role === 'Admin' && (
-                <div className=" text-sm space-y-3 mt-4">
-                  <div className="">
-                    <span className="font-medium ">Ngày tạo:</span>{' '}
-                    {new Date(metadata.createdAt).toLocaleString('vi-VN')}
-                  </div>
-                  <div className="">
-                    <span className="font-medium ">Cập nhật:</span>{' '}
-                    {new Date(metadata.updatedAt).toLocaleString('vi-VN')}
-                  </div>
-                  <div>
-                    <div className="font-medium ">Người thực hiện</div>{' '}
-                    <span className="font-light text-xs text-gray-500 italic">
-                      Người thực hiện cập nhật dữ liệu
-                    </span>
-                  </div>
-                  <div className="pl-4">
-                    <span className="font-medium ">Mã số:</span> {metadata.createdBy.id}
-                  </div>
-                  <div className="pl-4">
-                    <span className="font-medium ">Họ tên:</span> {metadata.createdBy.name}
-                  </div>
-                  <div className="pl-4">
-                    <span className="font-medium ">Email:</span> {metadata.createdBy.email}
-                  </div>
-                  <div className="pl-4">
-                    <span className="font-medium ">Số điện thoại:</span> {metadata.createdBy.phone}
-                  </div>
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="absolute top-6 right-6 cursor-pointer">
+            <Info></Info>
+          </Button>
+        </SheetTrigger>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Thông tin dữ liệu</SheetTitle>
+            {metadata && (
+              <div className=" text-sm space-y-3 mt-4">
+                <div className="">
+                  <span className="font-medium ">Ngày tạo:</span>{' '}
+                  {new Date(metadata.createdAt).toLocaleString('vi-VN')}
                 </div>
-              )}
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-      </div>
-    </AuthGuard>
+                <div className="">
+                  <span className="font-medium ">Cập nhật:</span>{' '}
+                  {new Date(metadata.updatedAt).toLocaleString('vi-VN')}
+                </div>
+                <div>
+                  <div className="font-medium ">Người thực hiện</div>{' '}
+                  <span className="font-light text-xs text-gray-500 italic">
+                    Người thực hiện cập nhật dữ liệu
+                  </span>
+                </div>
+                <div className="pl-4">
+                  <span className="font-medium ">Mã số:</span> {metadata.createdBy.id}
+                </div>
+                <div className="pl-4">
+                  <span className="font-medium ">Họ tên:</span> {metadata.createdBy.name}
+                </div>
+                <div className="pl-4">
+                  <span className="font-medium ">Email:</span> {metadata.createdBy.email}
+                </div>
+                <div className="pl-4">
+                  <span className="font-medium ">Số điện thoại:</span> {metadata.createdBy.phone}
+                </div>
+              </div>
+            )}
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 }
