@@ -16,15 +16,19 @@ export class ShippingFeeRepository {
   }
 
   async findAll(): Promise<PHI_VAN_CHUYEN[]> {
-    return this.ShippingFee.find().exec();
+    return this.ShippingFee.find({ VC_daXoa: false }).exec();
   }
 
   async findById(id: string): Promise<PHI_VAN_CHUYEN | null> {
     return this.ShippingFee.findOne({ VC_id: id }).exec();
   }
 
+  async findByProvince(id: number): Promise<PHI_VAN_CHUYEN | null> {
+    return this.ShippingFee.findOne({ T_id: id }).exec();
+  }
+
   async update(id: string, data: any): Promise<PHI_VAN_CHUYEN | null> {
-    return this.ShippingFee.findByIdAndUpdate({ VC_id: id }, data, {
+    return this.ShippingFee.findOneAndUpdate({ VC_id: id }, data, {
       new: true,
     }).exec();
   }
@@ -37,7 +41,7 @@ export class ShippingFeeRepository {
     ).exec();
   }
   async countAll(): Promise<number> {
-    return this.ShippingFee.countDocuments().exec();
+    return this.ShippingFee.countDocuments({ VC_daXoa: false }).exec();
   }
 
   async findLastId(): Promise<number> {

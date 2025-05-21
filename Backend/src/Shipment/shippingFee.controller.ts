@@ -7,20 +7,31 @@ import {
   Put,
   Delete,
   InternalServerErrorException,
+  ConflictException,
+  HttpException,
 } from '@nestjs/common';
 import { ShippingFeeService } from './shippingFee.service';
 import { ShippingFeeDto } from './shippingFee.dto';
 
-@Controller('api/Shipping')
+@Controller('api/shipping')
 export class ShippingFeeController {
   constructor(private readonly ShippingFeeService: ShippingFeeService) {}
 
   @Post()
   async create(@Body() dto: ShippingFeeDto) {
     try {
-      return await this.ShippingFeeService.createShippingFeet(dto);
+      const result = await this.ShippingFeeService.createShippingFeet(dto);
+      if (!result) {
+        throw new ConflictException('Khu vực đã được tạo phí vận chuyển');
+      } else {
+        return result;
+      }
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.log(error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Lỗi khi tạo phí vận chuyển');
     }
   }
 
@@ -40,7 +51,8 @@ export class ShippingFeeController {
       const shippingFees = await this.ShippingFeeService.getAllShippingFee();
       return { total: total, shippingFees: shippingFees };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.log(error);
+      throw new InternalServerErrorException('Lỗi truy suất dữ liệu');
     }
   }
 
@@ -49,7 +61,8 @@ export class ShippingFeeController {
     try {
       return await this.ShippingFeeService.getShippingFeetById(id);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.log(error);
+      throw new InternalServerErrorException('Lỗi truy suất dữ liệu');
     }
   }
 
@@ -58,7 +71,8 @@ export class ShippingFeeController {
     try {
       return await this.ShippingFeeService.updateShippingFeet(id, dto);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.log(error);
+      throw new InternalServerErrorException('Lỗi khi cập nhật dữ liệu');
     }
   }
 
@@ -67,7 +81,8 @@ export class ShippingFeeController {
     try {
       return await this.ShippingFeeService.deleteShippingFeet(id);
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      console.log(error);
+      throw new InternalServerErrorException('Lỗi khi xóa dữ liệu');
     }
   }
 }

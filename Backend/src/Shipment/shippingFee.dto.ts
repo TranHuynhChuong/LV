@@ -17,6 +17,10 @@ export class ShippingFeeDto {
   @IsOptional()
   VC_dvgtkl: number;
 
+  @IsInt()
+  @IsOptional()
+  T_id: number;
+
   @IsString()
   @IsNotEmpty()
   NV_id: string;

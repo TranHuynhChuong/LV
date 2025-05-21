@@ -13,23 +13,23 @@ export class PHI_VAN_CHUYEN {
   @Prop({ type: Number, required: true })
   VC_id: number;
 
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, required: true })
   VC_phi: number;
 
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, required: true })
   VC_ntl: number;
 
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   VC_phuPhi: number;
 
-  @Prop({ type: Number, required: true, default: 0 })
+  @Prop({ type: Number, default: 0 })
   VC_dvpp: number;
 
   @Prop({ type: Boolean, default: false })
-  VC_daoXoa: boolean;
+  VC_daXoa: boolean;
 
-  @Prop({ type: String, required: true })
-  T_id: string;
+  @Prop({ type: Number, default: null })
+  T_id: number;
 
   @Prop({ type: String, required: true })
   NV_id: string;
