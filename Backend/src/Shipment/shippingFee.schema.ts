@@ -29,6 +29,9 @@ export class PHI_VAN_CHUYEN {
   VC_daoXoa: boolean;
 
   @Prop({ type: String, required: true })
+  T_id: string;
+
+  @Prop({ type: String, required: true })
   NV_id: string;
 }
 
