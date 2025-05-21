@@ -17,13 +17,13 @@ export class PHI_VAN_CHUYEN {
   VC_phi: number;
 
   @Prop({ type: Number, required: true, default: 0 })
-  VC_nkl: number;
+  VC_ntl: number;
 
   @Prop({ type: Number, required: true, default: 0 })
   VC_phuPhi: number;
 
   @Prop({ type: Number, required: true, default: 0 })
-  VC_dvgtkl: number;
+  VC_dvpp: number;
 
   @Prop({ type: Boolean, default: false })
   VC_daoXoa: boolean;
