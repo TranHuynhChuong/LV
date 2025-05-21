@@ -53,6 +53,6 @@ export class StaffsRepository {
   }
 
   async countAll(): Promise<number> {
-    return this.Staff.countDocuments().exec();
+    return this.Staff.countDocuments({ NV_daXoa: false }).exec();
   }
 }

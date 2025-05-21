@@ -2,6 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { StaffsRepository } from './staffs.repository';
 import { CreateStaffDto, UpdateStaffDto } from './staffs.dto';
 
+export interface StaffInfo {
+  NV_id: string | null;
+  NV_hoTen: string | null;
+  NV_email: string | null;
+  NV_soDienThoai: string | null;
+}
+
 @Injectable()
 export class StaffsService {
   constructor(private readonly Staff: StaffsRepository) {}
@@ -27,12 +34,12 @@ export class StaffsService {
     const Staff = await this.Staff.findById(id);
     if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
 
-    let NV_idNV: {
-      NV_id: string;
-      NV_hoTen: string;
-      NV_email: string;
-      NV_soDienThoai: string;
-    } | null = null; // Khởi tạo null mặc định
+    let NV_idNV: StaffInfo = {
+      NV_id: null,
+      NV_hoTen: null,
+      NV_email: null,
+      NV_soDienThoai: null,
+    };
 
     const NV = await this.Staff.findById(Staff.NV_idNV);
     if (NV) {
