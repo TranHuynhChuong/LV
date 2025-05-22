@@ -229,7 +229,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
   });
 
   if (isLoading) {
-    return null; // hoặc loading spinner nếu bạn muốn
+    return null;
   }
 
   return (

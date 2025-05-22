@@ -51,8 +51,8 @@ export default function New() {
       router.back();
     } catch (error) {
       router.back();
-      toast.error('Lỗi khi tạo nhân viên!');
-      console.error('Lỗi khi tạo nhân viên:', error);
+      toast.error('Lỗi khi thêm nhân viên!');
+      console.error('Lỗi khi thêm nhân viên:', error);
     }
   };
 
