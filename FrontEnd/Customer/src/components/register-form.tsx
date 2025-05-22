@@ -63,7 +63,7 @@ export default function RegisterForm() {
         password: password,
       });
 
-      router.replace('/');
+      router.replace('/login');
     } catch (err) {
       setError('Email / Mật khẩu không đúng');
       console.error('Login error:', err);

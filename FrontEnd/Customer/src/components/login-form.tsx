@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { login } from '@/services/authService';
 
 export default function LoginForm({ onForgotPassword }: { readonly onForgotPassword: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,35 +17,49 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Kiểm tra đơn giản
     if (!email || !password) {
-      setError('Vui lòng nhập đầy đủ email và mật khẩu');
-      return;
+      setError('Vui lòng điền đầy đủ thông tin');
     }
 
     setError('');
     setLoading(true);
-
     try {
-      await login(email, password);
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, pass: password }),
+      });
 
-      router.replace('/');
-    } catch (err) {
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Login failed:', errorData.message);
+        setError('Mã đăng nhập / Mật khẩu không đúng');
+        setLoading(false);
+        return;
+      }
+
+      const resData = await res.json();
+
+      // Lưu userId và role vào localStorage
+      if (resData.userId && resData.role) {
+        localStorage.setItem('userId', resData.userId);
+        localStorage.setItem('role', resData.role);
+      }
+
+      router.push('/');
+    } catch (error) {
+      console.error('Login error:', error);
       setError('Email / Mật khẩu không đúng');
-      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
-
-    setError('');
   };
 
   return (
     <Card className="w-full shadow-lg">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <CardHeader className="mb-6">
           <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
         </CardHeader>

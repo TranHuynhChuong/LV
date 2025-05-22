@@ -1,30 +1,40 @@
 import axios from 'axios';
-import Router from 'next/router';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API,
   timeout: 10000,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const res = await fetch('/api/getAuth', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.token) {
+          config.headers['Authorization'] = `Bearer ${data.token}`;
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
-
-    // Nếu lỗi 401 Unauthorized hoặc 403 Forbidden thì logout
-    if (status === 401 || status === 403) {
-      localStorage.removeItem('token');
-      Router.push('/');
+  async (error) => {
+    if (error.response) {
+      const status = error.response.status;
+      if (status === 401 || status === 403) {
+        await fetch('/api/logout', { method: 'POST' });
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
     }
-
     return Promise.reject(error);
   }
 );

@@ -20,13 +20,16 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
       return;
     }
 
-    try {
-      await api.post('/auth/send-otp', { email });
-      setError('');
-    } catch (err) {
-      setError('Không thể gửi mã OTP');
-      console.error('Gửi OTP lỗi:', err);
-    }
+    api
+      .post('/auth/send-otp', { email: email, isNew: false })
+      .then(() => {
+        setError('');
+      })
+      .catch((err) => {
+        const errorMessage = err.response?.data?.message || 'Đã xảy ra lỗi, vui lòng thử lại';
+        setError(errorMessage);
+        console.error('Gửi OTP lỗi:', err);
+      });
   };
 
   const handleSubmit = (e: React.FormEvent) => {

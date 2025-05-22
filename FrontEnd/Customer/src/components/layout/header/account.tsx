@@ -1,17 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Account() {
-  const [isHydrated, setIsHydrated] = useState(false);
-  const userId = null;
-
-  useEffect(() => {
-    setIsHydrated(true); // đánh dấu đã hydrate xong
-  }, []);
-
   return (
     <Link
       href="/auth/login"
