@@ -6,8 +6,6 @@ import {
   UseGuards,
   Req,
   Res,
-  UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
@@ -26,18 +24,20 @@ export class AuthController {
       return;
     } catch (error) {
       console.error('Error during registration:', error);
-      throw new UnauthorizedException('Registration failed');
+      throw error;
     }
   }
 
   @Post('send-otp')
-  async checkEmail(@Body() { email }: { email: string }) {
+  async checkEmail(
+    @Body() { email, isNew }: { email: string; isNew?: boolean }
+  ) {
     try {
-      const otp = await this.authService.sendOtp(email);
+      const otp = await this.authService.sendOtp(isNew ?? true, email);
       return otp;
     } catch (error) {
       console.error('Error during send-otp:', error);
-      throw new Error(error);
+      throw error;
     }
   }
 
@@ -49,7 +49,7 @@ export class AuthController {
       return await this.authService.loginCustomer(email, pass);
     } catch (error) {
       console.error('Error during login:', error);
-      throw new NotFoundException('Login failed');
+      throw error;
     }
   }
 
@@ -61,7 +61,7 @@ export class AuthController {
       return await this.authService.loginStaff(code, pass);
     } catch (error) {
       console.error('Error during login:', error);
-      throw new NotFoundException('Login failed');
+      throw error;
     }
   }
 
