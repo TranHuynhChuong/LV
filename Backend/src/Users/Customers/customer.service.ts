@@ -14,9 +14,7 @@ export class CustomersService {
       newCustomer.KH_email
     );
     if (existingCustomer) {
-      throw new NotFoundException(
-        `Email ${newCustomer.KH_email} đã tồn tại trong hệ thống`
-      );
+      throw new NotFoundException('Email chưa được đăng ký tài khoản');
     }
     return this.CustomerRepository.create(newCustomer);
   }
@@ -32,10 +30,13 @@ export class CustomersService {
   }
 
   /** Cập nhật khách hàng **/
-  async update(id: string, updateCustomer: UpdateCustomerDto) {
-    const customer = await this.CustomerRepository.update(id, updateCustomer);
+  async update(email: string, updateCustomer: UpdateCustomerDto) {
+    const customer = await this.CustomerRepository.update(
+      email,
+      updateCustomer
+    );
     if (!customer) {
-      throw new NotFoundException(`Không tìm thấy khách hàng với id ${id}`);
+      throw new NotFoundException('Không tìm thấy khách hàng ');
     }
     return customer;
   }
@@ -44,9 +45,7 @@ export class CustomersService {
   async findByEmail(email: string) {
     const customer = await this.CustomerRepository.findByEmail(email);
     if (!customer) {
-      throw new NotFoundException(
-        `Không tìm thấy khách hàng với email ${email}`
-      );
+      throw new NotFoundException('Email chưa được đăng ký tài khoản');
     }
     return customer;
   }
