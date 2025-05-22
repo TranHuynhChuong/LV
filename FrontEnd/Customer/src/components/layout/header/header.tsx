@@ -1,29 +1,28 @@
-import { ShoppingCart } from 'lucide-react';
-import CategoryList from '@/components/layout/header/category-list';
-import Account from '@/components/layout/header/account';
+import AuthButtons from '@/components/layout/header/authButtons';
+import CartButton from '@/components/layout/header/cartButton';
+
 export default function Header() {
   return (
-    <div className="w-full bg-zinc-800">
-      <div className="container mx-auto w-full h-fit pt-3 pb-2 px-4 relative">
-        <div className="flex  h-fit md:space-x-4 space-y-4 md:space-y-0 md:flex-row flex-col">
-          <div className=" h-10">
-            <div className="h-full w-full md:w-32 bg-zinc-50 flex items-center justify-center md:justify-start">
-              LOGO
-            </div>
+    <header className="shadow">
+      <div className="container mx-auto p-4 flex flex-wrap items-center space-y-4 md:space-y-0">
+        {/* 1 */}
+        <div className="order-1 w-1/2 md:order-1 md:w-auto">Logo</div>
+
+        {/* 3 */}
+        <div className="order-2 w-1/2 text-right md:order-3 md:w-auto">
+          <AuthButtons />
+        </div>
+
+        {/* 2 */}
+        <div className="order-3 w-full md:order-2 md:flex-1 justify-between items-center flex md:mx-4">
+          <div className="flex flex-1">
+            <div className="w-fit">Category</div>
+            <div className="w-full mx-4">Search</div>
           </div>
-          <div className="md:flex-1 h-10 flex space-x-2 md:space-x-4 ">
-            <CategoryList />
-            <div className="flex flex-1 bg-zinc-50 "></div>
-            <div className="flex w-fit h-full space-x-2 md:space-x-4 ">
-              <div className="h-full w-fit flex flex-col justify-center items-center ">
-                <ShoppingCart color="white" />
-                <p className="hidden md:flex text-sm text-white">Giỏ hàng</p>
-              </div>
-              <Account />
-            </div>
-          </div>
+
+          <CartButton quantity={3} />
         </div>
       </div>
-    </div>
+    </header>
   );
 }
