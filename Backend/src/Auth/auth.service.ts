@@ -48,7 +48,11 @@ export class AuthService {
     return true;
   }
 
-  async sendOtp(email: string) {
+  async sendOtp(isNew: boolean, email: string) {
+    if (!isNew) {
+      await this.CustomersService.findByEmail(email);
+    }
+
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // OTP 6 số
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // +15 phút
 
