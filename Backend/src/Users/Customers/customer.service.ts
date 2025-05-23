@@ -43,11 +43,11 @@ export class CustomersService {
 
   /** Tìm theo email **/
   async findByEmail(email: string) {
-    const customer = await this.CustomerRepository.findByEmail(email);
-    if (!customer) {
-      throw new NotFoundException('Email chưa được đăng ký tài khoản');
-    }
-    return customer;
+    return await this.CustomerRepository.findByEmail(email);
+  }
+
+  async updateEmail(email: string, newEmail: string) {
+    return await this.CustomerRepository.updateEmail(email, newEmail);
   }
 
   /**** Thống kê  ******/

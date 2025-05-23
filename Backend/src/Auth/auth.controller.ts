@@ -5,7 +5,10 @@ import {
   Body,
   UseGuards,
   Req,
+  Put,
   Res,
+  Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
@@ -28,12 +31,32 @@ export class AuthController {
     }
   }
 
-  @Post('send-otp')
-  async checkEmail(
-    @Body() { email, isNew }: { email: string; isNew?: boolean }
+  @Put('change-email/:email')
+  async updateEmailCustomer(
+    @Param('email') email: string,
+    @Body() { newEmail, otp }: { newEmail: string; otp: string }
   ) {
     try {
-      const otp = await this.authService.sendOtp(isNew ?? true, email);
+      const updatedCustomer = await this.authService.changeEmail(
+        email,
+        newEmail,
+        otp
+      );
+      if (!updatedCustomer) {
+        throw new BadRequestException('Không thể cập nhật email');
+      }
+      return updatedCustomer;
+    } catch (error) {
+      console.error(error);
+      throw new error();
+    }
+  }
+
+  @Post('send-otp')
+  async checkEmail(@Body() { email }: { email: string }) {
+    try {
+      console.log(email);
+      const otp = await this.authService.sendOtp(email);
       return otp;
     } catch (error) {
       console.error('Error during send-otp:', error);

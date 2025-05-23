@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CustomersService } from '../Users/Customers/customer.service';
 import { StaffsService } from '../Users/Staffs/staffs.service';
 import { JwtService } from '@nestjs/jwt';
@@ -39,6 +43,14 @@ export class AuthService {
     }
   }
 
+  async changeEmail(email: string, newEmail: string, otp: string) {
+    const verifyOtp = await this.verifyOtp(email, otp);
+    if (!verifyOtp) {
+      throw new Error('Mã OTP không đúng hoặc hết hạn');
+    }
+    return await this.CustomersService.updateEmail(email, newEmail);
+  }
+
   async verifyOtp(email: string, code: string) {
     const record = await this.otp.findOne({ email });
     if (!record || record.code !== code || record.expiresAt < new Date()) {
@@ -48,9 +60,10 @@ export class AuthService {
     return true;
   }
 
-  async sendOtp(isNew: boolean, email: string) {
-    if (!isNew) {
-      await this.CustomersService.findByEmail(email);
+  async sendOtp(email: string) {
+    const isExit = await this.CustomersService.findByEmail(email);
+    if (isExit) {
+      throw new BadRequestException('Email đã được đăng ký tài khoản');
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // OTP 6 số
@@ -102,14 +115,15 @@ export class AuthService {
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
     const customer = await this.CustomersService.findByEmail(email);
     if (!customer) {
-      throw new NotFoundException('Thông tin đăng nhập không chính xác');
+      throw new NotFoundException('Email / Mật khẩu không đúng');
     }
 
     const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
     if (!isPasswordValid) {
-      throw new NotFoundException('Thông tin đăng nhập không chính xác');
+      throw new NotFoundException('Email / Mật khẩu không đúng');
     }
 
+    console.log(isPasswordValid);
     const token = await this.generateToken(customer.KH_email, 'customer');
     return { token: token };
   }

@@ -24,10 +24,6 @@ export class EmailService {
       <p>Mã có hiệu lực trong 15 phút.</p>
     `;
 
-    console.log(
-      this.configService.get<string>('email.user'),
-      this.configService.get<string>('email.pass')
-    );
     this.transporter
       .sendMail({
         from: this.configService.get<string>('email.user'),

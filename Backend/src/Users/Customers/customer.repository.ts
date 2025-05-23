@@ -34,6 +34,19 @@ export class CustomersRepository {
     }).exec();
   }
 
+  async updateEmail(
+    email: string,
+    newEmail: string
+  ): Promise<KHACH_HANG | null> {
+    return this.Customer.findOneAndUpdate(
+      { KH_email: email },
+      { KH_email: newEmail },
+      {
+        new: true,
+      }
+    ).exec();
+  }
+
   async delete(email: string): Promise<KHACH_HANG | null> {
     return this.Customer.findOneAndUpdate({ KH_email: email }).exec();
   }

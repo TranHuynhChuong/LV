@@ -44,15 +44,14 @@ export class UsersController {
 
   /********************** Customer APIs ************************/
 
-  @UseGuards(AuthGuard)
   @Put('customer/:email')
   async updateCustomer(
-    @Param('email') id: string,
+    @Param('email') email: string,
     @Body() updateCustomerDto: CreateCustomerDto
   ) {
     try {
       const updatedCustomer = await this.customerService.update(
-        id,
+        email,
         updateCustomerDto
       );
       if (!updatedCustomer) {
@@ -82,10 +81,8 @@ export class UsersController {
     }
   }
 
-  @UseGuards(AuthGuard)
-  @Roles('Admin')
-  @Get('customer-get-by-email')
-  async getCustomerByEmail(@Query('email') email: string) {
+  @Get('customer/:email')
+  async getCustomerByEmail(@Param('email') email: string) {
     try {
       return await this.customerService.findByEmail(email);
     } catch (error) {
