@@ -1,18 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/axiosClient';
+import { toast } from 'sonner';
 
 export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: () => void }) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown === 0) return;
+    const timer = setInterval(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSendOtp = async () => {
     if (!email) {
@@ -21,9 +31,11 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
     }
 
     api
-      .post('/auth/send-otp', { email: email, isNew: false })
+      .post('/auth/send-otp', { email: email })
       .then(() => {
         setError('');
+        toast.success('Mã OTP đã được gửi đến email');
+        setCountdown(30);
       })
       .catch((err) => {
         const errorMessage = err.response?.data?.message || 'Đã xảy ra lỗi, vui lòng thử lại';
@@ -32,7 +44,7 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
       });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
     const email = form.email.value;
@@ -48,9 +60,11 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
       setError('Mật khẩu xác nhận không khớp');
       return;
     }
-
+    const res = await api.put(`users/customer/${email}`, { KH_matKhau: password });
+    toast.success('Mật khẩu được cập nhật thành công');
+    console.log(res);
+    onBackToLogin();
     setError('');
-    console.log('✅ Reset mật khẩu với:', { email, otp, password });
   };
 
   return (
@@ -77,10 +91,14 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
                 size="sm"
                 onClick={handleSendOtp}
                 className="cursor-pointer"
+                disabled={countdown > 0}
               >
                 Gửi mã
               </Button>
             </div>
+            <p className="text-xs text-end mt-2 text-zinc-600">
+              {countdown > 0 ? `Gửi lại sau ${countdown}s` : ''}
+            </p>
           </div>
           <div>
             <Label htmlFor="otp">Mã OTP</Label>

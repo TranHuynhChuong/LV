@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginForm({ onForgotPassword }: { readonly onForgotPassword: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,7 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { setAuthData } = useAuth();
   const router = useRouter();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -35,18 +37,13 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Login failed:', errorData.message);
-        setError('Mã đăng nhập / Mật khẩu không đúng');
+        setError('Email / Mật khẩu không đúng');
         setLoading(false);
         return;
       }
 
       const resData = await res.json();
-
-      // Lưu userId và role vào localStorage
-      if (resData.userId && resData.role) {
-        localStorage.setItem('userId', resData.userId);
-        localStorage.setItem('role', resData.role);
-      }
+      setAuthData({ userId: resData.userId });
 
       router.push('/');
     } catch (error) {

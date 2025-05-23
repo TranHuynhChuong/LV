@@ -11,12 +11,12 @@ interface JwtPayload {
 
 export async function POST(request: Request) {
   try {
-    const { code, pass } = await request.json();
+    const { email, pass } = await request.json();
 
     const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-customer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, pass }),
+      body: JSON.stringify({ email, pass }),
     });
 
     if (!backendRes.ok) {
