@@ -4,46 +4,56 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
+import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+  private readonly logger = new Logger(AuthGuard.name);
+
   constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly reflector: Reflector
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request: Request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('Token not provided');
+      throw new UnauthorizedException('Token không được cung cấp');
     }
-
-    let payload: { [key: string]: any };
 
     try {
-      payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get('auth.jwtSecret'),
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('auth.jwtSecret'),
       });
       request['user'] = payload;
+
+      const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+        'roles',
+        [context.getHandler(), context.getClass()]
+      );
+
+      if (requiredRoles && !requiredRoles.includes(payload.role)) {
+        throw new ForbiddenException(
+          'Bạn không có quyền truy cập tài nguyên này'
+        );
+      }
+
+      return true;
     } catch (error) {
-      console.error('Token verification error:', error);
-      throw new UnauthorizedException('Invalid token');
+      this.logger.warn(`Xác thực token thất bại: ${error.message}`);
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn');
     }
-
-    // Kiểm tra quyền người dùng nếu cần
-    const requiredRoles = this.getRequiredRoles(context); // Lấy các quyền yêu cầu từ decorator
-    if (requiredRoles && !requiredRoles.includes(payload.role)) {
-      throw new ForbiddenException('You do not have the required role');
-    }
-
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | null {
@@ -56,17 +66,12 @@ export class AuthGuard implements CanActivate {
       authHeader = authHeader[0];
     }
 
-    // Kiểm tra format "Bearer token"
-    const parts = authHeader.split(' ');
-    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
-      return typeof parts[1] === 'string' ? parts[1] : null;
+    const [type, token] = authHeader.split(' ');
+
+    if (type?.toLowerCase() !== 'bearer' || !token) {
+      return null;
     }
 
-    return null;
-  }
-
-  private getRequiredRoles(context: ExecutionContext): string[] | undefined {
-    const handler = context.getHandler();
-    return Reflect.getMetadata('roles', handler) as string[] | undefined; // Lấy tất cả các quyền yêu cầu từ decorator
+    return token;
   }
 }

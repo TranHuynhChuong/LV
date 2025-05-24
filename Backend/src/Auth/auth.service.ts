@@ -3,7 +3,6 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { CustomersService } from '../Users/Customers/customer.service';
@@ -37,22 +36,18 @@ export class AuthService {
       throw new BadRequestException('Mã OTP không đúng hoặc đã hết hạn');
     }
 
-    try {
-      const newCustomer = {
-        KH_hoTen: name,
-        KH_email: email,
-        KH_matKhau: password,
-      };
-      return await this.CustomersService.create(newCustomer);
-    } catch (error) {
-      this.logger.error(
-        `Lỗi đăng ký khách hàng: ${error.message}`,
-        error.stack
-      );
-      throw new InternalServerErrorException(
-        'Đăng ký thất bại, vui lòng thử lại sau'
-      );
+    const newCustomer = {
+      KH_hoTen: name,
+      KH_email: email,
+      KH_matKhau: password,
+    };
+
+    const createdCustomer = await this.CustomersService.create(newCustomer);
+    if (!createdCustomer) {
+      throw new BadRequestException('Không thể tạo tài khoản mới');
     }
+
+    return createdCustomer;
   }
 
   async changeEmail(email: string, newEmail: string, otp: string) {
@@ -61,15 +56,14 @@ export class AuthService {
       throw new BadRequestException('Mã OTP không đúng hoặc đã hết hạn');
     }
 
-    try {
-      return await this.CustomersService.updateEmail(email, newEmail);
-    } catch (error) {
-      this.logger.error(
-        `Lỗi khi cập nhật email: ${error.message}`,
-        error.stack
-      );
-      throw new InternalServerErrorException('Không thể cập nhật email');
+    const updatedCustomer = await this.CustomersService.updateEmail(
+      email,
+      newEmail
+    );
+    if (!updatedCustomer) {
+      throw new BadRequestException('Không thể cập nhật email');
     }
+    return updatedCustomer;
   }
 
   async verifyOtp(email: string, code: string): Promise<boolean> {
@@ -87,30 +81,23 @@ export class AuthService {
   }
 
   async sendOtp(email: string) {
-    try {
-      const isExit = await this.CustomersService.findByEmail(email);
-      if (isExit) {
-        throw new BadRequestException('Email đã được đăng ký tài khoản');
-      }
-
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-      await this.otp.findOneAndUpdate(
-        { email },
-        { code, expiresAt },
-        { upsert: true, new: true }
-      );
-
-      this.EmailService.sendOtpEmail(email, code);
-
-      return code;
-    } catch (error) {
-      this.logger.error(`Lỗi gửi OTP: ${error.message}`, error.stack);
-      throw error instanceof BadRequestException
-        ? error
-        : new InternalServerErrorException('Không thể gửi OTP');
+    const isExit = await this.CustomersService.findByEmail(email);
+    if (isExit) {
+      throw new BadRequestException('Email đã được đăng ký tài khoản');
     }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.otp.findOneAndUpdate(
+      { email },
+      { code, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    this.EmailService.sendOtpEmail(email, code);
+
+    return code;
   }
 
   private async generateToken(userId: string, role: string): Promise<string> {
@@ -124,62 +111,44 @@ export class AuthService {
   }
 
   async loginStaff(code: string, pass: string): Promise<{ token: string }> {
+    const adminCode = this.configService.get('admin.code');
+    const adminPass = this.configService.get('admin.pass');
+
     let staff: any;
 
-    try {
-      const adminCode = this.configService.get('admin.code');
-      const adminPass = this.configService.get('admin.pass');
-
-      if (code === adminCode && pass === adminPass) {
-        staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
-      } else {
-        const result = await this.StaffsService.findById(code);
-        if (!result || !result.staff) {
-          throw new NotFoundException(
-            'Mã nhân viên / Mật khẩu không chính xác'
-          );
-        }
-
-        staff = result.staff;
-
-        if (pass !== staff.NV_matKhau) {
-          throw new UnauthorizedException(
-            'Mã nhân viên / Mật khẩu không chính xác'
-          );
-        }
+    if (code === adminCode && pass === adminPass) {
+      staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
+    } else {
+      const result = await this.StaffsService.findById(code);
+      if (!result || !result.staff) {
+        throw new NotFoundException('Mã nhân viên / Mật khẩu không chính xác');
       }
 
-      const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
-      return { token };
-    } catch (error) {
-      this.logger.error(
-        `Lỗi đăng nhập nhân viên: ${error.message}`,
-        error.stack
-      );
-      throw error;
+      staff = result.staff;
+
+      if (pass !== staff.NV_matKhau) {
+        throw new UnauthorizedException(
+          'Mã nhân viên / Mật khẩu không chính xác'
+        );
+      }
     }
+
+    const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
+    return { token };
   }
 
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
-    try {
-      const customer = await this.CustomersService.findByEmail(email);
-      if (!customer) {
-        throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
-      }
-
-      const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
-      if (!isPasswordValid) {
-        throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
-      }
-
-      const token = await this.generateToken(customer.KH_email, 'customer');
-      return { token };
-    } catch (error) {
-      this.logger.error(
-        `Lỗi đăng nhập khách hàng: ${error.message}`,
-        error.stack
-      );
-      throw error;
+    const customer = await this.CustomersService.findByEmail(email);
+    if (!customer) {
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
+
+    const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
+    }
+
+    const token = await this.generateToken(customer.KH_email, 'customer');
+    return { token };
   }
 }
