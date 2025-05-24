@@ -1,5 +1,9 @@
+import {
+  ConflictException,
+  NotFoundException,
+  Injectable,
+} from '@nestjs/common';
 import { StaffsService, StaffInfo } from './../Users/Staffs/staffs.service';
-import { Injectable } from '@nestjs/common';
 import { ShippingFeeDto } from './shippingFee.dto';
 import { ShippingFeeRepository } from './shippingFee.repository';
 import { PHI_VAN_CHUYEN } from './shippingFee.schema';
@@ -9,33 +13,35 @@ import * as path from 'path';
 @Injectable()
 export class ShippingFeeService {
   private readonly dataDir = path.join(__dirname, 'data');
+
   constructor(
-    private readonly ShippingFeeRepository: ShippingFeeRepository,
-    private readonly StaffsService: StaffsService
+    private readonly shippingFeeRepository: ShippingFeeRepository,
+    private readonly staffsService: StaffsService
   ) {}
 
-  async createShippingFeet(
-    dto: ShippingFeeDto
-  ): Promise<PHI_VAN_CHUYEN | null> {
-    const isExit = await this.ShippingFeeRepository.findByProvince(dto.T_id);
-    if (isExit) {
-      return null;
-    } else {
-      const id = await this.ShippingFeeRepository.findLastId();
-      const newId = id + 1;
-      return this.ShippingFeeRepository.create({ ...dto, VC_id: newId });
+  async createShippingFee(dto: ShippingFeeDto): Promise<PHI_VAN_CHUYEN> {
+    const exists = await this.shippingFeeRepository.findById(dto.T_id);
+    if (exists) {
+      throw new ConflictException('Khu vực đã được tạo phí vận chuyển');
     }
+    const created = await this.shippingFeeRepository.create(dto);
+    if (!created) {
+      throw new ConflictException('Tạo phí vận chuyển thất bại');
+    }
+    return created;
   }
 
   async getAllShippingFee(): Promise<PHI_VAN_CHUYEN[]> {
-    return this.ShippingFeeRepository.findAll();
+    return this.shippingFeeRepository.findAll();
   }
 
-  async getShippingFeetById(id: string): Promise<{
-    shippingFee: PHI_VAN_CHUYEN | null;
-    staff: StaffInfo;
-  }> {
-    const result = await this.ShippingFeeRepository.findById(id);
+  async getShippingFeeById(
+    id: number
+  ): Promise<{ shippingFee: PHI_VAN_CHUYEN; staff: StaffInfo }> {
+    const shippingFee = await this.shippingFeeRepository.findById(id);
+    if (!shippingFee) {
+      throw new NotFoundException('Phí vận chuyển không tồn tại');
+    }
 
     let staffInfo: StaffInfo = {
       NV_id: null,
@@ -44,8 +50,8 @@ export class ShippingFeeService {
       NV_soDienThoai: null,
     };
 
-    if (result) {
-      const staff = await this.StaffsService.findById(result.NV_id);
+    if (shippingFee.NV_id) {
+      const staff = await this.staffsService.findById(shippingFee.NV_id);
       if (staff) {
         staffInfo = {
           NV_id: staff.staff.NV_idNV,
@@ -56,25 +62,34 @@ export class ShippingFeeService {
       }
     }
 
-    return {
-      shippingFee: result,
-      staff: staffInfo,
-    };
+    return { shippingFee, staff: staffInfo };
   }
 
-  async updateShippingFeet(
+  async updateShippingFee(
     id: string,
     dto: ShippingFeeDto
-  ): Promise<PHI_VAN_CHUYEN | null> {
-    return this.ShippingFeeRepository.update(id, dto);
+  ): Promise<PHI_VAN_CHUYEN> {
+    const updated = await this.shippingFeeRepository.update(id, dto);
+    if (!updated) {
+      throw new NotFoundException(
+        'Phí vận chuyển không tồn tại hoặc cập nhật thất bại'
+      );
+    }
+    return updated;
   }
 
-  async deleteShippingFeet(id: string): Promise<PHI_VAN_CHUYEN | null> {
-    return this.ShippingFeeRepository.delete(id);
+  async deleteShippingFee(id: string): Promise<PHI_VAN_CHUYEN> {
+    const deleted = await this.shippingFeeRepository.delete(id);
+    if (!deleted) {
+      throw new NotFoundException(
+        'Phí vận chuyển không tồn tại hoặc xóa thất bại'
+      );
+    }
+    return deleted;
   }
 
   async countShippingFee(): Promise<number> {
-    return this.ShippingFeeRepository.countAll();
+    return this.shippingFeeRepository.countAll();
   }
 
   loadAddressFiles(): { T_id: string; data: Record<string, unknown> }[] {
@@ -86,7 +101,7 @@ export class ShippingFeeService {
           Number(a.replace('.json', '')) - Number(b.replace('.json', ''))
       );
 
-    const dataWithTId = files.map((file) => {
+    return files.map((file) => {
       const filePath = path.join(this.dataDir, file);
       const fileContent = fs.readFileSync(filePath, 'utf8');
       const data = JSON.parse(fileContent) as Record<string, unknown>;
@@ -96,7 +111,5 @@ export class ShippingFeeService {
         data,
       };
     });
-
-    return dataWithTId;
   }
 }

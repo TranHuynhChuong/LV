@@ -11,28 +11,37 @@ export interface StaffInfo {
 
 @Injectable()
 export class StaffsService {
-  constructor(private readonly Staff: StaffsRepository) {}
+  private readonly codeLength = 7;
+
+  constructor(private readonly staffRepository: StaffsRepository) {}
 
   async create(newStaff: CreateStaffDto) {
-    const lastCode = await this.Staff.findLastId();
-    const length = 7;
-    const numericCode = parseInt(lastCode, 10);
+    const lastCode = await this.staffRepository.findLastId();
+    const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
     const newNumericCode = numericCode + 1;
-    const newCode = newNumericCode.toString().padStart(length, '0');
+    const newCode = newNumericCode.toString().padStart(this.codeLength, '0');
 
-    return this.Staff.create({ ...newStaff, NV_id: newCode });
+    const created = await this.staffRepository.create({
+      ...newStaff,
+      NV_id: newCode,
+    });
+    if (!created) {
+      throw new NotFoundException('Tạo nhân viên thất bại');
+    }
+    return created;
   }
 
   async findAll() {
-    const result = {};
-    result['staffs'] = await this.Staff.findAll();
-    result['total'] = await this.Staff.countAll();
-    return result;
+    const staffs = await this.staffRepository.findAll();
+    const total = await this.staffRepository.countAll();
+    return { staffs, total };
   }
 
-  async findById(id: string) {
-    const Staff = await this.Staff.findById(id);
-    if (!Staff) throw new NotFoundException('Không tìm thấy nhân viên');
+  async findById(id: string): Promise<{ staff: any; NV_idNV: StaffInfo }> {
+    const staff = await this.staffRepository.findById(id);
+    if (!staff) {
+      throw new NotFoundException('Không tìm thấy nhân viên');
+    }
 
     let NV_idNV: StaffInfo = {
       NV_id: null,
@@ -41,32 +50,38 @@ export class StaffsService {
       NV_soDienThoai: null,
     };
 
-    const NV = await this.Staff.findById(Staff.NV_idNV);
-    if (NV) {
-      NV_idNV = {
-        NV_id: NV.NV_id,
-        NV_hoTen: NV.NV_hoTen,
-        NV_email: NV.NV_email,
-        NV_soDienThoai: NV.NV_soDienThoai,
-      };
+    if (staff.NV_idNV) {
+      const parentStaff = await this.staffRepository.findById(staff.NV_idNV);
+      if (parentStaff) {
+        NV_idNV = {
+          NV_id: parentStaff.NV_id,
+          NV_hoTen: parentStaff.NV_hoTen,
+          NV_email: parentStaff.NV_email,
+          NV_soDienThoai: parentStaff.NV_soDienThoai,
+        };
+      }
     }
 
-    return { staff: Staff, NV_idNV: NV_idNV };
+    return { staff, NV_idNV };
   }
 
   async update(id: string, dto: UpdateStaffDto) {
-    const staff = await this.Staff.update(id, dto);
-    if (!staff) throw new NotFoundException('Không tìm thấy nhân viên');
-    return staff;
+    const updated = await this.staffRepository.update(id, dto);
+    if (!updated) {
+      throw new NotFoundException('Không tìm thấy nhân viên');
+    }
+    return updated;
   }
 
   async delete(id: string) {
-    const staff = await this.Staff.delete(id);
-    if (!staff) throw new NotFoundException('Không tìm thấy nhân viên');
-    return staff;
+    const deleted = await this.staffRepository.delete(id);
+    if (!deleted) {
+      throw new NotFoundException('Không tìm thấy nhân viên');
+    }
+    return deleted;
   }
 
   async countAll() {
-    return this.Staff.countAll();
+    return await this.staffRepository.countAll();
   }
 }

@@ -1,167 +1,106 @@
 import {
   Controller,
-  Post,
   Get,
-  Body,
-  Param,
+  Post,
   Put,
   Delete,
-  InternalServerErrorException,
-  BadRequestException,
-  UseGuards,
+  Param,
+  Body,
   Query,
+  UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CustomersService } from './Customers/customer.service';
 import { StaffsService } from './Staffs/staffs.service';
-import { CreateCustomerDto } from './Customers/customers.dto';
+import { UpdateCustomerDto } from './Customers/customers.dto';
 import { CreateStaffDto, UpdateStaffDto } from './Staffs/staffs.dto';
-
 import { AuthGuard } from '../Auth/auth.guard';
 import { Roles } from '../Auth/auth.roles.decorator';
 
 @Controller('api/users')
+@UseGuards(AuthGuard)
 export class UsersController {
   constructor(
     private readonly customerService: CustomersService,
     private readonly staffService: StaffsService
   ) {}
 
-  @UseGuards(AuthGuard)
+  /** Tổng số nhân viên và khách hàng */
   @Roles('Admin')
   @Get('total')
   async getTotal() {
-    try {
-      const staff = await this.staffService.countAll();
-      const customer = await this.customerService.countAll();
-      return { staff, customer };
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'Lỗi khi lấy danh sách khách hàng'
-      );
-    }
+    const staff = await this.staffService.countAll();
+    const customer = await this.customerService.countAll();
+    return {
+      message: 'Lấy tổng số người dùng thành công',
+      data: { staff, customer },
+    };
   }
 
-  /********************** Customer APIs ************************/
+  /** CUSTOMER APIs */
 
-  @Put('customer/:email')
-  async updateCustomer(
-    @Param('email') email: string,
-    @Body() updateCustomerDto: CreateCustomerDto
-  ) {
-    try {
-      const updatedCustomer = await this.customerService.update(
-        email,
-        updateCustomerDto
-      );
-      if (!updatedCustomer) {
-        throw new BadRequestException('Không thể cập nhật khách hàng');
-      }
-      return updatedCustomer;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể cập nhật khách hàng');
-    }
-  }
-
-  @UseGuards(AuthGuard)
   @Roles('Admin')
   @Get('customers')
   async getAllCustomers(
-    @Query('page') page: number,
-    @Query('limit') limit: number
+    @Query('page', ParseIntPipe) page = 0,
+    @Query('limit', ParseIntPipe) limit = 24
   ) {
-    try {
-      return await this.customerService.findAll(page, limit);
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'Lỗi khi lấy danh sách khách hàng'
-      );
-    }
+    const result = await this.customerService.findAll(page, limit);
+    return { message: 'Lấy danh sách khách hàng thành công', data: result };
   }
 
   @Get('customer/:email')
   async getCustomerByEmail(@Param('email') email: string) {
-    try {
-      return await this.customerService.findByEmail(email);
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException(
-        'Lỗi khi lấy danh sách khách hàng'
-      );
-    }
+    const customer = await this.customerService.findByEmail(email);
+    return { message: 'Lấy thông tin khách hàng thành công', data: customer };
   }
 
-  /********************** Staff APIs ************************/
-  @UseGuards(AuthGuard)
+  @Put('customer/:email')
+  async updateCustomer(
+    @Param('email') email: string,
+    @Body() updateCustomerDto: UpdateCustomerDto
+  ) {
+    await this.customerService.update(email, updateCustomerDto);
+    return { message: 'Cập nhật khách hàng thành công' };
+  }
+
+  /** STAFF APIs */
+
   @Roles('Admin')
   @Get('staffs')
-  async getAll() {
-    try {
-      const result = await this.staffService.findAll();
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException('Lỗi khi lấy dữ liệu từ server');
-    }
+  async getAllStaffs() {
+    const result = await this.staffService.findAll();
+    return { message: 'Lấy danh sách nhân viên thành công', data: result };
   }
 
-  @UseGuards(AuthGuard)
   @Roles('Admin')
   @Post('staff')
   async createStaff(@Body() createStaffDto: CreateStaffDto) {
-    try {
-      const staff = await this.staffService.create(createStaffDto);
-      return { message: 'Staff created successfully', staff };
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể tạo nhân viên');
-    }
+    await this.staffService.create(createStaffDto);
+    return { message: 'Nhân viên đã được tạo thành công' };
   }
 
-  @UseGuards(AuthGuard)
   @Roles('Admin')
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string) {
-    try {
-      const result = await this.staffService.findById(id);
-      return result;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể tìm thấy nhân viên');
-    }
+    const result = await this.staffService.findById(id);
+    return { message: 'Lấy thông tin nhân viên thành công', data: result };
   }
 
-  @UseGuards(AuthGuard)
   @Roles('Admin')
   @Put('staff/:id')
   async updateStaff(
     @Param('id') id: string,
     @Body() updateStaffDto: UpdateStaffDto
   ) {
-    try {
-      const updatedStaff = await this.staffService.update(id, updateStaffDto);
-      if (!updatedStaff) {
-        throw new BadRequestException('Không thể cập nhật nhân viên');
-      }
-      return updatedStaff;
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể cập nhật nhân viên');
-    }
+    await this.staffService.update(id, updateStaffDto);
+    return { message: 'Cập nhật nhân viên thành công' };
   }
 
-  @UseGuards(AuthGuard)
   @Roles('Admin')
   @Delete('staff/:id')
   async deleteStaff(@Param('id') id: string) {
-    try {
-      await this.staffService.delete(id);
-      return { message: 'Nhân viên đã được xóa thành công' };
-    } catch (error) {
-      console.error(error);
-      throw new BadRequestException('Không thể xóa nhân viên');
-    }
+    await this.staffService.delete(id);
+    return { message: 'Nhân viên đã được xóa thành công' };
   }
 }

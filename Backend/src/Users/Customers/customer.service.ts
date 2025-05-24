@@ -1,73 +1,78 @@
-// khach-hang.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CustomersRepository } from './customer.repository';
 import { CreateCustomerDto, UpdateCustomerDto } from './customers.dto';
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly CustomerRepository: CustomersRepository) {}
+  constructor(private readonly customerRepository: CustomersRepository) {}
 
-  /** Tạo mới khách hàng */
   async create(newCustomer: CreateCustomerDto) {
-    // Kiểm tra xem email đã tồn tại chưa
-    const existingCustomer = await this.CustomerRepository.findByEmail(
+    const existingCustomer = await this.customerRepository.findByEmail(
       newCustomer.KH_email
     );
     if (existingCustomer) {
-      throw new NotFoundException('Email chưa được đăng ký tài khoản');
+      throw new ConflictException('Email đã được đăng ký tài khoản');
     }
-    return this.CustomerRepository.create(newCustomer);
+    const created = await this.customerRepository.create(newCustomer);
+    if (!created) {
+      throw new ConflictException('Tạo khách hàng thất bại');
+    }
+    return created;
   }
 
-  /** Lấy danh sách tất cả khách hàng - phân trang*/
-  async findAll(page: number = 0, limit: number = 24) {
-    const result = {};
+  async findAll(page = 0, limit = 24) {
+    page = page < 0 ? 0 : page;
+    limit = limit <= 0 ? 24 : limit;
 
-    result['customers'] = await this.CustomerRepository.findAll(page, limit);
-    result['total'] = await this.CustomerRepository.countAll();
+    const customers = await this.customerRepository.findAll(page, limit);
+    const total = await this.customerRepository.countAll();
 
-    return result;
+    return { customers, total };
   }
 
-  /** Cập nhật khách hàng **/
   async update(email: string, updateCustomer: UpdateCustomerDto) {
-    const customer = await this.CustomerRepository.update(
-      email,
-      updateCustomer
-    );
+    const updated = await this.customerRepository.update(email, updateCustomer);
+    if (!updated) {
+      throw new NotFoundException('Không tìm thấy khách hàng');
+    }
+    return updated;
+  }
+
+  async findByEmail(email: string) {
+    const customer = await this.customerRepository.findByEmail(email);
     if (!customer) {
-      throw new NotFoundException('Không tìm thấy khách hàng ');
+      throw new NotFoundException('Không tìm thấy khách hàng với email này');
     }
     return customer;
   }
 
-  /** Tìm theo email **/
-  async findByEmail(email: string) {
-    return await this.CustomerRepository.findByEmail(email);
-  }
-
   async updateEmail(email: string, newEmail: string) {
-    return await this.CustomerRepository.updateEmail(email, newEmail);
-  }
-
-  /**** Thống kê  ******/
-  /* Số lượng tất cả tài khoản khách hàng đã đăng ký thành viên */
-  async countAll() {
-    return await this.CustomerRepository.countAll();
-  }
-
-  /* Số lượng khách hàng đã đăng ký thành viên theo tháng */
-  async countByMonth(year: number = 0) {
-    if (year === 0) {
-      year = new Date().getFullYear();
+    const existing = await this.customerRepository.findByEmail(newEmail);
+    if (existing) {
+      throw new ConflictException('Email mới đã được đăng ký');
     }
 
-    const countsByMonth =
-      await this.CustomerRepository.countByMonthInCurrentYear(
-        year,
-        Array(12).fill(0)
+    const updated = await this.customerRepository.updateEmail(email, newEmail);
+    if (!updated) {
+      throw new NotFoundException(
+        'Không tìm thấy khách hàng để cập nhật email'
       );
+    }
+    return updated;
+  }
 
-    return countsByMonth;
+  async countAll() {
+    return await this.customerRepository.countAll();
+  }
+
+  async countByMonth(year = new Date().getFullYear()) {
+    return await this.customerRepository.countByMonthInCurrentYear(
+      year,
+      Array(12).fill(0)
+    );
   }
 }
