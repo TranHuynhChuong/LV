@@ -11,9 +11,6 @@ export type PHI_VAN_CHUYENDocument = PHI_VAN_CHUYEN & Document;
 })
 export class PHI_VAN_CHUYEN {
   @Prop({ type: Number, required: true })
-  VC_id: number;
-
-  @Prop({ type: Number, required: true })
   VC_phi: number;
 
   @Prop({ type: Number, required: true })
@@ -28,7 +25,7 @@ export class PHI_VAN_CHUYEN {
   @Prop({ type: Boolean, default: false })
   VC_daXoa: boolean;
 
-  @Prop({ type: Number, default: null })
+  @Prop({ type: Number, unique: true })
   T_id: number;
 
   @Prop({ type: String, required: true })
