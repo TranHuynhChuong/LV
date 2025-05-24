@@ -30,13 +30,13 @@ export class AuthController {
   async loginCustomer(
     @Body() { email, pass }: { email: string; pass: string }
   ) {
-    await this.authService.loginCustomer(email, pass);
-    return { message: 'Đăng nhập thành công' };
+    const result = await this.authService.loginCustomer(email, pass);
+    return { message: 'Đăng nhập thành công', ...result };
   }
 
   @Post('login-staff')
   async loginStaff(@Body() { code, pass }: { code: string; pass: string }) {
-    await this.authService.loginStaff(code, pass);
-    return { message: 'Đăng nhập nhân viên thành công' };
+    const result = await this.authService.loginStaff(code, pass);
+    return { message: 'Đăng nhập nhân viên thành công', ...result };
   }
 }
