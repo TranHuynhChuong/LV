@@ -82,69 +82,70 @@ export default function Shipments() {
     id: null,
   });
 
-  const getData = async () => {
-    try {
-      // Gọi đồng thời cả 2 API
-      const [shippingRes, locationRes] = await Promise.all([
-        api.get('/shipping'),
-        fetch('/data/0.json').then((res) => res.json()),
-      ]);
+  const [errorMessage, setErrorMessage] = useState('');
 
-      const provinces: { T_id: number; T_ten: string }[] = locationRes;
-      const shippingRaw: ShippingFeeApi[] = shippingRes.data.shippingFees;
+  const getData = () => {
+    setIsLoading(true);
 
-      setTotal(shippingRes.data.total);
-      const mapped: ShippingFee[] = shippingRaw.map((item) => {
-        let locationName = 'Không xác định';
+    Promise.all([api.get('/shipping'), fetch('/data/0.json').then((res) => res.json())])
+      .then(([shippingRes, locationRes]) => {
+        const provinces: { T_id: number; T_ten: string }[] = locationRes;
+        console.log(shippingRes);
+        const shippingRaw: ShippingFeeApi[] = shippingRes.data.data.shippingFees;
 
-        if (item.T_id === 0) {
-          locationName = 'Khu vực còn lại';
-        } else {
+        setTotal(shippingRes.data.data.total);
+
+        const mapped: ShippingFee[] = shippingRaw.map((item) => {
           const province = provinces.find((p) => p.T_id === item.T_id);
-          if (province) locationName = province.T_ten;
-        }
+          const locationName =
+            item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
 
-        return {
-          fee: item.VC_phi,
-          level: item.VC_ntl,
-          surcharge: item.VC_phuPhi,
-          unit: item.VC_dvpp,
-          location: locationName,
-          locationId: item.T_id,
-        };
+          return {
+            fee: item.VC_phi,
+            level: item.VC_ntl,
+            surcharge: item.VC_phuPhi,
+            unit: item.VC_dvpp,
+            location: locationName,
+            locationId: item.T_id,
+          };
+        });
+
+        setData(mapped);
+      })
+      .catch((error) => {
+        setData([]);
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        setErrorMessage(msg);
+        console.error('Lỗi tải dữ liệu phí vận chuyển:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-
-      setData(mapped);
-    } catch (err) {
-      toast.error('Lỗi khi tải dữ liệu phí vận chuyển');
-      setData([]);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   useEffect(() => {
     getData();
   }, []);
 
-  const handleConfirmDelete = async (id: number) => {
+  const handleConfirmDelete = (id: number) => {
     if (!id) return;
 
-    try {
-      await api.delete(`/shipping/${id}`);
-      setData((prev) => prev.filter((item) => item.locationId !== id));
-      setTotal((prev) => prev - 1);
-      setDeleteDialogOpen({
-        open: false,
-        id: null,
+    api
+      .delete(`/shipping/${id}`)
+      .then((res) => {
+        setData((prev) => prev.filter((item) => item.locationId !== id));
+        setTotal((prev) => prev - 1);
+        setDeleteDialogOpen({
+          open: false,
+          id: null,
+        });
+        toast.success(res.data.data.message ?? 'Xóa thành công!');
+      })
+      .catch((error) => {
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg ?? 'Đã xảy ra lỗi!');
+        console.error('Xóa thất bại:', error);
       });
-
-      toast.success('Xóa thành công!');
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi!');
-      console.error('Xóa thất bại:', error);
-    }
   };
 
   const columns: ColumnDef<ShippingFee>[] = [
@@ -351,7 +352,7 @@ export default function Shipments() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    Không có kết quả.
+                    {errorMessage || 'Không có kết quả.'}
                   </TableCell>
                 </TableRow>
               )}
@@ -411,7 +412,6 @@ export default function Shipments() {
               Hủy
             </Button>
             <Button
-              variant="destructive"
               onClick={() => handleConfirmDelete(isDeleteDialogOpen.id!)}
               className="cursor-pointer"
             >

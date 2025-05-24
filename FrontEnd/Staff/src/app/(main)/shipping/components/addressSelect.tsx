@@ -34,8 +34,12 @@ export default function AddressSelect({ onChange, value }: AddressSelectProps) {
         <Combobox
           data={provincesData}
           value={value}
-          type="province"
           onSelect={handleSelectProvince}
+          placeholders={{
+            select: 'Chọn tỉnh/thành phố...',
+            search: 'Nhập tên tỉnh/thành phố...',
+            empty: 'Không tìm thấy tỉnh/thành phố.',
+          }}
         />
       </div>
     </div>

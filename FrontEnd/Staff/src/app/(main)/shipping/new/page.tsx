@@ -44,7 +44,8 @@ export default function CreateShippingPage() {
       })
       .catch((error) => {
         console.error(error);
-        toast.error(error.response.data.message);
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg);
       });
   };
 

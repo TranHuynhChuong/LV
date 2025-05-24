@@ -14,20 +14,30 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useRef } from 'react';
+
+interface PlaceholderSet {
+  select: string;
+  search: string;
+  empty: string;
+}
 
 interface ComboboxProps {
   readonly data: { code: number; name: string }[] | null;
-  readonly type: 'province' | 'ward';
   readonly onSelect: (id: number) => void;
   readonly value?: number;
+  readonly placeholders?: PlaceholderSet; // prop placeholder truyền từ ngoài
 }
 
-export default function Combobox({ data, type, onSelect, value }: ComboboxProps) {
+const defaultPlaceholders: PlaceholderSet = {
+  select: 'Chọn...',
+  search: 'Nhập từ khóa...',
+  empty: 'Không tìm thấy kết quả.',
+};
+
+export default function Combobox({ data, onSelect, value, placeholders }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
 
-  // Đồng bộ `value` từ props vào state khi `value` thay đổi
   React.useEffect(() => {
     if (value !== undefined) {
       setSelectedId(value);
@@ -36,22 +46,10 @@ export default function Combobox({ data, type, onSelect, value }: ComboboxProps)
 
   const selectedItem = data?.find((d) => d.code === selectedId);
 
-  const placeholders = {
-    province: {
-      select: 'Chọn tỉnh/thành phố...',
-      search: 'Nhập tên tỉnh/thành phố...',
-      empty: 'Không tìm thấy tỉnh/thành phố.',
-    },
-    ward: {
-      select: 'Chọn xã/phường...',
-      search: 'Nhập tên xã/phường...',
-      empty: 'Không tìm thấy xã/phường.',
-    },
-  };
+  const ph = placeholders ?? defaultPlaceholders;
 
-  const ph = placeholders[type];
   const isDisabled = !data || data.length === 0;
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,7 +59,7 @@ export default function Combobox({ data, type, onSelect, value }: ComboboxProps)
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal"
+          className="justify-between w-full font-normal"
           disabled={isDisabled}
         >
           {selectedItem ? selectedItem.name : ph.select}

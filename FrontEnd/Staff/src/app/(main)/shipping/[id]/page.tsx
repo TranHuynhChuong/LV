@@ -52,9 +52,8 @@ export default function ShippingDetailPage() {
     api
       .get(`/shipping/${id}`)
       .then((res) => {
-        const data = res.data.shippingFee;
-        const staff = res.data.staff;
-        console.log(res.data);
+        const data = res.data.data.shippingFee;
+        const staff = res.data.data.staff;
         setInitialData({
           fee: data.VC_phi,
           weight: data.VC_ntl,
@@ -70,15 +69,14 @@ export default function ShippingDetailPage() {
             email: staff.NV_email,
           },
         });
-        console.log(initialData);
       })
       .catch((error) => {
         console.error(error);
-        toast.error('Không thể tải dữ liệu');
-        router.back();
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg);
       })
       .finally(() => setLoading(false));
-  }, [id, router, initialData]);
+  }, [id]);
 
   const handleSubmit = (data: ShippingFormData) => {
     const apiData = {
@@ -92,13 +90,14 @@ export default function ShippingDetailPage() {
 
     api
       .put(`/shipping/${id}`, apiData)
-      .then(() => {
-        toast.success('Cập nhật thành công');
+      .then((res) => {
+        toast.success(res.data.message ?? 'Cập nhật thành công');
         router.back();
       })
       .catch((error) => {
         console.error(error);
-        toast.error('Lỗi khi cập nhật phí vận chuyển');
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg);
       });
   };
 
@@ -107,13 +106,14 @@ export default function ShippingDetailPage() {
 
     api
       .delete(`/shipping/${id}`)
-      .then(() => {
-        toast.success('Xoá thành công');
+      .then((res) => {
+        toast.success(res.data.message ?? 'Xoá thành công');
         router.back();
       })
       .catch((error) => {
         console.error(error);
-        toast.error(error.response.data.message);
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg);
       });
   };
 
@@ -121,7 +121,7 @@ export default function ShippingDetailPage() {
   if (!initialData) return <p>Không tìm thấy dữ liệu.</p>;
 
   return (
-    <div className="w-full h-fit min-w-md max-w-xl relative">
+    <div className="relative w-full max-w-xl h-fit min-w-md">
       <ShippingFeeForm
         onSubmit={handleSubmit}
         onDelete={handleDelete}
@@ -129,14 +129,14 @@ export default function ShippingDetailPage() {
       />
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" className="absolute top-6 right-6 cursor-pointer">
+          <Button variant="outline" className="absolute cursor-pointer top-6 right-6">
             <Info></Info>
           </Button>
         </SheetTrigger>
         <SheetContent>
           <SheetHeader>
             <SheetTitle>Thông tin dữ liệu</SheetTitle>
-            <div className=" text-sm space-y-3 mt-4">
+            <div className="mt-4 space-y-3 text-sm ">
               <div className="">
                 <span className="font-medium ">Ngày tạo:</span>{' '}
                 {initialData.createdAt
@@ -151,7 +151,7 @@ export default function ShippingDetailPage() {
               </div>
               <div>
                 <div className="font-medium ">Người thực hiện</div>{' '}
-                <span className="font-light text-xs text-gray-500 italic">
+                <span className="text-xs italic font-light text-gray-500">
                   Người thực hiện cập nhật dữ liệu
                 </span>
               </div>

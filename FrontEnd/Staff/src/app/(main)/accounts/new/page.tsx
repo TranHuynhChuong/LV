@@ -8,14 +8,6 @@ import { toast } from 'sonner';
 import { StaffForm } from '../components/staffForm';
 import { useAuth } from '@/contexts/AuthContext';
 
-type New = {
-  NV_matKhau: string;
-  NV_vaiTro: string;
-  NV_hoTen: string;
-  NV_email: string;
-  NV_soDienThoai: string;
-};
-
 export default function New() {
   const router = useRouter();
   const { authData } = useAuth();
@@ -29,35 +21,37 @@ export default function New() {
     ]);
   }, [setBreadcrumbs]);
 
-  const handleOnsubmit = async (data: {
+  const handleOnsubmit = (data: {
     fullName: string;
     phone: string;
     email: string;
     role: 'Admin' | 'Manager' | 'Sale';
     password?: string;
   }) => {
-    try {
-      const payload = {
-        NV_hoTen: data.fullName,
-        NV_soDienThoai: data.phone,
-        NV_email: data.email,
-        NV_vaiTro: data.role,
-        NV_matKhau: data.password,
-        NV_idNV: authData.userId,
-      };
+    const payload = {
+      NV_hoTen: data.fullName,
+      NV_soDienThoai: data.phone,
+      NV_email: data.email,
+      NV_vaiTro: data.role,
+      NV_matKhau: data.password,
+      NV_idNV: authData.userId,
+    };
 
-      await api.post('/users/staff', payload);
-      toast.success('Lưu thành công!');
-      router.back();
-    } catch (error) {
-      router.back();
-      toast.error('Lỗi khi thêm nhân viên!');
-      console.error('Lỗi khi thêm nhân viên:', error);
-    }
+    api
+      .post('/users/staff', payload)
+      .then((res) => {
+        toast.success(res.data.message ?? 'Lưu thành công!');
+        router.back();
+      })
+      .catch((error) => {
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
+        toast.error(msg);
+        console.error('Lỗi khi thêm nhân viên:', error);
+      });
   };
 
   return (
-    <div className="w-full h-fit max-w-xl min-w-md">
+    <div className="w-full max-w-xl h-fit min-w-md">
       <StaffForm onSubmit={handleOnsubmit} />
     </div>
   );

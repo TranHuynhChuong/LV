@@ -107,7 +107,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       })
       .catch((error) => {
         console.error('Lỗi khi gọi API:', error);
-        const msg = error?.response?.data?.message || 'Đã xảy ra lỗi khi tải dữ liệu nhân viên.';
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
         setErrorMessage(msg);
         setData([]);
       })

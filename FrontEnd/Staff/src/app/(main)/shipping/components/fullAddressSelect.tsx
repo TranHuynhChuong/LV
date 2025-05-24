@@ -90,15 +90,28 @@ export default function AddressSelect({
         <span className="text-sm font-medium">Chọn tỉnh/thành phố</span>
         <Combobox
           data={provincesData}
-          type="province"
+          value={valueProvinceId}
           onSelect={handleSelectProvince}
-          value={selectedProvinceId ?? valueProvinceId}
+          placeholders={{
+            select: 'Chọn tỉnh/thành phố...',
+            search: 'Nhập tên tỉnh/thành phố...',
+            empty: 'Không tìm thấy tỉnh/thành phố.',
+          }}
         />
       </div>
 
       <div>
         <span className="text-sm font-medium">Chọn xã/phường</span>
-        <Combobox data={wardsData} type="ward" onSelect={handleSelectWard} value={valueWardId} />
+        <Combobox
+          data={wardsData}
+          value={valueWardId}
+          onSelect={handleSelectWard}
+          placeholders={{
+            select: 'Chọn xã/phường...',
+            search: 'Nhập tên xã/phường...',
+            empty: 'Không tìm thấy xã/phường.',
+          }}
+        />
       </div>
     </div>
   );
