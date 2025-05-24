@@ -13,7 +13,6 @@ export async function POST(request: Request) {
   try {
     const { code, pass } = await request.json();
 
-    // Gọi backend thật (ví dụ)
     const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-staff`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23,7 +22,7 @@ export async function POST(request: Request) {
     if (!backendRes.ok) {
       const error = await backendRes.json();
       return NextResponse.json(
-        { message: error.message || 'Login failed' },
+        { message: error.message ?? 'Login failed' },
         { status: backendRes.status }
       );
     }

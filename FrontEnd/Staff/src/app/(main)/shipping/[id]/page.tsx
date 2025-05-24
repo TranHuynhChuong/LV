@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ShippingFeeForm from '../ShippingFeeForm';
+import ShippingFeeForm from '../components/ShippingFeeForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useAuth } from '@/contexts/AuthContext';

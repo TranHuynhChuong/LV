@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ShippingFeeForm from '../ShippingFeeForm';
+import ShippingFeeForm from '../components/ShippingFeeForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect } from 'react';
@@ -49,7 +49,7 @@ export default function CreateShippingPage() {
   };
 
   return (
-    <div className="w-full h-fit  min-w-md max-w-xl ">
+    <div className="w-full max-w-xl h-fit min-w-md ">
       <ShippingFeeForm onSubmit={handleSubmit} />
     </div>
   );

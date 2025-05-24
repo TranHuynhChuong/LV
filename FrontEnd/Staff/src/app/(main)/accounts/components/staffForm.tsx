@@ -58,8 +58,8 @@ type StaffFormProps = {
 
 export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffFormProps>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [isConfirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
   const router = useRouter();
 
@@ -96,8 +96,8 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
   return (
     <div className="w-full">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1  space-y-4" noValidate>
-          <div className="w-full p-6 space-y-6 bg-white shadow-sm rounded-md">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="flex-1 space-y-4" noValidate>
+          <div className="w-full p-6 space-y-6 bg-white rounded-md shadow-sm">
             <h2 className="font-medium">Thông tin nhân viên</h2>
 
             {isEditing && (
@@ -203,7 +203,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
             />
           </div>
 
-          <div className="w-full h-fit p-6 bg-white sticky bottom-0 flex items-center space-x-4 rounded-md shadow-sm">
+          <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
             <Button
               type="submit"
               className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}

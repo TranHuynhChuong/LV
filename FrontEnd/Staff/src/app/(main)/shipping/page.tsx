@@ -17,7 +17,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 
-import { ArrowUpDown, MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus } from 'lucide-react';
 
 import {
   Table,
@@ -49,16 +49,15 @@ import {
 } from '@/components/ui/dialog';
 
 export type ShippingFee = {
-  id: string;
   fee: number;
   level: string;
   surcharge?: number;
   unit?: string;
   location: string;
+  locationId: number;
 };
 
 export type ShippingFeeApi = {
-  VC_id: string;
   VC_phi: number;
   VC_ntl: string;
   VC_phuPhi?: number;
@@ -77,7 +76,7 @@ export default function Shipments() {
   const [total, setTotal] = useState(0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
-    id: string | null;
+    id: number | null;
   }>({
     open: false,
     id: null,
@@ -106,12 +105,12 @@ export default function Shipments() {
         }
 
         return {
-          id: item.VC_id,
           fee: item.VC_phi,
           level: item.VC_ntl,
           surcharge: item.VC_phuPhi,
           unit: item.VC_dvpp,
           location: locationName,
+          locationId: item.T_id,
         };
       });
 
@@ -129,12 +128,12 @@ export default function Shipments() {
     getData();
   }, []);
 
-  const handleConfirmDelete = async (id: string) => {
+  const handleConfirmDelete = async (id: number) => {
     if (!id) return;
 
     try {
       await api.delete(`/shipping/${id}`);
-      setData((prev) => prev.filter((item) => item.id !== id));
+      setData((prev) => prev.filter((item) => item.locationId !== id));
       setTotal((prev) => prev - 1);
       setDeleteDialogOpen({
         open: false,
@@ -149,19 +148,6 @@ export default function Shipments() {
   };
 
   const columns: ColumnDef<ShippingFee>[] = [
-    {
-      accessorKey: 'id',
-      header: ({ column }) => (
-        <button
-          className="p-0 flex items-center"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Mã <ArrowUpDown className="ml-2 h-4 w-4" />
-        </button>
-      ),
-      enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('id')}</div>,
-    },
     {
       accessorKey: 'location',
       header: 'Khu vực',
@@ -265,7 +251,7 @@ export default function Shipments() {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+              <Button variant="ghost" className="w-8 h-8 p-0 cursor-pointer">
                 <span className="sr-only">Mở menu</span>
                 <MoreHorizontal />
               </Button>
@@ -274,14 +260,14 @@ export default function Shipments() {
               <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href={`/shipping/${item.id}`}>Cập nhật</Link>
+                <Link href={`/shipping/${item.locationId}`}>Cập nhật</Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
                 onClick={() => {
                   setDeleteDialogOpen({
                     open: true,
-                    id: item.id,
+                    id: item.locationId,
                   });
                 }}
               >
@@ -324,10 +310,10 @@ export default function Shipments() {
 
   return (
     <>
-      <div className="w-full h-fit bg-white p-4 shadow-sm rounded-md">
+      <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="space-x-2">
-            <span className=" font-medium text-lg">{total}</span>
+            <span className="text-lg font-medium ">{total}</span>
             <span>Phí vận chuyển</span>
           </div>
           <Link href="shipping/new">
@@ -336,7 +322,7 @@ export default function Shipments() {
             </Button>
           </Link>
         </div>
-        <div className="rounded-md border">
+        <div className="border rounded-md">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -373,8 +359,8 @@ export default function Shipments() {
           </Table>
         </div>
 
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground pl-3">
+        <div className="flex items-center justify-end py-4 space-x-2">
+          <div className="flex-1 pl-3 text-sm text-muted-foreground">
             Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </div>
           <div className="space-x-2">

@@ -15,8 +15,9 @@ export default function Accounts() {
   const getCount = async () => {
     try {
       const res = await api.get('users/total');
-      setStaff(res.data.staff);
-      setCustomer(res.data.customer);
+      const data = res.data.data;
+      setStaff(data.staff);
+      setCustomer(data.customer);
     } catch (error) {
       console.log(error);
     }
@@ -27,9 +28,9 @@ export default function Accounts() {
   }, [setBreadcrumbs]);
 
   return (
-    <div className="w-full h-fit bg-white p-4 shadow-sm rounded-md">
+    <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
       <Tabs defaultValue="staff" className="flex flex-1 ">
-        <TabsList className="grid w-fit grid-cols-2">
+        <TabsList className="grid grid-cols-2 w-fit">
           <TabsTrigger value="staff">Nhân viên ({staff})</TabsTrigger>
           <TabsTrigger value="cusstomer">Khách hàng ({customer})</TabsTrigger>
         </TabsList>

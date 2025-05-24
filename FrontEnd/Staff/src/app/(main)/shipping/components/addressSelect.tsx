@@ -30,7 +30,7 @@ export default function AddressSelect({ onChange, value }: AddressSelectProps) {
 
   return (
     <div className="space-y-6">
-      <div className="w-full relative">
+      <div className="relative w-full">
         <Combobox
           data={provincesData}
           value={value}

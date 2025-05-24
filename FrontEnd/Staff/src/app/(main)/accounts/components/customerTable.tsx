@@ -46,65 +46,83 @@ export default function CustomerTable() {
   const [pageIndex, setPageIndex] = useState(0);
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const limit = 12;
 
-  const getCustomers = async (page: number) => {
+  const getCustomers = (page: number) => {
     setIsLoading(true);
-    try {
-      const res = await api.get('/users/customers', {
-        params: { page: page, limit },
+    setErrorMessage('');
+    api
+      .get('/users/customers', { params: { page, limit } })
+      .then((res) => {
+        const { customers, total, message } = res.data.data;
+
+        if (!customers.length) {
+          setErrorMessage(message || 'Không có dữ liệu khách hàng.');
+          setData([]);
+          setTotalPages(1);
+          return;
+        }
+
+        type ApiCustomer = {
+          KH_email: string;
+          KH_hoTen: string;
+          KH_tao: string;
+        };
+
+        const mapped: Customer[] = customers.map((item: ApiCustomer) => ({
+          name: item.KH_hoTen,
+          email: item.KH_email,
+          createAt: new Date(item.KH_tao).toLocaleString('vi-VN'),
+        }));
+
+        setData(mapped);
+        setTotalPages(Math.ceil(total / limit));
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message || 'Lỗi khi lấy danh sách khách hàng.';
+        setErrorMessage(msg);
+        setData([]);
+        setTotalPages(1);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-
-      const { customers, total } = res.data;
-
-      type ApiCustomer = {
-        KH_email: string;
-        KH_hoTen: string;
-        KH_tao: string;
-      };
-
-      const mapped: Customer[] = customers.map((item: ApiCustomer) => ({
-        name: item.KH_hoTen,
-        email: item.KH_email,
-        createAt: new Date(item.KH_tao).toLocaleString('vi-VN'),
-      }));
-
-      setData(mapped);
-      setTotalPages(Math.ceil(total / limit));
-    } catch (err) {
-      console.error('Lỗi khi lấy danh sách khách hàng:', err);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
-  const getByEmail = async (email: string) => {
+  const getByEmail = (email: string) => {
     setIsLoading(true);
-    try {
-      const res = await api.get('/users/customer-get-by-email', {
-        params: { email },
+    setErrorMessage('');
+    api
+      .get(`/users/customer/${email}`)
+      .then((res) => {
+        const result = res.data;
+        if (!result) {
+          setErrorMessage('Không tìm thấy khách hàng.');
+          setData([]);
+          setTotalPages(1);
+          return;
+        }
+        const mapped: Customer[] = [
+          {
+            name: result.KH_hoTen,
+            email: result.KH_email,
+            createAt: new Date(result.KH_tao).toLocaleString('vi-VN'),
+          },
+        ];
+        setData(mapped);
+        setTotalPages(1);
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message || 'Lỗi khi tìm khách hàng.';
+        setErrorMessage(msg);
+        setData([]);
+        setTotalPages(1);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
-
-      const result = res.data;
-      const mapped: Customer[] = result
-        ? [
-            {
-              name: result.KH_hoTen,
-              email: result.KH_email,
-              createAt: result.KH_tao,
-            },
-          ]
-        : [];
-
-      setData(mapped);
-      setTotalPages(1);
-    } catch (err) {
-      console.error('Lỗi khi tìm khách hàng:', err);
-      setData([]);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   useEffect(() => {
@@ -125,6 +143,7 @@ export default function CustomerTable() {
     setInputEmail('');
     setPageIndex(0);
     getCustomers(0);
+    setErrorMessage('');
   };
 
   const table = useReactTable({
@@ -142,12 +161,12 @@ export default function CustomerTable() {
   });
 
   if (isLoading) {
-    return <></>;
+    return <div>Đang tải dữ liệu...</div>;
   }
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 justify-end py-4">
+      <div className="flex items-center justify-end gap-2 py-4">
         <Input
           placeholder="Tìm theo email..."
           value={inputEmail}
@@ -162,7 +181,7 @@ export default function CustomerTable() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="border rounded-md">
         <Table>
           <TableHeader className="pl-5">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -178,7 +197,7 @@ export default function CustomerTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.length ? (
+            {data.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
@@ -191,7 +210,7 @@ export default function CustomerTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Không có kết quả.
+                  {errorMessage || 'Không có kết quả.'}
                 </TableCell>
               </TableRow>
             )}
@@ -199,8 +218,8 @@ export default function CustomerTable() {
         </Table>
       </div>
 
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground pl-3">
+      <div className="flex items-center justify-end py-4 space-x-2">
+        <div className="flex-1 pl-3 text-sm text-muted-foreground">
           Trang {pageIndex + 1} / {totalPages}
         </div>
         <div className="space-x-2">

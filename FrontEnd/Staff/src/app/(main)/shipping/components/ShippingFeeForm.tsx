@@ -131,8 +131,8 @@ export default function ShippingFeeForm({ defaultValues, onSubmit, onDelete }: R
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 " noValidate>
-        <div className="w-full p-6 space-y-6 bg-white shadow-sm rounded-md">
-          <h2 className=" font-medium text-lg">Thông tin phí vận chuyển</h2>
+        <div className="w-full p-6 space-y-6 bg-white rounded-md shadow-sm">
+          <h2 className="text-lg font-medium ">Thông tin phí vận chuyển</h2>
 
           {/* Tỉnh/Thành phố */}
           <FormField
@@ -283,7 +283,7 @@ export default function ShippingFeeForm({ defaultValues, onSubmit, onDelete }: R
             )}
           />
         </div>
-        <div className="w-full h-fit p-6 bg-white sticky bottom-0 flex items-center space-x-4 rounded-md shadow">
+        <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow h-fit">
           <Button
             type="submit"
             className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}

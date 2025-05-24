@@ -59,6 +59,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<Staff[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
     id: string | null;
@@ -68,69 +69,83 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
   });
 
   const router = useRouter();
-  const getData = async () => {
-    try {
-      const res = await api.get('/users/staffs');
-      const data = res.data;
 
-      type ApiStaff = {
-        NV_id: string;
-        NV_vaiTro: string;
-        NV_hoTen: string;
-        NV_email: string;
-        NV_soDienThoai: string;
-      };
+  const getData = () => {
+    setIsLoading(true);
+    setErrorMessage('');
 
-      const result: ApiStaff[] = data.staffs;
+    api
+      .get('/users/staffs')
+      .then((res) => {
+        const data = res.data.data;
 
-      if (result.length > 0) {
-        const mapped: Staff[] = result.map((staff: ApiStaff) => ({
-          id: staff.NV_id,
-          role: staff.NV_vaiTro,
-          name: staff.NV_hoTen,
-          email: staff.NV_email,
-          phone: staff.NV_soDienThoai,
-        }));
+        type ApiStaff = {
+          NV_id: string;
+          NV_vaiTro: string;
+          NV_hoTen: string;
+          NV_email: string;
+          NV_soDienThoai: string;
+        };
 
-        setData(mapped);
-      } else {
+        const result: ApiStaff[] = data.staffs;
+
+        if (result.length > 0) {
+          const mapped: Staff[] = result.map((staff: ApiStaff) => ({
+            id: staff.NV_id,
+            role: staff.NV_vaiTro,
+            name: staff.NV_hoTen,
+            email: staff.NV_email,
+            phone: staff.NV_soDienThoai,
+          }));
+
+          setData(mapped);
+          setErrorMessage('');
+        } else {
+          setData([]);
+          setErrorMessage('Không có nhân viên nào trong hệ thống.');
+        }
+      })
+      .catch((error) => {
+        console.error('Lỗi khi gọi API:', error);
+        const msg = error?.response?.data?.message || 'Đã xảy ra lỗi khi tải dữ liệu nhân viên.';
+        setErrorMessage(msg);
         setData([]);
-      }
-    } catch (error) {
-      console.error('Lỗi khi gọi API:', error);
-      setData([]);
-    } finally {
-      setIsLoading(false);
-    }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   useEffect(() => {
     getData();
   }, []);
 
-  // Hàm xóa nhân viên
-  const handleConfirmDelete = async (id: string) => {
+  const handleConfirmDelete = (id: string) => {
     if (!id) return;
 
-    try {
-      await api.delete(`/users/staff/${id}`);
-      setData((prev) => prev.filter((item) => item.id !== id));
-      onDeleteSuccess?.();
-      setDeleteDialogOpen({
-        open: false,
-        id: null,
-      });
+    api
+      .delete(`/users/staff/${id}`)
+      .then((res) => {
+        setData((prev) => prev.filter((item) => item.id !== id));
+        onDeleteSuccess?.();
+        setDeleteDialogOpen({
+          open: false,
+          id: null,
+        });
 
-      toast.success('Xóa thành công!');
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi!');
-      console.error('Xóa nhân viên thất bại:', error);
-    }
+        toast.success(res.data.message || 'Xóa thành công!');
+      })
+      .catch((error) => {
+        const msg = error?.response?.data?.message || 'Đã xảy ra lỗi!';
+        toast.error(msg);
+        console.error('Xóa nhân viên thất bại:', error);
+      });
   };
 
   const handleDoubleClick = (staff: Staff) => {
     router.push(`/accounts/staff/${staff.id}`);
   };
+
   const columns: ColumnDef<Staff>[] = [
     {
       accessorKey: 'id',
@@ -139,7 +154,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Mã <ArrowUpDown className="ml-2 h-4 w-4" />
+          Mã <ArrowUpDown className="w-4 h-4 ml-2" />
         </Button>
       ),
       enableHiding: false,
@@ -177,7 +192,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 cursor-pointer">
+              <Button variant="ghost" className="w-8 h-8 p-0 cursor-pointer">
                 <span className="sr-only">Mở menu</span>
                 <MoreHorizontal />
               </Button>
@@ -248,7 +263,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
             </Button>
           </Link>
         </div>
-        <div className="rounded-md border">
+        <div className="border rounded-md">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -283,15 +298,15 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    Không có kết quả.
+                    {errorMessage || 'Không có kết quả.'}
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-sm text-muted-foreground pl-3">
+        <div className="flex items-center justify-end py-4 space-x-2">
+          <div className="flex-1 pl-3 text-sm text-muted-foreground">
             Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </div>
           <div className="space-x-2">
@@ -335,14 +350,16 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen({ open: false, id: null })}
-              className="cursor-pointer"
             >
               Hủy
             </Button>
             <Button
               variant="destructive"
-              onClick={() => handleConfirmDelete(isDeleteDialogOpen.id!)}
-              className="cursor-pointer"
+              onClick={() => {
+                if (isDeleteDialogOpen.id) {
+                  handleConfirmDelete(isDeleteDialogOpen.id);
+                }
+              }}
             >
               Xóa
             </Button>
