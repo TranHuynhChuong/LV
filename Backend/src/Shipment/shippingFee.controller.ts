@@ -16,33 +16,56 @@ export class ShippingFeeController {
 
   @Get('addressFiles')
   getAllShipmentJson() {
-    return this.shippingFeeService.loadAddressFiles();
+    const data = this.shippingFeeService.loadAddressFiles();
+    return {
+      data,
+      message: 'Lấy danh sách địa chỉ thành công',
+    };
   }
 
   @Post()
   async create(@Body() dto: ShippingFeeDto) {
-    return this.shippingFeeService.createShippingFee(dto);
+    const data = await this.shippingFeeService.createShippingFee(dto);
+    return {
+      data,
+      message: 'Tạo phí vận chuyển thành công',
+    };
   }
 
   @Get()
   async findAll() {
     const total = await this.shippingFeeService.countShippingFee();
     const shippingFees = await this.shippingFeeService.getAllShippingFee();
-    return { total, shippingFees };
+    return {
+      data: { total, shippingFees },
+      message: 'Lấy danh sách phí vận chuyển thành công',
+    };
   }
 
   @Get(':id')
   async findOne(@Param('id') id: number) {
-    return this.shippingFeeService.getShippingFeeById(id);
+    const data = await this.shippingFeeService.getShippingFeeById(id);
+    return {
+      data,
+      message: 'Lấy phí vận chuyển thành công',
+    };
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() dto: ShippingFeeDto) {
-    return this.shippingFeeService.updateShippingFee(id, dto);
+    const data = await this.shippingFeeService.updateShippingFee(id, dto);
+    return {
+      data,
+      message: 'Cập nhật phí vận chuyển thành công',
+    };
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    return this.shippingFeeService.deleteShippingFee(id);
+    const data = await this.shippingFeeService.deleteShippingFee(id);
+    return {
+      data,
+      message: 'Xóa phí vận chuyển thành công',
+    };
   }
 }

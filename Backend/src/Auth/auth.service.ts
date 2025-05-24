@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -114,27 +115,32 @@ export class AuthService {
     const adminCode = this.configService.get('admin.code');
     const adminPass = this.configService.get('admin.pass');
 
-    let staff: any;
-
     if (code === adminCode && pass === adminPass) {
-      staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
-    } else {
-      const result = await this.StaffsService.findById(code);
-      if (!result || !result.staff) {
-        throw new NotFoundException('Mã nhân viên / Mật khẩu không chính xác');
-      }
+      const staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
+      return this.generateToken(staff.NV_id, staff.NV_vaiTro).then((token) => ({
+        token,
+      }));
+    }
 
-      staff = result.staff;
+    return this.StaffsService.findById(code)
+      .then(async (result) => {
+        if (!result || !result.staff || pass !== result.staff.NV_matKhau) {
+          throw new UnauthorizedException(
+            'Mã nhân viên / Mật khẩu không chính xác'
+          );
+        }
 
-      if (pass !== staff.NV_matKhau) {
+        const staff = result.staff;
+        const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
+        return {
+          token,
+        };
+      })
+      .catch(() => {
         throw new UnauthorizedException(
           'Mã nhân viên / Mật khẩu không chính xác'
         );
-      }
-    }
-
-    const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
-    return { token };
+      });
   }
 
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
