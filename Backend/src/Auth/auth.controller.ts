@@ -3,30 +3,29 @@ import {
   Post,
   Get,
   Body,
-  UseGuards,
   Req,
   Put,
   Res,
   Param,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
 
-import { AuthGuard } from './auth.guard';
-import { Roles } from './auth.roles.decorator';
-
-@Controller('api/auth') // Đường dẫn cho controller
+@Controller('api/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  private readonly logger = new Logger(AuthController.name);
+
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   async register(@Body() newCustomer: any) {
     try {
       await this.authService.register(newCustomer);
-      return;
+      return { message: 'Đăng ký thành công' };
     } catch (error) {
-      console.error('Error during registration:', error);
+      this.logger.error(`Đăng ký thất bại: ${error.message}`, error.stack);
       throw error;
     }
   }
@@ -45,21 +44,23 @@ export class AuthController {
       if (!updatedCustomer) {
         throw new BadRequestException('Không thể cập nhật email');
       }
-      return updatedCustomer;
+      return { message: 'Cập nhật email thành công', data: updatedCustomer };
     } catch (error) {
-      console.error(error);
-      throw new error();
+      this.logger.error(
+        `Cập nhật email thất bại: ${error.message}`,
+        error.stack
+      );
+      throw error;
     }
   }
 
   @Post('send-otp')
   async checkEmail(@Body() { email }: { email: string }) {
     try {
-      console.log(email);
       const otp = await this.authService.sendOtp(email);
-      return otp;
+      return { message: 'OTP đã được gửi', otp }; // Bạn có thể ẩn `otp` trong production
     } catch (error) {
-      console.error('Error during send-otp:', error);
+      this.logger.error(`Gửi OTP thất bại: ${error.message}`, error.stack);
       throw error;
     }
   }
@@ -67,23 +68,29 @@ export class AuthController {
   @Post('login-customer')
   async loginCustomer(
     @Body() { email, pass }: { email: string; pass: string }
-  ): Promise<any> {
+  ) {
     try {
-      return await this.authService.loginCustomer(email, pass);
+      const result = await this.authService.loginCustomer(email, pass);
+      return { message: 'Đăng nhập thành công', ...result };
     } catch (error) {
-      console.error('Error during login:', error);
+      this.logger.error(
+        `Đăng nhập khách hàng thất bại: ${error.message}`,
+        error.stack
+      );
       throw error;
     }
   }
 
   @Post('login-staff')
-  async loginStaff(
-    @Body() { code, pass }: { code: string; pass: string }
-  ): Promise<any> {
+  async loginStaff(@Body() { code, pass }: { code: string; pass: string }) {
     try {
-      return await this.authService.loginStaff(code, pass);
+      const result = await this.authService.loginStaff(code, pass);
+      return { message: 'Đăng nhập nhân viên thành công', ...result };
     } catch (error) {
-      console.error('Error during login:', error);
+      this.logger.error(
+        `Đăng nhập nhân viên thất bại: ${error.message}`,
+        error.stack
+      );
       throw error;
     }
   }
@@ -96,12 +103,5 @@ export class AuthController {
       sameSite: 'strict',
     });
     return res.send({ message: 'Đăng xuất thành công' });
-  }
-
-  @Get()
-  @UseGuards(AuthGuard)
-  @Roles('admin', 'customer')
-  test() {
-    return 'test';
   }
 }
