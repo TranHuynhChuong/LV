@@ -4,39 +4,39 @@ import { Model } from 'mongoose';
 import { PhiVanChuyen, PhiVanChuyenDocument } from './phiVanChuyen.schema';
 
 @Injectable()
-export class ShippingFeeRepository {
+export class PhiVanChuyenRepository {
   constructor(
     @InjectModel(PhiVanChuyen.name)
-    private readonly ShippingFee: Model<PhiVanChuyenDocument>
+    private readonly PhiVanChuyen: Model<PhiVanChuyenDocument>
   ) {}
 
-  async create(newShippingFee: any): Promise<PhiVanChuyen> {
-    const created = new this.ShippingFee(newShippingFee);
+  async create(data: any): Promise<PhiVanChuyen> {
+    const created = new this.PhiVanChuyen(data);
     return created.save();
   }
 
   async findAll(): Promise<PhiVanChuyen[]> {
-    return this.ShippingFee.find({ VC_daXoa: false }).exec();
+    return this.PhiVanChuyen.find({ VC_daXoa: false }).exec();
   }
 
   async findById(id: number): Promise<PhiVanChuyen | null> {
-    return this.ShippingFee.findOne({ T_id: id }).exec();
+    return this.PhiVanChuyen.findOne({ T_id: id }).exec();
   }
 
   async update(id: string, data: any): Promise<PhiVanChuyen | null> {
-    return this.ShippingFee.findOneAndUpdate({ T_id: id }, data, {
+    return this.PhiVanChuyen.findOneAndUpdate({ T_id: id }, data, {
       new: true,
     }).exec();
   }
 
   async delete(id: string): Promise<PhiVanChuyen | null> {
-    return this.ShippingFee.findOneAndUpdate(
+    return this.PhiVanChuyen.findOneAndUpdate(
       { T_id: id },
       { VC_daXoa: true },
       { new: true }
     ).exec();
   }
   async countAll(): Promise<number> {
-    return this.ShippingFee.countDocuments({ VC_daXoa: false }).exec();
+    return this.PhiVanChuyen.countDocuments({ VC_daXoa: false }).exec();
   }
 }

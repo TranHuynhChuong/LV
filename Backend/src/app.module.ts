@@ -1,9 +1,9 @@
-import { ShippingFeeModule } from './Shipping/shippingFee.module';
+import { ShippingFeeModule } from './PhiVanChuyen/phiVanChuyen.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
-import { UsersModule } from './NguoiDung/users.module';
+import { UsersModule } from './NguoiDung/nguoiDung.module';
 import { UtilModule } from './Util/util.module';
 import { XacThucModule } from './XacThuc/xacThuc.module';
 
