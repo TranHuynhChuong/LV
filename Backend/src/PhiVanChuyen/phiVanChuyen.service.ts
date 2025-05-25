@@ -38,6 +38,10 @@ export class PhiVanChuyenService {
     return this.PhiVanChuyen.findAll();
   }
 
+  async getAllShippingFeeBasic(): Promise<Partial<PhiVanChuyen>[]> {
+    return this.PhiVanChuyen.findAllBasic();
+  }
+
   async getShippingFeeById(id: number): Promise<any> {
     const result: any = await this.PhiVanChuyen.findById(id);
     if (!result) {
