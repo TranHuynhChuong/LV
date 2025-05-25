@@ -1,11 +1,12 @@
-import { ShippingFeeModule } from './PhiVanChuyen/phiVanChuyen.module';
+import { PhiVanChuyenModule } from './PhiVanChuyen/phiVanChuyen.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
-import { UsersModule } from './NguoiDung/nguoiDung.module';
+import { NguoiDungModule } from './NguoiDung/nguoiDung.module';
 import { UtilModule } from './Util/util.module';
 import { XacThucModule } from './XacThuc/xacThuc.module';
+import { TheLoaiModule } from './TheLoai/theLoai.module';
 
 @Module({
   imports: [
@@ -20,10 +21,11 @@ import { XacThucModule } from './XacThuc/xacThuc.module';
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
+    NguoiDungModule,
     XacThucModule,
     UtilModule,
-    ShippingFeeModule,
+    PhiVanChuyenModule,
+    TheLoaiModule,
   ],
 })
 export class AppModule {}

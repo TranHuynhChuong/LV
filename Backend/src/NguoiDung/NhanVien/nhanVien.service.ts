@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NhanVienRepository } from './nhanVien.repository';
 import { CreateDto, UpdateDto } from './nhanVien.dto';
-
+import { NhanVien } from './nhanVien.schema';
 export interface NhanVienInfo {
   NV_id: string | null;
   NV_hoTen: string | null;
@@ -15,7 +15,7 @@ export class NhanVienService {
 
   constructor(private readonly NhanVien: NhanVienRepository) {}
 
-  async create(newData: CreateDto) {
+  async create(newData: CreateDto): Promise<NhanVien> {
     const lastCode = await this.NhanVien.findLastId();
     const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
     const newNumericCode = numericCode + 1;
@@ -31,7 +31,7 @@ export class NhanVienService {
     return created;
   }
 
-  async findAll() {
+  async findAll(): Promise<NhanVien[]> {
     const results = await this.NhanVien.findAll();
     return results;
   }
@@ -65,7 +65,7 @@ export class NhanVienService {
     return result;
   }
 
-  async update(id: string, dto: UpdateDto) {
+  async update(id: string, dto: UpdateDto): Promise<NhanVien> {
     const updated = await this.NhanVien.update(id, dto);
     if (!updated) {
       throw new NotFoundException('Không tìm thấy nhân viên');
@@ -81,7 +81,7 @@ export class NhanVienService {
     return deleted;
   }
 
-  async countAll() {
+  async countAll(): Promise<number> {
     return await this.NhanVien.countAll();
   }
 }
