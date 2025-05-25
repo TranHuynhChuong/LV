@@ -1,13 +1,13 @@
 import { Global, Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthService } from './xacThuc.service';
+import { AuthController } from './xacThuc.controller';
 
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './xacThuc.guard';
 import { UtilModule } from 'src/Util/util.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Otp, OtpSchema } from './auth.otp.schema';
+import { Otp, OtpSchema } from './xacThuc.otp.schema';
 
 @Global()
 @Module({

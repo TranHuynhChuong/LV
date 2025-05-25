@@ -3,9 +3,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
-import { UsersModule } from './Users/users.module';
+import { UsersModule } from './NguoiDung/users.module';
 import { UtilModule } from './Util/util.module';
-import { AuthModule } from './Auth/auth.module';
+import { XacThucModule } from './XacThuc/xacThuc.module';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { AuthModule } from './Auth/auth.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    AuthModule,
+    XacThucModule,
     UtilModule,
     ShippingFeeModule,
   ],

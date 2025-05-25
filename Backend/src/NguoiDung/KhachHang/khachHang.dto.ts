@@ -1,28 +1,19 @@
 import { IsString, IsEmail, MinLength, Matches } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
-export class CreateStaffDto {
+export class CreateDto {
   @IsString()
-  NV_hoTen: string;
-
-  @IsString()
-  NV_soDienThoai: string;
+  KH_hoTen: string;
 
   @IsEmail()
-  NV_email: string;
-
-  @IsString()
-  NV_vaiTro: string;
+  KH_email: string;
 
   @IsString()
   @MinLength(6)
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).*$/, {
     message: 'Mật khẩu phải chứa ít nhất 1 chữ cái và 1 chữ số',
   })
-  NV_matKhau: string;
-
-  @IsString()
-  NV_idNV: string;
+  KH_matKhau: string;
 }
 
-export class UpdateStaffDto extends PartialType(CreateStaffDto) {}
+export class UpdateDto extends PartialType(CreateDto) {}

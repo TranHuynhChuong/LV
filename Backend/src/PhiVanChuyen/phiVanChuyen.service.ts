@@ -3,28 +3,31 @@ import {
   NotFoundException,
   Injectable,
 } from '@nestjs/common';
-import { StaffsService, StaffInfo } from './../Users/Staffs/staffs.service';
-import { ShippingFeeDto } from './shippingFee.dto';
-import { ShippingFeeRepository } from './shippingFee.repository';
-import { PhiVanChuyen } from './shippingFee.schema';
+import {
+  NhanVienService,
+  NhanVienInfo,
+} from '../NguoiDung/NhanVien/nhanVien.service';
+import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
+import { PhiVanChuyenRepository } from './phiVanChuyen.repository';
+import { PhiVanChuyen } from './phiVanChuyen.schema';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
-export class ShippingFeeService {
+export class PhiVanChuyenService {
   private readonly dataDir = path.join(__dirname, 'data');
 
   constructor(
-    private readonly shippingFeeRepository: ShippingFeeRepository,
-    private readonly staffsService: StaffsService
+    private readonly PhiVanChuyen: PhiVanChuyenRepository,
+    private readonly NhanVien: NhanVienService
   ) {}
 
-  async createShippingFee(dto: ShippingFeeDto): Promise<PhiVanChuyen> {
-    const exists = await this.shippingFeeRepository.findById(dto.T_id);
+  async createShippingFee(dto: CreateDto): Promise<PhiVanChuyen> {
+    const exists = await this.PhiVanChuyen.findById(dto.T_id);
     if (exists) {
       throw new ConflictException('Khu vực đã được tạo phí vận chuyển');
     }
-    const created = await this.shippingFeeRepository.create(dto);
+    const created = await this.PhiVanChuyen.create(dto);
     if (!created) {
       throw new ConflictException('Tạo phí vận chuyển thất bại');
     }
@@ -32,44 +35,41 @@ export class ShippingFeeService {
   }
 
   async getAllShippingFee(): Promise<PhiVanChuyen[]> {
-    return this.shippingFeeRepository.findAll();
+    return this.PhiVanChuyen.findAll();
   }
 
   async getShippingFeeById(
     id: number
-  ): Promise<{ shippingFee: PhiVanChuyen; staff: StaffInfo }> {
-    const shippingFee = await this.shippingFeeRepository.findById(id);
-    if (!shippingFee) {
+  ): Promise<{ result: PhiVanChuyen; staff: NhanVienInfo }> {
+    const result = await this.PhiVanChuyen.findById(id);
+    if (!result) {
       throw new NotFoundException('Phí vận chuyển không tồn tại');
     }
 
-    let staffInfo: StaffInfo = {
+    let nhanVien: NhanVienInfo = {
       NV_id: null,
       NV_hoTen: null,
       NV_email: null,
       NV_soDienThoai: null,
     };
 
-    if (shippingFee.NV_id) {
-      const staff = await this.staffsService.findById(shippingFee.NV_id);
+    if (result.NV_id) {
+      const staff = await this.NhanVien.findById(result.NV_id);
       if (staff) {
-        staffInfo = {
-          NV_id: staff.staff.NV_idNV,
-          NV_hoTen: staff.staff.NV_hoTen,
-          NV_email: staff.staff.NV_email,
-          NV_soDienThoai: staff.staff.NV_soDienThoai,
+        nhanVien = {
+          NV_id: staff.data.NV_idNV,
+          NV_hoTen: staff.data.NV_hoTen,
+          NV_email: staff.data.NV_email,
+          NV_soDienThoai: staff.data.NV_soDienThoai,
         };
       }
     }
 
-    return { shippingFee, staff: staffInfo };
+    return { result, staff: nhanVien };
   }
 
-  async updateShippingFee(
-    id: string,
-    dto: ShippingFeeDto
-  ): Promise<PhiVanChuyen> {
-    const updated = await this.shippingFeeRepository.update(id, dto);
+  async updateShippingFee(id: string, dto: UpdateDto): Promise<PhiVanChuyen> {
+    const updated = await this.PhiVanChuyen.update(id, dto);
     if (!updated) {
       throw new NotFoundException(
         'Phí vận chuyển không tồn tại hoặc cập nhật thất bại'
@@ -79,17 +79,13 @@ export class ShippingFeeService {
   }
 
   async deleteShippingFee(id: string): Promise<PhiVanChuyen> {
-    const deleted = await this.shippingFeeRepository.delete(id);
+    const deleted = await this.PhiVanChuyen.delete(id);
     if (!deleted) {
       throw new NotFoundException(
         'Phí vận chuyển không tồn tại hoặc xóa thất bại'
       );
     }
     return deleted;
-  }
-
-  async countShippingFee(): Promise<number> {
-    return this.shippingFeeRepository.countAll();
   }
 
   loadAddressFiles(): { T_id: string; data: Record<string, unknown> }[] {

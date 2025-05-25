@@ -11,7 +11,7 @@ export type KhachHangDocument = KhachHang & Document;
   },
 })
 export class KhachHang {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, minlength: 2, maxlength: 48 })
   KH_hoTen: string;
 
   @Prop({ type: String, default: null })
@@ -20,10 +20,10 @@ export class KhachHang {
   @Prop({ type: Date, default: null })
   KH_ngaySinh: Date;
 
-  @Prop({ type: String, unique: true })
+  @Prop({ type: String, unique: true, maxlength: 128 })
   KH_email: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, minlength: 6, maxlength: 72 })
   KH_matKhau: string;
 }
 

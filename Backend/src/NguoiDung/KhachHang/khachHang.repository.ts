@@ -1,35 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { KhachHang, KhachHangDocument } from './customers.schema';
-import { CreateCustomerDto, UpdateCustomerDto } from './customers.dto';
+import { KhachHang, KhachHangDocument } from './khachHang.schema';
 
 @Injectable()
-export class CustomersRepository {
+export class KhachHangRepository {
   constructor(
     @InjectModel(KhachHang.name)
-    private readonly Customer: Model<KhachHangDocument>
+    private readonly KhachHang: Model<KhachHangDocument>
   ) {}
 
-  async create(newCustomer: CreateCustomerDto): Promise<KhachHang> {
-    const created = new this.Customer(newCustomer);
+  async create(data: any): Promise<KhachHang> {
+    const created = new this.KhachHang(data);
     return created.save();
   }
 
   async findAll(page: number, limit: number): Promise<KhachHang[]> {
     const start = page * limit;
-    return this.Customer.find().skip(start).limit(limit).exec();
+    return this.KhachHang.find().skip(start).limit(limit).exec();
   }
 
   async findByEmail(email: string): Promise<KhachHang | null> {
-    return this.Customer.findOne({ KH_email: email }).exec();
+    return this.KhachHang.findOne({ KH_email: email }).exec();
   }
 
-  async update(
-    email: string,
-    updateDto: UpdateCustomerDto
-  ): Promise<KhachHang | null> {
-    return this.Customer.findOneAndUpdate({ KH_email: email }, updateDto, {
+  async update(email: string, data: any): Promise<KhachHang | null> {
+    return this.KhachHang.findOneAndUpdate({ KH_email: email }, data, {
       new: true,
     }).exec();
   }
@@ -38,7 +34,7 @@ export class CustomersRepository {
     email: string,
     newEmail: string
   ): Promise<KhachHang | null> {
-    return this.Customer.findOneAndUpdate(
+    return this.KhachHang.findOneAndUpdate(
       { KH_email: email },
       { KH_email: newEmail },
       {
@@ -48,18 +44,18 @@ export class CustomersRepository {
   }
 
   async delete(email: string): Promise<KhachHang | null> {
-    return this.Customer.findOneAndUpdate({ KH_email: email }).exec();
+    return this.KhachHang.findOneAndUpdate({ KH_email: email }).exec();
   }
 
   async countAll(): Promise<number> {
-    return this.Customer.countDocuments().exec();
+    return this.KhachHang.countDocuments().exec();
   }
 
   async countByMonthInCurrentYear(
     year: number,
     countsByMonth: number[]
   ): Promise<number[]> {
-    const result = await this.Customer.aggregate([
+    const result = await this.KhachHang.aggregate([
       {
         $match: {
           KH_ngayTao: {

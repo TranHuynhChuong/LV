@@ -12,8 +12,8 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
+export class XacThucGuard implements CanActivate {
+  private readonly logger = new Logger(XacThucGuard.name);
 
   constructor(
     private readonly jwtService: JwtService,

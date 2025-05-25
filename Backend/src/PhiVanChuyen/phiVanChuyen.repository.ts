@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PhiVanChuyen, PhiVanChuyenDocument } from './shippingFee.schema';
+import { PhiVanChuyen, PhiVanChuyenDocument } from './phiVanChuyen.schema';
 
 @Injectable()
 export class ShippingFeeRepository {

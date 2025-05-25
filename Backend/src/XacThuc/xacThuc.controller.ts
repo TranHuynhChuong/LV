@@ -1,9 +1,9 @@
 import { Controller, Post, Body, Put, Param } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { XacThucService } from './xacThuc.service';
 
 @Controller('api/auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+export class XacThucController {
+  constructor(private readonly authService: XacThucService) {}
 
   @Post('register')
   async register(@Body() newCustomer: any) {

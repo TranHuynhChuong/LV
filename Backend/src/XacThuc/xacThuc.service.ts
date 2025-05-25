@@ -4,27 +4,27 @@ import {
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
-import { CustomersService } from '../Users/Customers/customer.service';
-import { StaffsService } from '../Users/Staffs/staffs.service';
+import { KhachHangsService } from '../NguoiDung/KhachHang/khachHang.service';
+import { NhanVienService } from '../NguoiDung/NhanVien/nhanVien.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { Otp } from './auth.otp.schema';
+import { Otp } from './xacThuc.otp.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EmailService } from 'src/Util/email.service';
 
 @Injectable()
-export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
+export class XacThucService {
+  private readonly logger = new Logger(XacThucService.name);
 
   constructor(
-    private CustomersService: CustomersService,
-    private StaffsService: StaffsService,
-    private EmailService: EmailService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
-    @InjectModel(Otp.name) private otp: Model<Otp>
+    private readonly KhachHang: KhachHangsService,
+    private readonly NhanVien: NhanVienService,
+    private readonly EmailService: EmailService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    @InjectModel(Otp.name) private readonly otp: Model<Otp>
   ) {}
 
   async register(data: any): Promise<any> {
@@ -41,7 +41,7 @@ export class AuthService {
       KH_matKhau: password,
     };
 
-    const createdCustomer = await this.CustomersService.create(newCustomer);
+    const createdCustomer = await this.KhachHang.create(newCustomer);
     if (!createdCustomer) {
       throw new BadRequestException('Không thể tạo tài khoản mới');
     }
@@ -55,10 +55,7 @@ export class AuthService {
       throw new BadRequestException('Mã OTP không đúng hoặc đã hết hạn');
     }
 
-    const updatedCustomer = await this.CustomersService.updateEmail(
-      email,
-      newEmail
-    );
+    const updatedCustomer = await this.KhachHang.updateEmail(email, newEmail);
     if (!updatedCustomer) {
       throw new BadRequestException('Không thể cập nhật email');
     }
@@ -80,7 +77,7 @@ export class AuthService {
   }
 
   async sendOtp(email: string) {
-    const isExit = await this.CustomersService.findByEmail(email);
+    const isExit = await this.KhachHang.findByEmail(email);
     if (isExit) {
       throw new BadRequestException('Email đã được đăng ký tài khoản');
     }
@@ -120,15 +117,15 @@ export class AuthService {
       }));
     }
 
-    return this.StaffsService.findById(code)
+    return this.NhanVien.findById(code)
       .then(async (result) => {
-        if (!result || !result.staff || pass !== result.staff.NV_matKhau) {
+        if (pass !== result?.data?.NV_matKhau) {
           throw new UnauthorizedException(
             'Mã nhân viên / Mật khẩu không chính xác'
           );
         }
 
-        const staff = result.staff;
+        const staff = result.data;
         const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
         return {
           token,
@@ -142,7 +139,7 @@ export class AuthService {
   }
 
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
-    const customer = await this.CustomersService.findByEmail(email);
+    const customer = await this.KhachHang.findByEmail(email);
     if (!customer) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     }
