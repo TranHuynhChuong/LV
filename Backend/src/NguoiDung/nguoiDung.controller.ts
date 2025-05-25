@@ -22,7 +22,7 @@ import { Roles } from '../XacThuc/xacThuc.roles.decorator';
 
 @Controller('api/users')
 @UseGuards(XacThucGuard)
-export class UsersController {
+export class NguoiDungController {
   constructor(
     private readonly KhachHang: KhachHangsService,
     private readonly NhanVien: NhanVienService

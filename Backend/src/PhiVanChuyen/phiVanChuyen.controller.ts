@@ -31,9 +31,18 @@ export class PhiVanChuyenController {
     };
   }
 
-  @Get()
+  @Get('all')
   async findAll() {
     const results = await this.PhiVanChuyen.getAllShippingFee();
+    return {
+      data: results,
+      message: 'Lấy danh sách phí vận chuyển thành công',
+    };
+  }
+
+  @Get()
+  async findAllBasic() {
+    const results = await this.PhiVanChuyen.getAllShippingFeeBasic();
     return {
       data: results,
       message: 'Lấy danh sách phí vận chuyển thành công',

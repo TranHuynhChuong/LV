@@ -15,4 +15,4 @@ import { PhiVanChuyen, PhiVanChuyenSchema } from './phiVanChuyen.schema';
   providers: [PhiVanChuyenService, PhiVanChuyenRepository],
   exports: [PhiVanChuyenService],
 })
-export class ShippingFeeModule {}
+export class PhiVanChuyenModule {}
