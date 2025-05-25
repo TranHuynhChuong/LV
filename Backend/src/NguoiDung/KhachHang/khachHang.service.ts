@@ -5,12 +5,13 @@ import {
 } from '@nestjs/common';
 import { KhachHangRepository } from './khachHang.repository';
 import { CreateDto, UpdateDto } from './khachHang.dto';
+import { KhachHang } from './khachHang.schema';
 
 @Injectable()
 export class KhachHangsService {
   constructor(private readonly KhachHang: KhachHangRepository) {}
 
-  async create(data: CreateDto) {
+  async create(data: CreateDto): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(data.KH_email);
     if (existing) {
       throw new ConflictException('Email đã được đăng ký tài khoản');
@@ -22,7 +23,10 @@ export class KhachHangsService {
     return created;
   }
 
-  async findAll(page = 0, limit = 24) {
+  async findAll(
+    page = 0,
+    limit = 24
+  ): Promise<{ results: KhachHang[]; total: number }> {
     page = page < 0 ? 0 : page;
     limit = limit <= 0 ? 24 : limit;
 
@@ -32,7 +36,7 @@ export class KhachHangsService {
     return { results, total };
   }
 
-  async update(email: string, data: UpdateDto) {
+  async update(email: string, data: UpdateDto): Promise<KhachHang> {
     const updated = await this.KhachHang.update(email, data);
     if (!updated) {
       throw new NotFoundException('Không tìm thấy khách hàng');
@@ -40,7 +44,7 @@ export class KhachHangsService {
     return updated;
   }
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<KhachHang> {
     const result = await this.KhachHang.findByEmail(email);
     if (!result) {
       throw new NotFoundException('Không tìm thấy khách hàng với email này');
@@ -48,7 +52,7 @@ export class KhachHangsService {
     return result;
   }
 
-  async updateEmail(email: string, newEmail: string) {
+  async updateEmail(email: string, newEmail: string): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(newEmail);
     if (existing) {
       throw new ConflictException('Email mới đã được đăng ký');
@@ -63,11 +67,11 @@ export class KhachHangsService {
     return updated;
   }
 
-  async countAll() {
+  async countAll(): Promise<number> {
     return await this.KhachHang.countAll();
   }
 
-  async countByMonth(year = new Date().getFullYear()) {
+  async countByMonth(year = new Date().getFullYear()): Promise<number[]> {
     return await this.KhachHang.countByMonthInCurrentYear(
       year,
       Array(12).fill(0)
