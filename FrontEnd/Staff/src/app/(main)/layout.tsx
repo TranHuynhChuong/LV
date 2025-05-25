@@ -46,7 +46,7 @@ export default function MainLayout({ children }: { readonly children: React.Reac
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
-            <header className="sticky top-0 flex items-center h-16 gap-2 px-4 bg-white border-b shrink-0">
+            <header className="sticky top-0 flex items-center h-16 gap-2 px-4 bg-white border-b shrink-0 z-40">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="h-4 mr-2" />
               <AppBreadcrumb />
