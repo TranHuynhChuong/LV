@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
@@ -96,7 +94,7 @@ export class AuthService {
       { upsert: true, new: true }
     );
 
-    this.EmailService.sendOtpEmail(email, code);
+    await this.EmailService.sendOtpEmail(email, code);
 
     return code;
   }

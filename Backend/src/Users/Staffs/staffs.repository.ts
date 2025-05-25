@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { NHAN_VIEN, NHAN_VIENDocument } from './staffs.schema';
+import { NhanVien, NhanVienDocument } from './staffs.schema';
 
 @Injectable()
 export class StaffsRepository {
   constructor(
-    @InjectModel(NHAN_VIEN.name)
-    private readonly Staff: Model<NHAN_VIENDocument>
+    @InjectModel(NhanVien.name)
+    private readonly Staff: Model<NhanVienDocument>
   ) {}
 
-  async create(createNhanVienDto: any): Promise<NHAN_VIEN> {
+  async create(createNhanVienDto: any): Promise<NhanVien> {
     const createdNhanVien = new this.Staff(createNhanVienDto);
     return await createdNhanVien.save();
   }
@@ -30,21 +30,21 @@ export class StaffsRepository {
     return lastId;
   }
 
-  async findAll(): Promise<NHAN_VIEN[]> {
+  async findAll(): Promise<NhanVien[]> {
     return this.Staff.find({ NV_daXoa: false }).exec();
   }
 
-  async findById(id: string): Promise<NHAN_VIEN | null> {
+  async findById(id: string): Promise<NhanVien | null> {
     return this.Staff.findOne({ NV_id: id, NV_daXoa: false }).exec();
   }
 
-  async update(id: string, updateNhanVienDto: any): Promise<NHAN_VIEN | null> {
+  async update(id: string, updateNhanVienDto: any): Promise<NhanVien | null> {
     return this.Staff.findOneAndUpdate({ NV_id: id }, updateNhanVienDto, {
       new: true,
     }).exec();
   }
 
-  async delete(id: string): Promise<NHAN_VIEN | null> {
+  async delete(id: string): Promise<NhanVien | null> {
     return this.Staff.findOneAndUpdate(
       { NV_id: id },
       { NV_daXoa: true },

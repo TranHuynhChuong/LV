@@ -3,14 +3,14 @@ import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import type { UpdateQuery } from 'mongoose';
 
-export type KHACH_HANGDocument = KHACH_HANG & Document;
+export type KhachHangDocument = KhachHang & Document;
 
 @Schema({
   timestamps: {
     createdAt: 'KH_ngayTao',
   },
 })
-export class KHACH_HANG {
+export class KhachHang {
   @Prop({ type: String, required: true })
   KH_hoTen: string;
 
@@ -27,10 +27,10 @@ export class KHACH_HANG {
   KH_matKhau: string;
 }
 
-export const KHACH_HANGSchema = SchemaFactory.createForClass(KHACH_HANG);
+export const KhachHangSchema = SchemaFactory.createForClass(KhachHang);
 
-KHACH_HANGSchema.pre('save', async function (next) {
-  const user = this as KHACH_HANGDocument;
+KhachHangSchema.pre('save', async function (next) {
+  const user = this as KhachHangDocument;
 
   if (user.isModified('KH_matKhau')) {
     const saltRounds = 10;
@@ -40,8 +40,8 @@ KHACH_HANGSchema.pre('save', async function (next) {
   next();
 });
 
-KHACH_HANGSchema.pre('findOneAndUpdate', async function (next) {
-  const update = this.getUpdate() as UpdateQuery<KHACH_HANG>;
+KhachHangSchema.pre('findOneAndUpdate', async function (next) {
+  const update = this.getUpdate() as UpdateQuery<KhachHang>;
 
   if (update?.KH_matKhau) {
     const saltRounds = 10;

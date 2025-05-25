@@ -6,7 +6,7 @@ import {
 import { StaffsService, StaffInfo } from './../Users/Staffs/staffs.service';
 import { ShippingFeeDto } from './shippingFee.dto';
 import { ShippingFeeRepository } from './shippingFee.repository';
-import { PHI_VAN_CHUYEN } from './shippingFee.schema';
+import { PhiVanChuyen } from './shippingFee.schema';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,7 +19,7 @@ export class ShippingFeeService {
     private readonly staffsService: StaffsService
   ) {}
 
-  async createShippingFee(dto: ShippingFeeDto): Promise<PHI_VAN_CHUYEN> {
+  async createShippingFee(dto: ShippingFeeDto): Promise<PhiVanChuyen> {
     const exists = await this.shippingFeeRepository.findById(dto.T_id);
     if (exists) {
       throw new ConflictException('Khu vực đã được tạo phí vận chuyển');
@@ -31,13 +31,13 @@ export class ShippingFeeService {
     return created;
   }
 
-  async getAllShippingFee(): Promise<PHI_VAN_CHUYEN[]> {
+  async getAllShippingFee(): Promise<PhiVanChuyen[]> {
     return this.shippingFeeRepository.findAll();
   }
 
   async getShippingFeeById(
     id: number
-  ): Promise<{ shippingFee: PHI_VAN_CHUYEN; staff: StaffInfo }> {
+  ): Promise<{ shippingFee: PhiVanChuyen; staff: StaffInfo }> {
     const shippingFee = await this.shippingFeeRepository.findById(id);
     if (!shippingFee) {
       throw new NotFoundException('Phí vận chuyển không tồn tại');
@@ -68,7 +68,7 @@ export class ShippingFeeService {
   async updateShippingFee(
     id: string,
     dto: ShippingFeeDto
-  ): Promise<PHI_VAN_CHUYEN> {
+  ): Promise<PhiVanChuyen> {
     const updated = await this.shippingFeeRepository.update(id, dto);
     if (!updated) {
       throw new NotFoundException(
@@ -78,7 +78,7 @@ export class ShippingFeeService {
     return updated;
   }
 
-  async deleteShippingFee(id: string): Promise<PHI_VAN_CHUYEN> {
+  async deleteShippingFee(id: string): Promise<PhiVanChuyen> {
     const deleted = await this.shippingFeeRepository.delete(id);
     if (!deleted) {
       throw new NotFoundException(

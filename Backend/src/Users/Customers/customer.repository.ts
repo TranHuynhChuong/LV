@@ -1,34 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { KHACH_HANG, KHACH_HANGDocument } from './customers.schema';
+import { KhachHang, KhachHangDocument } from './customers.schema';
 import { CreateCustomerDto, UpdateCustomerDto } from './customers.dto';
 
 @Injectable()
 export class CustomersRepository {
   constructor(
-    @InjectModel(KHACH_HANG.name)
-    private readonly Customer: Model<KHACH_HANGDocument>
+    @InjectModel(KhachHang.name)
+    private readonly Customer: Model<KhachHangDocument>
   ) {}
 
-  async create(newCustomer: CreateCustomerDto): Promise<KHACH_HANG> {
+  async create(newCustomer: CreateCustomerDto): Promise<KhachHang> {
     const created = new this.Customer(newCustomer);
     return created.save();
   }
 
-  async findAll(page: number, limit: number): Promise<KHACH_HANG[]> {
+  async findAll(page: number, limit: number): Promise<KhachHang[]> {
     const start = page * limit;
     return this.Customer.find().skip(start).limit(limit).exec();
   }
 
-  async findByEmail(email: string): Promise<KHACH_HANG | null> {
+  async findByEmail(email: string): Promise<KhachHang | null> {
     return this.Customer.findOne({ KH_email: email }).exec();
   }
 
   async update(
     email: string,
     updateDto: UpdateCustomerDto
-  ): Promise<KHACH_HANG | null> {
+  ): Promise<KhachHang | null> {
     return this.Customer.findOneAndUpdate({ KH_email: email }, updateDto, {
       new: true,
     }).exec();
@@ -37,7 +37,7 @@ export class CustomersRepository {
   async updateEmail(
     email: string,
     newEmail: string
-  ): Promise<KHACH_HANG | null> {
+  ): Promise<KhachHang | null> {
     return this.Customer.findOneAndUpdate(
       { KH_email: email },
       { KH_email: newEmail },
@@ -47,7 +47,7 @@ export class CustomersRepository {
     ).exec();
   }
 
-  async delete(email: string): Promise<KHACH_HANG | null> {
+  async delete(email: string): Promise<KhachHang | null> {
     return this.Customer.findOneAndUpdate({ KH_email: email }).exec();
   }
 
