@@ -119,13 +119,13 @@ export class XacThucService {
 
     return this.NhanVien.findById(code)
       .then(async (result) => {
-        if (pass !== result?.data?.NV_matKhau) {
+        if (pass !== result?.result?.NV_matKhau) {
           throw new UnauthorizedException(
             'Mã nhân viên / Mật khẩu không chính xác'
           );
         }
 
-        const staff = result.data;
+        const staff = result.result;
         const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
         return {
           token,

@@ -32,19 +32,18 @@ export class NhanVienService {
   }
 
   async findAll() {
-    const result = await this.NhanVien.findAll();
-    const total = await this.NhanVien.countAll();
-    return { data: result, total };
+    const results = await this.NhanVien.findAll();
+    return results;
   }
 
-  async findById(id: string): Promise<{ data: any; NV_idNV: NhanVienInfo }> {
-    const result = await this.NhanVien.findById(id);
+  async findById(id: string): Promise<any> {
+    const result: any = await this.NhanVien.findById(id);
     if (!result) {
       throw new NotFoundException('Không tìm thấy nhân viên');
     }
 
     let NV_idNV: NhanVienInfo = {
-      NV_id: null,
+      NV_id: result.NV_idNV,
       NV_hoTen: null,
       NV_email: null,
       NV_soDienThoai: null,
@@ -59,10 +58,11 @@ export class NhanVienService {
           NV_email: parentNhanVien.NV_email,
           NV_soDienThoai: parentNhanVien.NV_soDienThoai,
         };
+        result.NV_idNV = NV_idNV;
       }
     }
 
-    return { data: result, NV_idNV };
+    return result;
   }
 
   async update(id: string, dto: UpdateDto) {

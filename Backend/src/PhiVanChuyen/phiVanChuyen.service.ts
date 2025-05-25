@@ -38,16 +38,14 @@ export class PhiVanChuyenService {
     return this.PhiVanChuyen.findAll();
   }
 
-  async getShippingFeeById(
-    id: number
-  ): Promise<{ result: PhiVanChuyen; staff: NhanVienInfo }> {
-    const result = await this.PhiVanChuyen.findById(id);
+  async getShippingFeeById(id: number): Promise<any> {
+    const result: any = await this.PhiVanChuyen.findById(id);
     if (!result) {
       throw new NotFoundException('Phí vận chuyển không tồn tại');
     }
 
     let nhanVien: NhanVienInfo = {
-      NV_id: null,
+      NV_id: result.NV_id,
       NV_hoTen: null,
       NV_email: null,
       NV_soDienThoai: null,
@@ -57,15 +55,15 @@ export class PhiVanChuyenService {
       const staff = await this.NhanVien.findById(result.NV_id);
       if (staff) {
         nhanVien = {
-          NV_id: staff.data.NV_idNV,
-          NV_hoTen: staff.data.NV_hoTen,
-          NV_email: staff.data.NV_email,
-          NV_soDienThoai: staff.data.NV_soDienThoai,
+          NV_id: staff.result.NV_idNV,
+          NV_hoTen: staff.result.NV_hoTen,
+          NV_email: staff.result.NV_email,
+          NV_soDienThoai: staff.result.NV_soDienThoai,
         };
+        result.NV_id = nhanVien;
       }
     }
-
-    return { result, staff: nhanVien };
+    return result;
   }
 
   async updateShippingFee(id: string, dto: UpdateDto): Promise<PhiVanChuyen> {

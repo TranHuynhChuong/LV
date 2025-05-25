@@ -6,7 +6,7 @@ export class CreateDto {
   PVC_phi: number;
 
   @IsInt()
-  PVC_nkl: number;
+  PVC_ntl: number;
 
   @IsInt()
   @IsOptional()
@@ -14,7 +14,7 @@ export class CreateDto {
 
   @IsInt()
   @IsOptional()
-  PVC_dvgtkl: number;
+  PVC_dvpp: number;
 
   @IsInt()
   T_id: number;

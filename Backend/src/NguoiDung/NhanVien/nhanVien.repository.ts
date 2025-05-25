@@ -31,17 +31,19 @@ export class NhanVienRepository {
   }
 
   async findAll(): Promise<NhanVien[]> {
-    return this.NhanVien.find({ NV_daXoa: false }).exec();
+    return this.NhanVien.find({ NV_daXoa: false }).lean().exec();
   }
 
   async findById(id: string): Promise<NhanVien | null> {
-    return this.NhanVien.findOne({ NV_id: id, NV_daXoa: false }).exec();
+    return this.NhanVien.findOne({ NV_id: id, NV_daXoa: false }).lean().exec();
   }
 
   async update(id: string, updateDto: any): Promise<NhanVien | null> {
     return this.NhanVien.findOneAndUpdate({ NV_id: id }, updateDto, {
       new: true,
-    }).exec();
+    })
+
+      .exec();
   }
 
   async delete(id: string): Promise<NhanVien | null> {

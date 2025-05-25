@@ -16,27 +16,31 @@ export class PhiVanChuyenRepository {
   }
 
   async findAll(): Promise<PhiVanChuyen[]> {
-    return this.PhiVanChuyen.find({ VC_daXoa: false }).exec();
+    return this.PhiVanChuyen.find({ PVC_daXoa: false }).lean().exec();
   }
 
   async findById(id: number): Promise<PhiVanChuyen | null> {
-    return this.PhiVanChuyen.findOne({ T_id: id }).exec();
+    return this.PhiVanChuyen.findOne({ T_id: id }).lean().exec();
   }
 
   async update(id: string, data: any): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyen.findOneAndUpdate({ T_id: id }, data, {
       new: true,
-    }).exec();
+    })
+
+      .exec();
   }
 
   async delete(id: string): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyen.findOneAndUpdate(
       { T_id: id },
-      { VC_daXoa: true },
+      { PVC_daXoa: true },
       { new: true }
-    ).exec();
+    )
+
+      .exec();
   }
   async countAll(): Promise<number> {
-    return this.PhiVanChuyen.countDocuments({ VC_daXoa: false }).exec();
+    return this.PhiVanChuyen.countDocuments({ PVC_daXoa: false }).exec();
   }
 }
