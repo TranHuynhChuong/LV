@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private transporter;
+  private readonly transporter;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -16,28 +16,41 @@ export class EmailService {
     });
   }
 
-  sendOtpEmail(to: string, otpCode: string): void {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    text: string
+  ): Promise<void> {
+    try {
+      await this.transporter.sendMail({
+        from: `"ShopNest" <${this.configService.get<string>('email.user')}>`,
+        to,
+        subject,
+        html,
+        text,
+      });
+    } catch {
+      throw new InternalServerErrorException('Không thể gửi email');
+    }
+  }
+
+  async sendOtpEmail(to: string, otpCode: string): Promise<void> {
     const subject = 'Mã xác thực OTP của bạn';
     const html = `
       <h3>Xác thực tài khoản</h3>
       <p>Mã OTP của bạn là: <strong>${otpCode}</strong></p>
       <p>Mã có hiệu lực trong 15 phút.</p>
     `;
-
-    this.transporter
-      .sendMail({
-        from: this.configService.get<string>('email.user'),
-        to,
-        subject,
-        html,
-        text: `Mã OTP của bạn là: ${otpCode}`,
-      })
-      .catch((error) => {
-        console.error('Error sending OTP email:', error);
-      });
+    const text = `Mã OTP của bạn là: ${otpCode}`;
+    await this.sendEmail(to, subject, html, text);
   }
 
-  sendOrderConfirmation(to: string, orderId: string, total: number): void {
+  async sendOrderConfirmation(
+    to: string,
+    orderId: string,
+    total: number
+  ): Promise<void> {
     const subject = 'Xác nhận đơn hàng';
     const html = `
       <h3>Đơn hàng của bạn đã được xác nhận</h3>
@@ -45,25 +58,15 @@ export class EmailService {
       <p>Tổng tiền: <strong>${total.toLocaleString()}đ</strong></p>
       <p>Chúng tôi sẽ xử lý và giao hàng trong thời gian sớm nhất.</p>
     `;
-
-    this.transporter
-      .sendMail({
-        from: this.configService.get<string>('email.user'),
-        to,
-        subject,
-        html,
-        text: `Đơn hàng ${orderId} của bạn đã được xác nhận. Tổng tiền: ${total}đ`,
-      })
-      .catch((error) => {
-        console.error('Error sending order confirmation email:', error);
-      });
+    const text = `Đơn hàng ${orderId} đã được xác nhận. Tổng tiền: ${total}đ`;
+    await this.sendEmail(to, subject, html, text);
   }
 
-  sendShippingNotification(
+  async sendShippingNotification(
     to: string,
     orderId: string,
     trackingNumber: string
-  ): void {
+  ): Promise<void> {
     const subject = 'Đơn hàng đã được giao';
     const html = `
       <h3>Đơn hàng đang trên đường đến bạn</h3>
@@ -71,17 +74,7 @@ export class EmailService {
       <p>Mã vận đơn: <strong>${trackingNumber}</strong></p>
       <p>Vui lòng kiểm tra trạng thái giao hàng trên hệ thống của đơn vị vận chuyển.</p>
     `;
-
-    this.transporter
-      .sendMail({
-        from: this.configService.get<string>('email.user'),
-        to,
-        subject,
-        html,
-        text: `Đơn hàng ${orderId} đã được gửi. Mã vận đơn: ${trackingNumber}`,
-      })
-      .catch((error) => {
-        console.error('Error sending shipping notification email:', error);
-      });
+    const text = `Đơn hàng ${orderId} đã được gửi. Mã vận đơn: ${trackingNumber}`;
+    await this.sendEmail(to, subject, html, text);
   }
 }

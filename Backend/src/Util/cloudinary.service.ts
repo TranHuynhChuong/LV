@@ -2,131 +2,102 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import * as streamifier from 'streamifier';
 
 @Injectable()
-export class CloudinaryService {
-  constructor(private configService: ConfigService) {
+export class CloudinaryService implements OnModuleInit {
+  constructor(private readonly configService: ConfigService) {}
+
+  onModuleInit() {
     cloudinary.config({
-      cloud_name: this.configService.get('cloudinary.cloudName'),
-      api_key: this.configService.get('cloudinary.apiKey'),
-      api_secret: this.configService.get('cloudinary.apiSecret'),
+      cloud_name: this.configService.get<string>('cloudinary.cloudName'),
+      api_key: this.configService.get<string>('cloudinary.apiKey'),
+      api_secret: this.configService.get<string>('cloudinary.apiSecret'),
     });
   }
 
-  // Upload một ảnh
+  private uploadStreamAsync(
+    file: Express.Multer.File,
+    options: Record<string, any>
+  ): Promise<{ public_id: string; url: string }> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        options,
+        (error, result) => {
+          if (error || !result) {
+            return reject(
+              new InternalServerErrorException('Lỗi tải ảnh lên Cloudinary')
+            );
+          }
+          resolve({ public_id: result.public_id, url: result.url });
+        }
+      );
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+    });
+  }
+
   async uploadSingleImage(
     targetId: string,
     file: Express.Multer.File,
     folderPrefix: string,
-    convertToWebP: boolean = true
+    convertToWebP = true
   ): Promise<{ uploaded: { public_id: string; url: string } }> {
     if (!file) throw new BadRequestException('Không có file được cung cấp');
 
     try {
-      const options: any = {
+      const options: Record<string, any> = {
         folder: `${folderPrefix}/${targetId}`,
-        public_id: `${targetId}`,
+        public_id: targetId,
       };
 
-      // Nếu cần chuyển ảnh sang WebP, thêm tham số transformation vào options
       if (convertToWebP) {
-        options.transformation = [
-          {
-            format: 'webp',
-          },
-        ];
+        options.transformation = [{ format: 'webp' }];
       }
 
-      const uploaded = await new Promise<{ public_id: string; url: string }>(
-        (resolve, reject) => {
-          const uploadStream = cloudinary.uploader.upload_stream(
-            options,
-            (error, result) => {
-              if (error) {
-                return reject(
-                  new InternalServerErrorException('Lỗi tải ảnh lên Cloudinary')
-                );
-              }
-              resolve({ public_id: result!.public_id, url: result!.url });
-            }
-          );
-          streamifier.createReadStream(file.buffer).pipe(uploadStream);
-        }
-      );
+      const uploaded = await this.uploadStreamAsync(file, options);
       return { uploaded };
     } catch (error) {
-      console.error('[CloudinaryService] Lỗi tải ảnh:', error);
-      throw new InternalServerErrorException('Không thể tải ảnh');
+      console.error('[CloudinaryService] uploadSingleImage error:', error);
+      throw error;
     }
   }
 
-  // Upload nhiều ảnh
   async uploadMultipleImages(
     targetId: string,
     files: Express.Multer.File[],
     folderPrefix: string
   ): Promise<{ uploaded: { public_id: string; url: string }[] }> {
-    if (!files || files.length === 0)
+    if (!files?.length)
       throw new BadRequestException('Không có file nào được cung cấp');
 
     try {
-      const uploadPromises = files.map(
-        (file) =>
-          new Promise<UploadApiResponse>((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-              { folder: `${folderPrefix}/${targetId}` },
-              (error, result) => {
-                if (error) {
-                  return reject(
-                    new InternalServerErrorException(
-                      'Lỗi tải ảnh lên Cloudinary'
-                    )
-                  );
-                }
-                if (result) {
-                  resolve(result);
-                } else {
-                  reject(
-                    new InternalServerErrorException(
-                      'Cloudinary upload returned undefined result'
-                    )
-                  );
-                }
-              }
-            );
-            streamifier.createReadStream(file.buffer).pipe(uploadStream);
-          })
-      );
+      const options = { folder: `${folderPrefix}/${targetId}` };
 
-      const uploadResults = await Promise.all(uploadPromises);
-      const uploaded = uploadResults
-        .filter(
-          (img): img is UploadApiResponse => 'public_id' in img && 'url' in img
-        )
-        .map((img) => ({ public_id: img.public_id, url: img.url }));
+      const uploaded = await Promise.all(
+        files.map((file) => this.uploadStreamAsync(file, options))
+      );
 
       return { uploaded };
     } catch (error) {
-      console.error('[CloudinaryService] Error uploading images:', error);
-      throw error;
+      console.error('[CloudinaryService] uploadMultipleImages error:', error);
+      throw new InternalServerErrorException('Không thể tải ảnh lên');
     }
   }
 
-  // Xóa toàn bộ folder (và ảnh trong đó)
   async deleteFolder(folderPath: string): Promise<void> {
     try {
-      const { resources } = await cloudinary.api.resources({
+      const { resources } = (await cloudinary.api.resources({
         type: 'upload',
         prefix: folderPath,
-      });
+      })) as { resources: { public_id: string }[] };
 
       if (resources.length > 0) {
         const publicIds = resources.map(
-          (file: { public_id: string }) => file.public_id
+          (r: { public_id: string }) => r.public_id
         );
         await cloudinary.api.delete_resources(publicIds);
       }
@@ -134,21 +105,20 @@ export class CloudinaryService {
       await cloudinary.api.delete_folder(folderPath);
     } catch (error) {
       console.error(
-        `[CloudinaryService] Error deleting folder ${folderPath}:`,
+        `[CloudinaryService] deleteFolder(${folderPath}) error:`,
         error
       );
       throw new InternalServerErrorException(`Lỗi xóa thư mục ${folderPath}`);
     }
   }
 
-  // Xóa danh sách ảnh theo public_id
   async deleteImages(publicIds: string[]): Promise<void> {
-    if (!publicIds || publicIds.length === 0) return;
+    if (!publicIds?.length) return;
 
     try {
       await cloudinary.api.delete_resources(publicIds);
     } catch (error) {
-      console.error('[CloudinaryService] Error deleting images:', error);
+      console.error('[CloudinaryService] deleteImages error:', error);
       throw new InternalServerErrorException('Không thể xóa ảnh');
     }
   }
