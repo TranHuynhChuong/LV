@@ -28,18 +28,18 @@ export default function CreateShippingPage() {
   }, [setBreadcrumbs]);
   const handleSubmit = (data: ShippingFormData) => {
     const apiData = {
-      VC_phi: data.fee ?? 0,
-      VC_ntl: data.weight ?? 0,
-      VC_phuPhi: data.surcharge ?? 0,
-      VC_dvpp: data.surchargeUnit ?? 0,
+      PVC_phi: data.fee ?? 0,
+      PVC_ntl: data.weight ?? 0,
+      PVC_phuPhi: data.surcharge ?? 0,
+      PVC_dvpp: data.surchargeUnit ?? 0,
       T_id: data.provinceId ?? 0,
       NV_id: authData.userId,
     };
 
     api
       .post('/shipping', apiData)
-      .then(() => {
-        toast.success('Thêm phí vận chuyển thành công');
+      .then((res) => {
+        toast.success(res.data.message ?? 'Thêm phí vận chuyển thành công');
         router.back();
       })
       .catch((error) => {

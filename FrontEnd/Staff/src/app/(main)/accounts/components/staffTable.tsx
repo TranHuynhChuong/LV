@@ -87,7 +87,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
           NV_soDienThoai: string;
         };
 
-        const result: ApiStaff[] = data.staffs;
+        const result: ApiStaff[] = data;
 
         if (result.length > 0) {
           const mapped: Staff[] = result.map((staff: ApiStaff) => ({
@@ -133,10 +133,10 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
           id: null,
         });
 
-        toast.success(res.data.message || 'Xóa thành công!');
+        toast.success(res.data.message ?? 'Xóa thành công!');
       })
       .catch((error) => {
-        const msg = error?.response?.data?.message || 'Đã xảy ra lỗi!';
+        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
         toast.error(msg);
         console.error('Xóa nhân viên thất bại:', error);
       });

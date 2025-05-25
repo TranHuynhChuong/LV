@@ -52,21 +52,21 @@ export default function ShippingDetailPage() {
     api
       .get(`/shipping/${id}`)
       .then((res) => {
-        const data = res.data.data.shippingFee;
-        const staff = res.data.data.staff;
+        console.log(res);
+        const data = res.data.data;
         setInitialData({
-          fee: data.VC_phi,
-          weight: data.VC_ntl,
-          surcharge: data.VC_phuPhi,
-          surchargeUnit: data.VC_dvpp,
+          fee: data.PVC_phi,
+          weight: data.PVC_ntl,
+          surcharge: data.PVC_phuPhi,
+          surchargeUnit: data.PVC_dvpp,
           provinceId: data.T_id,
-          createdAt: data.VC_tao,
-          updatedAt: data.VC_capNhat,
+          createdAt: data.PVC_tao,
+          updatedAt: data.PVC_capNhat,
           staff: {
-            id: data.NV_id,
-            name: staff.NV_hoTen,
-            phone: staff.NV_soDienThoai,
-            email: staff.NV_email,
+            id: data.NV_id.NV_id,
+            name: data.NV_id.NV_hoTen,
+            phone: data.NV_id.NV_soDienThoai,
+            email: data.NV_id.NV_email,
           },
         });
       })
@@ -76,14 +76,14 @@ export default function ShippingDetailPage() {
         toast.error(msg);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, []);
 
   const handleSubmit = (data: ShippingFormData) => {
     const apiData = {
-      VC_phi: data.fee ?? 0,
-      VC_ntl: data.weight ?? 0,
-      VC_phuPhi: data.surcharge ?? 0,
-      VC_dvpp: data.surchargeUnit ?? 0,
+      PVC_phi: data.fee ?? 0,
+      PVC_ntl: data.weight ?? 0,
+      PVC_phuPhi: data.surcharge ?? 0,
+      PVC_dvpp: data.surchargeUnit ?? 0,
       T_id: data.provinceId ?? 0,
       NV_id: authData.userId,
     };

@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .catch(() => {
         setAuthData({ userId: null, role: null });
       });
-  }, [router]);
+  }, []);
 
   const contextValue = useMemo(() => ({ authData, setAuthData }), [authData, setAuthData]);
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

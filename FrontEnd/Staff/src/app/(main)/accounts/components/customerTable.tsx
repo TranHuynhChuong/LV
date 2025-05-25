@@ -48,7 +48,7 @@ export default function CustomerTable() {
   const [inputEmail, setInputEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const limit = 12;
+  const limit = 24;
 
   const getCustomers = (page: number) => {
     setIsLoading(true);
@@ -56,10 +56,9 @@ export default function CustomerTable() {
     api
       .get('/users/customers', { params: { page, limit } })
       .then((res) => {
-        const { customers, total, message } = res.data.data;
+        const { results, total } = res.data.data;
 
-        if (!customers.length) {
-          setErrorMessage(message || 'Không có dữ liệu khách hàng.');
+        if (!results.length) {
           setData([]);
           setTotalPages(1);
           return;
@@ -71,7 +70,7 @@ export default function CustomerTable() {
           KH_tao: string;
         };
 
-        const mapped: Customer[] = customers.map((item: ApiCustomer) => ({
+        const mapped: Customer[] = results.map((item: ApiCustomer) => ({
           name: item.KH_hoTen,
           email: item.KH_email,
           createAt: new Date(item.KH_tao).toLocaleString('vi-VN'),
@@ -81,7 +80,7 @@ export default function CustomerTable() {
         setTotalPages(Math.ceil(total / limit));
       })
       .catch((err) => {
-        const msg = err?.response?.data?.message || 'Lỗi khi lấy danh sách khách hàng.';
+        const msg = err?.response?.data?.message ?? 'Lỗi khi lấy danh sách khách hàng.';
         setErrorMessage(msg);
         setData([]);
         setTotalPages(1);
@@ -97,7 +96,8 @@ export default function CustomerTable() {
     api
       .get(`/users/customer/${email}`)
       .then((res) => {
-        const result = res.data;
+        const result = res.data.data;
+
         if (!result) {
           setErrorMessage('Không tìm thấy khách hàng.');
           setData([]);

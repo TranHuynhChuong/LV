@@ -49,7 +49,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     api
       .get(`/users/staff/${id}`)
       .then((res) => {
-        const staff = res.data.data.staff;
+        const staff = res.data.data;
         setStaffData({
           fullName: staff.NV_hoTen,
           phone: staff.NV_soDienThoai,
@@ -59,13 +59,12 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
           password: staff.NV_matKhau,
         });
 
-        const NV_idNV = res.data.NV_idNV;
         setMetadata({
           createdBy: {
-            id: NV_idNV?.NV_id ?? staff.NV_id,
-            name: NV_idNV?.NV_hoTen ?? '',
-            email: NV_idNV?.NV_email ?? '',
-            phone: NV_idNV?.NV_soDienThoai ?? '',
+            id: staff.NV_idNV?.NV_id,
+            name: staff.NV_idNV?.NV_hoTen ?? '',
+            email: staff.NV_idNV?.NV_email ?? '',
+            phone: staff.NV_idNV?.NV_soDienThoai ?? '',
           },
           createdAt: staff.NV_tao,
           updatedAt: staff.NV_capNhat,
@@ -78,7 +77,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id, setBreadcrumbs]);
+  }, []);
 
   const handleOnSubmit = (data: {
     fullName: string;

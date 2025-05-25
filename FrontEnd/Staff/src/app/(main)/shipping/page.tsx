@@ -58,10 +58,10 @@ export type ShippingFee = {
 };
 
 export type ShippingFeeApi = {
-  VC_phi: number;
-  VC_ntl: string;
-  VC_phuPhi?: number;
-  VC_dvpp?: string;
+  PVC_phi: number;
+  PVC_ntl: string;
+  PVC_phuPhi?: number;
+  PVC_dvpp?: string;
   T_id: number;
 };
 
@@ -73,7 +73,7 @@ export default function Shipments() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [total, setTotal] = useState(0);
+
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
     id: number | null;
@@ -91,9 +91,7 @@ export default function Shipments() {
       .then(([shippingRes, locationRes]) => {
         const provinces: { T_id: number; T_ten: string }[] = locationRes;
         console.log(shippingRes);
-        const shippingRaw: ShippingFeeApi[] = shippingRes.data.data.shippingFees;
-
-        setTotal(shippingRes.data.data.total);
+        const shippingRaw: ShippingFeeApi[] = shippingRes.data.data;
 
         const mapped: ShippingFee[] = shippingRaw.map((item) => {
           const province = provinces.find((p) => p.T_id === item.T_id);
@@ -101,10 +99,10 @@ export default function Shipments() {
             item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
 
           return {
-            fee: item.VC_phi,
-            level: item.VC_ntl,
-            surcharge: item.VC_phuPhi,
-            unit: item.VC_dvpp,
+            fee: item.PVC_phi,
+            level: item.PVC_ntl,
+            surcharge: item.PVC_phuPhi,
+            unit: item.PVC_dvpp,
             location: locationName,
             locationId: item.T_id,
           };
@@ -134,7 +132,6 @@ export default function Shipments() {
       .delete(`/shipping/${id}`)
       .then((res) => {
         setData((prev) => prev.filter((item) => item.locationId !== id));
-        setTotal((prev) => prev - 1);
         setDeleteDialogOpen({
           open: false,
           id: null,
@@ -314,8 +311,7 @@ export default function Shipments() {
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="space-x-2">
-            <span className="text-lg font-medium ">{total}</span>
-            <span>Phí vận chuyển</span>
+            Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </div>
           <Link href="shipping/new">
             <Button className="cursor-pointer">

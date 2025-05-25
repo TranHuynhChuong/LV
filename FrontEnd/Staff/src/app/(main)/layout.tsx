@@ -52,7 +52,7 @@ export default function MainLayout({ children }: { readonly children: React.Reac
               <AppBreadcrumb />
             </header>
             <main className="flex flex-1 p-4 bg-zinc-100">{children}</main>
-            <Toaster richColors position="bottom-right" duration={1000} />
+            <Toaster richColors position="bottom-right" duration={2000} />
           </SidebarInset>
         </SidebarProvider>
       </BreadcrumbProvider>
