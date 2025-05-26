@@ -25,6 +25,11 @@ export class TheLoaiController {
     return await this.TheLoai.findAll();
   }
 
+  @Get('/:id')
+  async findById(@Param('id') id: number): Promise<any> {
+    return await this.TheLoai.findById(id);
+  }
+
   @Put(':id')
   async update(@Param('id') id: number, @Body() data: UpdateDto) {
     return await this.TheLoai.update(id, data);

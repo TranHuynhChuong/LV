@@ -2,14 +2,23 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
 import { TheLoai } from './theLoai.schema';
+import {
+  NhanVienInfo,
+  NhanVienService,
+} from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 @Injectable()
 export class TheLoaiService {
-  constructor(private readonly TheLoai: TheLoaiRepository) {}
+  [x: string]: any;
+  constructor(
+    private readonly TheLoai: TheLoaiRepository,
+    private readonly NhanVien: NhanVienService
+  ) {}
 
   // Tạo thể loại mới
   async create(data: CreateDto): Promise<TheLoai> {
@@ -53,6 +62,33 @@ export class TheLoaiService {
     return this.TheLoai.findAll();
   }
 
+  async findById(id: number): Promise<any> {
+    const result: any = await this.TheLoai.findById(id);
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    let nhanVien: NhanVienInfo = {
+      NV_id: result.NV_id,
+      NV_hoTen: null,
+      NV_email: null,
+      NV_soDienThoai: null,
+    };
+
+    if (result.NV_id) {
+      const staff = await this.NhanVien.findById(result.NV_id);
+      if (staff) {
+        nhanVien = {
+          NV_id: staff.NV_id,
+          NV_hoTen: staff.NV_hoTen,
+          NV_email: staff.NV_email,
+          NV_soDienThoai: staff.NV_soDienThoai,
+        };
+        result.NV_id = nhanVien;
+      }
+    }
+    return result;
+  }
   // Xóa thể loại (cập nhật TL_daXoa = true)
   async delete(id: number): Promise<TheLoai> {
     const deleted = await this.TheLoai.delete(id);
