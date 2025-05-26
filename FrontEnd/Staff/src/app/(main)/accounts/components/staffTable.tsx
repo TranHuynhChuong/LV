@@ -353,7 +353,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa nhân viên này?</DialogTitle>
+            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
           </DialogHeader>
           <div className="w-full h-10"></div>
           <DialogFooter className="flex justify-end gap-2">

@@ -240,7 +240,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
       <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa nhân viên này?</DialogTitle>
+            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
           </DialogHeader>
           <div className="w-full h-10"></div>
           <DialogFooter className="flex justify-end gap-2">
@@ -258,9 +258,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
       <Dialog open={isConfirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {isEditing ? 'Xác nhận cập nhật nhân viên?' : 'Xác nhận thêm nhân viên?'}
-            </DialogTitle>
+            <DialogTitle>{isEditing ? 'Xác nhận cập nhật?' : 'Xác nhận thêm?'}</DialogTitle>
           </DialogHeader>
           <div className="w-full h-10"></div>
           <DialogFooter className="flex justify-end gap-2">

@@ -316,7 +316,7 @@ export default function ShippingFeeForm({ defaultValues, onSubmit, onDelete }: R
       <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa phí vận chuyển này?</DialogTitle>
+            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
           </DialogHeader>
           <DialogFooter className="flex justify-end gap-2">
             <div className="w-full h-10"></div>
@@ -334,9 +334,7 @@ export default function ShippingFeeForm({ defaultValues, onSubmit, onDelete }: R
       <Dialog open={isConfirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {isEditing ? 'Xác nhận cập nhật phí vận chuyển?' : 'Xác nhận thêm phí vận chuyển?'}
-            </DialogTitle>
+            <DialogTitle>{isEditing ? 'Xác nhận cập nhật?' : 'Xác nhận thêm phí?'}</DialogTitle>
           </DialogHeader>
           <div className="w-full h-10"></div>
           <DialogFooter className="flex justify-end gap-2">

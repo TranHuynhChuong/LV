@@ -402,7 +402,7 @@ export default function Shipments() {
           <DialogHeader>
             <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>
-              Bạn có chắc muốn xóa thông tin phí vận chuyển này này? <br />
+              Bạn có chắc muốn xóa thông tin này? <br />
               Thông tin sẽ không thể khôi phục sau khi xóa.
             </DialogDescription>
           </DialogHeader>
