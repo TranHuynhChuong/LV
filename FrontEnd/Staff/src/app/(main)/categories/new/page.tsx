@@ -6,14 +6,11 @@ import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { CategoryForm } from '../components/categoryForm';
 
-
-type ShippingFormData = {
-  fee?: number;
-  weight?: number;
-  surcharge?: number;
-  surchargeUnit?: number;
-  provinceId?: number;
+type CategoryFormData = {
+  name?: string;
+  parentId?: number | null;
 };
 
 export default function NewCategory() {
@@ -27,18 +24,16 @@ export default function NewCategory() {
       { label: 'Thêm mới thể loại' },
     ]);
   }, [setBreadcrumbs]);
-  const handleSubmit = (data: ShippingFormData) => {
+  const handleSubmit = (data: CategoryFormData) => {
     const apiData = {
-      PVC_phi: data.fee ?? 0,
-      PVC_ntl: data.weight ?? 0,
-      PVC_phuPhi: data.surcharge ?? 0,
-      PVC_dvpp: data.surchargeUnit ?? 0,
-      T_id: data.provinceId ?? 0,
+      TL_ten: data.name ?? '',
+      TL_idTL: data.parentId ?? null,
       NV_id: authData.userId,
     };
 
+    console.log('Submitting category data:', apiData);
     api
-      .post('/shipping', apiData)
+      .post('/categories', apiData)
       .then(() => {
         toast.success('Thêm mới thành công');
         router.back();
@@ -55,7 +50,7 @@ export default function NewCategory() {
 
   return (
     <div className="w-full max-w-xl h-fit min-w-md ">
-      
+      <CategoryForm onSubmit={handleSubmit}></CategoryForm>
     </div>
   );
 }
