@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Info } from 'lucide-react';
+import Loading from './loading';
 
 type ShippingFormData = {
   fee?: number;
@@ -53,7 +54,7 @@ export default function ShippingDetailPage() {
       .get(`/shipping/${id}`)
       .then((res) => {
         console.log(res);
-        const data = res.data.data;
+        const data = res.data;
         setInitialData({
           fee: data.PVC_phi,
           weight: data.PVC_ntl,
@@ -72,8 +73,7 @@ export default function ShippingDetailPage() {
       })
       .catch((error) => {
         console.error(error);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
+        toast.error('Đã xảy ra lỗi!');
       })
       .finally(() => setLoading(false));
   }, []);
@@ -95,9 +95,12 @@ export default function ShippingDetailPage() {
         router.back();
       })
       .catch((error) => {
+        if (error.status === 400) {
+          toast.error('Cập nhật thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error(error);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
       });
   };
 
@@ -117,7 +120,7 @@ export default function ShippingDetailPage() {
       });
   };
 
-  if (loading) return <p>Đang tải dữ liệu...</p>;
+  if (loading) return <Loading />;
   if (!initialData) return <p>Không tìm thấy dữ liệu.</p>;
 
   return (
