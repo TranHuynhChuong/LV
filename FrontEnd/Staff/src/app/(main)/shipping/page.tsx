@@ -47,6 +47,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export type ShippingFee = {
   fee: number;
@@ -69,11 +70,11 @@ export default function Shipments() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [data, setData] = useState<ShippingFee[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-
+  const [isLoading, setLoading] = useState<boolean>(true);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
     id: number | null;
@@ -85,13 +86,12 @@ export default function Shipments() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const getData = () => {
-    setIsLoading(true);
-
+    setLoading(true);
     Promise.all([api.get('/shipping'), fetch('/data/0.json').then((res) => res.json())])
       .then(([shippingRes, locationRes]) => {
         const provinces: { T_id: number; T_ten: string }[] = locationRes;
         console.log(shippingRes);
-        const shippingRaw: ShippingFeeApi[] = shippingRes.data.data;
+        const shippingRaw: ShippingFeeApi[] = shippingRes.data;
 
         const mapped: ShippingFee[] = shippingRaw.map((item) => {
           const province = provinces.find((p) => p.T_id === item.T_id);
@@ -112,13 +112,10 @@ export default function Shipments() {
       })
       .catch((error) => {
         setData([]);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        setErrorMessage(msg);
+        setErrorMessage('Đã xảy ra lỗi!');
         console.error('Lỗi tải dữ liệu phí vận chuyển:', error);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -127,22 +124,26 @@ export default function Shipments() {
 
   const handleConfirmDelete = (id: number) => {
     if (!id) return;
-
+    setLoading(true);
     api
       .delete(`/shipping/${id}`)
-      .then((res) => {
+      .then(() => {
         setData((prev) => prev.filter((item) => item.locationId !== id));
         setDeleteDialogOpen({
           open: false,
           id: null,
         });
-        toast.success(res.data.data.message ?? 'Xóa thành công!');
+        toast.success('Xóa thành công!');
       })
       .catch((error) => {
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg ?? 'Đã xảy ra lỗi!');
+        if (error.status === 400) {
+          toast.error('Xóa thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error('Xóa thất bại:', error);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
   const columns: ColumnDef<ShippingFee>[] = [
@@ -244,6 +245,7 @@ export default function Shipments() {
     {
       id: 'actions',
       enableHiding: false,
+      header: 'Thao tác',
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -304,15 +306,10 @@ export default function Shipments() {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Phí vận chuyển' }]);
   }, [setBreadcrumbs]);
 
-  if (isLoading) return null;
-
   return (
     <>
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
-        <div className="flex items-center justify-between mb-4">
-          <div className="space-x-2">
-            Trang {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
-          </div>
+        <div className="flex items-center justify-end mb-4">
           <Link href="shipping/new">
             <Button className="cursor-pointer">
               <Plus /> Thêm mới
@@ -335,7 +332,17 @@ export default function Shipments() {
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.length ? (
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <TableRow key={index}>
+                    {columns.map((col, i) => (
+                      <TableCell key={i}>
+                        <Skeleton className="w-full h-4"></Skeleton>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (

@@ -54,14 +54,16 @@ type StaffFormProps = {
   defaultValues?: Partial<FormData>;
   onSubmit?: (data: FormData) => void;
   onDelete?: () => void;
+  view?: boolean;
 };
 
-export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffFormProps>) {
+export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<StaffFormProps>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
   const router = useRouter();
+  const isView = Boolean(view ?? false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -122,7 +124,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
                 <FormItem>
                   <FormLabel>Họ tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập họ tên" {...field} />
+                    <Input placeholder="Nhập họ tên" {...field} disabled={isView} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -136,7 +138,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập số điện thoại" {...field} />
+                    <Input placeholder="Nhập số điện thoại" {...field} disabled={isView} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,7 +152,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Nhập email" {...field} />
+                    <Input type="email" placeholder="Nhập email" {...field} disabled={isView} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -169,7 +171,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full" disabled={isView}>
                         <SelectValue placeholder="Chọn vai trò" />
                       </SelectTrigger>
                     </FormControl>
@@ -195,41 +197,42 @@ export function StaffForm({ defaultValues, onSubmit, onDelete }: Readonly<StaffF
                 <FormItem>
                   <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="Nhập mật khẩu" {...field} />
+                    <Input type="text" placeholder="Nhập mật khẩu" {...field} disabled={isView} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+          {!isView && (
+            <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
+              <Button
+                type="submit"
+                className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
+              >
+                {isEditing ? 'Cập nhật' : 'Thêm'}
+              </Button>
 
-          <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
-            <Button
-              type="submit"
-              className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
-            >
-              {isEditing ? 'Cập nhật' : 'Thêm'}
-            </Button>
-
-            {isEditing && (
+              {isEditing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="flex-1 cursor-pointer"
+                >
+                  Xóa
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setDeleteDialogOpen(true)}
+                onClick={() => router.back()}
                 className="flex-1 cursor-pointer"
               >
-                Xóa
+                Hủy
               </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1 cursor-pointer"
-            >
-              Hủy
-            </Button>
-          </div>
+            </div>
+          )}
         </form>
       </Form>
 

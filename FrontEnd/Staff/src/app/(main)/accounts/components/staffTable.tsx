@@ -44,6 +44,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export type Staff = {
   id: string;
@@ -77,7 +78,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
     api
       .get('/users/staffs')
       .then((res) => {
-        const data = res.data.data;
+        const data = res.data;
 
         type ApiStaff = {
           NV_id: string;
@@ -107,8 +108,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       })
       .catch((error) => {
         console.error('Lỗi khi gọi API:', error);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        setErrorMessage(msg);
+        setErrorMessage('Đã xảy ra lỗi!');
         setData([]);
       })
       .finally(() => {
@@ -125,7 +125,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
 
     api
       .delete(`/users/staff/${id}`)
-      .then((res) => {
+      .then(() => {
         setData((prev) => prev.filter((item) => item.id !== id));
         onDeleteSuccess?.();
         setDeleteDialogOpen({
@@ -133,11 +133,14 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
           id: null,
         });
 
-        toast.success(res.data.message ?? 'Xóa thành công!');
+        toast.success('Xóa thành công!');
       })
       .catch((error) => {
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
+        if (error.response?.status === 400) {
+          toast.error('Xóa nhân viên thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error('Xóa nhân viên thất bại:', error);
       });
   };
@@ -187,6 +190,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
     {
       id: 'actions',
       enableHiding: false,
+      header: 'Thao tác',
       cell: ({ row }) => {
         const staff = row.original;
         return (
@@ -243,10 +247,6 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
     },
   });
 
-  if (isLoading) {
-    return null;
-  }
-
   return (
     <>
       <div className="w-full">
@@ -279,7 +279,17 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.length ? (
+              {isLoading ? (
+                Array.from({ length: 3 }).map((_, index) => (
+                  <TableRow key={index}>
+                    {columns.map((col, i) => (
+                      <TableCell key={i}>
+                        <Skeleton className="w-full h-4"></Skeleton>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}

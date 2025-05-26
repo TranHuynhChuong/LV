@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
+import Loading from './loading';
 
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -49,7 +50,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     api
       .get(`/users/staff/${id}`)
       .then((res) => {
-        const staff = res.data.data;
+        const staff = res.data;
         setStaffData({
           fullName: staff.NV_hoTen,
           phone: staff.NV_soDienThoai,
@@ -72,7 +73,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
       })
       .catch((error) => {
         console.error('Lỗi khi lấy thông tin nhân viên:', error);
-        toast.error(error?.response?.data?.message ?? 'Đã xảy ra lỗi khi tải dữ liệu!');
+        toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
       })
       .finally(() => {
         setIsLoading(false);
@@ -97,12 +98,16 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
 
     api
       .put(`/users/staff/${id}`, payload)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Cập nhật thành công!');
+      .then(() => {
+        toast.success('Cập nhật thành công!');
         router.back();
       })
       .catch((error) => {
-        toast.error(error?.response?.data?.message ?? 'Đã xảy ra lỗi!');
+        if (error.status === 400) {
+          toast.error('Cập nhật thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error('Lỗi khi cập nhật nhân viên:', error);
       });
   };
@@ -110,18 +115,22 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
   const handleOnDelete = () => {
     api
       .delete(`/users/staff/${id}`)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Xóa thành công!');
+      .then(() => {
+        toast.success('Xóa thành công!');
         router.back();
       })
       .catch((error) => {
-        toast.error(error?.response?.data?.message || 'Đã xảy ra lỗi khi xóa!');
+        if (error.status === 400) {
+          toast.error('Xóa thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error('Lỗi khi xóa nhân viên:', error);
       });
   };
 
   if (isLoading) {
-    return <></>;
+    return <Loading />;
   }
 
   return (

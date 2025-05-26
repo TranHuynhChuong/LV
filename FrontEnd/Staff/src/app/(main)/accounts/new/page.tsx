@@ -39,13 +39,16 @@ export default function New() {
 
     api
       .post('/users/staff', payload)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Lưu thành công!');
+      .then(() => {
+        toast.success('Thêm mới thành công!');
         router.back();
       })
       .catch((error) => {
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
+        if (error.status === 400) {
+          toast.error('Thêm mới thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
         console.error('Lỗi khi thêm nhân viên:', error);
       });
   };

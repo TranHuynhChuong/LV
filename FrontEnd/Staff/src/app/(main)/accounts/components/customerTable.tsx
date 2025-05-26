@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export type Customer = {
   name: string;
@@ -41,22 +42,21 @@ export const columns: ColumnDef<Customer>[] = [
 
 export default function CustomerTable() {
   const [data, setData] = useState<Customer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [pageIndex, setPageIndex] = useState(0);
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [isLoading, setIsLoading] = useState(true);
   const limit = 24;
 
   const getCustomers = (page: number) => {
-    setIsLoading(true);
     setErrorMessage('');
+    setIsLoading(true);
     api
       .get('/users/customers', { params: { page, limit } })
       .then((res) => {
-        const { results, total } = res.data.data;
+        const { results, total } = res.data;
 
         if (!results.length) {
           setData([]);
@@ -79,24 +79,22 @@ export default function CustomerTable() {
         setData(mapped);
         setTotalPages(Math.ceil(total / limit));
       })
-      .catch((err) => {
-        const msg = err?.response?.data?.message ?? 'Lỗi khi lấy danh sách khách hàng.';
-        setErrorMessage(msg);
+      .catch(() => {
+        setErrorMessage('Lỗi khi lấy danh sách khách hàng.');
         setData([]);
         setTotalPages(1);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   };
 
   const getByEmail = (email: string) => {
-    setIsLoading(true);
     setErrorMessage('');
+    setIsLoading(true);
     api
       .get(`/users/customer/${email}`)
       .then((res) => {
-        const result = res.data.data;
+        console.log(res);
+        const result = res.data;
 
         if (!result) {
           setErrorMessage('Không tìm thấy khách hàng.');
@@ -114,15 +112,17 @@ export default function CustomerTable() {
         setData(mapped);
         setTotalPages(1);
       })
-      .catch((err) => {
-        const msg = err?.response?.data?.message || 'Lỗi khi tìm khách hàng.';
-        setErrorMessage(msg);
+      .catch((error) => {
+        console.log(error);
+        if (error.status === 404) {
+          setErrorMessage('Không tìm thấy khách hàng.');
+        } else {
+          setErrorMessage('Lỗi khi tìm khách hàng.');
+        }
         setData([]);
         setTotalPages(1);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
@@ -160,10 +160,6 @@ export default function CustomerTable() {
     },
   });
 
-  if (isLoading) {
-    return <div>Đang tải dữ liệu...</div>;
-  }
-
   return (
     <div className="w-full">
       <div className="flex items-center justify-end gap-2 py-4">
@@ -197,9 +193,19 @@ export default function CustomerTable() {
             ))}
           </TableHeader>
           <TableBody>
-            {data.length ? (
+            {isLoading ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <TableRow key={index}>
+                  {columns.map((col, i) => (
+                    <TableCell key={i}>
+                      <Skeleton className="w-full h-4"></Skeleton>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} className="cursor-pointer">
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

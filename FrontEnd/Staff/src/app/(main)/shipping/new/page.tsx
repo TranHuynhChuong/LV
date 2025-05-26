@@ -22,7 +22,7 @@ export default function CreateShippingPage() {
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
-      { label: 'Vận chuyển', href: '/' },
+      { label: 'Vận chuyển', href: '/shipping' },
       { label: 'Thêm mới phí vận chuyển' },
     ]);
   }, [setBreadcrumbs]);
@@ -38,14 +38,17 @@ export default function CreateShippingPage() {
 
     api
       .post('/shipping', apiData)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Thêm phí vận chuyển thành công');
+      .then(() => {
+        toast.success('Thêm mới thành công');
         router.back();
       })
       .catch((error) => {
         console.error(error);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
+        if (error.status === 400) {
+          toast.error('Thêm mới thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
       });
   };
 

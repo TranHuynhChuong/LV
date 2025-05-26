@@ -15,7 +15,7 @@ export default function Accounts() {
   const getCount = async () => {
     try {
       const res = await api.get('users/total');
-      const data = res.data.data;
+      const data = res.data;
       setStaff(data.staff);
       setCustomer(data.customer);
     } catch (error) {

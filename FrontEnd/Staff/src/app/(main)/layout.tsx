@@ -16,24 +16,32 @@ import {
 import { BreadcrumbProvider, useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 
+import { Skeleton } from '@/components/ui/skeleton';
+
 function AppBreadcrumb() {
   const { breadcrumbs } = useBreadcrumb();
 
+  const isLoading = breadcrumbs.length === 0;
+
   return (
     <Breadcrumb>
-      <BreadcrumbList>
-        {breadcrumbs.map((crumb, index) => (
-          <BreadcrumbList key={index} className="flex items-center">
-            {index > 0 && <BreadcrumbSeparator />}
-            <BreadcrumbItem>
-              {crumb.href ? (
-                <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
-              ) : (
-                <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-              )}
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        ))}
+      <BreadcrumbList className="flex items-center space-x-2">
+        {isLoading ? (
+          <Skeleton className="h-6 w-52 rounded-md" />
+        ) : (
+          breadcrumbs.map((crumb, index) => (
+            <BreadcrumbList key={index} className="flex items-center">
+              {index > 0 && <BreadcrumbSeparator />}
+              <BreadcrumbItem>
+                {crumb.href ? (
+                  <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          ))
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );
