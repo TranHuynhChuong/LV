@@ -31,7 +31,10 @@ export class NhanVienRepository {
   }
 
   async findAll(): Promise<NhanVien[]> {
-    return this.NhanVien.find({ NV_daXoa: false }).lean().exec();
+    return this.NhanVien.find({ NV_daXoa: false })
+      .select('NV_id NV_hoTen NV_email NV_soDienThoai')
+      .lean()
+      .exec();
   }
 
   async findById(id: string): Promise<NhanVien | null> {

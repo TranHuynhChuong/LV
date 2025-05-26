@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { NhanVienRepository } from './nhanVien.repository';
 import { CreateDto, UpdateDto } from './nhanVien.dto';
 import { NhanVien } from './nhanVien.schema';
+
 export interface NhanVienInfo {
   NV_id: string | null;
   NV_hoTen: string | null;
@@ -26,20 +31,19 @@ export class NhanVienService {
       NV_id: newCode,
     });
     if (!created) {
-      throw new NotFoundException('Tạo nhân viên thất bại');
+      throw new BadRequestException();
     }
     return created;
   }
 
   async findAll(): Promise<NhanVien[]> {
-    const results = await this.NhanVien.findAll();
-    return results;
+    return await this.NhanVien.findAll();
   }
 
   async findById(id: string): Promise<any> {
     const result: any = await this.NhanVien.findById(id);
     if (!result) {
-      throw new NotFoundException('Không tìm thấy nhân viên');
+      throw new NotFoundException();
     }
 
     let NV_idNV: NhanVienInfo = {
@@ -68,7 +72,7 @@ export class NhanVienService {
   async update(id: string, dto: UpdateDto): Promise<NhanVien> {
     const updated = await this.NhanVien.update(id, dto);
     if (!updated) {
-      throw new NotFoundException('Không tìm thấy nhân viên');
+      throw new BadRequestException();
     }
     return updated;
   }
@@ -76,7 +80,7 @@ export class NhanVienService {
   async delete(id: string) {
     const deleted = await this.NhanVien.delete(id);
     if (!deleted) {
-      throw new NotFoundException('Không tìm thấy nhân viên');
+      throw new BadRequestException();
     }
     return deleted;
   }

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { PhiVanChuyenService } from './phiVanChuyen.service';
 import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
+import { PhiVanChuyen } from './phiVanChuyen.schema';
 
 @Controller('api/shipping')
 export class PhiVanChuyenController {
@@ -16,61 +17,31 @@ export class PhiVanChuyenController {
 
   @Get('addressFiles')
   getAllShipmentJson() {
-    const data = this.PhiVanChuyen.loadAddressFiles();
-    return {
-      data,
-      message: 'Lấy danh sách địa chỉ thành công',
-    };
+    return this.PhiVanChuyen.loadAddressFiles();
   }
 
   @Post()
   async create(@Body() data: CreateDto) {
-    await this.PhiVanChuyen.createShippingFee(data);
-    return {
-      message: 'Tạo phí vận chuyển thành công',
-    };
-  }
-
-  @Get('all')
-  async findAll() {
-    const results = await this.PhiVanChuyen.getAllShippingFee();
-    return {
-      data: results,
-      message: 'Lấy danh sách phí vận chuyển thành công',
-    };
+    return await this.PhiVanChuyen.createShippingFee(data);
   }
 
   @Get()
-  async findAllBasic() {
-    const results = await this.PhiVanChuyen.getAllShippingFeeBasic();
-    return {
-      data: results,
-      message: 'Lấy danh sách phí vận chuyển thành công',
-    };
+  async findAllBasic(): Promise<Partial<PhiVanChuyen>[]> {
+    return await this.PhiVanChuyen.getAllShippingFee();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number) {
-    const data = await this.PhiVanChuyen.getShippingFeeById(id);
-    return {
-      data,
-      message: 'Lấy phí vận chuyển thành công',
-    };
+  async findOne(@Param('id') id: number): Promise<any> {
+    return await this.PhiVanChuyen.getShippingFeeById(id);
   }
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: UpdateDto) {
     await this.PhiVanChuyen.updateShippingFee(id, data);
-    return {
-      message: 'Cập nhật phí vận chuyển thành công',
-    };
   }
 
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.PhiVanChuyen.deleteShippingFee(id);
-    return {
-      message: 'Xóa phí vận chuyển thành công',
-    };
+    return await this.PhiVanChuyen.deleteShippingFee(id);
   }
 }

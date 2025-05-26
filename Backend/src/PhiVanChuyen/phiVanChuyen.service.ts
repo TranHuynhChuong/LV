@@ -2,6 +2,7 @@ import {
   ConflictException,
   NotFoundException,
   Injectable,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   NhanVienService,
@@ -25,27 +26,23 @@ export class PhiVanChuyenService {
   async createShippingFee(dto: CreateDto): Promise<PhiVanChuyen> {
     const exists = await this.PhiVanChuyen.findById(dto.T_id);
     if (exists) {
-      throw new ConflictException('Khu vực đã được tạo phí vận chuyển');
+      throw new ConflictException();
     }
     const created = await this.PhiVanChuyen.create(dto);
     if (!created) {
-      throw new ConflictException('Tạo phí vận chuyển thất bại');
+      throw new BadRequestException();
     }
     return created;
   }
 
-  async getAllShippingFee(): Promise<PhiVanChuyen[]> {
+  async getAllShippingFee(): Promise<Partial<PhiVanChuyen>[]> {
     return this.PhiVanChuyen.findAll();
-  }
-
-  async getAllShippingFeeBasic(): Promise<Partial<PhiVanChuyen>[]> {
-    return this.PhiVanChuyen.findAllBasic();
   }
 
   async getShippingFeeById(id: number): Promise<any> {
     const result: any = await this.PhiVanChuyen.findById(id);
     if (!result) {
-      throw new NotFoundException('Phí vận chuyển không tồn tại');
+      throw new NotFoundException();
     }
 
     let nhanVien: NhanVienInfo = {
@@ -59,10 +56,10 @@ export class PhiVanChuyenService {
       const staff = await this.NhanVien.findById(result.NV_id);
       if (staff) {
         nhanVien = {
-          NV_id: staff.result.NV_idNV,
-          NV_hoTen: staff.result.NV_hoTen,
-          NV_email: staff.result.NV_email,
-          NV_soDienThoai: staff.result.NV_soDienThoai,
+          NV_id: staff.NV_id,
+          NV_hoTen: staff.NV_hoTen,
+          NV_email: staff.NV_email,
+          NV_soDienThoai: staff.NV_soDienThoai,
         };
         result.NV_id = nhanVien;
       }
@@ -73,9 +70,7 @@ export class PhiVanChuyenService {
   async updateShippingFee(id: string, dto: UpdateDto): Promise<PhiVanChuyen> {
     const updated = await this.PhiVanChuyen.update(id, dto);
     if (!updated) {
-      throw new NotFoundException(
-        'Phí vận chuyển không tồn tại hoặc cập nhật thất bại'
-      );
+      throw new BadRequestException();
     }
     return updated;
   }
@@ -83,9 +78,7 @@ export class PhiVanChuyenService {
   async deleteShippingFee(id: string): Promise<PhiVanChuyen> {
     const deleted = await this.PhiVanChuyen.delete(id);
     if (!deleted) {
-      throw new NotFoundException(
-        'Phí vận chuyển không tồn tại hoặc xóa thất bại'
-      );
+      throw new BadRequestException();
     }
     return deleted;
   }

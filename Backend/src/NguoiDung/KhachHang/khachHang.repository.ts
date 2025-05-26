@@ -17,7 +17,11 @@ export class KhachHangRepository {
 
   async findAll(page: number, limit: number): Promise<KhachHang[]> {
     const start = page * limit;
-    return this.KhachHang.find().skip(start).limit(limit).exec();
+    return this.KhachHang.find()
+      .select('KH_email KH_hoTen')
+      .skip(start)
+      .limit(limit)
+      .exec();
   }
 
   async findByEmail(email: string): Promise<KhachHang | null> {

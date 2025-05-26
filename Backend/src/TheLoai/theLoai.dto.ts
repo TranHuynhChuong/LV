@@ -19,7 +19,7 @@ export class CreateDto {
 
   @IsOptional()
   @IsString()
-  TL_idTL?: string | null;
+  TL_idTL?: number | null;
 }
 
 export class UpdateDto extends PartialType(CreateDto) {

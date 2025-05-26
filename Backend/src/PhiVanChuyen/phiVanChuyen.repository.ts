@@ -15,11 +15,7 @@ export class PhiVanChuyenRepository {
     return created.save();
   }
 
-  async findAll(): Promise<PhiVanChuyen[]> {
-    return this.PhiVanChuyen.find({ PVC_daXoa: false }).lean().exec();
-  }
-
-  async findAllBasic(): Promise<Partial<PhiVanChuyen>[]> {
+  async findAll(): Promise<Partial<PhiVanChuyen>[]> {
     return this.PhiVanChuyen.find({ PVC_daXoa: false })
       .select('PVC_phi PVC_ntl PVC_phuPhi PVC_dvpp T_id')
       .lean()

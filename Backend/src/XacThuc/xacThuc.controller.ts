@@ -6,9 +6,8 @@ export class XacThucController {
   constructor(private readonly authService: XacThucService) {}
 
   @Post('register')
-  async register(@Body() newCustomer: any) {
-    await this.authService.register(newCustomer);
-    return { message: 'Đăng ký thành công' };
+  async register(@Body() newCustomer: any): Promise<any> {
+    return await this.authService.register(newCustomer);
   }
 
   @Put('change-email/:email')
@@ -22,21 +21,18 @@ export class XacThucController {
 
   @Post('send-otp')
   async checkEmail(@Body() { email }: { email: string }) {
-    const otp = await this.authService.sendOtp(email);
-    return { message: 'OTP đã được gửi', otp };
+    return await this.authService.sendOtp(email);
   }
 
   @Post('login-customer')
   async loginCustomer(
     @Body() { email, pass }: { email: string; pass: string }
   ) {
-    const result = await this.authService.loginCustomer(email, pass);
-    return { message: 'Đăng nhập thành công', ...result };
+    return await this.authService.loginCustomer(email, pass);
   }
 
   @Post('login-staff')
   async loginStaff(@Body() { code, pass }: { code: string; pass: string }) {
-    const result = await this.authService.loginStaff(code, pass);
-    return { message: 'Đăng nhập nhân viên thành công', ...result };
+    return await this.authService.loginStaff(code, pass);
   }
 }

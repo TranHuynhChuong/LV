@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { KhachHangRepository } from './khachHang.repository';
 import { CreateDto, UpdateDto } from './khachHang.dto';
@@ -14,11 +15,11 @@ export class KhachHangsService {
   async create(data: CreateDto): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(data.KH_email);
     if (existing) {
-      throw new ConflictException('Email đã được đăng ký tài khoản');
+      throw new ConflictException();
     }
     const created = await this.KhachHang.create(data);
     if (!created) {
-      throw new ConflictException('Tạo khách hàng thất bại');
+      throw new BadRequestException();
     }
     return created;
   }
@@ -39,7 +40,7 @@ export class KhachHangsService {
   async update(email: string, data: UpdateDto): Promise<KhachHang> {
     const updated = await this.KhachHang.update(email, data);
     if (!updated) {
-      throw new NotFoundException('Không tìm thấy khách hàng');
+      throw new BadRequestException();
     }
     return updated;
   }
@@ -47,7 +48,7 @@ export class KhachHangsService {
   async findByEmail(email: string): Promise<KhachHang> {
     const result = await this.KhachHang.findByEmail(email);
     if (!result) {
-      throw new NotFoundException('Không tìm thấy khách hàng với email này');
+      throw new NotFoundException();
     }
     return result;
   }
@@ -55,14 +56,12 @@ export class KhachHangsService {
   async updateEmail(email: string, newEmail: string): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(newEmail);
     if (existing) {
-      throw new ConflictException('Email mới đã được đăng ký');
+      throw new ConflictException();
     }
 
     const updated = await this.KhachHang.updateEmail(email, newEmail);
     if (!updated) {
-      throw new NotFoundException(
-        'Không tìm thấy khách hàng để cập nhật email'
-      );
+      throw new BadRequestException();
     }
     return updated;
   }

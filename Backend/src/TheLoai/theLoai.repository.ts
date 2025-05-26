@@ -29,11 +29,7 @@ export class TheLoaiRepository {
     return result[0].TL_id;
   }
 
-  async findAll(): Promise<TheLoai[]> {
-    return this.TheLoai.find({ TL_daXoa: false }).lean().exec();
-  }
-
-  async findAllBasic(): Promise<Partial<TheLoai>[]> {
+  async findAll(): Promise<Partial<TheLoai>[]> {
     return this.TheLoai.find({ TL_daXoa: false })
       .select('TL_id TL_ten TL_idTL')
       .lean()

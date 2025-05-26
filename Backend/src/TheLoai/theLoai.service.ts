@@ -1,7 +1,7 @@
 import {
   Injectable,
-  NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
@@ -15,7 +15,7 @@ export class TheLoaiService {
   async create(data: CreateDto): Promise<TheLoai> {
     const exists = await this.TheLoai.findByName(data.TL_ten);
     if (exists) {
-      throw new ConflictException('Tên thể loại đã tồn tại');
+      throw new ConflictException();
     }
 
     const lastId = await this.TheLoai.findLastId();
@@ -28,7 +28,7 @@ export class TheLoaiService {
     });
 
     if (!created) {
-      throw new ConflictException('Tạo thể loại thất bại');
+      throw new BadRequestException();
     }
     return created;
   }
@@ -37,32 +37,27 @@ export class TheLoaiService {
     if (dto.TL_ten) {
       const exists = await this.TheLoai.findByName(dto.TL_ten);
       if (exists && exists.TL_id !== id) {
-        throw new ConflictException('Tên thể loại đã tồn tại');
+        throw new ConflictException();
       }
     }
 
     const updated = await this.TheLoai.update(id, dto);
     if (!updated) {
-      throw new NotFoundException('Không tìm thấy thể loại');
+      throw new BadRequestException();
     }
     return updated;
   }
 
-  // Lấy tất cả thể loại chi tiết
-  async findAll(): Promise<TheLoai[]> {
-    return this.TheLoai.findAll();
-  }
-
   // Lấy tất cả thể loại cơ bản
-  async findAllBasic(): Promise<Partial<TheLoai>[]> {
-    return this.TheLoai.findAllBasic();
+  async findAll(): Promise<Partial<TheLoai>[]> {
+    return this.TheLoai.findAll();
   }
 
   // Xóa thể loại (cập nhật TL_daXoa = true)
   async delete(id: number): Promise<TheLoai> {
     const deleted = await this.TheLoai.delete(id);
     if (!deleted) {
-      throw new NotFoundException('Không tìm thấy thể loại');
+      throw new BadRequestException();
     }
     return deleted;
   }

@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { AllExceptionsFilter } from './app.all-exceptions-filter';
+import { ExceptionLoggingFilter } from './ExceptionLoggingFilter';
 import { ValidationPipe } from '@nestjs/common';
 import * as morgan from 'morgan';
 
@@ -18,7 +18,7 @@ async function bootstrap() {
     })
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new ExceptionLoggingFilter());
   const port = configService.get<number>('app.port', 3000);
   await app.listen(port);
 }

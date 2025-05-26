@@ -2,7 +2,7 @@ import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
-  Logger,
+  ConflictException,
 } from '@nestjs/common';
 import { KhachHangsService } from '../NguoiDung/KhachHang/khachHang.service';
 import { NhanVienService } from '../NguoiDung/NhanVien/nhanVien.service';
@@ -16,8 +16,6 @@ import { EmailService } from 'src/Util/email.service';
 
 @Injectable()
 export class XacThucService {
-  private readonly logger = new Logger(XacThucService.name);
-
   constructor(
     private readonly KhachHang: KhachHangsService,
     private readonly NhanVien: NhanVienService,
@@ -32,7 +30,7 @@ export class XacThucService {
 
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
-      throw new BadRequestException('Mã OTP không đúng hoặc đã hết hạn');
+      throw new BadRequestException();
     }
 
     const newCustomer = {
@@ -43,7 +41,7 @@ export class XacThucService {
 
     const createdCustomer = await this.KhachHang.create(newCustomer);
     if (!createdCustomer) {
-      throw new BadRequestException('Không thể tạo tài khoản mới');
+      throw new BadRequestException();
     }
 
     return createdCustomer;
@@ -52,12 +50,12 @@ export class XacThucService {
   async changeEmail(email: string, newEmail: string, otp: string) {
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
-      throw new BadRequestException('Mã OTP không đúng hoặc đã hết hạn');
+      throw new BadRequestException();
     }
 
     const updatedCustomer = await this.KhachHang.updateEmail(email, newEmail);
     if (!updatedCustomer) {
-      throw new BadRequestException('Không thể cập nhật email');
+      throw new BadRequestException();
     }
     return updatedCustomer;
   }
@@ -70,8 +68,7 @@ export class XacThucService {
         record.code === code &&
         record.expiresAt > new Date()
       );
-    } catch (error) {
-      this.logger.error(`Lỗi kiểm tra OTP: ${error.message}`, error.stack);
+    } catch {
       return false;
     }
   }
@@ -79,7 +76,7 @@ export class XacThucService {
   async sendOtp(email: string) {
     const isExit = await this.KhachHang.findByEmail(email);
     if (isExit) {
-      throw new BadRequestException('Email đã được đăng ký tài khoản');
+      throw new ConflictException();
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -119,34 +116,30 @@ export class XacThucService {
 
     return this.NhanVien.findById(code)
       .then(async (result) => {
-        if (pass !== result?.result?.NV_matKhau) {
-          throw new UnauthorizedException(
-            'Mã nhân viên / Mật khẩu không chính xác'
-          );
+        if (pass !== result?.NV_matKhau) {
+          throw new UnauthorizedException();
         }
 
-        const staff = result.result;
+        const staff = result;
         const token = await this.generateToken(staff.NV_id, staff.NV_vaiTro);
         return {
           token,
         };
       })
       .catch(() => {
-        throw new UnauthorizedException(
-          'Mã nhân viên / Mật khẩu không chính xác'
-        );
+        throw new UnauthorizedException();
       });
   }
 
   async loginCustomer(email: string, pass: string): Promise<{ token: string }> {
     const customer = await this.KhachHang.findByEmail(email);
     if (!customer) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
+      throw new UnauthorizedException();
     }
 
     const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
+      throw new UnauthorizedException();
     }
 
     const token = await this.generateToken(customer.KH_email, 'customer');
