@@ -31,6 +31,7 @@ type Category = {
 type CategoryComboboxProps = {
   value: number | null;
   onChange: (id: number | null) => void;
+  excludeId?: number | null;
 };
 
 function buildTreeData(
@@ -43,7 +44,7 @@ function buildTreeData(
     .flatMap((c) => [{ ...c, depth }, ...buildTreeData(categories, c.id, depth + 1)]);
 }
 
-export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
+export function CategoryCombobox({ value, onChange, excludeId }: CategoryComboboxProps) {
   const [categoriesRaw, setCategoriesRaw] = useState<BackendCategory[] | null>(null);
 
   useEffect(() => {
@@ -114,9 +115,8 @@ export function CategoryCombobox({ value, onChange }: CategoryComboboxProps) {
                   <CommandItem
                     key={category.id}
                     value={category.name}
-                    disabled={!category.isLeaf}
+                    disabled={category.id === excludeId}
                     onSelect={() => {
-                      if (!category.isLeaf) return;
                       onChange(category.id === value ? null : category.id);
                       setOpen(false);
                     }}

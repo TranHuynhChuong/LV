@@ -27,7 +27,7 @@ import { CategoryCombobox } from './categoriesList';
 
 const formSchema = z.object({
   id: z.number().nullable().optional(),
-  name: z.string().min(2).max(24),
+  name: z.string().min(2, 'Tên tối thiểu 2 ký tự').max(48, 'Tên tối đa 48 ký tự'),
   parentId: z.number().nullable().optional(),
 });
 
@@ -39,7 +39,11 @@ type CategoryFormProps = {
   onDelete?: () => void;
 };
 
-export function CategoryForm({ defaultValues, onSubmit, onDelete }: Readonly<CategoryFormProps>) {
+export default function CategoryForm({
+  defaultValues,
+  onSubmit,
+  onDelete,
+}: Readonly<CategoryFormProps>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -119,6 +123,7 @@ export function CategoryForm({ defaultValues, onSubmit, onDelete }: Readonly<Cat
                     <CategoryCombobox
                       value={field.value ?? null}
                       onChange={(val) => field.onChange(val)}
+                      excludeId={form.getValues('id') ?? null}
                     />
                   </FormControl>
                   <FormMessage />

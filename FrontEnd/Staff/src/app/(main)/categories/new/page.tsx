@@ -6,7 +6,7 @@ import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { CategoryForm } from '../components/categoryForm';
+import CategoryForm from '../components/categoryForm';
 
 type CategoryFormData = {
   name?: string;

@@ -74,7 +74,7 @@ export default function Categories() {
     open: false,
     id: null,
   });
-
+  const [total, setTotal] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState('');
 
   const getData = () => {
@@ -90,13 +90,14 @@ export default function Categories() {
 
         const categoriesRaw: RawCategory[] = res.data;
 
+        setTotal(categoriesRaw.length);
         // Map sang Category với parent là tên thể loại cha
         const categoriesMapped: Category[] = categoriesRaw.map((cat) => {
           const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
           return {
             id: cat.TL_id,
             name: cat.TL_ten,
-            parent: parentCategory ? parentCategory.TL_ten : '', // Nếu không có thể loại cha thì để chuỗi rỗng
+            parent: parentCategory ? parentCategory.TL_ten : '',
           };
         });
 
@@ -142,6 +143,7 @@ export default function Categories() {
     {
       accessorKey: 'id',
       header: 'Mã',
+      cell: ({ row }) => <div className="pl-3">{row.getValue('id')}</div>,
       enableHiding: false,
     },
     {
@@ -215,13 +217,17 @@ export default function Categories() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Thể loại' }]);
+    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Danh mục' }]);
   }, [setBreadcrumbs]);
 
   return (
     <>
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit ">
-        <div className="flex items-center justify-end mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2 pl-4">
+            <span className="font-semibold text-xl">{total}</span>
+            <span>Thể loại</span>
+          </div>
           <Link href="/categories/new">
             <Button className="cursor-pointer">
               <Plus /> Thêm mới
@@ -234,7 +240,10 @@ export default function Categories() {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={headerGroup.headers[0].id === header.id ? 'pl-4' : ''}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
