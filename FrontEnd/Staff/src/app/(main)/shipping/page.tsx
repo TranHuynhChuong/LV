@@ -82,7 +82,7 @@ export default function Shipments() {
     open: false,
     id: null,
   });
-
+  const [total, setTotal] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
 
   const getData = () => {
@@ -90,9 +90,9 @@ export default function Shipments() {
     Promise.all([api.get('/shipping'), fetch('/data/0.json').then((res) => res.json())])
       .then(([shippingRes, locationRes]) => {
         const provinces: { T_id: number; T_ten: string }[] = locationRes;
-        console.log(shippingRes);
-        const shippingRaw: ShippingFeeApi[] = shippingRes.data;
 
+        const shippingRaw: ShippingFeeApi[] = shippingRes.data;
+        setTotal(shippingRaw.length);
         const mapped: ShippingFee[] = shippingRaw.map((item) => {
           const province = provinces.find((p) => p.T_id === item.T_id);
           const locationName =
@@ -150,6 +150,7 @@ export default function Shipments() {
     {
       accessorKey: 'location',
       header: 'Khu vực',
+      cell: ({ row }) => <div className="pl-2">{row.getValue('location')}</div>,
       enableHiding: false,
     },
     {
@@ -309,7 +310,11 @@ export default function Shipments() {
   return (
     <>
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
-        <div className="flex items-center justify-end mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2 pl-4">
+            <span className="font-semibold text-xl">{total}</span>
+            <span>Phí vận chuyển</span>
+          </div>
           <Link href="shipping/new">
             <Button className="cursor-pointer">
               <Plus /> Thêm mới
@@ -322,7 +327,10 @@ export default function Shipments() {
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={headerGroup.headers[0].id === header.id ? 'pl-4' : ''}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
