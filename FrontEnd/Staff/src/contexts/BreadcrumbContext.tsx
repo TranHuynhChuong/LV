@@ -5,7 +5,7 @@ import { createContext, useContext, useState } from 'react';
 
 export type Crumb = {
   label: string;
-  href?: string; // Nếu không có là trang hiện tại
+  href?: string;
 };
 
 type BreadcrumbContextType = {

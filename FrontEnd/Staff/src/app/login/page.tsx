@@ -31,6 +31,7 @@ export default function LoginPage() {
 
     setServerError(null);
     setLoading(true);
+
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -41,8 +42,13 @@ export default function LoginPage() {
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Login failed:', errorData.message);
-        setServerError('Mã đăng nhập / Mật khẩu không đúng');
-        setLoading(false);
+
+        if (res.status === 401) {
+          setServerError('Mã đăng nhập / Mật khẩu không đúng');
+        } else {
+          setServerError('Đã xảy ra lỗi!');
+        }
+
         return;
       }
 
@@ -57,7 +63,7 @@ export default function LoginPage() {
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);
-      setServerError('Mã đăng nhập / Mật khẩu không đúng');
+      setServerError('Đã xảy ra lỗi!');
     } finally {
       setLoading(false);
     }

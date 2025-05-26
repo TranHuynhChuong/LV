@@ -24,6 +24,7 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { authData } = useAuth();
@@ -72,10 +73,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        {authData.userId ? (
+          <NavMain items={data.navMain} />
+        ) : (
+          <div className="space-y-2 p-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        )}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {authData.userId ? (
+          <NavUser user={data.user} />
+        ) : (
+          <div className="p-2">
+            <Skeleton className="h-10 w-full" />
+          </div>
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
