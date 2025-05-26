@@ -13,11 +13,11 @@ export class TheLoai {
   @Prop({ type: Number, unique: true })
   TL_id: number;
 
-  @Prop({ type: String, required: true, minlength: 2, maxlength: 24 })
+  @Prop({ type: String, required: true, minlength: 2, maxlength: 48 })
   TL_ten: string;
 
-  @Prop({ type: String, default: null })
-  TL_idTL: string;
+  @Prop({ type: Number, default: null })
+  TL_idTL: number;
 
   @Prop({ type: String, required: true })
   NV_id: string;

@@ -4,13 +4,14 @@ import {
   IsString,
   MinLength,
   MaxLength,
+  IsNumber,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateDto {
   @IsString()
   @MinLength(2)
-  @MaxLength(24)
+  @MaxLength(48)
   TL_ten: string;
 
   @IsString()
@@ -18,7 +19,7 @@ export class CreateDto {
   NV_id: string;
 
   @IsOptional()
-  @IsString()
+  @IsNumber()
   TL_idTL?: number | null;
 }
 
