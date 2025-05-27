@@ -17,7 +17,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 import {
   Table,
@@ -30,14 +30,6 @@ import {
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 import {
   Dialog,
@@ -250,32 +242,23 @@ export default function Shipments() {
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-8 h-8 p-0 cursor-pointer">
-                <span className="sr-only">Mở menu</span>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href={`/shipping/${item.locationId}`}>Cập nhật</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer"
-                onClick={() => {
-                  setDeleteDialogOpen({
-                    open: true,
-                    id: item.locationId,
-                  });
-                }}
-              >
-                Xóa
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-col space-y-1">
+            <Link className="cursor-pointer hover:underline" href={`/shipping/${item.locationId}`}>
+              Cập nhật
+            </Link>
+
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={() => {
+                setDeleteDialogOpen({
+                  open: true,
+                  id: item.locationId,
+                });
+              }}
+            >
+              Xóa
+            </span>
+          </div>
         );
       },
     },
