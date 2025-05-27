@@ -32,7 +32,7 @@ export class NhanVienRepository {
 
   async findAll(): Promise<NhanVien[]> {
     return this.NhanVien.find({ NV_daXoa: false })
-      .select('NV_id NV_hoTen NV_email NV_soDienThoai')
+      .select('NV_id NV_vaiTro NV_hoTen NV_email NV_soDienThoai')
       .lean()
       .exec();
   }
