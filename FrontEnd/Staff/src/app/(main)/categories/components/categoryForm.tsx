@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { CategoryCombobox } from './categoriesList';
+import CategoryCombobox from '@/components/CategoriesCombobox';
 
 const formSchema = z.object({
   id: z.number().nullable().optional(),

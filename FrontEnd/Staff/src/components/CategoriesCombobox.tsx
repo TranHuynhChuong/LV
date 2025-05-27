@@ -29,9 +29,10 @@ type Category = {
 };
 
 type CategoryComboboxProps = {
-  value: number | null;
-  onChange: (id: number | null) => void;
-  excludeId?: number | null;
+  readonly value: number | null;
+  readonly onChange: (id: number | null) => void;
+  readonly excludeId?: number | null;
+  readonly leafOnly?: boolean;
 };
 
 function buildTreeData(
@@ -44,7 +45,12 @@ function buildTreeData(
     .flatMap((c) => [{ ...c, depth }, ...buildTreeData(categories, c.id, depth + 1)]);
 }
 
-export function CategoryCombobox({ value, onChange, excludeId }: CategoryComboboxProps) {
+export default function CategoryCombobox({
+  value,
+  onChange,
+  excludeId,
+  leafOnly = false,
+}: CategoryComboboxProps) {
   const [categoriesRaw, setCategoriesRaw] = useState<BackendCategory[] | null>(null);
 
   useEffect(() => {
@@ -93,7 +99,7 @@ export function CategoryCombobox({ value, onChange, excludeId }: CategoryCombobo
           {!categoriesRaw ? (
             <Skeleton className="h-5 w-24" />
           ) : (
-            selectedCategory?.name || 'Chọn thể loại cha...'
+            selectedCategory?.name || 'Chọn thể loại ...'
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -115,7 +121,7 @@ export function CategoryCombobox({ value, onChange, excludeId }: CategoryCombobo
                   <CommandItem
                     key={category.id}
                     value={category.name}
-                    disabled={category.id === excludeId}
+                    disabled={category.id === excludeId || (leafOnly && !category.isLeaf)}
                     onSelect={() => {
                       onChange(category.id === value ? null : category.id);
                       setOpen(false);

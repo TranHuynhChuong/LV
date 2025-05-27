@@ -53,7 +53,6 @@ export default function ShippingDetailPage() {
     api
       .get(`/shipping/${id}`)
       .then((res) => {
-        console.log(res);
         const data = res.data;
         setInitialData({
           fee: data.PVC_phi,
