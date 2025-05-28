@@ -14,7 +14,6 @@ import {
 
 @Injectable()
 export class TheLoaiService {
-  [x: string]: any;
   constructor(
     private readonly TheLoai: TheLoaiRepository,
     private readonly NhanVien: NhanVienService
