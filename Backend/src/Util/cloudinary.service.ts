@@ -46,12 +46,11 @@ export class CloudinaryService implements OnModuleInit {
     folderPrefix: string,
     convertToWebP = true
   ): Promise<{ uploaded: { public_id: string; url: string } }> {
-    if (!file) throw new BadRequestException('Không có file được cung cấp');
+    if (!file) throw new BadRequestException();
 
     try {
       const options: Record<string, any> = {
         folder: `${folderPrefix}/${targetId}`,
-        public_id: targetId,
       };
 
       if (convertToWebP) {
@@ -71,8 +70,7 @@ export class CloudinaryService implements OnModuleInit {
     files: Express.Multer.File[],
     folderPrefix: string
   ): Promise<{ uploaded: { public_id: string; url: string }[] }> {
-    if (!files?.length)
-      throw new BadRequestException('Không có file nào được cung cấp');
+    if (!files?.length) throw new BadRequestException();
 
     try {
       const options = { folder: `${folderPrefix}/${targetId}` };
