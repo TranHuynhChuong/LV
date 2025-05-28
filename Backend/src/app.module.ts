@@ -7,6 +7,7 @@ import { NguoiDungModule } from './NguoiDung/nguoiDung.module';
 import { UtilModule } from './Util/util.module';
 import { XacThucModule } from './XacThuc/xacThuc.module';
 import { TheLoaiModule } from './TheLoai/theLoai.module';
+import { SanPhamModule } from './SanPham/sanPham.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TheLoaiModule } from './TheLoai/theLoai.module';
     UtilModule,
     PhiVanChuyenModule,
     TheLoaiModule,
+    SanPhamModule,
   ],
 })
 export class AppModule {}
