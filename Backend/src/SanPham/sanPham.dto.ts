@@ -11,16 +11,6 @@ import {
 import { Expose, Transform, Type, plainToInstance } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
 
-export class ChiTietSPDto {
-  @IsString()
-  @Expose()
-  CTSP_ten: string;
-
-  @IsString()
-  @Expose()
-  CTSP_giaTri: string;
-}
-
 export class AnhSPDto {
   @IsString()
   @Expose()
@@ -35,12 +25,23 @@ export class AnhSPDto {
   A_anhBia: boolean;
 }
 export class CreateDto {
+  @Transform(({ value }) => {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value) as number[];
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(value)) {
+      return value.map((v) => Number(v)).filter((v) => !isNaN(v));
+    }
+    return [];
+  })
+  @IsArray()
   @Transform(({ value }) => Number(value))
-  @IsNumber()
-  TL_id: number;
-
-  @IsString()
-  NV_id: string;
+  TL_id: number[];
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -48,17 +49,46 @@ export class CreateDto {
   SP_trangThai?: number;
 
   @IsString()
-  @MaxLength(128)
+  @MaxLength(120)
   SP_ten: string;
 
   @IsString()
-  @MaxLength(2000)
+  @MaxLength(1000)
   SP_noiDung: string;
 
   @IsString()
   @IsOptional()
   @MaxLength(3000)
   SP_moTa?: string;
+
+  @IsString()
+  @MaxLength(250)
+  SP_tacGia: string;
+
+  @IsString()
+  @MaxLength(250)
+  SP_nhaXuatBan: string;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  SP_namXuatBan: number;
+
+  @Transform(({ value }) => Number(value))
+  @IsNumber()
+  SP_soTrang: number;
+
+  @IsString()
+  @MaxLength(13)
+  SP_isbn: string;
+
+  @IsString()
+  @MaxLength(120)
+  @IsOptional()
+  SP_nguoiDich?: string;
+
+  @IsString()
+  @MaxLength(50)
+  SP_ngonNgu: string;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
@@ -70,28 +100,15 @@ export class CreateDto {
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
-  SP_khoHang: number;
+  SP_tonKho: number;
 
   @Transform(({ value }) => Number(value))
   @IsNumber()
   SP_trongLuong: number;
 
-  @Transform(({ value }) => {
-    if (!value) return [];
-    if (typeof value === 'string') {
-      try {
-        return plainToInstance(ChiTietSPDto, JSON.parse(value));
-      } catch {
-        return [];
-      }
-    }
-    return plainToInstance(ChiTietSPDto, value);
-  })
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ChiTietSPDto)
-  @IsOptional()
-  SP_chiTiet?: ChiTietSPDto[];
+  @IsString()
+  @IsNotEmpty()
+  NV_id: string;
 }
 
 export class UpdateDto extends PartialType(CreateDto) {

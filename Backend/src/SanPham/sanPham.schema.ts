@@ -14,43 +14,65 @@ export class AnhSP {
   @Prop({ type: Boolean, default: false })
   A_anhBia: boolean;
 }
+export const AnhSPSchema = SchemaFactory.createForClass(AnhSP);
 
 @Schema()
-export class ChiTietSP {
-  @Prop({ type: String, required: true })
-  CTSP_ten: string;
+export class LichSuThaoTacSP {
+  @Prop({ type: String })
+  thaoTac: string;
 
-  @Prop({ type: String, required: true })
-  CTSP_giaTri: string;
+  @Prop({ type: Date, default: Date.now })
+  thoiGian: Date;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  NV_id: string;
 }
+export const LichSuThaoTacSPSchema =
+  SchemaFactory.createForClass(LichSuThaoTacSP);
 
-@Schema({
-  timestamps: {
-    createdAt: 'SP_tao',
-    updatedAt: 'SP_capNhat',
-  },
-})
+@Schema()
 export class SanPham {
   @Prop({ type: Number, required: true, unique: true })
   SP_id: number;
 
-  @Prop({ type: Number, required: true })
-  TL_id: number;
-
-  @Prop({ type: String, required: true })
-  NV_id: string;
+  @Prop({ type: [Number], required: true })
+  TL_id: number[];
 
   @Prop({ type: Number, default: 1 })
   SP_trangThai: number;
 
-  @Prop({ type: String, required: true, maxlength: 128 })
+  @Prop({ type: String, required: true, maxlength: 120 })
   SP_ten: string;
 
-  @Prop({ type: String, required: true, maxlength: 2000 })
+  @Prop({ type: String, required: true, maxlength: 1000 })
   SP_noiDung: string;
 
-  @Prop({ type: String, maxlength: 3000 })
+  @Prop({ type: String, maxlength: 2000 })
   SP_moTa: string;
+
+  @Prop({ type: String, required: true, maxlength: 250 })
+  SP_tacGia: string;
+
+  @Prop({ type: String, required: true, maxlength: 250 })
+  SP_nhaXuaBan: string;
+
+  @Prop({ type: String, required: true, maxlength: 50 })
+  SP_ngonNgu: string;
+
+  @Prop({ type: String, required: true, maxlength: 120 })
+  SP_nguoiDich: string;
+
+  @Prop({ type: Number, required: true })
+  SP_namXuatBan: number;
+
+  @Prop({ type: Number, required: true })
+  SP_soTrang: number;
+
+  @Prop({ type: String, required: true, maxlength: 13 })
+  SP_isbn: string;
 
   @Prop({ type: Number, required: true })
   SP_giaBan: number;
@@ -59,10 +81,10 @@ export class SanPham {
   SP_giaNhap: number;
 
   @Prop({ type: Number, default: 0 })
-  SP_doanhSo: number;
+  SP_daBan: number;
 
   @Prop({ type: Number, required: true })
-  SP_khoHang: number;
+  SP_tonKho: number;
 
   @Prop({ type: Number, required: true })
   SP_trongLuong: number;
@@ -73,13 +95,11 @@ export class SanPham {
   })
   SP_eNoiDung: number[];
 
-  @Prop({ type: [AnhSP], required: true, default: [] })
+  @Prop({ type: [AnhSPSchema], required: true, default: [] })
   SP_anh: AnhSP[];
 
-  @Prop({ type: [ChiTietSP], default: [] })
-  SP_chiTiet: ChiTietSP[];
+  @Prop({ type: [LichSuThaoTacSPSchema] })
+  lichSuThaoTac: LichSuThaoTacSP[];
 }
 
-export const AnhSPSchema = SchemaFactory.createForClass(AnhSP);
-export const ChiTietSPSchema = SchemaFactory.createForClass(ChiTietSP);
 export const SanPhamSchema = SchemaFactory.createForClass(SanPham);
