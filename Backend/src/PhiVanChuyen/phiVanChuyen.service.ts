@@ -6,13 +6,21 @@ import {
 } from '@nestjs/common';
 import {
   NhanVienService,
-  NhanVienInfo,
+  ThaoTac,
 } from '../NguoiDung/NhanVien/nhanVien.service';
 import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
 import { PhiVanChuyenRepository } from './phiVanChuyen.repository';
-import { PhiVanChuyen } from './phiVanChuyen.schema';
+import { PhiVanChuyen, LichSuThaoTacPVC } from './phiVanChuyen.schema';
 import * as fs from 'fs';
 import * as path from 'path';
+
+const typeOfChange: Record<string, string> = {
+  PVC_phi: 'Họ tên',
+  PVC_ntl: 'Email',
+  PVC_phuPhi: 'Số điện thoại',
+  PVC_dvpp: 'Vai trò',
+  T_id: 'Mật khẩu',
+};
 
 @Injectable()
 export class PhiVanChuyenService {
@@ -23,12 +31,21 @@ export class PhiVanChuyenService {
     private readonly NhanVien: NhanVienService
   ) {}
 
-  async createShippingFee(dto: CreateDto): Promise<PhiVanChuyen> {
-    const exists = await this.PhiVanChuyen.findById(dto.T_id);
+  async createShippingFee(newData: CreateDto): Promise<PhiVanChuyen> {
+    const exists = await this.PhiVanChuyen.findById(newData.T_id);
     if (exists) {
       throw new ConflictException();
     }
-    const created = await this.PhiVanChuyen.create(dto);
+    const thaoTac = {
+      thaoTac: 'Tạo mới',
+      NV_id: newData.NV_id,
+      thoiGian: new Date(),
+    };
+
+    const created = await this.PhiVanChuyen.create({
+      ...newData,
+      lichSuThaoTac: [thaoTac],
+    });
     if (!created) {
       throw new BadRequestException();
     }
@@ -45,37 +62,77 @@ export class PhiVanChuyenService {
       throw new NotFoundException();
     }
 
-    let nhanVien: NhanVienInfo = {
-      NV_id: result.NV_id,
-      NV_hoTen: null,
-      NV_email: null,
-      NV_soDienThoai: null,
-    };
-
-    if (result.NV_id) {
-      const staff = await this.NhanVien.findById(result.NV_id);
-      if (staff) {
-        nhanVien = {
-          NV_id: staff.NV_id,
-          NV_hoTen: staff.NV_hoTen,
-          NV_email: staff.NV_email,
-          NV_soDienThoai: staff.NV_soDienThoai,
-        };
-        result.NV_id = nhanVien;
-      }
+    if (Array.isArray(result.lichSuThaoTacNV)) {
+      result.lichSuThaoTac = await Promise.all(
+        result.lichSuThaoTac.map(
+          async (element: LichSuThaoTacPVC): Promise<ThaoTac> => {
+            const nhanVien = await this.NhanVien.findById(element.NV_id);
+            const thaoTac: ThaoTac = {
+              thaoTac: element.thaoTac,
+              thoiGian: element.thoiGian,
+              nhanVien: {
+                NV_id: null,
+                NV_hoTen: null,
+                NV_email: null,
+                NV_soDienThoai: null,
+              },
+            };
+            if (nhanVien) {
+              result.nhanVien = {
+                NV_id: nhanVien.NV_id,
+                NV_hoTen: nhanVien.NV_hoTen,
+                NV_email: nhanVien.NV_email,
+                NV_soDienThoai: nhanVien.NV_soDienThoai,
+              };
+            }
+            return thaoTac;
+          }
+        )
+      );
     }
     return result;
   }
 
-  async updateShippingFee(id: string, dto: UpdateDto): Promise<PhiVanChuyen> {
-    const updated = await this.PhiVanChuyen.update(id, dto);
+  async updateShippingFee(
+    id: number,
+    newData: UpdateDto
+  ): Promise<PhiVanChuyen> {
+    const existing = await this.PhiVanChuyen.findById(id);
+    if (!existing) {
+      throw new NotFoundException();
+    }
+    const fieldsChange: string[] = [];
+    for (const key of Object.keys(newData)) {
+      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+        const label = typeOfChange[key] || key;
+        fieldsChange.push(label);
+      }
+    }
+
+    const newLichSuThaoTac = [...existing.lichSuThaoTac];
+    if (fieldsChange.length > 0 && newData.NV_id) {
+      const thaoTac = {
+        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+        NV_id: newData.NV_id,
+        thoiGian: new Date(),
+      };
+      newLichSuThaoTac.push(thaoTac);
+    }
+
+    const updateObject = {
+      ...newData,
+      lichSuThaoTac: newLichSuThaoTac,
+    };
+
+    const updated = await this.PhiVanChuyen.update(id, updateObject);
     if (!updated) {
       throw new BadRequestException();
     }
+
     return updated;
   }
 
-  async deleteShippingFee(id: string): Promise<PhiVanChuyen> {
+  async deleteShippingFee(id: number): Promise<PhiVanChuyen> {
     const deleted = await this.PhiVanChuyen.delete(id);
     if (!deleted) {
       throw new BadRequestException();

@@ -3,12 +3,25 @@ import { Document } from 'mongoose';
 
 export type PhiVanChuyenDocument = PhiVanChuyen & Document;
 
-@Schema({
-  timestamps: {
-    createdAt: 'PVC_tao',
-    updatedAt: 'PVC_capNhat',
-  },
-})
+@Schema()
+export class LichSuThaoTacPVC {
+  @Prop({ type: String })
+  thaoTac: string;
+
+  @Prop({ type: Date, default: Date.now })
+  thoiGian: Date;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  NV_id: string;
+}
+
+export const LichSuThaoTacPVCSchema =
+  SchemaFactory.createForClass(LichSuThaoTacPVC);
+
+@Schema()
 export class PhiVanChuyen {
   @Prop({ type: Number, required: true })
   PVC_phi: number;
@@ -28,8 +41,8 @@ export class PhiVanChuyen {
   @Prop({ type: Number, unique: true })
   T_id: number;
 
-  @Prop({ type: String, required: true })
-  NV_id: string;
+  @Prop({ type: [LichSuThaoTacPVCSchema] })
+  lichSuThaoTac: LichSuThaoTacPVC[];
 }
 
 export const PhiVanChuyenSchema = SchemaFactory.createForClass(PhiVanChuyen);

@@ -26,7 +26,7 @@ export class PhiVanChuyenRepository {
     return this.PhiVanChuyen.findOne({ T_id: id }).lean().exec();
   }
 
-  async update(id: string, data: any): Promise<PhiVanChuyen | null> {
+  async update(id: number, data: any): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyen.findOneAndUpdate({ T_id: id }, data, {
       new: true,
     })
@@ -34,7 +34,7 @@ export class PhiVanChuyenRepository {
       .exec();
   }
 
-  async delete(id: string): Promise<PhiVanChuyen | null> {
+  async delete(id: number): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyen.findOneAndUpdate(
       { T_id: id },
       { PVC_daXoa: true },

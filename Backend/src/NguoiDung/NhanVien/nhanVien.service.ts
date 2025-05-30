@@ -25,7 +25,7 @@ export interface NhanVienInfo {
   NV_soDienThoai: string | null;
 }
 
-const fieldFriendlyNames: Record<string, string> = {
+const typeOfChange: Record<string, string> = {
   NV_hoTen: 'Họ tên',
   NV_email: 'Email',
   NV_soDienThoai: 'Số điện thoại',
@@ -54,7 +54,7 @@ export class NhanVienService {
     const created = await this.NhanVien.create({
       ...newData,
       NV_id: newCode,
-      lichSuThaoTacNV: [thaoTac],
+      lichSuThaoTac: [thaoTac],
     });
 
     if (!created) {
@@ -75,8 +75,8 @@ export class NhanVienService {
 
     // Cập nhật thông tin chi tiết cho từng NV_id trong lịch sử thao tác
     if (Array.isArray(result.lichSuThaoTacNV)) {
-      result.lichSuThaoTacNV = await Promise.all(
-        result.lichSuThaoTacNV.map(
+      result.lichSuThaoTac = await Promise.all(
+        result.lichSuThaoTac.map(
           async (element: LichSuThaoTacNV): Promise<ThaoTac> => {
             const nhanVien = await this.NhanVien.findById(element.NV_id);
             const thaoTac: ThaoTac = {
@@ -109,35 +109,31 @@ export class NhanVienService {
   async update(id: string, newData: UpdateDto): Promise<NhanVien> {
     const existing = await this.NhanVien.findById(id);
     if (!existing) {
-      throw new NotFoundException('Không tìm thấy nhân viên.');
+      throw new NotFoundException();
     }
 
-    const fieldsThayDoi: string[] = [];
+    const fieldsChange: string[] = [];
     for (const key of Object.keys(newData)) {
-      if (
-        key !== 'NV_idNV' &&
-        newData[key] !== undefined &&
-        newData[key] !== existing[key]
-      ) {
-        const label = fieldFriendlyNames[key] || key;
-        fieldsThayDoi.push(label);
+      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+        const label = typeOfChange[key] || key;
+        fieldsChange.push(label);
       }
     }
 
-    const newLichSuThaoTacNV = [...existing.lichSuThaoTacNV];
-    if (fieldsThayDoi.length > 0 && newData.NV_idNV) {
+    const newLichSuThaoTac = [...existing.lichSuThaoTac];
+    if (fieldsChange.length > 0 && newData.NV_idNV) {
       const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsThayDoi.join(', ')}`,
+        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
         NV_id: newData.NV_idNV,
         thoiGian: new Date(),
       };
-      newLichSuThaoTacNV.push(thaoTac);
+      newLichSuThaoTac.push(thaoTac);
     }
 
     // Tạo đối tượng cập nhật đúng
     const updateObject = {
       ...newData,
-      lichSuThaoTacNV: newLichSuThaoTacNV,
+      lichSuThaoTac: newLichSuThaoTac,
     };
 
     const updated = await this.NhanVien.update(id, updateObject);

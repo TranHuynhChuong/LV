@@ -45,7 +45,7 @@ export class NhanVien {
   NV_daXoa: boolean;
 
   @Prop({ type: [LichSuThaoTacNVSchema] })
-  lichSuThaoTacNV: LichSuThaoTacNV[];
+  lichSuThaoTac: LichSuThaoTacNV[];
 }
 
 export const NhanVienSchema = SchemaFactory.createForClass(NhanVien);

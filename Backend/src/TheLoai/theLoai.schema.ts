@@ -3,12 +3,25 @@ import { Document } from 'mongoose';
 
 export type TheLoaiDocument = TheLoai & Document;
 
-@Schema({
-  timestamps: {
-    createdAt: 'TL_tao',
-    updatedAt: 'TL_capNhat',
-  },
-})
+@Schema()
+export class LichSuThaoTacTL {
+  @Prop({ type: String })
+  thaoTac: string;
+
+  @Prop({ type: Date, default: Date.now })
+  thoiGian: Date;
+
+  @Prop({
+    type: String,
+    required: true,
+  })
+  NV_id: string;
+}
+
+export const LichSuThaoTacTLSchema =
+  SchemaFactory.createForClass(LichSuThaoTacTL);
+
+@Schema()
 export class TheLoai {
   @Prop({ type: Number, unique: true })
   TL_id: number;
@@ -19,11 +32,11 @@ export class TheLoai {
   @Prop({ type: Number, default: null })
   TL_idTL: number;
 
-  @Prop({ type: String, required: true })
-  NV_id: string;
-
   @Prop({ type: Boolean, default: false })
   TL_daXoa: boolean;
+
+  @Prop({ type: [LichSuThaoTacTLSchema] })
+  lichSuThaoTac: LichSuThaoTacTL[];
 }
 
 export const TheLoaiSchema = SchemaFactory.createForClass(TheLoai);

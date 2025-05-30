@@ -6,11 +6,16 @@ import {
 } from '@nestjs/common';
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
-import { TheLoai } from './theLoai.schema';
+import { TheLoai, LichSuThaoTacTL } from './theLoai.schema';
 import {
-  NhanVienInfo,
   NhanVienService,
+  ThaoTac,
 } from 'src/NguoiDung/NhanVien/nhanVien.service';
+
+const typeOfChange: Record<string, string> = {
+  TL_ten: 'Tên thể loại',
+  TL_idTL: 'Thể loại cha',
+};
 
 @Injectable()
 export class TheLoaiService {
@@ -20,19 +25,25 @@ export class TheLoaiService {
   ) {}
 
   // Tạo thể loại mới
-  async create(data: CreateDto): Promise<TheLoai> {
-    const exists = await this.TheLoai.findByName(data.TL_ten);
+  async create(newData: CreateDto): Promise<TheLoai> {
+    const exists = await this.TheLoai.findByName(newData.TL_ten);
     if (exists) {
       throw new ConflictException();
     }
+
+    const thaoTac = {
+      thaoTac: 'Tạo mới',
+      NV_id: newData.NV_id,
+      thoiGian: new Date(),
+    };
 
     const lastId = await this.TheLoai.findLastId();
     const newId = lastId + 1;
 
     const created = await this.TheLoai.create({
-      ...data,
+      ...newData,
       TL_id: newId,
-      TL_idTL: data.TL_idTL ?? null,
+      lichSuThaoTac: [thaoTac],
     });
 
     if (!created) {
@@ -41,18 +52,47 @@ export class TheLoaiService {
     return created;
   }
 
-  async update(id: number, dto: UpdateDto): Promise<TheLoai> {
-    if (dto.TL_ten) {
-      const exists = await this.TheLoai.findByName(dto.TL_ten);
-      if (exists && exists.TL_id !== id) {
-        throw new ConflictException();
+  async update(id: number, newData: UpdateDto): Promise<TheLoai> {
+    if (!newData.TL_ten) {
+      throw new BadRequestException();
+    }
+    const existing = await this.TheLoai.findByName(newData.TL_ten);
+    if (existing && existing.TL_id !== id) {
+      throw new ConflictException();
+    }
+
+    if (!existing) {
+      throw new BadRequestException();
+    }
+
+    const fieldsChange: string[] = [];
+    for (const key of Object.keys(newData)) {
+      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+        const label = typeOfChange[key] || key;
+        fieldsChange.push(label);
       }
     }
 
-    const updated = await this.TheLoai.update(id, dto);
+    const newLichSuThaoTac = [...existing.lichSuThaoTac];
+    if (fieldsChange.length > 0 && newData.NV_id) {
+      const thaoTac = {
+        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+        NV_id: newData.NV_id,
+        thoiGian: new Date(),
+      };
+      newLichSuThaoTac.push(thaoTac);
+    }
+
+    const updateObject = {
+      ...newData,
+      lichSuThaoTac: newLichSuThaoTac,
+    };
+
+    const updated = await this.TheLoai.update(id, updateObject);
     if (!updated) {
       throw new BadRequestException();
     }
+
     return updated;
   }
 
@@ -67,24 +107,33 @@ export class TheLoaiService {
       throw new NotFoundException();
     }
 
-    let nhanVien: NhanVienInfo = {
-      NV_id: result.NV_id,
-      NV_hoTen: null,
-      NV_email: null,
-      NV_soDienThoai: null,
-    };
-
-    if (result.NV_id) {
-      const staff = await this.NhanVien.findById(result.NV_id);
-      if (staff) {
-        nhanVien = {
-          NV_id: staff.NV_id,
-          NV_hoTen: staff.NV_hoTen,
-          NV_email: staff.NV_email,
-          NV_soDienThoai: staff.NV_soDienThoai,
-        };
-        result.NV_id = nhanVien;
-      }
+    if (Array.isArray(result.lichSuThaoTacNV)) {
+      result.lichSuThaoTac = await Promise.all(
+        result.lichSuThaoTac.map(
+          async (element: LichSuThaoTacTL): Promise<ThaoTac> => {
+            const nhanVien = await this.NhanVien.findById(element.NV_id);
+            const thaoTac: ThaoTac = {
+              thaoTac: element.thaoTac,
+              thoiGian: element.thoiGian,
+              nhanVien: {
+                NV_id: null,
+                NV_hoTen: null,
+                NV_email: null,
+                NV_soDienThoai: null,
+              },
+            };
+            if (nhanVien) {
+              result.nhanVien = {
+                NV_id: nhanVien.NV_id,
+                NV_hoTen: nhanVien.NV_hoTen,
+                NV_email: nhanVien.NV_email,
+                NV_soDienThoai: nhanVien.NV_soDienThoai,
+              };
+            }
+            return thaoTac;
+          }
+        )
+      );
     }
     return result;
   }
