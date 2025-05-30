@@ -5,14 +5,36 @@ import {
 } from '@nestjs/common';
 import { SanPhamRepository } from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
-import { SanPham, AnhSP } from './sanPham.schema';
+import { SanPham, AnhSP, LichSuThaoTacSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import {
-  NhanVienInfo,
   NhanVienService,
+  ThaoTac,
 } from 'src/NguoiDung/NhanVien/nhanVien.service';
+
 const folderPrefix = 'Products';
+
+const typeOfChange: Record<string, string> = {
+  TL_id: 'Thể loại',
+  SP_trangThai: 'Trạng thái',
+  SP_ten: 'Tên',
+  SP_noiDung: 'Nội dung tóm tắt',
+  SP_moTa: 'Mô tả',
+  SP_tacGia: 'Tác giả',
+  SP_nhaXuaBan: 'Nhà xuất bản',
+  SP_ngonNgu: 'Ngôn ngữ',
+  SP_nguoiDich: 'Người dịch',
+  SP_namXuatBan: 'Năm xuất bản',
+  SP_soTrang: 'Số trang',
+  SP_isbn: 'ISBN',
+  SP_giaBan: 'Giá bán',
+  SP_giaNhap: 'Giá nhập',
+  SP_tonKho: 'Tồn kho',
+  SP_trongLuong: 'Trọng lượng',
+  SP_anh: 'Ảnh',
+};
+
 @Injectable()
 export class SanPhamService {
   constructor(
@@ -27,7 +49,7 @@ export class SanPhamService {
     coverImage?: Express.Multer.File,
     Images?: Express.Multer.File[]
   ): Promise<SanPham> {
-    // Tạo vector embedding - dữ liệu đã được kiểm tra yêu cầu ở dto
+    // Tạo vector embedding
     const vector = await this.Transform.getTextEmbedding(data.SP_noiDung);
 
     // Lấy id mới cho sản phẩm
@@ -37,7 +59,7 @@ export class SanPhamService {
     // Mảng ảnh sản phẩm
     const images: AnhSP[] = [];
 
-    // Upload ảnh bìa - dữ liệu đã được kiểm tra đầu vào
+    // Upload ảnh bìa
     if (!coverImage) {
       throw new BadRequestException();
     }
@@ -72,12 +94,19 @@ export class SanPhamService {
       }
     }
 
+    const thaoTac = {
+      thaoTac: 'Tạo mới',
+      NV_id: data.NV_id,
+      thoiGian: new Date(),
+    };
+
     // Dữ liệu để tạo sản phẩm
     const dataToSave: Partial<SanPham> = {
       ...data,
       SP_id: nextId,
       SP_eNoiDung: vector,
       SP_anh: images,
+      lichSuThaoTac: [thaoTac],
     };
 
     const create = await this.SanPham.create(dataToSave);
@@ -140,10 +169,29 @@ export class SanPhamService {
     // Gộp ảnh cũ + mới (hoặc chỉ mới nếu muốn thay thế)
     const allImages = [...existing.SP_anh, ...images];
 
+    const fieldsChange: string[] = [];
+    for (const key of Object.keys(data)) {
+      if (data[key] !== undefined && data[key] !== existing[key]) {
+        const label = typeOfChange[key] || key;
+        fieldsChange.push(label);
+      }
+    }
+
+    const newLichSuThaoTac = [...existing.lichSuThaoTac];
+    if (fieldsChange.length > 0 && data.NV_id) {
+      const thaoTac = {
+        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+        NV_id: data.NV_id,
+        thoiGian: new Date(),
+      };
+      newLichSuThaoTac.push(thaoTac);
+    }
+
     const updatedData: Partial<SanPham> = {
       ...data,
       SP_eNoiDung: vector,
       ...(images.length > 0 && { SP_anh: allImages }),
+      lichSuThaoTac: newLichSuThaoTac,
     };
 
     const updated = await this.SanPham.update(id, updatedData);
@@ -177,24 +225,33 @@ export class SanPhamService {
     if (!result) {
       throw new NotFoundException();
     }
-    let nhanVien: NhanVienInfo = {
-      NV_id: result.NV_id,
-      NV_hoTen: null,
-      NV_email: null,
-      NV_soDienThoai: null,
-    };
-
-    if (result.NV_id) {
-      const staff = await this.NhanVien.findById(result.NV_id);
-      if (staff) {
-        nhanVien = {
-          NV_id: staff.NV_id,
-          NV_hoTen: staff.NV_hoTen,
-          NV_email: staff.NV_email,
-          NV_soDienThoai: staff.NV_soDienThoai,
-        };
-        result.NV_id = nhanVien;
-      }
+    if (Array.isArray(result.lichSuThaoTacNV)) {
+      result.lichSuThaoTac = await Promise.all(
+        result.lichSuThaoTac.map(
+          async (element: LichSuThaoTacSP): Promise<ThaoTac> => {
+            const nhanVien = await this.NhanVien.findById(element.NV_id);
+            const thaoTac: ThaoTac = {
+              thaoTac: element.thaoTac,
+              thoiGian: element.thoiGian,
+              nhanVien: {
+                NV_id: null,
+                NV_hoTen: null,
+                NV_email: null,
+                NV_soDienThoai: null,
+              },
+            };
+            if (nhanVien) {
+              result.nhanVien = {
+                NV_id: nhanVien.NV_id,
+                NV_hoTen: nhanVien.NV_hoTen,
+                NV_email: nhanVien.NV_email,
+                NV_soDienThoai: nhanVien.NV_soDienThoai,
+              };
+            }
+            return thaoTac;
+          }
+        )
+      );
     }
     return result;
   }
