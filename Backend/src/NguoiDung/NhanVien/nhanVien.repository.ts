@@ -41,12 +41,10 @@ export class NhanVienRepository {
     return this.NhanVien.findOne({ NV_id: id, NV_daXoa: false }).lean().exec();
   }
 
-  async update(id: string, updateDto: any): Promise<NhanVien | null> {
-    return this.NhanVien.findOneAndUpdate({ NV_id: id }, updateDto, {
+  async update(id: string, data: any): Promise<NhanVien | null> {
+    return this.NhanVien.findOneAndUpdate({ NV_id: id }, data, {
       new: true,
-    })
-
-      .exec();
+    }).exec();
   }
 
   async delete(id: string): Promise<NhanVien | null> {
