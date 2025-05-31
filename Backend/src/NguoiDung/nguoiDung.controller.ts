@@ -31,7 +31,7 @@ export class NguoiDungController {
   ) {}
 
   /** Tổng số nhân viên và khách hàng */
-  @Roles('Admin')
+  @Roles(1)
   @Get('total')
   async getTotal(): Promise<{ staff: number; customer: number }> {
     const staff = await this.NhanVienService.countAll();
@@ -44,7 +44,7 @@ export class NguoiDungController {
 
   /** CUSTOMER APIs */
 
-  @Roles('Admin')
+  @Roles(1)
   @Get('customers')
   async getAllCustomers(
     @Query('page', ParseIntPipe) page = 0,
@@ -68,31 +68,31 @@ export class NguoiDungController {
 
   /** STAFF APIs */
 
-  @Roles('Admin')
+  @Roles(1)
   @Get('staffs')
   async getAllStaffs(): Promise<NhanVien[]> {
     return await this.NhanVienService.findAll();
   }
 
-  @Roles('Admin')
+  @Roles(1)
   @Post('staff')
   async createStaff(@Body() data: CreateDto_NV) {
     return await this.NhanVienService.create(data);
   }
 
-  @Roles('Admin')
+  @Roles(1)
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string): Promise<any> {
     return await this.NhanVienService.findById(id);
   }
 
-  @Roles('Admin')
+  @Roles(1)
   @Put('staff/:id')
   async updateStaff(@Param('id') id: string, @Body() data: UpdateDto_NV) {
     return await this.NhanVienService.update(id, data);
   }
 
-  @Roles('Admin')
+  @Roles(1)
   @Delete('staff/:id')
   async deleteStaff(@Param('id') id: string) {
     return await this.NhanVienService.delete(id);
