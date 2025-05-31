@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 
 type AuthData = {
   userId: string | null;
-  role: string | null;
+  role: number | null;
 };
 
 const AuthContext = createContext<{

@@ -23,8 +23,8 @@ export function NavUser({
   user,
 }: {
   readonly user: {
-    readonly role: string;
-    readonly code: string;
+    readonly role: number | null;
+    readonly code: string | null;
   };
 }) {
   const { isMobile } = useSidebar();
@@ -34,6 +34,18 @@ export function NavUser({
     await fetch('/api/logout', { method: 'POST' });
 
     router.replace('/login');
+  };
+  const roleText = (role: number | null) => {
+    switch (role) {
+      case 1:
+        return 'Quản trị';
+      case 2:
+        return 'Quản lý';
+      case 3:
+        return 'Bán hàng';
+      default:
+        return 'Không xác định';
+    }
   };
 
   return (
@@ -48,7 +60,7 @@ export function NavUser({
               <div></div>
 
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.role}</span>
+                <span className="truncate font-semibold">{roleText(user.role)}</span>
                 <span className="truncate text-xs">{user.code}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />

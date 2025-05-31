@@ -41,17 +41,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   type NavItem = { title: string; url: string; icon: LucideIcon };
   let navMain: NavItem[] = [];
 
-  if (authData.role === 'Admin') {
+  if (authData.role === 1) {
     navMain = fullNav;
-  } else if (authData.role === 'Manager') {
+  } else if (authData.role === 2) {
     navMain = fullNav.filter((item) => item.url !== '/accounts');
-  } else if (authData.role === 'Sale') {
+  } else if (authData.role === 3) {
     navMain = fullNav.filter((item) => item.url === '/orders');
   }
 
   const data = {
     user: {
-      role: authData.role ?? '',
+      role: authData.role ?? null,
       code: authData.userId ?? '',
     },
     navMain,
