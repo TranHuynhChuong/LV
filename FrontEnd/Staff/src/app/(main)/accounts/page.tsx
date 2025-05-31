@@ -28,7 +28,7 @@ export default function Accounts() {
   }, [setBreadcrumbs]);
 
   return (
-    <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
+    <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit ">
       <Tabs defaultValue="staff" className="flex flex-1 ">
         <TabsList className="grid grid-cols-2 w-fit">
           <TabsTrigger value="staff">Nhân viên ({staff})</TabsTrigger>

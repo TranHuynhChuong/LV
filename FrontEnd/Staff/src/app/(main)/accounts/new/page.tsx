@@ -25,17 +25,18 @@ export default function New() {
     fullName: string;
     phone: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Sale';
+    role: string;
     password?: string;
   }) => {
     const payload = {
       NV_hoTen: data.fullName,
       NV_soDienThoai: data.phone,
       NV_email: data.email,
-      NV_vaiTro: data.role,
+      NV_vaiTro: Number(data.role),
       NV_matKhau: data.password,
       NV_idNV: authData.userId,
     };
+    console.log(payload);
 
     api
       .post('/users/staff', payload)
