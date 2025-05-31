@@ -1,5 +1,5 @@
 'use client';
-
+import '../globals.css';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Separator } from '@/components/ui/separator';
@@ -27,7 +27,7 @@ function AppBreadcrumb() {
     <Breadcrumb>
       <BreadcrumbList className="flex items-center space-x-2">
         {isLoading ? (
-          <Skeleton className="h-6 w-52 rounded-md" />
+          <Skeleton className="h-6 rounded-md w-52" />
         ) : (
           breadcrumbs.map((crumb, index) => (
             <BreadcrumbList key={index} className="flex items-center">
@@ -51,15 +51,17 @@ export default function MainLayout({ children }: { readonly children: React.Reac
   return (
     <AuthProvider>
       <BreadcrumbProvider>
-        <SidebarProvider>
+        <SidebarProvider className="h-screen">
           <AppSidebar />
           <SidebarInset>
-            <header className="sticky top-0 flex items-center h-16 gap-2 px-4 bg-white border-b shrink-0 z-40">
+            <header className="sticky top-0 z-40 flex items-center h-16 gap-2 px-4 bg-white border-b shrink-0">
               <SidebarTrigger className="-ml-1" />
               <Separator orientation="vertical" className="h-4 mr-2" />
               <AppBreadcrumb />
             </header>
-            <main className="flex flex-1 p-4 bg-zinc-100">{children}</main>
+
+            <main className="w-full h-full p-4 overflow-auto bg-zinc-100">{children}</main>
+
             <Toaster richColors position="bottom-right" duration={2000} />
           </SidebarInset>
         </SidebarProvider>
