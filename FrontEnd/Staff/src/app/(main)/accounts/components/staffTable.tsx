@@ -75,7 +75,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
 
         type ApiStaff = {
           NV_id: string;
-          NV_vaiTro: string;
+          NV_vaiTro: number;
           NV_hoTen: string;
           NV_email: string;
           NV_soDienThoai: string;
@@ -86,7 +86,14 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
         if (result.length > 0) {
           const mapped: Staff[] = result.map((staff: ApiStaff) => ({
             id: staff.NV_id,
-            role: staff.NV_vaiTro,
+            role:
+              staff.NV_vaiTro === 1
+                ? 'Quản trị'
+                : staff.NV_vaiTro === 2
+                ? 'Quản lý'
+                : staff.NV_vaiTro === 3
+                ? 'Bán hàng'
+                : 'Không xác định',
             name: staff.NV_hoTen,
             email: staff.NV_email,
             phone: staff.NV_soDienThoai,

@@ -5,16 +5,16 @@ import { jwtDecode } from 'jwt-decode';
 interface JwtPayload {
   exp: number;
   userId: string;
-  role: string;
+  role: number;
 }
 
-const roleRequiredPaths: Record<string, string[]> = {
-  '/accounts': ['Admin'],
-  '/products': ['Manager', 'Admin'],
-  '/categories': ['Manager', 'Admin'],
-  '/promotions': ['Manager', 'Admin'],
-  '/reviews': ['Manager', 'Admin'],
-  '/shipping': ['Manager', 'Admin'],
+const roleRequiredPaths: Record<string, number[]> = {
+  '/accounts': [1], // chỉ Admin
+  '/products': [1, 2],
+  '/categories': [1, 2],
+  '/promotions': [1, 2],
+  '/reviews': [1, 2],
+  '/shipping': [1, 2],
 };
 
 export function middleware(req: NextRequest) {
@@ -39,10 +39,10 @@ export function middleware(req: NextRequest) {
       }
 
       // Kiểm tra quyền với regex path chính xác
-      for (const [path, roles] of Object.entries(roleRequiredPaths)) {
+      for (const [path, allowedRoles] of Object.entries(roleRequiredPaths)) {
         const pathRegex = new RegExp(`^${path}(/|$)`);
         if (pathRegex.test(pathname)) {
-          if (typeof payload.role !== 'string' || !roles.includes(payload.role)) {
+          if (!allowedRoles.includes(payload.role)) {
             if (pathname !== '/403') {
               return NextResponse.redirect(new URL('/403', req.url));
             }

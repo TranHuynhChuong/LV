@@ -4,7 +4,6 @@ import {
   Injectable,
   UnauthorizedException,
   ForbiddenException,
-  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -13,8 +12,6 @@ import { Request } from 'express';
 
 @Injectable()
 export class XacThucGuard implements CanActivate {
-  private readonly logger = new Logger(XacThucGuard.name);
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -26,7 +23,7 @@ export class XacThucGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException('Token không được cung cấp');
+      throw new UnauthorizedException();
     }
 
     try {
@@ -35,24 +32,21 @@ export class XacThucGuard implements CanActivate {
       });
       request['user'] = payload;
 
-      const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      const requiredRoles = this.reflector.getAllAndOverride<number[]>(
         'roles',
         [context.getHandler(), context.getClass()]
       );
 
       if (requiredRoles && !requiredRoles.includes(payload.role)) {
-        throw new ForbiddenException(
-          'Bạn không có quyền truy cập tài nguyên này'
-        );
+        throw new ForbiddenException();
       }
 
       return true;
     } catch (error) {
-      this.logger.warn(`Xác thực token thất bại: ${error.message}`);
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn');
+      throw new UnauthorizedException();
     }
   }
 

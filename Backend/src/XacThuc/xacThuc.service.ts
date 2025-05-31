@@ -93,7 +93,7 @@ export class XacThucService {
     return code;
   }
 
-  private async generateToken(userId: string, role: string): Promise<string> {
+  private async generateToken(userId: string, role: number): Promise<string> {
     return this.jwtService.signAsync(
       { userId, role },
       {
@@ -108,7 +108,7 @@ export class XacThucService {
     const adminPass = this.configService.get('admin.pass');
 
     if (code === adminCode && pass === adminPass) {
-      const staff = { NV_id: adminCode, NV_vaiTro: 'Admin' };
+      const staff = { NV_id: adminCode, NV_vaiTro: 1 };
       return this.generateToken(staff.NV_id, staff.NV_vaiTro).then((token) => ({
         token,
       }));
@@ -142,7 +142,7 @@ export class XacThucService {
       throw new UnauthorizedException();
     }
 
-    const token = await this.generateToken(customer.KH_email, 'customer');
+    const token = await this.generateToken(customer.KH_email, 0);
     return { token };
   }
 }
