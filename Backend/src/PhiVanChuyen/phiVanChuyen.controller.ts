@@ -36,12 +36,12 @@ export class PhiVanChuyenController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateDto) {
+  async update(@Param('id') id: number, @Body() data: UpdateDto) {
     await this.PhiVanChuyen.updateShippingFee(id, data);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id') id: number) {
     return await this.PhiVanChuyen.deleteShippingFee(id);
   }
 }
