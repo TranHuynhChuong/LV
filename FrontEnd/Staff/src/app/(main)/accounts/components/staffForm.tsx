@@ -18,27 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-
-const roles = ['Admin', 'Manager', 'Sale'] as const;
+import ConfirmDialog from '@/components/ConfirmDialog';
+import FormFooterActions from '@/components/FormFooterActions';
 
 const formSchema = z.object({
   id: z.string().optional(), // Mã nhân viên - chỉ dùng khi chỉnh sửa
   fullName: z.string().min(2, 'Họ tên ít nhất 2 ký tự').max(48, 'Họ tên tối đa 48 ký tự'),
   phone: z.string().regex(/^[0-9]{9,11}$/, 'Số điện thoại không hợp lệ (9-11 số)'),
   email: z.string().email('Email không hợp lệ').max(128, 'Email không được vượt quá 128 ký tự'),
-  role: z.enum(roles, {
+  role: z.enum(['1', '2', '3'], {
     errorMap: () => ({ message: 'Phải chọn vai trò' }),
   }),
   password: z
@@ -62,9 +54,12 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
-  const router = useRouter();
   const isView = Boolean(view ?? false);
-
+  const roleOptions = [
+    { label: 'Quản trị', value: '1' },
+    { label: 'Quản lý', value: '2' },
+    { label: 'Bán hàng', value: '3' },
+  ];
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -72,7 +67,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
       fullName: '',
       phone: '',
       email: '',
-      role: 'Sale',
+      role: '3',
       password: '',
       ...defaultValues,
     },
@@ -177,9 +172,9 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                     </FormControl>
                     <SelectContent>
                       <SelectGroup>
-                        {roles.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {role}
+                        {roleOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -205,76 +200,31 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
             />
           </div>
           {!isView && (
-            <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
-              <Button
-                type="submit"
-                className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
-              >
-                {isEditing ? 'Cập nhật' : 'Thêm'}
-              </Button>
-
-              {isEditing && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="flex-1 cursor-pointer"
-                >
-                  Xóa
-                </Button>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                className="flex-1 cursor-pointer"
-              >
-                Hủy
-              </Button>
-            </div>
+            <FormFooterActions
+              isEditing={isEditing}
+              isView={isView}
+              onDelete={() => setDeleteDialogOpen(true)}
+            />
           )}
         </form>
       </Form>
 
       {/* Dialog xác nhận xóa */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-10"></div>
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Xóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        mode="delete"
+      />
 
       {/* Dialog xác nhận thêm/cập nhật */}
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{isEditing ? 'Xác nhận cập nhật?' : 'Xác nhận thêm?'}</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-10"></div>
-          <DialogFooter className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialogOpen(false)}
-              className="cursor-pointer"
-            >
-              Hủy
-            </Button>
-            <Button onClick={handleConfirmSubmit} className="cursor-pointer">
-              Xác nhận
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        onConfirm={handleConfirmSubmit}
+        mode="submit"
+        isEdit={isEditing}
+      />
     </div>
   );
 }

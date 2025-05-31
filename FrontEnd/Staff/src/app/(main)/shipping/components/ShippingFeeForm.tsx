@@ -4,13 +4,6 @@ import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
@@ -19,13 +12,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { CircleHelp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 
 import AddressSelect from './addressSelect';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import FormFooterActions from '@/components/FormFooterActions';
 
 const formSchema = z
   .object({
@@ -115,8 +108,6 @@ export default function ShippingFeeForm({
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<FormValues | null>(null);
-
-  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -276,69 +267,29 @@ export default function ShippingFeeForm({
           />
         </div>
 
-        <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow h-fit">
-          <Button
-            type="submit"
-            className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
-          >
-            {isEditing ? 'Cập nhật' : 'Thêm'}
-          </Button>
-
-          {isEditing && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(true)}
-              className="flex-1 cursor-pointer"
-            >
-              Xóa
-            </Button>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            className="flex-1 cursor-pointer"
-          >
-            Hủy
-          </Button>
-        </div>
+        <FormFooterActions
+          isEditing={isEditing}
+          isView={isEditing}
+          onDelete={() => setDeleteDialogOpen(true)}
+        />
       </form>
 
       {/* Dialog xác nhận xóa */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-          </DialogHeader>
-          <DialogFooter className="flex justify-end gap-2">
-            <div className="w-full h-10" />
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Xóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        mode="delete"
+      />
 
       {/* Dialog xác nhận thêm/cập nhật */}
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{isEditing ? 'Xác nhận cập nhật?' : 'Xác nhận thêm phí?'}</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-10" />
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleConfirmSubmit}>Xác nhận</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        onConfirm={handleConfirmSubmit}
+        mode="submit"
+        isEdit={isEditing}
+      />
     </Form>
   );
 }

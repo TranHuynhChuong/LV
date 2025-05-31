@@ -11,19 +11,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import CategoryCombobox from '@/components/CategoriesCombobox';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import FormFooterActions from '@/components/FormFooterActions';
 
 const formSchema = z.object({
   id: z.number().nullable().optional(),
@@ -48,7 +41,6 @@ export default function CategoryForm({
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
-  const router = useRouter();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -132,76 +124,30 @@ export default function CategoryForm({
             />
           </div>
 
-          <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
-            <Button
-              type="submit"
-              className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
-            >
-              {isEditing ? 'Cập nhật' : 'Thêm'}
-            </Button>
-
-            {isEditing && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDeleteDialogOpen(true)}
-                className="flex-1 cursor-pointer"
-              >
-                Xóa
-              </Button>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1 cursor-pointer"
-            >
-              Hủy
-            </Button>
-          </div>
+          <FormFooterActions
+            isEditing={isEditing}
+            isView={isEditing}
+            onDelete={() => setDeleteDialogOpen(true)}
+          />
         </form>
       </Form>
 
       {/* Dialog xác nhận xóa */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-10" />
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete}>
-              Xóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        mode="delete"
+      />
 
       {/* Dialog xác nhận thêm/cập nhật */}
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{isEditing ? 'Xác nhận cập nhật?' : 'Xác nhận thêm?'}</DialogTitle>
-          </DialogHeader>
-          <div className="w-full h-10" />
-          <DialogFooter className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setConfirmDialogOpen(false)}
-              className="cursor-pointer"
-            >
-              Hủy
-            </Button>
-            <Button onClick={handleConfirmSubmit} className="cursor-pointer">
-              Xác nhận
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={setConfirmDialogOpen}
+        onConfirm={handleConfirmSubmit}
+        mode="submit"
+        isEdit={isEditing}
+      />
     </div>
   );
 }
