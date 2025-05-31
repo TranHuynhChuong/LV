@@ -40,6 +40,13 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export type ShippingFee = {
   fee: number;
@@ -76,17 +83,19 @@ export default function Shipments() {
   });
   const [total, setTotal] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-
+  const [provinces, setProvinces] = useState<{ T_id: number; T_ten: string }[]>([]);
   const getData = () => {
     setLoading(true);
     Promise.all([api.get('/shipping'), fetch('/data/0.json').then((res) => res.json())])
       .then(([shippingRes, locationRes]) => {
-        const provinces: { T_id: number; T_ten: string }[] = locationRes;
+        setProvinces(locationRes);
 
         const shippingRaw: ShippingFeeApi[] = shippingRes.data;
         setTotal(shippingRaw.length);
         const mapped: ShippingFee[] = shippingRaw.map((item) => {
-          const province = provinces.find((p) => p.T_id === item.T_id);
+          const province = locationRes.find(
+            (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
+          ); // Dùng trực tiếp locationRes
           const locationName =
             item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
 
@@ -142,6 +151,7 @@ export default function Shipments() {
     {
       accessorKey: 'location',
       header: 'Khu vực',
+      enableColumnFilter: true,
       cell: ({ row }) => <div className="pl-2">{row.getValue('location')}</div>,
       enableHiding: false,
     },
@@ -304,6 +314,30 @@ export default function Shipments() {
             </Button>
           </Link>
         </div>
+        <div className="flex items-center gap-4 mb-4">
+          <div>
+            <label className="block mb-1 text-sm">Lọc theo tỉnh</label>
+            <Select
+              onValueChange={(value) =>
+                table.getColumn('location')?.setFilterValue(value === 'all' ? undefined : value)
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Tất cả tỉnh" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                {provinces.map((p) => (
+                  <SelectItem key={p.T_id} value={p.T_ten}>
+                    {p.T_ten}
+                  </SelectItem>
+                ))}
+                <SelectItem value="Khu vực còn lại">Khu vực còn lại</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="border rounded-md">
           <Table>
             <TableHeader>

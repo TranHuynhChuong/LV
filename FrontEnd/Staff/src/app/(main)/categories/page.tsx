@@ -204,10 +204,10 @@ export default function Categories() {
 
   return (
     <>
-      <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit ">
+      <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit min-w-fit">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2 pl-4">
-            <span className="font-semibold text-xl">{total}</span>
+          <div className="flex items-center pl-4 space-x-2">
+            <span className="text-xl font-semibold">{total}</span>
             <span>Thể loại</span>
           </div>
           <Link href="/categories/new">

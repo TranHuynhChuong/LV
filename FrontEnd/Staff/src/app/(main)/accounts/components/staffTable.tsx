@@ -17,6 +17,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ArrowUpDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -84,16 +91,16 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
         const result: ApiStaff[] = data;
 
         if (result.length > 0) {
+          const getRole = (vaiTro: number) => {
+            if (vaiTro === 1) return 'Quản trị';
+            if (vaiTro === 2) return 'Quản lý';
+            if (vaiTro === 3) return 'Bán hàng';
+            return 'Không xác định';
+          };
+
           const mapped: Staff[] = result.map((staff: ApiStaff) => ({
             id: staff.NV_id,
-            role:
-              staff.NV_vaiTro === 1
-                ? 'Quản trị'
-                : staff.NV_vaiTro === 2
-                ? 'Quản lý'
-                : staff.NV_vaiTro === 3
-                ? 'Bán hàng'
-                : 'Không xác định',
+            role: getRole(staff.NV_vaiTro),
             name: staff.NV_hoTen,
             email: staff.NV_email,
             phone: staff.NV_soDienThoai,
@@ -167,6 +174,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       accessorKey: 'role',
       header: 'Vai trò',
       enableHiding: false,
+      enableColumnFilter: true,
       cell: ({ row }) => <div>{row.getValue('role')}</div>,
     },
     {
@@ -241,21 +249,40 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
   return (
     <>
       <div className="w-full">
-        <div className="flex items-center justify-between py-4">
-          <Input
-            placeholder="Tìm theo mã..."
-            value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
-            onChange={(event) => table.getColumn('id')?.setFilterValue(event.target.value)}
-            className="max-w-sm"
-          />
-          <Link href="accounts/new">
-            <Button className="cursor-pointer">
-              <Plus /> Thêm mới
-            </Button>
-          </Link>
+        <div className="flex flex-col py-6 space-y-4 sm:space-y-0 sm:items-center sm:justify-between sm:flex-row-reverse">
+          <div className="flex items-center justify-end">
+            <Link href="accounts/new">
+              <Button className="cursor-pointer">
+                <Plus /> Thêm mới
+              </Button>
+            </Link>
+          </div>
+          <div className="flex space-x-4">
+            <Input
+              placeholder="Tìm theo mã..."
+              value={(table.getColumn('id')?.getFilterValue() as string) ?? ''}
+              onChange={(event) => table.getColumn('id')?.setFilterValue(event.target.value)}
+              className="w-full max-w-sm text-sm"
+            />
+            <Select
+              onValueChange={(value) =>
+                table.getColumn('role')?.setFilterValue(value === 'all' ? undefined : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Lọc theo vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="Quản trị">Quản trị</SelectItem>
+                <SelectItem value="Quản lý">Quản lý</SelectItem>
+                <SelectItem value="Bán hàng">Bán hàng</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="border rounded-md">
-          <Table>
+          <Table className="w-full">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
@@ -284,7 +311,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    className="cursor-pointer"
+                    className="cursor-pointer even:bg-muted"
                     onDoubleClick={() => {
                       handleDoubleClick(row.original);
                     }}
