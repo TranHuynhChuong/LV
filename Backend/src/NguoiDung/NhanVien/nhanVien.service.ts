@@ -18,13 +18,6 @@ export interface ThaoTac {
   };
 }
 
-export interface NhanVienInfo {
-  NV_id: string | null;
-  NV_hoTen: string | null;
-  NV_email: string | null;
-  NV_soDienThoai: string | null;
-}
-
 const typeOfChange: Record<string, string> = {
   NV_hoTen: 'Họ tên',
   NV_email: 'Email',
@@ -73,35 +66,33 @@ export class NhanVienService {
       throw new NotFoundException();
     }
 
-    // Cập nhật thông tin chi tiết cho từng NV_id trong lịch sử thao tác
-    if (Array.isArray(result.lichSuThaoTacNV)) {
-      result.lichSuThaoTac = await Promise.all(
-        result.lichSuThaoTac.map(
-          async (element: LichSuThaoTacNV): Promise<ThaoTac> => {
-            const nhanVien = await this.NhanVien.findById(element.NV_id);
-            const thaoTac: ThaoTac = {
-              thaoTac: element.thaoTac,
-              thoiGian: element.thoiGian,
-              nhanVien: {
-                NV_id: null,
-                NV_hoTen: null,
-                NV_email: null,
-                NV_soDienThoai: null,
-              },
-            };
-            if (nhanVien) {
-              result.nhanVien = {
-                NV_id: nhanVien.NV_id,
-                NV_hoTen: nhanVien.NV_hoTen,
-                NV_email: nhanVien.NV_email,
-                NV_soDienThoai: nhanVien.NV_soDienThoai,
-              };
-            }
-            return thaoTac;
-          }
-        )
-      );
-    }
+    const lichSu = result.lichSuThaoTac || [];
+
+    const ids = [
+      ...new Set(
+        lichSu.map((item: LichSuThaoTacNV) => item.NV_id).filter(Boolean)
+      ),
+    ] as string[];
+    const nhanViens = await this.NhanVien.findAllIds(ids);
+    const nhanVienMap = new Map<string, any>();
+    nhanViens.forEach((nv) => {
+      nhanVienMap.set(nv.NV_id, nv);
+    });
+
+    result.lichSuThaoTac = lichSu.map((item): ThaoTac => {
+      const nv = nhanVienMap.get(item.NV_id);
+
+      return {
+        thoiGian: item.thoiGian,
+        thaoTac: item.thaoTac,
+        nhanVien: {
+          NV_id: nv?.NV_id ?? null,
+          NV_hoTen: nv?.NV_hoTen ?? null,
+          NV_email: nv?.NV_email ?? null,
+          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
+        },
+      };
+    });
 
     return result;
   }
@@ -114,7 +105,11 @@ export class NhanVienService {
 
     const fieldsChange: string[] = [];
     for (const key of Object.keys(newData)) {
-      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+      if (
+        newData[key] !== undefined &&
+        newData[key] !== existing[key] &&
+        key !== 'NV_idNV'
+      ) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
       }

@@ -41,6 +41,12 @@ export class NhanVienRepository {
     return this.NhanVien.findOne({ NV_id: id, NV_daXoa: false }).lean().exec();
   }
 
+  async findAllIds(ids: string[]): Promise<NhanVien[]> {
+    return this.NhanVien.find({ NV_id: { $in: ids }, NV_daXoa: false })
+      .lean()
+      .exec();
+  }
+
   async update(id: string, data: any): Promise<NhanVien | null> {
     return this.NhanVien.findOneAndUpdate({ NV_id: id }, data, {
       new: true,
