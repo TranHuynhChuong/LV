@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,8 +29,8 @@ type Category = {
 };
 
 type CategoryComboboxProps = {
-  readonly value: number | null;
-  readonly onChange: (id: number | null) => void;
+  readonly value: number | number[] | null;
+  readonly onChange: (ids: number[]) => void;
   readonly excludeId?: number | null;
   readonly leafOnly?: boolean;
 };
@@ -59,6 +59,22 @@ export default function CategoryCombobox({
       .then((res) => {
         const data = res.data as BackendCategory[];
         setCategoriesRaw(data.length > 0 ? data : []);
+
+        // Dữ liệu mẫu
+        const temp = [
+          { TL_id: 1, TL_ten: 'Thời trang', TL_idTL: null },
+          { TL_id: 2, TL_ten: 'Điện tử', TL_idTL: null },
+          { TL_id: 3, TL_ten: 'Áo thun', TL_idTL: 1 },
+          { TL_id: 4, TL_ten: 'Quần jean', TL_idTL: 1 },
+          { TL_id: 5, TL_ten: 'Điện thoại', TL_idTL: 2 },
+          { TL_id: 6, TL_ten: 'Laptop', TL_idTL: 2 },
+          { TL_id: 7, TL_ten: 'iPhone', TL_idTL: 5 },
+          { TL_id: 8, TL_ten: 'MacBook', TL_idTL: 6 },
+          { TL_id: 9, TL_ten: 'Áo sơ mi', TL_idTL: 1 },
+          { TL_id: 10, TL_ten: 'Phụ kiện', TL_idTL: null },
+          { TL_id: 11, TL_ten: 'Dây sạc', TL_idTL: 10 },
+        ];
+        setCategoriesRaw(temp);
       })
       .catch(() => {
         setCategoriesRaw([]);
@@ -81,8 +97,16 @@ export default function CategoryCombobox({
     }));
   }, [flatCategories]);
 
+  const selectedIds = useMemo(() => {
+    if (value === null) return [];
+    return Array.isArray(value) ? value : [value];
+  }, [value]);
+
+  const selectedCategories = useMemo(() => {
+    return treeCategories.filter((c) => selectedIds.includes(c.id));
+  }, [treeCategories, selectedIds]);
+
   const [open, setOpen] = useState(false);
-  const selectedCategory = treeCategories.find((c) => c.id === value);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
@@ -93,51 +117,75 @@ export default function CategoryCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-full font-normal"
-          disabled={!categoriesRaw} // disable button khi chưa có data
+          className="flex flex-wrap items-center justify-start w-full pr-8 font-normal h-fit min-h-[2.5rem] p-1"
+          disabled={!categoriesRaw}
         >
           {!categoriesRaw ? (
-            <Skeleton className="h-5 w-24" />
+            <Skeleton className="w-24 h-5" />
+          ) : selectedCategories.length === 0 ? (
+            <span className="px-2">Chọn thể loại ... </span>
           ) : (
-            selectedCategory?.name || 'Chọn thể loại ...'
+            selectedCategories.map((c) => (
+              <span
+                key={c.id}
+                className="m-1 px-2 py-0.5 bg-muted rounded text-sm whitespace-nowrap"
+              >
+                {c.name}
+              </span>
+            ))
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" style={{ width: triggerRef.current?.offsetWidth }}>
         {!categoriesRaw ? (
           <div className="p-4 space-y-2">
             {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-5 w-full rounded-md" />
+              <Skeleton key={i} className="w-full h-5 rounded-md" />
             ))}
           </div>
         ) : (
           <Command>
             <CommandInput placeholder="Nhập tên thể loại..." />
             <CommandList>
-              <CommandEmpty>No category found.</CommandEmpty>
+              <CommandEmpty>Không tìm thấy thể loại nào.</CommandEmpty>
               <CommandGroup>
-                {treeCategories.map((category) => (
-                  <CommandItem
-                    key={category.id}
-                    value={category.name}
-                    disabled={category.id === excludeId || (leafOnly && !category.isLeaf)}
-                    onSelect={() => {
-                      onChange(category.id === value ? null : category.id);
-                      setOpen(false);
-                    }}
-                  >
-                    <span style={{ paddingLeft: `${category.depth * 1.25}rem` }}>
-                      {category.name}
-                    </span>
-                    <Check
-                      className={cn(
-                        'ml-auto h-4 w-4',
-                        value === category.id ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                  </CommandItem>
-                ))}
+                {treeCategories.map((category) => {
+                  const isSelected = selectedIds.includes(category.id);
+                  const isDisabled = category.id === excludeId || (leafOnly && !category.isLeaf);
+                  return (
+                    <CommandItem
+                      key={category.id}
+                      value={category.name}
+                      disabled={isDisabled}
+                      onSelect={() => {
+                        if (!leafOnly) {
+                          // Chọn 1, nếu chọn lại thì bỏ chọn
+                          if (isSelected) {
+                            onChange([]);
+                          } else {
+                            onChange([category.id]);
+                          }
+                          setOpen(false);
+                        } else {
+                          // Chọn nhiều, toggle chọn/bỏ chọn
+                          if (isSelected) {
+                            onChange(selectedIds.filter((id) => id !== category.id));
+                          } else {
+                            onChange([...selectedIds, category.id]);
+                          }
+                        }
+                      }}
+                    >
+                      <span style={{ paddingLeft: `${category.depth * 1.25}rem` }}>
+                        {category.name}
+                      </span>
+
+                      <Check
+                        className={cn('ml-auto h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
+                      />
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             </CommandList>
           </Command>
