@@ -5,12 +5,10 @@ import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
-import { Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from './loading';
+import { ActionHistorySheet } from '@/components/ActionHistorySheet';
 
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -22,21 +20,23 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     fullName: string;
     phone: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Sale';
+    role: '1' | '2' | '3';
     id: string;
     password: string;
   } | null>(null);
 
-  const [metadata, setMetadata] = useState<{
-    createdBy: {
-      id: string;
-      name: string;
-      email: string;
-      phone: string;
-    };
-    createdAt: string;
-    updatedAt: string;
-  } | null>(null);
+  const [metadata, setMetadata] = useState<
+    {
+      time: string;
+      action: string;
+      user: {
+        id: string;
+        name: string;
+        phone: string;
+        email: string;
+      };
+    }[]
+  >([]);
 
   const { authData } = useAuth();
 
@@ -50,26 +50,40 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
     api
       .get(`/users/staff/${id}`)
       .then((res) => {
-        const staff = res.data;
+        const data = res.data;
+
         setStaffData({
-          fullName: staff.NV_hoTen,
-          phone: staff.NV_soDienThoai,
-          email: staff.NV_email,
-          role: staff.NV_vaiTro,
-          id: staff.NV_id,
-          password: staff.NV_matKhau,
+          fullName: data.NV_hoTen,
+          phone: data.NV_soDienThoai,
+          email: data.NV_email,
+          role: String(data.NV_vaiTro) as '1' | '2' | '3',
+          id: data.NV_id,
+          password: data.NV_matKhau,
         });
 
-        setMetadata({
-          createdBy: {
-            id: staff.NV_idNV?.NV_id,
-            name: staff.NV_idNV?.NV_hoTen ?? '',
-            email: staff.NV_idNV?.NV_email ?? '',
-            phone: staff.NV_idNV?.NV_soDienThoai ?? '',
-          },
-          createdAt: staff.NV_tao,
-          updatedAt: staff.NV_capNhat,
-        });
+        interface LichSuThaoTacItem {
+          thoiGian: string;
+          thaoTac: string;
+          nhanVien?: {
+            NV_id: string;
+            NV_hoTen: string;
+            NV_soDienThoai: string;
+            NV_email: string;
+          };
+        }
+
+        const metadataFormatted =
+          data.lichSuThaoTac?.map((item: LichSuThaoTacItem) => ({
+            time: item.thoiGian,
+            action: item.thaoTac,
+            user: {
+              id: item.nhanVien?.NV_id,
+              name: item.nhanVien?.NV_hoTen,
+              phone: item.nhanVien?.NV_soDienThoai,
+              email: item.nhanVien?.NV_email,
+            },
+          })) ?? [];
+        setMetadata(metadataFormatted);
       })
       .catch((error) => {
         console.error('Lỗi khi lấy thông tin nhân viên:', error);
@@ -78,20 +92,20 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [id, setBreadcrumbs]);
 
   const handleOnSubmit = (data: {
     fullName: string;
     phone: string;
     email: string;
-    role: 'Admin' | 'Manager' | 'Sale';
+    role: string;
     password?: string;
   }) => {
     const payload = {
       NV_hoTen: data.fullName,
       NV_soDienThoai: data.phone,
       NV_email: data.email,
-      NV_vaiTro: data.role,
+      NV_vaiTro: Number(data.role),
       NV_matKhau: data.password,
       NV_idNV: authData.userId,
     };
@@ -139,48 +153,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
         <StaffForm defaultValues={staffData} onSubmit={handleOnSubmit} onDelete={handleOnDelete} />
       )}
 
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" className="absolute cursor-pointer top-6 right-6">
-            <Info />
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Thông tin dữ liệu</SheetTitle>
-            {metadata && (
-              <div className="mt-4 space-y-3 text-sm">
-                <div>
-                  <span className="font-medium">Ngày tạo:</span>{' '}
-                  {new Date(metadata.createdAt).toLocaleString('vi-VN')}
-                </div>
-                <div>
-                  <span className="font-medium">Cập nhật:</span>{' '}
-                  {new Date(metadata.updatedAt).toLocaleString('vi-VN')}
-                </div>
-                <div>
-                  <div className="font-medium">Người thực hiện</div>
-                  <span className="text-xs italic font-light text-gray-500">
-                    Người thực hiện cập nhật dữ liệu
-                  </span>
-                </div>
-                <div className="pl-4">
-                  <span className="font-medium">Mã số:</span> {metadata.createdBy.id}
-                </div>
-                <div className="pl-4">
-                  <span className="font-medium">Họ tên:</span> {metadata.createdBy.name}
-                </div>
-                <div className="pl-4">
-                  <span className="font-medium">Email:</span> {metadata.createdBy.email}
-                </div>
-                <div className="pl-4">
-                  <span className="font-medium">Số điện thoại:</span> {metadata.createdBy.phone}
-                </div>
-              </div>
-            )}
-          </SheetHeader>
-        </SheetContent>
-      </Sheet>
+      <ActionHistorySheet metadata={metadata} />
     </div>
   );
 }

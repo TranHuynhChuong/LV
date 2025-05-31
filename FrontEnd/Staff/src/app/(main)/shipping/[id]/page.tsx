@@ -7,10 +7,8 @@ import ShippingFeeForm from '../components/ShippingFeeForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Info } from 'lucide-react';
 import Loading from './loading';
+import { ActionHistorySheet } from '@/components/ActionHistorySheet';
 
 type ShippingFormData = {
   fee?: number;
@@ -18,14 +16,6 @@ type ShippingFormData = {
   surcharge?: number;
   surchargeUnit?: number;
   provinceId?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
-  staff?: {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
-  };
 };
 
 export default function ShippingDetailPage() {
@@ -38,6 +28,19 @@ export default function ShippingDetailPage() {
 
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<ShippingFormData | null>(null);
+
+  const [metadata, setMetadata] = useState<
+    {
+      time: string;
+      action: string;
+      user: {
+        id: string;
+        name: string;
+        phone: string;
+        email: string;
+      };
+    }[]
+  >([]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -60,15 +63,31 @@ export default function ShippingDetailPage() {
           surcharge: data.PVC_phuPhi,
           surchargeUnit: data.PVC_dvpp,
           provinceId: data.T_id,
-          createdAt: data.PVC_tao,
-          updatedAt: data.PVC_capNhat,
-          staff: {
-            id: data.NV_id.NV_id,
-            name: data.NV_id.NV_hoTen,
-            phone: data.NV_id.NV_soDienThoai,
-            email: data.NV_id.NV_email,
-          },
         });
+
+        interface LichSuThaoTacItem {
+          thoiGian: string;
+          thaoTac: string;
+          nhanVien?: {
+            NV_id: string;
+            NV_hoTen: string;
+            NV_soDienThoai: string;
+            NV_email: string;
+          };
+        }
+
+        const metadataFormatted =
+          data.lichSuThaoTac?.map((item: LichSuThaoTacItem) => ({
+            time: item.thoiGian,
+            action: item.thaoTac,
+            user: {
+              id: item.nhanVien?.NV_id,
+              name: item.nhanVien?.NV_hoTen,
+              phone: item.nhanVien?.NV_soDienThoai,
+              email: item.nhanVien?.NV_email,
+            },
+          })) ?? [];
+        setMetadata(metadataFormatted);
       })
       .catch((error) => {
         console.error(error);
@@ -129,50 +148,7 @@ export default function ShippingDetailPage() {
         onDelete={handleDelete}
         defaultValues={initialData}
       />
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" className="absolute cursor-pointer top-6 right-6">
-            <Info></Info>
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>Thông tin dữ liệu</SheetTitle>
-            <div className="mt-4 space-y-3 text-sm ">
-              <div className="">
-                <span className="font-medium ">Ngày tạo:</span>{' '}
-                {initialData.createdAt
-                  ? new Date(initialData.createdAt).toLocaleString('vi-VN')
-                  : 'N/A'}
-              </div>
-              <div className="">
-                <span className="font-medium ">Cập nhật:</span>{' '}
-                {initialData.updatedAt
-                  ? new Date(initialData.updatedAt).toLocaleString('vi-VN')
-                  : 'N/A'}
-              </div>
-              <div>
-                <div className="font-medium ">Người thực hiện</div>{' '}
-                <span className="text-xs italic font-light text-gray-500">
-                  Người thực hiện cập nhật dữ liệu
-                </span>
-              </div>
-              <div className="pl-4">
-                <span className="font-medium ">Mã số:</span> {initialData.staff?.id}
-              </div>
-              <div className="pl-4">
-                <span className="font-medium ">Họ tên:</span> {initialData.staff?.name}
-              </div>
-              <div className="pl-4">
-                <span className="font-medium ">Email:</span> {initialData.staff?.email}
-              </div>
-              <div className="pl-4">
-                <span className="font-medium ">Số điện thoại:</span> {initialData.staff?.phone}
-              </div>
-            </div>
-          </SheetHeader>
-        </SheetContent>
-      </Sheet>
+      <ActionHistorySheet metadata={metadata} />
     </div>
   );
 }
