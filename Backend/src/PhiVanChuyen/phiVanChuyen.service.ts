@@ -99,34 +99,42 @@ export class PhiVanChuyenService {
   ): Promise<PhiVanChuyen> {
     const existing = await this.PhiVanChuyen.findById(id);
     if (!existing) {
-      throw new NotFoundException();
+      throw new NotFoundException('Không tìm thấy phí vận chuyển');
     }
+
     const fieldsChange: string[] = [];
+    const updatePayload: any = {};
+
     for (const key of Object.keys(newData)) {
-      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+      if (
+        newData[key] !== undefined &&
+        newData[key] !== existing[key] &&
+        key !== 'NV_id' // bỏ qua NV_id khỏi danh sách so sánh
+      ) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
+        updatePayload[key] = newData[key]; // chỉ thêm trường có thay đổi
       }
     }
 
-    const newLichSuThaoTac = [...existing.lichSuThaoTac];
     if (fieldsChange.length > 0 && newData.NV_id) {
       const thaoTac = {
         thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
         NV_id: newData.NV_id,
         thoiGian: new Date(),
       };
-      newLichSuThaoTac.push(thaoTac);
+
+      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
     }
 
-    const updateObject = {
-      ...newData,
-      lichSuThaoTac: newLichSuThaoTac,
-    };
+    // Nếu không có gì thay đổi, trả về bản ghi cũ
+    if (Object.keys(updatePayload).length === 0) {
+      return existing;
+    }
 
-    const updated = await this.PhiVanChuyen.update(id, updateObject);
+    const updated = await this.PhiVanChuyen.update(id, updatePayload);
     if (!updated) {
-      throw new BadRequestException();
+      throw new BadRequestException('Cập nhật thất bại');
     }
 
     return updated;

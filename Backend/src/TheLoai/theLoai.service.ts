@@ -54,43 +54,55 @@ export class TheLoaiService {
 
   async update(id: number, newData: UpdateDto): Promise<TheLoai> {
     if (!newData.TL_ten) {
-      throw new BadRequestException();
-    }
-    const existing = await this.TheLoai.findByName(newData.TL_ten);
-    if (existing && existing.TL_id !== id) {
-      throw new ConflictException();
+      throw new BadRequestException('Tên thể loại không được để trống');
     }
 
-    if (!existing) {
-      throw new BadRequestException();
+    // Tìm bản ghi hiện tại theo id
+    const current = await this.TheLoai.findById(id);
+    if (!current) {
+      throw new NotFoundException('Không tìm thấy thể loại');
     }
 
+    // Kiểm tra tên trùng (nếu có)
+    const sameName = await this.TheLoai.findByName(newData.TL_ten);
+    if (sameName && sameName.TL_id !== id) {
+      throw new ConflictException('Tên thể loại đã tồn tại');
+    }
+
+    // Xác định trường thay đổi
     const fieldsChange: string[] = [];
+    const updatePayload: any = {};
+
     for (const key of Object.keys(newData)) {
-      if (newData[key] !== undefined && newData[key] !== existing[key]) {
+      if (
+        newData[key] !== undefined &&
+        newData[key] !== current[key] &&
+        key !== 'NV_id'
+      ) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
+        updatePayload[key] = newData[key];
       }
     }
 
-    const newLichSuThaoTac = [...existing.lichSuThaoTac];
+    // Thêm lịch sử thao tác nếu có thay đổi
     if (fieldsChange.length > 0 && newData.NV_id) {
       const thaoTac = {
         thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
         NV_id: newData.NV_id,
         thoiGian: new Date(),
       };
-      newLichSuThaoTac.push(thaoTac);
+      updatePayload.lichSuThaoTac = [...current.lichSuThaoTac, thaoTac];
     }
 
-    const updateObject = {
-      ...newData,
-      lichSuThaoTac: newLichSuThaoTac,
-    };
+    // Không có thay đổi thì trả về bản ghi cũ
+    if (Object.keys(updatePayload).length === 0) {
+      return current;
+    }
 
-    const updated = await this.TheLoai.update(id, updateObject);
+    const updated = await this.TheLoai.update(id, updatePayload);
     if (!updated) {
-      throw new BadRequestException();
+      throw new BadRequestException('Cập nhật thất bại');
     }
 
     return updated;
