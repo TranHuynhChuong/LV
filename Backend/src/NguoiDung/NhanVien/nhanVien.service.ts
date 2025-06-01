@@ -100,10 +100,12 @@ export class NhanVienService {
   async update(id: string, newData: UpdateDto): Promise<NhanVien> {
     const existing = await this.NhanVien.findById(id);
     if (!existing) {
-      throw new NotFoundException();
+      throw new NotFoundException('Không tìm thấy nhân viên');
     }
 
     const fieldsChange: string[] = [];
+    const updatePayload: any = {};
+
     for (const key of Object.keys(newData)) {
       if (
         newData[key] !== undefined &&
@@ -112,29 +114,30 @@ export class NhanVienService {
       ) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
+        updatePayload[key] = newData[key]; // Chỉ thêm trường thực sự thay đổi
       }
     }
 
-    const newLichSuThaoTac = [...existing.lichSuThaoTac];
     if (fieldsChange.length > 0 && newData.NV_idNV) {
       const thaoTac = {
         thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
         NV_id: newData.NV_idNV,
         thoiGian: new Date(),
       };
-      newLichSuThaoTac.push(thaoTac);
+
+      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
     }
 
-    // Tạo đối tượng cập nhật đúng
-    const updateObject = {
-      ...newData,
-      lichSuThaoTac: newLichSuThaoTac,
-    };
+    // Nếu không có trường nào thay đổi thì trả về bản ghi cũ
+    if (Object.keys(updatePayload).length === 0) {
+      return existing;
+    }
 
-    const updated = await this.NhanVien.update(id, updateObject);
+    const updated = await this.NhanVien.update(id, updatePayload);
     if (!updated) {
-      throw new BadRequestException();
+      throw new BadRequestException('Cập nhật thất bại');
     }
+
     return updated;
   }
 
