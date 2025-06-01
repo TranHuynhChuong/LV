@@ -103,3 +103,9 @@ export class SanPham {
 }
 
 export const SanPhamSchema = SchemaFactory.createForClass(SanPham);
+SanPhamSchema.index({ SP_trangThai: 1, SP_id: 1 }); // Sort ngày thêm tăng dần
+SanPhamSchema.index({ SP_trangThai: 1, SP_id: -1 }); // Sort ngày thêm giảmdần
+SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: 1, SP_id: 1 }); // Giá tăng dần
+SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: -1, SP_id: -1 }); // Giá giảm dần
+SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: 1, SP_id: 1 }); // Doanh số tăng dần
+SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: -1, SP_id: -1 }); // Doanh số giảm dần

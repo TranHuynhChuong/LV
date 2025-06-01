@@ -73,12 +73,21 @@ export class SanPhamController {
   // Danh sách sản phẩm có phân trang và lọc trạng thái
   @Get()
   findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(24), ParseIntPipe) limit: number,
-    @Query('filterType', new DefaultValuePipe(12), ParseIntPipe)
-    filterType: 1 | 2 | 12
+    @Query('cursorId') cursorId: string,
+    @Query('currentPage') currentPage: string,
+    @Query('targetPage') targetPage: string,
+    @Query('sortType') sortType: string = '1',
+    @Query('filterType') filterType: string = '12',
+    @Query('limit') limit: string = '24'
   ) {
-    return this.service.findAll(page, limit, filterType);
+    return this.service.findAll(
+      cursorId ?? '',
+      Number(currentPage),
+      Number(targetPage),
+      Number(sortType) as 1 | 2 | 3,
+      Number(filterType) as 1 | 2 | 12,
+      Number(limit)
+    );
   }
 
   // Chi tiết sản phẩm

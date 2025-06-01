@@ -2,13 +2,80 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SanPham, SanPhamDocument } from './sanPham.schema';
+import { PaginateRepository, SortType } from 'src/Util/cursor-pagination';
+
+export type SanPhamSortType = 1 | 2 | 3 | -1 | -2 | -3;
+
+const project = {
+  SP_id: 1,
+  TL_id: 1,
+  SP_ten: 1,
+  SP_giaBan: 1,
+  SP_doanhSo: 1,
+  SP_khoHang: 1,
+  SP_anh: {
+    $arrayElemAt: [
+      {
+        $map: {
+          input: {
+            $filter: {
+              input: '$SP_anh',
+              as: 'anh',
+              cond: { $eq: ['$$anh.A_anhBia', true] },
+            },
+          },
+          as: 'anh',
+          in: '$$anh.A_url',
+        },
+      },
+      0,
+    ],
+  },
+};
+
+export interface SanPhamSummary {
+  SP_id: number;
+  TL_id: number;
+  SP_ten: string;
+  SP_giaBan: number;
+  SP_doanhSo: number;
+  SP_khoHang: number;
+  SP_anh: string;
+}
 
 @Injectable()
-export class SanPhamRepository {
+export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
   constructor(
     @InjectModel(SanPham.name)
-    private readonly model: Model<SanPhamDocument>
-  ) {}
+    model: Model<SanPhamDocument>
+  ) {
+    super(model);
+  }
+
+  private getSanPhamSort(sortType: SanPhamSortType): [SortType, string] {
+    switch (sortType) {
+      case 1:
+        return [{ SP_id: 1 }, 'SP_id'];
+      case -1:
+        return [{ SP_id: -1 }, 'SP_id'];
+      case 2:
+        return [{ SP_giaBan: 1, SP_id: 1 }, 'SP_giaBan'];
+      case -2:
+        return [{ SP_giaBan: -1, SP_id: -1 }, 'SP_giaBan'];
+      case 3:
+        return [{ SP_daBan: 1, SP_id: 1 }, 'SP_daBan'];
+      case -3:
+        return [{ SP_daBan: -1, SP_id: -1 }, 'SP_daBan'];
+      default:
+        return [{ SP_id: 1 }, 'SP_id'];
+    }
+  }
+
+  private buildFilter(filterType: 1 | 2 | 12): Record<string, any> {
+    if (filterType === 1) return { SP_trangThai: 1 };
+    if (filterType === 2) return { SP_trangThai: 2 };
+    return { SP_trangThai: { $in: [1, 2] } };
+  }
 
   async create(data: Partial<SanPham>): Promise<SanPham> {
     return this.model.create(data);
@@ -19,78 +86,56 @@ export class SanPhamRepository {
     return last?.SP_id ?? 0;
   }
 
-  async findAll(
-    page: number,
+  async findAllForward(
+    cursorId: string,
+    skip: number,
     limit: number,
+    sortType: SanPhamSortType = 1,
     filterType: 1 | 2 | 12 = 12
-  ): Promise<{ data: SanPham[]; total: number }> {
-    let trangThaiQuery: any;
+  ): Promise<SanPhamSummary[]> {
+    const [sort, sortField] = this.getSanPhamSort(sortType);
 
-    switch (filterType) {
-      case 1:
-        trangThaiQuery = 1;
-        break;
-      case 2:
-        trangThaiQuery = 2;
-        break;
-      case 12:
-      default:
-        trangThaiQuery = { $in: [1, 2] };
-        break;
-    }
+    const filter = this.buildFilter(filterType);
 
-    const skip = (page - 1) * limit;
+    const result = await this.paginateCursor({
+      cursorId,
+      sort,
+      sortField,
+      skip,
+      limit,
+      filter,
+      direction: 'forward',
+      idField: 'SP_id',
+      project,
+    });
 
-    const matchStage = {
-      $match: {
-        SP_trangThai: trangThaiQuery,
-      },
-    };
+    return result as SanPhamSummary[];
+  }
 
-    const facetStage = {
-      $facet: {
-        data: [{ $skip: skip }, { $limit: limit }],
-        totalCount: [{ $count: 'count' }],
-      },
-    };
-    const projectStage = {
-      $project: {
-        SP_id: 1,
-        TL_id: 1,
-        SP_ten: 1,
-        SP_giaBan: 1,
-        SP_doanhSo: 1,
-        SP_khoHang: 1,
-        SP_anh: {
-          $arrayElemAt: [
-            {
-              $map: {
-                input: {
-                  $filter: {
-                    input: '$SP_anh',
-                    as: 'anh',
-                    cond: { $eq: ['$$anh.A_anhBia', true] },
-                  },
-                },
-                as: 'anh',
-                in: '$$anh.A_url',
-              },
-            },
-            0,
-          ],
-        },
-      },
-    };
-    const result = await this.model.aggregate([
-      matchStage,
-      projectStage,
-      facetStage,
-    ]);
+  async findAllBack(
+    cursorId: string,
+    skip: number,
+    limit: number,
+    sortType: SanPhamSortType = 1,
+    filterType: 1 | 2 | 12 = 12
+  ): Promise<SanPhamSummary[]> {
+    const [sort, sortField] = this.getSanPhamSort(sortType);
 
-    const data = result[0]?.data ?? [];
-    const total = result[0]?.totalCount[0]?.count ?? 0;
+    const filter = this.buildFilter(filterType);
 
-    return { data, total };
+    const result = await this.paginateCursor({
+      cursorId,
+      sort,
+      sortField,
+      skip,
+      limit,
+      filter,
+      direction: 'back',
+      idField: 'SP_id',
+      project,
+    });
+
+    return result as SanPhamSummary[];
   }
 
   async findById(id: number): Promise<SanPham | null> {
@@ -121,8 +166,28 @@ export class SanPhamRepository {
       .lean();
   }
 
-  async countAll(): Promise<number> {
-    return this.model.countDocuments({ SP_trangThai: { $ne: 0 } });
+  async countAll(): Promise<{
+    total: number;
+    show: number;
+    hidden: number;
+  }> {
+    const [total, show, hidden] = await Promise.all([
+      this.model.countDocuments({ SP_trangThai: { $ne: 0 } }), // tổng: gồm hiện + ẩn
+      this.model.countDocuments({ SP_trangThai: 1 }), // hiện
+      this.model.countDocuments({ SP_trangThai: 2 }), // ẩn
+    ]);
+
+    return { total, show, hidden };
+  }
+
+  async count(filterType: 1 | 2 | 12): Promise<number> {
+    const filter: any = {};
+
+    if (filterType === 1) filter.SP_trangThai = 1;
+    else if (filterType === 2) filter.SP_trangThai = 2;
+    else filter.SP_trangThai = { $in: [1, 2] };
+
+    return this.model.countDocuments(filter);
   }
 
   async findByName(
@@ -139,7 +204,7 @@ export class SanPhamRepository {
             index: 'default',
             text: {
               query: keyword,
-              path: 'SP_ten',
+              path: 'SP_ten SP_tacGia SP_nhaXuatBan',
               fuzzy: {
                 maxEdits: 2,
                 prefixLength: 1,
