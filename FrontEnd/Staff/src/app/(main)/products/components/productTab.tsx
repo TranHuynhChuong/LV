@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  PaginationState,
-} from '@tanstack/react-table';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -41,11 +35,7 @@ export type Product = {
 
 interface ProductTableProps {
   data: Product[];
-  totalItems: number;
-  pageSize: number;
-  currentPage: number;
   loading?: boolean;
-  onPageChange?: (newPage: number) => void;
   onEdit?: (row: Product) => void;
   onDelete?: (code: number) => void;
   onToggleStatus?: (code: number, newStatus: number) => void;
@@ -53,11 +43,7 @@ interface ProductTableProps {
 
 export default function ProductTable({
   data,
-  totalItems,
-  pageSize,
-  currentPage,
   loading = false,
-  onPageChange,
   onDelete,
   onToggleStatus,
 }: ProductTableProps) {
@@ -161,17 +147,7 @@ export default function ProductTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: Math.ceil(totalItems / pageSize),
-    state: {
-      pagination: {
-        pageIndex: currentPage - 1,
-        pageSize,
-      } satisfies PaginationState,
-    },
   });
-
-  const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
     <div className="border rounded-md mt-4">
@@ -194,7 +170,7 @@ export default function ProductTable({
         </TableHeader>
         <TableBody>
           {loading ? (
-            Array.from({ length: pageSize }).map((_, index) => (
+            Array.from({ length: 6 }).map((_, index) => (
               <TableRow key={index}>
                 {columns.map((_, colIndex) => (
                   <TableCell key={colIndex}>
@@ -222,26 +198,6 @@ export default function ProductTable({
           )}
         </TableBody>
       </Table>
-
-      <div className="flex items-center justify-between p-4">
-        <div>
-          Trang {currentPage} / {totalPages}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => onPageChange?.(currentPage - 1)}
-            disabled={currentPage === 1 || loading}
-          >
-            Trước
-          </Button>
-          <Button
-            onClick={() => onPageChange?.(currentPage + 1)}
-            disabled={currentPage === totalPages || loading}
-          >
-            Sau
-          </Button>
-        </div>
-      </div>
 
       <Dialog open={deleteCode !== null} onOpenChange={() => setDeleteCode(null)}>
         <DialogContent>
