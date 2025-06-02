@@ -9,8 +9,8 @@ import { SanPham, AnhSP, LichSuThaoTacSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { ThaoTac } from 'src/NguoiDung/NhanVien/nhanVien.service';
-import { NhanVienRepository } from 'src/NguoiDung/NhanVien/nhanVien.repository';
-
+import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { calculatePaginate } from 'src/Util/cursor-pagination';
 const folderPrefix = 'Products';
 
 const typeOfChange: Record<string, string> = {
@@ -30,7 +30,7 @@ const typeOfChange: Record<string, string> = {
   SP_giaNhap: 'Giá nhập',
   SP_tonKho: 'Tồn kho',
   SP_trongLuong: 'Trọng lượng',
-  SP_anh: 'Ảnh',
+  SP_anh: 'Hình ảnh',
 };
 
 @Injectable()
@@ -39,7 +39,7 @@ export class SanPhamService {
     private readonly SanPham: SanPhamRepository,
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
-    private readonly NhanVien: NhanVienRepository
+    private readonly NhanVien: NhanVienService
   ) {}
 
   async create(
@@ -123,7 +123,7 @@ export class SanPhamService {
   ): Promise<SanPham> {
     const existing = await this.SanPham.findById(id);
     if (!existing) {
-      throw new NotFoundException('Không tìm thấy sản phẩm');
+      throw new BadRequestException();
     }
 
     const images: AnhSP[] = [];
@@ -190,7 +190,7 @@ export class SanPhamService {
     // Nếu có ảnh mới
     if (images.length > 0) {
       updatePayload.SP_anh = allImages;
-      fieldsChange.push('Hình ảnh');
+      fieldsChange.push('Thêm hình ảnh');
     }
 
     // Thêm lịch sử thao tác nếu có thay đổi
@@ -209,52 +209,101 @@ export class SanPhamService {
     }
 
     const updated = await this.SanPham.update(id, updatePayload);
-    if (!updated) throw new BadRequestException('Cập nhật thất bại');
+    if (!updated) throw new BadRequestException();
 
     return updated;
   }
 
   async findAll(
-    cursorId: string,
-    currentPage: number,
-    targetPage: number,
+    mode: 'head' | 'tail' | 'cursor' = 'head',
+    cursorId?: string,
+    currentPage = 1,
+    targetPage = 1,
     sortType: 1 | 2 | 3 = 1,
     filterType: 1 | 2 | 12 = 12,
-    limit = 24
-  ): Promise<{ total: number; data: SanPhamSummary[] } | undefined> {
-    const skip = Math.abs(targetPage - currentPage);
+    limit = 24,
+    keyword?: string,
+    categoryId?: number
+  ): Promise<
+    | {
+        data: SanPhamSummary[];
+        paginate: number[];
+        currentPage: number;
+        cursorId: string;
+      }
+    | undefined
+  > {
+    const totalCount = await this.SanPham.count(filterType);
+    const totalPage = Math.ceil(totalCount / limit);
 
-    if (skip === 0) {
-      return;
-    } // Không cần gọi gì nếu không đổi trang
+    let data: SanPhamSummary[] = [];
+    let newCurrentPage = targetPage;
 
-    const direction = targetPage > currentPage ? 'forward' : 'back';
-    const total = await this.SanPham.count(filterType);
+    switch (mode) {
+      case 'head': {
+        data = await this.SanPham.findAllHead(
+          limit,
+          sortType,
+          filterType,
+          keyword,
+          categoryId
+        );
+        break;
+      }
 
-    if (direction === 'forward') {
-      const data = await this.SanPham.findAllForward(
-        cursorId,
-        skip,
-        limit,
-        sortType,
-        filterType
-      );
-      return { total, data };
-    } else {
-      const data = await this.SanPham.findAllBack(
-        cursorId,
-        skip,
-        limit,
-        sortType,
-        filterType
-      );
-      return { total, data };
+      case 'tail': {
+        data = await this.SanPham.findAllTail(
+          limit,
+          sortType,
+          filterType,
+          keyword,
+          categoryId
+        );
+        newCurrentPage = totalPage;
+        break;
+      }
+
+      case 'cursor': {
+        const skip = Math.abs(targetPage - currentPage) * limit;
+        if (skip === 0) return;
+
+        const direction = targetPage > currentPage ? 'forward' : 'back';
+        if (direction === 'forward') {
+          data = await this.SanPham.findAllForward(
+            cursorId ?? '',
+            skip,
+            limit,
+            sortType,
+            filterType,
+            keyword,
+            categoryId
+          );
+        } else {
+          data = await this.SanPham.findAllBack(
+            cursorId ?? '',
+            skip,
+            limit,
+            sortType,
+            filterType
+          );
+        }
+        break;
+      }
+
+      default:
+        return;
     }
-  }
 
-  // Tìm sản phẩm theo tên (text search)
-  async findByName(keyword: string, limit: number, page: number) {
-    return this.SanPham.findByName(keyword, page, limit);
+    const paginate = calculatePaginate(newCurrentPage, totalCount, limit);
+    const newCursorId =
+      data.length > 0 ? String(data[0].SP_id) : (cursorId ?? '');
+
+    return {
+      data,
+      paginate,
+      currentPage: newCurrentPage,
+      cursorId: newCursorId,
+    };
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
@@ -263,13 +312,19 @@ export class SanPhamService {
     return this.SanPham.findByVector(queryVector, limit);
   }
 
-  async findById(id: number): Promise<any> {
-    const result: any = await this.SanPham.findById(id);
+  async findById(
+    id: number,
+    mode: 'default' | 'full' = 'default'
+  ): Promise<any> {
+    const result: any = await this.SanPham.findById(id, mode);
     if (!result) {
       throw new NotFoundException();
     }
-    const lichSu = result.lichSuThaoTac || [];
+    const lichSu = result.lichSuThaoTac ?? [];
 
+    if (lichSu.length === 0) {
+      return result;
+    }
     const ids = [
       ...new Set(
         lichSu.map((item: LichSuThaoTacSP) => item.NV_id).filter(Boolean)
@@ -301,7 +356,7 @@ export class SanPhamService {
   async delete(id: number): Promise<SanPham> {
     const deleted = await this.SanPham.delete(id);
     if (!deleted) {
-      throw new NotFoundException(`Không tìm thấy sản phẩm với SP_id = ${id}`);
+      throw new NotFoundException();
     }
     return deleted;
   }

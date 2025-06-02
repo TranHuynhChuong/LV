@@ -7,6 +7,7 @@ import {
 import { KhachHangRepository } from './khachHang.repository';
 import { CreateDto, UpdateDto } from './khachHang.dto';
 import { KhachHang } from './khachHang.schema';
+import { calculatePaginate } from 'src/Util/cursor-pagination';
 
 @Injectable()
 export class KhachHangsService {
@@ -25,16 +26,69 @@ export class KhachHangsService {
   }
 
   async findAll(
-    page = 0,
+    mode: 'head' | 'tail' | 'cursor' = 'head',
+    cursorId?: string,
+    currentPage = 1,
+    targetPage = 1,
     limit = 24
-  ): Promise<{ results: KhachHang[]; total: number }> {
-    page = page < 0 ? 0 : page;
-    limit = limit <= 0 ? 24 : limit;
+  ): Promise<
+    | {
+        data: KhachHang[];
+        paginate: number[];
+        currentPage: number;
+        cursorId: string;
+      }
+    | undefined
+  > {
+    const totalCount = await this.KhachHang.countAll();
+    const totalPage = Math.ceil(totalCount / limit);
 
-    const results = await this.KhachHang.findAll(page, limit);
-    const total = await this.KhachHang.countAll();
+    let data: KhachHang[] = [];
+    let newCurrentPage = targetPage;
 
-    return { results, total };
+    switch (mode) {
+      case 'head': {
+        data = await this.KhachHang.findAllHead(limit);
+        break;
+      }
+
+      case 'tail': {
+        data = await this.KhachHang.findAllTail(limit);
+        newCurrentPage = totalPage;
+        break;
+      }
+
+      case 'cursor': {
+        const skip = Math.abs(targetPage - currentPage) * limit;
+        if (skip === 0) return;
+
+        const direction = targetPage > currentPage ? 'forward' : 'back';
+        if (direction === 'forward') {
+          data = await this.KhachHang.findAllForward(
+            cursorId ?? '',
+            skip,
+            limit
+          );
+        } else {
+          data = await this.KhachHang.findAllBack(cursorId ?? '', skip, limit);
+        }
+        break;
+      }
+
+      default:
+        return;
+    }
+
+    const paginate = calculatePaginate(newCurrentPage, totalCount, limit);
+    const tmp = data[0] as unknown as { _id: string };
+    const newCursorId = data.length > 0 ? String(tmp._id) : (cursorId ?? '');
+
+    return {
+      data,
+      paginate,
+      currentPage: newCurrentPage,
+      cursorId: newCursorId,
+    };
   }
 
   async update(email: string, data: UpdateDto): Promise<KhachHang> {

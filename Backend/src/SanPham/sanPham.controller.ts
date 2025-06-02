@@ -11,12 +11,14 @@ import {
   UseInterceptors,
   ParseIntPipe,
   DefaultValuePipe,
-  HttpCode,
+  UseGuards,
 } from '@nestjs/common';
 import { SanPhamService } from './sanPham.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 
+@UseGuards(XacThucGuard)
 @Controller('api/products')
 export class SanPhamController {
   constructor(private readonly service: SanPhamService) {}
@@ -51,14 +53,81 @@ export class SanPhamController {
     return this.service.update(id, body, coverImage, productImages);
   }
 
-  // Tìm sản phẩm theo tên (text search)
+  // Tìm sản phẩm theo keyword
   @Get('search')
-  findByName(
-    @Query('keyword') keyword: string,
-    @Query('limit', new DefaultValuePipe(24), ParseIntPipe) limit: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number
+  findByKeyword(
+    @Query()
+    query: {
+      keyword: string;
+      mode?: 'head' | 'tail' | 'cursor';
+      cursorId?: string;
+      currentPage?: string;
+      targetPage?: string;
+      sortType?: string;
+      filterType?: string;
+      limit?: string;
+    }
   ) {
-    return this.service.findByName(keyword, limit, page);
+    const {
+      keyword,
+      mode = 'head',
+      cursorId = '',
+      currentPage = '1',
+      targetPage = '1',
+      sortType = '1',
+      filterType = '12',
+      limit = '24',
+    } = query;
+
+    return this.service.findAll(
+      mode,
+      cursorId ?? '',
+      Number(currentPage),
+      Number(targetPage),
+      Number(sortType) as 1 | 2 | 3,
+      Number(filterType) as 1 | 2 | 12,
+      Number(limit),
+      keyword
+    );
+  }
+
+  // Tìm sản phẩm theo thể loại (categoryId - mã thể loại)
+  @Get('category')
+  findByCategory(
+    @Query()
+    query: {
+      categoryId: number;
+      mode?: 'head' | 'tail' | 'cursor';
+      cursorId?: string;
+      currentPage?: string;
+      targetPage?: string;
+      sortType?: string;
+      filterType?: string;
+      limit?: string;
+    }
+  ) {
+    const {
+      categoryId,
+      mode = 'head',
+      cursorId = '',
+      currentPage = '1',
+      targetPage = '1',
+      sortType = '1',
+      filterType = '12',
+      limit = '24',
+    } = query;
+
+    return this.service.findAll(
+      mode,
+      cursorId ?? '',
+      Number(currentPage),
+      Number(targetPage),
+      Number(sortType) as 1 | 2 | 3,
+      Number(filterType) as 1 | 2 | 12,
+      Number(limit),
+      undefined,
+      categoryId
+    );
   }
 
   // Tìm sản phẩm tương tự (vector search)
@@ -73,14 +142,29 @@ export class SanPhamController {
   // Danh sách sản phẩm có phân trang và lọc trạng thái
   @Get()
   findAll(
-    @Query('cursorId') cursorId: string,
-    @Query('currentPage') currentPage: string,
-    @Query('targetPage') targetPage: string,
-    @Query('sortType') sortType: string = '1',
-    @Query('filterType') filterType: string = '12',
-    @Query('limit') limit: string = '24'
+    @Query()
+    query: {
+      keyword: string;
+      mode?: 'head' | 'tail' | 'cursor';
+      cursorId?: string;
+      currentPage?: string;
+      targetPage?: string;
+      sortType?: string;
+      filterType?: string;
+      limit?: string;
+    }
   ) {
+    const {
+      mode = 'head',
+      cursorId = '',
+      currentPage = '1',
+      targetPage = '1',
+      sortType = '1',
+      filterType = '12',
+      limit = '24',
+    } = query;
     return this.service.findAll(
+      mode,
       cursorId ?? '',
       Number(currentPage),
       Number(targetPage),
@@ -92,13 +176,15 @@ export class SanPhamController {
 
   // Chi tiết sản phẩm
   @Get(':id')
-  findById(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findById(id);
+  findById(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('mode') mode: 'default' | 'full' = 'default'
+  ) {
+    return this.service.findById(id, mode);
   }
 
-  // 🗑 Xóa sản phẩm (ẩn - soft delete)
+  // Xóa sản phẩm (ẩn - soft delete)
   @Delete(':id')
-  @HttpCode(204)
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
   }

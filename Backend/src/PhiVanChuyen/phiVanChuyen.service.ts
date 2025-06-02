@@ -99,7 +99,7 @@ export class PhiVanChuyenService {
   ): Promise<PhiVanChuyen> {
     const existing = await this.PhiVanChuyen.findById(id);
     if (!existing) {
-      throw new NotFoundException('Không tìm thấy phí vận chuyển');
+      throw new NotFoundException();
     }
 
     const fieldsChange: string[] = [];

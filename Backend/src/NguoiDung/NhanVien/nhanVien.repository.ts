@@ -7,16 +7,17 @@ import { NhanVien, NhanVienDocument } from './nhanVien.schema';
 export class NhanVienRepository {
   constructor(
     @InjectModel(NhanVien.name)
-    private readonly NhanVien: Model<NhanVienDocument>
+    private readonly model: Model<NhanVienDocument>
   ) {}
 
   async create(createDto: any): Promise<NhanVien> {
-    const created = new this.NhanVien(createDto);
+    const created = new this.model(createDto);
     return await created.save();
   }
 
   async findLastId(): Promise<string> {
-    const result = await this.NhanVien.find({})
+    const result = await this.model
+      .find({})
       .sort({ NV_id: -1 })
       .limit(1)
       .select('NV_id')
@@ -31,37 +32,39 @@ export class NhanVienRepository {
   }
 
   async findAll(): Promise<NhanVien[]> {
-    return this.NhanVien.find({ NV_daXoa: false })
+    return this.model
+      .find({ NV_daXoa: false })
       .select('NV_id NV_vaiTro NV_hoTen NV_email NV_soDienThoai')
       .lean()
       .exec();
   }
 
   async findById(id: string): Promise<NhanVien | null> {
-    return this.NhanVien.findOne({ NV_id: id, NV_daXoa: false }).lean().exec();
+    return this.model.findOne({ NV_id: id, NV_daXoa: false }).lean().exec();
   }
 
   async findAllIds(ids: string[]): Promise<NhanVien[]> {
-    return this.NhanVien.find({ NV_id: { $in: ids }, NV_daXoa: false })
+    return this.model
+      .find({ NV_id: { $in: ids }, NV_daXoa: false })
       .lean()
       .exec();
   }
 
   async update(id: string, data: any): Promise<NhanVien | null> {
-    return this.NhanVien.findOneAndUpdate({ NV_id: id }, data, {
-      new: true,
-    }).exec();
+    return this.model
+      .findOneAndUpdate({ NV_id: id }, data, {
+        new: true,
+      })
+      .exec();
   }
 
   async delete(id: string): Promise<NhanVien | null> {
-    return this.NhanVien.findOneAndUpdate(
-      { NV_id: id },
-      { NV_daXoa: true },
-      { new: true }
-    ).exec();
+    return this.model
+      .findOneAndUpdate({ NV_id: id }, { NV_daXoa: true }, { new: true })
+      .exec();
   }
 
   async countAll(): Promise<number> {
-    return this.NhanVien.countDocuments({ NV_daXoa: false }).exec();
+    return this.model.countDocuments({ NV_daXoa: false }).exec();
   }
 }

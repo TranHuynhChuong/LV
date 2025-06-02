@@ -7,16 +7,17 @@ import { TheLoai, TheLoaiDocument } from './theLoai.schema';
 export class TheLoaiRepository {
   constructor(
     @InjectModel(TheLoai.name)
-    private readonly TheLoai: Model<TheLoaiDocument>
+    private readonly model: Model<TheLoaiDocument>
   ) {}
 
   async create(data: any): Promise<TheLoai> {
-    const created = new this.TheLoai(data);
+    const created = new this.model(data);
     return created.save();
   }
 
   async findLastId(): Promise<number> {
-    const result = await this.TheLoai.find({})
+    const result = await this.model
+      .find({})
       .sort({ TL_id: -1 })
       .limit(1)
       .select('TL_id')
@@ -30,37 +31,36 @@ export class TheLoaiRepository {
   }
 
   async findAll(): Promise<Partial<TheLoai>[]> {
-    return this.TheLoai.find({ TL_daXoa: false })
+    return this.model
+      .find({ TL_daXoa: false })
       .select('TL_id TL_ten TL_idTL')
       .lean()
       .exec();
   }
 
   async findById(id: number): Promise<TheLoai | null> {
-    return this.TheLoai.findOne({ TL_id: id, TL_daXoa: false }).lean().exec();
+    return this.model.findOne({ TL_id: id, TL_daXoa: false }).lean().exec();
   }
 
   async findByName(name: string): Promise<TheLoai | null> {
-    return this.TheLoai.findOne({ TL_ten: name, TL_daXoa: false })
-      .lean()
-      .exec();
+    return this.model.findOne({ TL_ten: name, TL_daXoa: false }).lean().exec();
   }
 
   async update(id: number, data: any): Promise<TheLoai | null> {
-    return this.TheLoai.findOneAndUpdate({ TL_id: id }, data, {
-      new: true,
-    }).exec();
+    return this.model
+      .findOneAndUpdate({ TL_id: id }, data, {
+        new: true,
+      })
+      .exec();
   }
 
   async delete(id: number): Promise<TheLoai | null> {
-    return this.TheLoai.findOneAndUpdate(
-      { TL_id: id },
-      { TL_daXoa: true },
-      { new: true }
-    ).exec();
+    return this.model
+      .findOneAndUpdate({ TL_id: id }, { TL_daXoa: true }, { new: true })
+      .exec();
   }
 
   async countAll(): Promise<number> {
-    return this.TheLoai.countDocuments({ TL_daXoa: false }).exec();
+    return this.model.countDocuments({ TL_daXoa: false }).exec();
   }
 }

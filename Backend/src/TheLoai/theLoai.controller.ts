@@ -6,11 +6,15 @@ import {
   Delete,
   Param,
   Body,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { TheLoaiService } from './theLoai.service';
 import { CreateDto, UpdateDto } from './theLoai.dto';
 import { TheLoai } from './theLoai.schema';
+import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 
+@UseGuards(XacThucGuard)
 @Controller('api/categories')
 export class TheLoaiController {
   constructor(private readonly TheLoai: TheLoaiService) {}
@@ -26,17 +30,17 @@ export class TheLoaiController {
   }
 
   @Get('/:id')
-  async findById(@Param('id') id: number): Promise<any> {
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<any> {
     return await this.TheLoai.findById(id);
   }
 
   @Put(':id')
-  async update(@Param('id') id: number, @Body() data: UpdateDto) {
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateDto) {
     return await this.TheLoai.update(id, data);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.TheLoai.delete(id);
   }
 }

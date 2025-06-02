@@ -152,4 +152,8 @@ export class NhanVienService {
   async countAll(): Promise<number> {
     return await this.NhanVien.countAll();
   }
+
+  async findAllIds(ids: string[]) {
+    return this.NhanVien.findAllIds(ids);
+  }
 }

@@ -9,7 +9,6 @@ import {
   Body,
   Query,
   UseGuards,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { KhachHangsService } from './KhachHang/khachHang.service';
 import { NhanVienService } from './NhanVien/nhanVien.service';
@@ -20,7 +19,6 @@ import {
 } from './NhanVien/nhanVien.dto';
 import { XacThucGuard } from '../XacThuc/xacThuc.guard';
 import { Roles } from '../XacThuc/xacThuc.roles.decorator';
-import { KhachHang } from './KhachHang/khachHang.schema';
 
 @Controller('api/users')
 @UseGuards(XacThucGuard)
@@ -47,10 +45,19 @@ export class NguoiDungController {
   @Roles(1)
   @Get('customers')
   async getAllCustomers(
-    @Query('page', ParseIntPipe) page = 0,
-    @Query('limit', ParseIntPipe) limit = 24
-  ): Promise<{ results: KhachHang[]; total: number }> {
-    return await this.KhachHangsService.findAll(page, limit);
+    @Query('mode') mode: 'head' | 'tail' | 'cursor' = 'head',
+    @Query('cursorId') cursorId?: string,
+    @Query('currentPage') currentPage = '1',
+    @Query('targetPage') targetPage = '1',
+    @Query('limit') limit = '24'
+  ) {
+    return await this.KhachHangsService.findAll(
+      mode,
+      cursorId,
+      Number(currentPage),
+      Number(targetPage),
+      Number(limit)
+    );
   }
 
   @Get('customer/:email')
