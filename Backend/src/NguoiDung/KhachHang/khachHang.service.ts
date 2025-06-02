@@ -33,27 +33,36 @@ export class KhachHangsService {
     limit = 24
   ): Promise<
     | {
-        data: KhachHang[];
         paginate: number[];
         currentPage: number;
         cursorId: string;
+        data: any[];
+        totalItems: number;
+        totalPage: number;
+        pages: number[];
       }
     | undefined
   > {
-    const totalCount = await this.KhachHang.countAll();
-    const totalPage = Math.ceil(totalCount / limit);
+    const totalItems = await this.KhachHang.countAll();
+    const totalPage = Math.ceil(totalItems / limit);
 
-    let data: KhachHang[] = [];
+    let result: {
+      data: any[];
+      totalItems: number;
+      totalPage: number;
+      pages: number[];
+    };
+
     let newCurrentPage = targetPage;
 
     switch (mode) {
       case 'head': {
-        data = await this.KhachHang.findAllHead(limit);
+        result = await this.KhachHang.findAllHead(limit);
         break;
       }
 
       case 'tail': {
-        data = await this.KhachHang.findAllTail(limit);
+        result = await this.KhachHang.findAllTail(limit);
         newCurrentPage = totalPage;
         break;
       }
@@ -64,13 +73,17 @@ export class KhachHangsService {
 
         const direction = targetPage > currentPage ? 'forward' : 'back';
         if (direction === 'forward') {
-          data = await this.KhachHang.findAllForward(
+          result = await this.KhachHang.findAllForward(
             cursorId ?? '',
             skip,
             limit
           );
         } else {
-          data = await this.KhachHang.findAllBack(cursorId ?? '', skip, limit);
+          result = await this.KhachHang.findAllBack(
+            cursorId ?? '',
+            skip,
+            limit
+          );
         }
         break;
       }
@@ -79,15 +92,19 @@ export class KhachHangsService {
         return;
     }
 
-    const paginate = calculatePaginate(newCurrentPage, totalCount, limit);
-    const tmp = data[0] as unknown as { _id: string };
-    const newCursorId = data.length > 0 ? String(tmp._id) : (cursorId ?? '');
+    const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
+    const tmp = result.data[0] as unknown as { _id: string };
+    const newCursorId =
+      result.data.length > 0 ? String(tmp._id) : (cursorId ?? '');
 
     return {
-      data,
+      data: result.data,
+      totalItems: result.totalItems,
+      totalPage: result.totalPage,
       paginate,
       currentPage: newCurrentPage,
       cursorId: newCursorId,
+      pages: result.pages,
     };
   }
 

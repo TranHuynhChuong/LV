@@ -3,12 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SanPhamRepository, SanPhamSummary } from './sanPham.repository';
+import { SanPhamRepository } from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
-import { SanPham, AnhSP, LichSuThaoTacSP } from './sanPham.schema';
+import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
-import { ThaoTac } from 'src/NguoiDung/NhanVien/nhanVien.service';
 import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 import { calculatePaginate } from 'src/Util/cursor-pagination';
 const folderPrefix = 'Products';
@@ -126,61 +125,22 @@ export class SanPhamService {
       throw new BadRequestException();
     }
 
-    const images: AnhSP[] = [];
-
     // Nếu có nội dung mới thì tạo lại vector
     const vector =
       data.SP_noiDung && data.SP_noiDung !== existing.SP_noiDung
         ? await this.Transform.getTextEmbedding(data.SP_noiDung)
         : existing.SP_eNoiDung;
 
-    // Upload ảnh bìa mới nếu có
-    if (coverImage) {
-      const { uploaded } = await this.Cloudinary.uploadSingleImage(
-        id.toString(),
-        coverImage,
-        id.toString()
-      );
-      images.push({
-        A_anhBia: true,
-        A_publicId: uploaded.public_id,
-        A_url: uploaded.url,
-      });
-    }
-
-    // Upload nhiều ảnh thường nếu có
-    if (Images?.length) {
-      const { uploaded } = await this.Cloudinary.uploadMultipleImages(
-        id.toString(),
-        Images,
-        id.toString()
-      );
-      for (const img of uploaded) {
-        images.push({
-          A_anhBia: false,
-          A_publicId: img.public_id,
-          A_url: img.url,
-        });
-      }
-    }
+    // Upload ảnh và trả về mảng ảnh mới
+    const images = await this.handleImageUploads(id, coverImage, Images);
 
     const allImages = [...existing.SP_anh, ...images];
 
     // So sánh và xác định trường có thay đổi
-    const fieldsChange: string[] = [];
-    const updatePayload: Partial<SanPham> = {};
-
-    for (const key of Object.keys(data)) {
-      if (
-        data[key] !== undefined &&
-        data[key] !== existing[key] &&
-        key !== 'NV_id'
-      ) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = data[key];
-      }
-    }
+    const { fieldsChange, updatePayload } = this.detectChangedFields(
+      data,
+      existing
+    );
 
     // Nếu có vector mới (do nội dung thay đổi)
     if (vector !== existing.SP_eNoiDung) {
@@ -214,34 +174,116 @@ export class SanPhamService {
     return updated;
   }
 
-  async findAll(
-    mode: 'head' | 'tail' | 'cursor' = 'head',
-    cursorId?: string,
-    currentPage = 1,
-    targetPage = 1,
-    sortType: 1 | 2 | 3 = 1,
-    filterType: 1 | 2 | 12 = 12,
-    limit = 24,
-    keyword?: string,
-    categoryId?: number
-  ): Promise<
+  private async handleImageUploads(
+    id: number,
+    coverImage?: Express.Multer.File,
+    Images?: Express.Multer.File[]
+  ): Promise<AnhSP[]> {
+    const images: AnhSP[] = [];
+
+    // Upload ảnh bìa mới nếu có
+    if (coverImage) {
+      const { uploaded } = await this.Cloudinary.uploadSingleImage(
+        id.toString(),
+        coverImage,
+        id.toString()
+      );
+      images.push({
+        A_anhBia: true,
+        A_publicId: uploaded.public_id,
+        A_url: uploaded.url,
+      });
+    }
+
+    // Upload nhiều ảnh thường nếu có
+    if (Images?.length) {
+      const { uploaded } = await this.Cloudinary.uploadMultipleImages(
+        id.toString(),
+        Images,
+        id.toString()
+      );
+      for (const img of uploaded) {
+        images.push({
+          A_anhBia: false,
+          A_publicId: img.public_id,
+          A_url: img.url,
+        });
+      }
+    }
+
+    return images;
+  }
+
+  private detectChangedFields(
+    data: UpdateDto,
+    existing: SanPham
+  ): { fieldsChange: string[]; updatePayload: Partial<SanPham> } {
+    const fieldsChange: string[] = [];
+    const updatePayload: Partial<SanPham> = {};
+
+    for (const key of Object.keys(data)) {
+      if (
+        data[key] !== undefined &&
+        data[key] !== existing[key] &&
+        key !== 'NV_id'
+      ) {
+        const label = typeOfChange[key] || key;
+        fieldsChange.push(label);
+        updatePayload[key] = data[key];
+      }
+    }
+
+    return { fieldsChange, updatePayload };
+  }
+
+  async findAll(options: {
+    mode?: 'head' | 'tail' | 'cursor';
+    cursorId?: string;
+    currentPage?: number;
+    targetPage?: number;
+    sortType?: 1 | 2 | 3;
+    filterType?: 1 | 2 | 12;
+    limit?: number;
+    keyword?: string;
+    categoryId?: number;
+  }): Promise<
     | {
-        data: SanPhamSummary[];
         paginate: number[];
         currentPage: number;
         cursorId: string;
+        data: any[];
+        totalItems: number;
+        totalPage: number;
+        pages: number[];
       }
     | undefined
   > {
-    const totalCount = await this.SanPham.count(filterType);
-    const totalPage = Math.ceil(totalCount / limit);
+    const {
+      mode = 'head',
+      cursorId,
+      currentPage = 1,
+      targetPage = 1,
+      sortType = 1,
+      filterType = 12,
+      limit = 24,
+      keyword,
+      categoryId,
+    } = options;
 
-    let data: SanPhamSummary[] = [];
+    const totalItems = await this.SanPham.count(filterType);
+    const totalPage = Math.ceil(totalItems / limit);
+
+    let result: {
+      data: any[];
+      totalItems: number;
+      totalPage: number;
+      pages: number[];
+    };
     let newCurrentPage = targetPage;
 
     switch (mode) {
       case 'head': {
-        data = await this.SanPham.findAllHead(
+        result = await this.SanPham.findAllHead(
           limit,
           sortType,
           filterType,
@@ -252,7 +294,7 @@ export class SanPhamService {
       }
 
       case 'tail': {
-        data = await this.SanPham.findAllTail(
+        result = await this.SanPham.findAllTail(
           limit,
           sortType,
           filterType,
@@ -269,7 +311,7 @@ export class SanPhamService {
 
         const direction = targetPage > currentPage ? 'forward' : 'back';
         if (direction === 'forward') {
-          data = await this.SanPham.findAllForward(
+          result = await this.SanPham.findAllForward(
             cursorId ?? '',
             skip,
             limit,
@@ -279,7 +321,7 @@ export class SanPhamService {
             categoryId
           );
         } else {
-          data = await this.SanPham.findAllBack(
+          result = await this.SanPham.findAllBack(
             cursorId ?? '',
             skip,
             limit,
@@ -294,15 +336,18 @@ export class SanPhamService {
         return;
     }
 
-    const paginate = calculatePaginate(newCurrentPage, totalCount, limit);
+    const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
     const newCursorId =
-      data.length > 0 ? String(data[0].SP_id) : (cursorId ?? '');
+      result.data.length > 0 ? String(result.data[0].SP_id) : (cursorId ?? '');
 
     return {
-      data,
+      data: result.data,
+      totalItems: result.totalItems,
+      totalPage: result.totalPage,
       paginate,
       currentPage: newCurrentPage,
       cursorId: newCursorId,
+      pages: result.pages,
     };
   }
 
@@ -321,35 +366,8 @@ export class SanPhamService {
       throw new NotFoundException();
     }
     const lichSu = result.lichSuThaoTac ?? [];
-
-    if (lichSu.length === 0) {
-      return result;
-    }
-    const ids = [
-      ...new Set(
-        lichSu.map((item: LichSuThaoTacSP) => item.NV_id).filter(Boolean)
-      ),
-    ] as string[];
-    const nhanViens = await this.NhanVien.findAllIds(ids);
-    const nhanVienMap = new Map<string, any>();
-    nhanViens.forEach((nv) => {
-      nhanVienMap.set(nv.NV_id, nv);
-    });
-
-    result.lichSuThaoTac = lichSu.map((item): ThaoTac => {
-      const nv = nhanVienMap.get(item.NV_id);
-
-      return {
-        thoiGian: item.thoiGian,
-        thaoTac: item.thaoTac,
-        nhanVien: {
-          NV_id: nv?.NV_id ?? null,
-          NV_hoTen: nv?.NV_hoTen ?? null,
-          NV_email: nv?.NV_email ?? null,
-          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
-        },
-      };
-    });
+    result.lichSuThaoTac =
+      lichSu.length > 0 ? await this.NhanVien.mapActions(lichSu) : [];
     return result;
   }
 

@@ -6,11 +6,8 @@ import {
 } from '@nestjs/common';
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
-import { TheLoai, LichSuThaoTacTL } from './theLoai.schema';
-import {
-  NhanVienService,
-  ThaoTac,
-} from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { TheLoai } from './theLoai.schema';
+import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
   TL_ten: 'Tên thể loại',
@@ -119,34 +116,10 @@ export class TheLoaiService {
       throw new NotFoundException();
     }
 
-    if (Array.isArray(result.lichSuThaoTacNV)) {
-      result.lichSuThaoTac = await Promise.all(
-        result.lichSuThaoTac.map(
-          async (element: LichSuThaoTacTL): Promise<ThaoTac> => {
-            const nhanVien = await this.NhanVien.findById(element.NV_id);
-            const thaoTac: ThaoTac = {
-              thaoTac: element.thaoTac,
-              thoiGian: element.thoiGian,
-              nhanVien: {
-                NV_id: null,
-                NV_hoTen: null,
-                NV_email: null,
-                NV_soDienThoai: null,
-              },
-            };
-            if (nhanVien) {
-              result.nhanVien = {
-                NV_id: nhanVien.NV_id,
-                NV_hoTen: nhanVien.NV_hoTen,
-                NV_email: nhanVien.NV_email,
-                NV_soDienThoai: nhanVien.NV_soDienThoai,
-              };
-            }
-            return thaoTac;
-          }
-        )
-      );
-    }
+    const lichSu = result.lichSuThaoTac ?? [];
+    result.lichSuThaoTac =
+      lichSu.length > 0 ? await this.NhanVien.mapActions(lichSu) : [];
+
     return result;
   }
   // Xóa thể loại (cập nhật TL_daXoa = true)

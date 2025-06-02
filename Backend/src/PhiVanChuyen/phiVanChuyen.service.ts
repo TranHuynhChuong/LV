@@ -4,13 +4,10 @@ import {
   Injectable,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  NhanVienService,
-  ThaoTac,
-} from '../NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienService } from '../NguoiDung/NhanVien/nhanVien.service';
 import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
 import { PhiVanChuyenRepository } from './phiVanChuyen.repository';
-import { PhiVanChuyen, LichSuThaoTacPVC } from './phiVanChuyen.schema';
+import { PhiVanChuyen } from './phiVanChuyen.schema';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -62,34 +59,10 @@ export class PhiVanChuyenService {
       throw new NotFoundException();
     }
 
-    if (Array.isArray(result.lichSuThaoTacNV)) {
-      result.lichSuThaoTac = await Promise.all(
-        result.lichSuThaoTac.map(
-          async (element: LichSuThaoTacPVC): Promise<ThaoTac> => {
-            const nhanVien = await this.NhanVien.findById(element.NV_id);
-            const thaoTac: ThaoTac = {
-              thaoTac: element.thaoTac,
-              thoiGian: element.thoiGian,
-              nhanVien: {
-                NV_id: null,
-                NV_hoTen: null,
-                NV_email: null,
-                NV_soDienThoai: null,
-              },
-            };
-            if (nhanVien) {
-              result.nhanVien = {
-                NV_id: nhanVien.NV_id,
-                NV_hoTen: nhanVien.NV_hoTen,
-                NV_email: nhanVien.NV_email,
-                NV_soDienThoai: nhanVien.NV_soDienThoai,
-              };
-            }
-            return thaoTac;
-          }
-        )
-      );
-    }
+    const lichSu = result.lichSuThaoTac ?? [];
+    result.lichSuThaoTac =
+      lichSu.length > 0 ? await this.NhanVien.mapActions(lichSu) : [];
+
     return result;
   }
 

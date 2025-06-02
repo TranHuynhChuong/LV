@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { NhanVienRepository } from './nhanVien.repository';
 import { CreateDto, UpdateDto } from './nhanVien.dto';
-import { NhanVien, LichSuThaoTacNV } from './nhanVien.schema';
+import { NhanVien } from './nhanVien.schema';
 
 export interface ThaoTac {
   thoiGian: Date;
@@ -66,33 +66,9 @@ export class NhanVienService {
       throw new NotFoundException();
     }
 
-    const lichSu = result.lichSuThaoTac || [];
-
-    const ids = [
-      ...new Set(
-        lichSu.map((item: LichSuThaoTacNV) => item.NV_id).filter(Boolean)
-      ),
-    ] as string[];
-    const nhanViens = await this.NhanVien.findAllIds(ids);
-    const nhanVienMap = new Map<string, any>();
-    nhanViens.forEach((nv) => {
-      nhanVienMap.set(nv.NV_id, nv);
-    });
-
-    result.lichSuThaoTac = lichSu.map((item): ThaoTac => {
-      const nv = nhanVienMap.get(item.NV_id);
-
-      return {
-        thoiGian: item.thoiGian,
-        thaoTac: item.thaoTac,
-        nhanVien: {
-          NV_id: nv?.NV_id ?? null,
-          NV_hoTen: nv?.NV_hoTen ?? null,
-          NV_email: nv?.NV_email ?? null,
-          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
-        },
-      };
-    });
+    const lichSu = result.lichSuThaoTac ?? [];
+    result.lichSuThaoTac =
+      lichSu.length > 0 ? await this.mapActions(lichSu) : [];
 
     return result;
   }
@@ -135,7 +111,7 @@ export class NhanVienService {
 
     const updated = await this.NhanVien.update(id, updatePayload);
     if (!updated) {
-      throw new BadRequestException('Cập nhật thất bại');
+      throw new BadRequestException();
     }
 
     return updated;
@@ -155,5 +131,44 @@ export class NhanVienService {
 
   async findAllIds(ids: string[]) {
     return this.NhanVien.findAllIds(ids);
+  }
+
+  async mapActions<T extends { NV_id?: string; thoiGian: any; thaoTac: any }>(
+    actions: T[]
+  ): Promise<
+    {
+      thoiGian: any;
+      thaoTac: any;
+      nhanVien: {
+        NV_id: string | null;
+        NV_hoTen: string | null;
+        NV_email: string | null;
+        NV_soDienThoai: string | null;
+      };
+    }[]
+  > {
+    if (actions.length === 0) return [];
+
+    const ids = [
+      ...new Set(actions.map((a) => a.NV_id).filter(Boolean)),
+    ] as string[];
+    const nhanViens = await this.findAllIds(ids);
+
+    const nhanVienMap = new Map<string, any>();
+    nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
+
+    return actions.map((action) => {
+      const nv = action.NV_id ? nhanVienMap.get(action.NV_id) : undefined;
+      return {
+        thoiGian: action.thoiGian,
+        thaoTac: action.thaoTac,
+        nhanVien: {
+          NV_id: nv?.NV_id ?? null,
+          NV_hoTen: nv?.NV_hoTen ?? null,
+          NV_email: nv?.NV_email ?? null,
+          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
+        },
+      };
+    });
   }
 }
