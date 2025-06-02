@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import PagiantionControls from '@/components/PaginationControls';
 
 export type Customer = {
   name: string;
@@ -42,25 +43,51 @@ export const columns: ColumnDef<Customer>[] = [
 
 export default function CustomerTable() {
   const [data, setData] = useState<Customer[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pageIndex, setPageIndex] = useState(0);
+  const [paginate, setPaginate] = useState<number[]>([1]); // mảng các số trang do API trả về
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cursorId, setCursorId] = useState<string | undefined>(undefined);
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const limit = 24;
 
-  const getCustomers = (page: number) => {
-    setErrorMessage('');
+  // Gọi API phân trang chung theo mode + cursorId + currentPage + targetPage
+  const fetchData = (mode: 'head' | 'tail' | 'cursor', targetPage?: number, cursor?: string) => {
     setIsLoading(true);
-    api
-      .get('/users/customers', { params: { page, limit } })
+    setErrorMessage('');
+    let params;
+    if (targetPage && cursor) {
+      params = {
+        mode,
+        cursorId: cursor,
+        currentPage,
+        targetPage,
+        limit,
+      };
+    } else {
+      params = {
+        mode,
+        limit,
+      };
+    }
+
+    return api
+      .get('/users/customers', {
+        params: params,
+      })
       .then((res) => {
-        const { results, total } = res.data;
+        const {
+          data: results,
+          paginate: pag,
+          currentPage: newCurrentPage,
+          cursorId: newCursorId,
+        } = res.data;
 
         if (!results.length) {
           setData([]);
-          setTotalPages(1);
+          setPaginate([1]);
+          setErrorMessage('Không có kết quả.');
           return;
         }
 
@@ -77,29 +104,30 @@ export default function CustomerTable() {
         }));
 
         setData(mapped);
-        setTotalPages(Math.ceil(total / limit));
+        setPaginate(pag);
+        setCurrentPage(newCurrentPage);
+        setCursorId(newCursorId);
       })
       .catch(() => {
         setErrorMessage('Lỗi khi lấy danh sách khách hàng.');
         setData([]);
-        setTotalPages(1);
+        setPaginate([1]);
       })
       .finally(() => setIsLoading(false));
   };
 
+  // Tìm theo email
   const getByEmail = (email: string) => {
-    setErrorMessage('');
     setIsLoading(true);
+    setErrorMessage('');
     api
       .get(`/users/customer/${email}`)
       .then((res) => {
-        console.log(res);
         const result = res.data;
-
         if (!result) {
           setErrorMessage('Không tìm thấy khách hàng.');
           setData([]);
-          setTotalPages(1);
+          setPaginate([1]);
           return;
         }
         const mapped: Customer[] = [
@@ -110,27 +138,35 @@ export default function CustomerTable() {
           },
         ];
         setData(mapped);
-        setTotalPages(1);
+        setPaginate([1]);
+        setCurrentPage(1);
+        setCursorId(undefined);
       })
       .catch((error) => {
-        console.log(error);
         if (error.status === 404) {
           setErrorMessage('Không tìm thấy khách hàng.');
         } else {
           setErrorMessage('Lỗi khi tìm khách hàng.');
         }
         setData([]);
-        setTotalPages(1);
+        setPaginate([1]);
       })
       .finally(() => setIsLoading(false));
   };
 
+  // Khởi tạo dữ liệu khi load trang hoặc khi currentPage thay đổi & searchEmail rỗng
   useEffect(() => {
     if (!searchEmail) {
-      getCustomers(pageIndex);
+      // luôn bắt đầu bằng mode 'head' nếu chưa có cursorId, hoặc mode 'cursor' nếu có
+      if (!cursorId) {
+        fetchData('head');
+      } else {
+        fetchData('cursor', currentPage, cursorId);
+      }
     }
-  }, [pageIndex, searchEmail]);
+  }, [currentPage, searchEmail]);
 
+  // Áp dụng tìm kiếm theo email
   const handleApplySearch = () => {
     if (inputEmail.trim()) {
       setSearchEmail(inputEmail.trim());
@@ -138,27 +174,34 @@ export default function CustomerTable() {
     }
   };
 
+  // Xóa tìm kiếm, reset về trang đầu
   const handleClearSearch = () => {
     setSearchEmail('');
     setInputEmail('');
-    setPageIndex(0);
-    getCustomers(0);
+    setCurrentPage(1);
+    setCursorId(undefined);
     setErrorMessage('');
   };
 
+  // React-table setup
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    manualPagination: true,
-    pageCount: totalPages,
-    state: {
-      pagination: {
-        pageIndex,
-        pageSize: limit,
-      },
-    },
   });
+
+  // Xử lý click chuyển trang pagination shadcn
+  const handlePageChange = (page: number) => {
+    if (page === currentPage) return;
+    if (searchEmail) return;
+    fetchData('cursor', page, cursorId);
+  };
+  const handleFirstPage = () => {
+    fetchData('head');
+  };
+  const handleLastPage = () => {
+    fetchData('head');
+  };
 
   return (
     <div className="w-full">
@@ -223,29 +266,14 @@ export default function CustomerTable() {
           </TableBody>
         </Table>
       </div>
-
-      <div className="flex items-center justify-end py-4 space-x-2">
-        <div className="flex-1 pl-3 text-sm text-muted-foreground">
-          Trang {pageIndex + 1} / {totalPages}
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPageIndex((prev) => Math.max(prev - 1, 0))}
-            disabled={pageIndex === 0 || !!searchEmail}
-          >
-            Trước
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPageIndex((prev) => prev + 1)}
-            disabled={pageIndex + 1 >= totalPages || !!searchEmail}
-          >
-            Sau
-          </Button>
-        </div>
+      <div className="flex justify-start py-4">
+        <PagiantionControls
+          paginate={paginate}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          onFirstPage={handleFirstPage}
+          onLastPage={handleLastPage}
+        ></PagiantionControls>
       </div>
     </div>
   );
