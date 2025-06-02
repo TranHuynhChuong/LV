@@ -46,10 +46,12 @@ export default function CustomerTable() {
   const [paginate, setPaginate] = useState<number[]>([1]); // mảng các số trang do API trả về
   const [currentPage, setCurrentPage] = useState(1);
   const [cursorId, setCursorId] = useState<string | undefined>(undefined);
+  const [totalPage, setTotalPage] = useState<number>(1);
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
   const limit = 24;
 
   // Gọi API phân trang chung theo mode + cursorId + currentPage + targetPage
@@ -77,14 +79,9 @@ export default function CustomerTable() {
         params: params,
       })
       .then((res) => {
-        const {
-          data: results,
-          paginate: pag,
-          currentPage: newCurrentPage,
-          cursorId: newCursorId,
-        } = res.data;
+        const { data, paginate, currentPage, cursorId, totalPage } = res.data;
 
-        if (!results.length) {
+        if (!data.length) {
           setData([]);
           setPaginate([1]);
           setErrorMessage('Không có kết quả.');
@@ -97,16 +94,17 @@ export default function CustomerTable() {
           KH_tao: string;
         };
 
-        const mapped: Customer[] = results.map((item: ApiCustomer) => ({
+        const mapped: Customer[] = data.map((item: ApiCustomer) => ({
           name: item.KH_hoTen,
           email: item.KH_email,
           createAt: new Date(item.KH_tao).toLocaleString('vi-VN'),
         }));
 
         setData(mapped);
-        setPaginate(pag);
-        setCurrentPage(newCurrentPage);
-        setCursorId(newCursorId);
+        setPaginate(paginate);
+        setCurrentPage(currentPage);
+        setCursorId(cursorId);
+        setTotalPage(totalPage);
       })
       .catch(() => {
         setErrorMessage('Lỗi khi lấy danh sách khách hàng.');
@@ -269,6 +267,7 @@ export default function CustomerTable() {
       <div className="flex justify-start py-4">
         <PagiantionControls
           paginate={paginate}
+          totalPage={totalPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onFirstPage={handleFirstPage}

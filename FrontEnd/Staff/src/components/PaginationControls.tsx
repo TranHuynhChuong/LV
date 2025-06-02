@@ -6,13 +6,12 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationEllipsis,
-  PaginationPrevious,
-  PaginationNext,
 } from '@/components/ui/pagination';
 
 interface PaginationControlsProps {
   paginate: number[];
   currentPage: number;
+  totalPage: number;
   onPageChange: (page: number) => void;
   onFirstPage: () => void;
   onLastPage: () => void;
@@ -21,28 +20,41 @@ interface PaginationControlsProps {
 export default function PaginationControls({
   paginate,
   currentPage,
+  totalPage,
   onPageChange,
   onFirstPage,
   onLastPage,
 }: Readonly<PaginationControlsProps>) {
   if (!paginate || paginate.length === 0) return null;
 
+  const showFirst = paginate[0] > 1;
+  const showLast = paginate[paginate.length - 1] < totalPage;
+
   return (
-    <Pagination>
+    <Pagination className="py-2">
       <PaginationContent>
-        {/* Trang đầu */}
-        <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onFirstPage();
-            }}
-          ></PaginationPrevious>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
+        {/* Trang đầu và dấu ... nếu cần */}
+        {showFirst && (
+          <>
+            <PaginationItem>
+              <PaginationLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onFirstPage();
+                }}
+                isActive={currentPage === 1}
+              >
+                1
+              </PaginationLink>
+            </PaginationItem>
+            {paginate[0] > 2 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+          </>
+        )}
 
         {/* Các trang giữa */}
         {paginate.map((page) => (
@@ -60,21 +72,29 @@ export default function PaginationControls({
             </PaginationLink>
           </PaginationItem>
         ))}
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
 
-        {/* Trang cuối */}
-        <PaginationItem>
-          <PaginationNext
-            className="w-fit"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onLastPage();
-            }}
-          ></PaginationNext>
-        </PaginationItem>
+        {/* Dấu ... và trang cuối nếu cần */}
+        {showLast && (
+          <>
+            {paginate[paginate.length - 1] < totalPage - 1 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+            <PaginationItem>
+              <PaginationLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onLastPage();
+                }}
+                isActive={currentPage === totalPage}
+              >
+                {totalPage}
+              </PaginationLink>
+            </PaginationItem>
+          </>
+        )}
       </PaginationContent>
     </Pagination>
   );
