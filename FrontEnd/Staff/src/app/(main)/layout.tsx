@@ -30,7 +30,7 @@ function AppBreadcrumb() {
           <Skeleton className="h-6 rounded-md w-52" />
         ) : (
           breadcrumbs.map((crumb, index) => (
-            <BreadcrumbList key={index} className="flex items-center">
+            <BreadcrumbList key={index} className="flex items-center ">
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
                 {crumb.href ? (
@@ -51,7 +51,7 @@ export default function MainLayout({ children }: { readonly children: React.Reac
   return (
     <AuthProvider>
       <BreadcrumbProvider>
-        <SidebarProvider className="h-screen">
+        <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
             <header className="sticky top-0 z-40 flex items-center h-16 gap-2 px-4 bg-white border-b shrink-0">
