@@ -19,7 +19,7 @@ export default function FormFooterActions({
   if (isView) return null;
 
   return (
-    <div className="sticky bottom-0 flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
+    <div className="flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
       <Button
         type="submit"
         className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
