@@ -15,6 +15,7 @@ export interface CursorPaginateOptions {
   idField?: string;
   project?: Record<string, any>;
   search?: Record<string, any>;
+  currentPage?: number;
 }
 export function calculatePaginate(
   currentPage: number,
@@ -59,30 +60,45 @@ export class PaginateRepository<T extends { [key: string]: any }> {
     idField = '_id',
     project,
     search,
-  }: CursorPaginateOptions): Promise<any[]> {
+    currentPage = 1,
+  }: CursorPaginateOptions): Promise<{
+    data: any[];
+    totalItems: number;
+    totalPage: number;
+    pages: number[];
+  }> {
     const finalProject = project ?? {};
     const finalSearch = search ?? {};
+
+    const totalItems = await this.model.countDocuments(filter);
+    const totalPage = Math.ceil(totalItems / limit);
+    const pages = calculatePaginate(currentPage, totalItems, limit);
+
+    let data: any[] = [];
+
     switch (mode) {
       case 'head':
-        return this.paginateHead({
+        data = await this.paginateHead({
           sort,
           limit,
           skip,
-          filter: filter ?? {},
+          filter,
           project: finalProject,
           search: finalSearch,
         });
+        break;
       case 'tail':
-        return this.paginateTail({
+        data = await this.paginateTail({
           sort,
           limit,
           skip,
-          filter: filter ?? {},
+          filter,
           project: finalProject,
           search: finalSearch,
         });
+        break;
       default:
-        return this.paginateWithCursor({
+        data = await this.paginateWithCursor({
           cursorId,
           sort,
           sortField,
@@ -95,6 +111,13 @@ export class PaginateRepository<T extends { [key: string]: any }> {
           search,
         });
     }
+
+    return {
+      data,
+      totalItems,
+      totalPage,
+      pages,
+    };
   }
 
   private async paginateHead({

@@ -100,7 +100,12 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
     filterType: 1 | 2 | 12 = 12,
     keyword?: string,
     id?: number
-  ): Promise<SanPhamSummary[]> {
+  ): Promise<{
+    data: any[];
+    totalItems: number;
+    totalPage: number;
+    pages: number[];
+  }> {
     const [sort, sortField] = this.getSanPhamSort(sortType);
     const filter = this.buildFilter(filterType, id);
     let search: Record<string, any> | undefined;
@@ -121,7 +126,7 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
       search,
     });
 
-    return result as SanPhamSummary[];
+    return result;
   }
 
   async findAllForward(

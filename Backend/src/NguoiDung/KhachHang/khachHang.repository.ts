@@ -24,7 +24,12 @@ export class KhachHangRepository extends PaginateRepository<KhachHangDocument> {
     cursorId?: string,
     skip = 0,
     limit = 24
-  ): Promise<KhachHang[]> {
+  ): Promise<{
+    data: any[];
+    totalItems: number;
+    totalPage: number;
+    pages: number[];
+  }> {
     const filter = {}; // filter rỗng, không lọc gì
 
     const result = await this.paginateCursor({
@@ -37,7 +42,7 @@ export class KhachHangRepository extends PaginateRepository<KhachHangDocument> {
       mode,
     });
 
-    return result as KhachHang[];
+    return result;
   }
 
   async findAllForward(cursorId: string, skip = 0, limit = 24) {

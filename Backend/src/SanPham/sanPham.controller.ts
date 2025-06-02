@@ -79,16 +79,18 @@ export class SanPhamController {
       limit = '24',
     } = query;
 
-    return this.service.findAll(
+    const searchParams = {
+      keyword,
       mode,
-      cursorId ?? '',
-      Number(currentPage),
-      Number(targetPage),
-      Number(sortType) as 1 | 2 | 3,
-      Number(filterType) as 1 | 2 | 12,
-      Number(limit),
-      keyword
-    );
+      cursorId,
+      currentPage: Number(currentPage),
+      targetPage: Number(targetPage),
+      sortType: Number(sortType) as 1 | 2 | 3,
+      filterType: Number(filterType) as 1 | 2 | 12,
+      limit: Number(limit),
+    };
+
+    return this.service.findAll(searchParams);
   }
 
   // Tìm sản phẩm theo thể loại (categoryId - mã thể loại)
@@ -117,17 +119,18 @@ export class SanPhamController {
       limit = '24',
     } = query;
 
-    return this.service.findAll(
+    const searchParams = {
       mode,
-      cursorId ?? '',
-      Number(currentPage),
-      Number(targetPage),
-      Number(sortType) as 1 | 2 | 3,
-      Number(filterType) as 1 | 2 | 12,
-      Number(limit),
-      undefined,
-      categoryId
-    );
+      cursorId,
+      currentPage: Number(currentPage),
+      targetPage: Number(targetPage),
+      sortType: Number(sortType) as 1 | 2 | 3,
+      filterType: Number(filterType) as 1 | 2 | 12,
+      limit: Number(limit),
+      categoryId,
+    };
+
+    return this.service.findAll(searchParams);
   }
 
   // Tìm sản phẩm tương tự (vector search)
@@ -163,15 +166,17 @@ export class SanPhamController {
       filterType = '12',
       limit = '24',
     } = query;
-    return this.service.findAll(
+    const searchParams = {
       mode,
-      cursorId ?? '',
-      Number(currentPage),
-      Number(targetPage),
-      Number(sortType) as 1 | 2 | 3,
-      Number(filterType) as 1 | 2 | 12,
-      Number(limit)
-    );
+      cursorId,
+      currentPage: Number(currentPage),
+      targetPage: Number(targetPage),
+      sortType: Number(sortType) as 1 | 2 | 3,
+      filterType: Number(filterType) as 1 | 2 | 12,
+      limit: Number(limit),
+    };
+
+    return this.service.findAll(searchParams);
   }
 
   // Chi tiết sản phẩm
