@@ -11,7 +11,7 @@ export default function Products() {
   const Product = {
     name: 'Áo thun nam cổ tròn',
     summary: 'Áo thun chất liệu cotton thoáng mát, phù hợp mặc hàng ngày.',
-    category: 2, // ví dụ ID thể loại
+    category: [3],
     description: 'Áo thun nam cổ tròn, màu trắng tinh tế, co giãn 4 chiều, đường may chắc chắn.',
     attributes: [
       { key: 'Chất liệu', value: 'Cotton 100%' },
@@ -19,6 +19,13 @@ export default function Products() {
       { key: 'Kích thước', value: 'M, L, XL' },
     ],
     price: 199000,
+    author: 'string',
+    publisher: 'string',
+    publishYear: 2015,
+    page: 3,
+    isbn: 'string',
+    language: 'string',
+    translator: 'string',
     stock: 120,
     cost: 95000,
     weight: 0.3, // tính bằng kg
@@ -68,22 +75,27 @@ export default function Products() {
       const formData = new FormData();
 
       // Thêm các trường thông thường nếu có giá trị
-      if (values.name) formData.append('name', values.name);
-      if (values.summary) formData.append('summary', values.summary);
-      if (values.category !== undefined && values.category !== null)
-        formData.append('category', values.category.toString());
+      if (values.name) formData.append('SP_ten', values.name);
+      if (values.summary) formData.append('SP_moTa', values.summary);
       if (values.description) formData.append('description', values.description);
-      if (values.attributes) {
-        formData.append('attributes', JSON.stringify(values.attributes));
-      }
+      if (values.category) formData.append('SP_theLoai', JSON.stringify(values.category));
+      if (values.author) formData.append('SP_tacGia', values.author);
+      if (values.publisher) formData.append('SP_nhaXuatBan', values.publisher);
+      if (values.isbn) formData.append('SP_isbn', values.isbn);
+      if (values.language) formData.append('SP_ngonNgu', values.language);
+      if (values.translator) formData.append('SP_nguoiDich', values.translator);
+      if (values.publishYear !== undefined && values.publishYear !== null)
+        formData.append('SP_namXuatBan', values.publishYear.toString());
+      if (values.page !== undefined && values.page !== null)
+        formData.append('SP_soTrang', values.page.toString());
       if (values.price !== undefined && values.price !== null)
-        formData.append('price', values.price.toString());
+        formData.append('SP_giaBan', values.price.toString());
       if (values.stock !== undefined && values.stock !== null)
-        formData.append('stock', values.stock.toString());
+        formData.append('SP_tonKho', values.stock.toString());
       if (values.cost !== undefined && values.cost !== null)
-        formData.append('cost', values.cost.toString());
+        formData.append('SP_giaNhap', values.cost.toString());
       if (values.weight !== undefined && values.weight !== null)
-        formData.append('weight', values.weight.toString());
+        formData.append('SP_trongLuong', values.weight.toString());
 
       // Thêm file coverImageFile nếu có
       if (values.coverImageFile) {
@@ -117,8 +129,8 @@ export default function Products() {
   }
 
   return (
-    <div className="w-full min-w-lg lg:w-3xl mx-auto h-fit">
-      <ProductForm onSubmit={onSubmit} defaultValue={Product} />
+    <div className="w-full max-w-2xl mx-auto lg:max-w-4xl min-w-fit h-fit">
+      <ProductForm onSubmit={onSubmit} />
     </div>
   );
 }
