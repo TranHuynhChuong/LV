@@ -8,7 +8,10 @@ import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/ActionHistorySheet';
+import { ActionHistorySheet } from '@/components/ActivityLogSheet';
+import { ActivityLog } from '@/type/ActivityLog';
+import { Metadata } from '@/type/Metadata';
+import { StaffFormData } from '../components/staffForm';
 
 export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -16,28 +19,8 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
   const { id } = unwrappedParams;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [staffData, setStaffData] = useState<{
-    fullName: string;
-    phone: string;
-    email: string;
-    role: '1' | '2' | '3';
-    id: string;
-    password: string;
-  } | null>(null);
-
-  const [metadata, setMetadata] = useState<
-    {
-      time: string;
-      action: string;
-      user: {
-        id: string;
-        name: string;
-        phone: string;
-        email: string;
-      };
-    }[]
-  >([]);
-
+  const [staffData, setStaffData] = useState<StaffFormData | null>(null);
+  const [metadata, setMetadata] = useState<Metadata[]>([]);
   const { authData } = useAuth();
 
   useEffect(() => {
@@ -56,24 +39,13 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
           fullName: data.NV_hoTen,
           phone: data.NV_soDienThoai,
           email: data.NV_email,
-          role: String(data.NV_vaiTro) as '1' | '2' | '3',
+          role: String(data.NV_vaiTro),
           id: data.NV_id,
           password: data.NV_matKhau,
         });
 
-        interface LichSuThaoTacItem {
-          thoiGian: string;
-          thaoTac: string;
-          nhanVien?: {
-            NV_id: string;
-            NV_hoTen: string;
-            NV_soDienThoai: string;
-            NV_email: string;
-          };
-        }
-
         const metadataFormatted =
-          data.lichSuThaoTac?.map((item: LichSuThaoTacItem) => ({
+          data.lichSuThaoTac?.map((item: ActivityLog) => ({
             time: item.thoiGian,
             action: item.thaoTac,
             user: {
@@ -94,13 +66,7 @@ export default function StaffDetailPage({ params }: { readonly params: Promise<{
       });
   }, [id, setBreadcrumbs]);
 
-  const handleOnSubmit = (data: {
-    fullName: string;
-    phone: string;
-    email: string;
-    role: string;
-    password?: string;
-  }) => {
+  const handleOnSubmit = (data: StaffFormData) => {
     const payload = {
       NV_hoTen: data.fullName,
       NV_soDienThoai: data.phone,

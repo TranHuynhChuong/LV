@@ -30,9 +30,7 @@ const formSchema = z.object({
   fullName: z.string().min(2, 'Họ tên ít nhất 2 ký tự').max(48, 'Họ tên tối đa 48 ký tự'),
   phone: z.string().regex(/^[0-9]{9,11}$/, 'Số điện thoại không hợp lệ (9-11 số)'),
   email: z.string().email('Email không hợp lệ').max(128, 'Email không được vượt quá 128 ký tự'),
-  role: z.enum(['1', '2', '3'], {
-    errorMap: () => ({ message: 'Phải chọn vai trò' }),
-  }),
+  role: z.string(),
   password: z
     .string()
     .min(6, 'Mật khẩu ít nhất 6 ký tự')
@@ -40,11 +38,11 @@ const formSchema = z.object({
     .optional(),
 });
 
-export type FormData = z.infer<typeof formSchema>;
+export type StaffFormData = z.infer<typeof formSchema>;
 
 type StaffFormProps = {
-  defaultValues?: Partial<FormData>;
-  onSubmit?: (data: FormData) => void;
+  defaultValues?: Partial<StaffFormData>;
+  onSubmit?: (data: StaffFormData) => void;
   onDelete?: () => void;
   view?: boolean;
 };
@@ -53,14 +51,14 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
-  const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
+  const [formDataToSubmit, setFormDataToSubmit] = useState<StaffFormData | null>(null);
   const isView = Boolean(view ?? false);
   const roleOptions = [
     { label: 'Quản trị', value: '1' },
     { label: 'Quản lý', value: '2' },
     { label: 'Bán hàng', value: '3' },
   ];
-  const form = useForm<FormData>({
+  const form = useForm<StaffFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: '',
@@ -73,7 +71,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
     },
   });
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = (data: StaffFormData) => {
     setFormDataToSubmit(data);
     setConfirmDialogOpen(true);
   };

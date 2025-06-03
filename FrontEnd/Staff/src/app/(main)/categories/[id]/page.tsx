@@ -3,18 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import CategoryForm from '../components/categoryForm';
+import CategoryForm, { CategoryFormData } from '../components/categoryForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/ActionHistorySheet';
-
-type CategoryFormData = {
-  id: number;
-  name?: string;
-  parentId?: number | null;
-};
+import { ActionHistorySheet } from '@/components/ActivityLogSheet';
+import { ActivityLog } from '@/type/ActivityLog';
+import { Metadata } from '@/type/Metadata';
 
 export default function CategoryDetailPage() {
   const router = useRouter();
@@ -27,18 +23,7 @@ export default function CategoryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<CategoryFormData | null>(null);
 
-  const [metadata, setMetadata] = useState<
-    {
-      time: string;
-      action: string;
-      user: {
-        id: string;
-        name: string;
-        phone: string;
-        email: string;
-      };
-    }[]
-  >([]);
+  const [metadata, setMetadata] = useState<Metadata[]>([]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -62,19 +47,8 @@ export default function CategoryDetailPage() {
           parentId: data.TL_idTL ?? null,
         });
 
-        interface LichSuThaoTacItem {
-          thoiGian: string;
-          thaoTac: string;
-          nhanVien?: {
-            NV_id: string;
-            NV_hoTen: string;
-            NV_soDienThoai: string;
-            NV_email: string;
-          };
-        }
-
         const metadataFormatted =
-          data.lichSuThaoTac?.map((item: LichSuThaoTacItem) => ({
+          data.lichSuThaoTac?.map((item: ActivityLog) => ({
             time: item.thoiGian,
             action: item.thaoTac,
             user: {

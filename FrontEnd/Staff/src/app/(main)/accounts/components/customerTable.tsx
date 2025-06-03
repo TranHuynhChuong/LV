@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import PagiantionControls from '@/components/PaginationControls';
+import { ApiCustomer } from '@/type/Account';
 
 export type Customer = {
   name: string;
@@ -49,7 +50,6 @@ export default function CustomerTable() {
   const [totalPage, setTotalPage] = useState<number>(1);
   const [searchEmail, setSearchEmail] = useState('');
   const [inputEmail, setInputEmail] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const limit = 24;
@@ -57,7 +57,6 @@ export default function CustomerTable() {
   // Gọi API phân trang chung theo mode + cursorId + currentPage + targetPage
   const fetchData = (mode: 'head' | 'tail' | 'cursor', targetPage?: number, cursor?: string) => {
     setIsLoading(true);
-    setErrorMessage('');
     let params;
     if (targetPage && cursor) {
       params = {
@@ -84,16 +83,8 @@ export default function CustomerTable() {
         if (!data.length) {
           setData([]);
           setPaginate([1]);
-          setErrorMessage('Không có kết quả.');
           return;
         }
-
-        type ApiCustomer = {
-          KH_email: string;
-          KH_hoTen: string;
-          KH_tao: string;
-        };
-
         const mapped: Customer[] = data.map((item: ApiCustomer) => ({
           name: item.KH_hoTen,
           email: item.KH_email,
@@ -107,7 +98,6 @@ export default function CustomerTable() {
         setTotalPage(totalPage);
       })
       .catch(() => {
-        setErrorMessage('Lỗi khi lấy danh sách khách hàng.');
         setData([]);
         setPaginate([1]);
       })
@@ -117,13 +107,11 @@ export default function CustomerTable() {
   // Tìm theo email
   const getByEmail = (email: string) => {
     setIsLoading(true);
-    setErrorMessage('');
     api
       .get(`/users/customer/${email}`)
       .then((res) => {
         const result = res.data;
         if (!result) {
-          setErrorMessage('Không tìm thấy khách hàng.');
           setData([]);
           setPaginate([1]);
           return;
@@ -140,12 +128,7 @@ export default function CustomerTable() {
         setCurrentPage(1);
         setCursorId(undefined);
       })
-      .catch((error) => {
-        if (error.status === 404) {
-          setErrorMessage('Không tìm thấy khách hàng.');
-        } else {
-          setErrorMessage('Lỗi khi tìm khách hàng.');
-        }
+      .catch(() => {
         setData([]);
         setPaginate([1]);
       })
@@ -178,7 +161,6 @@ export default function CustomerTable() {
     setInputEmail('');
     setCurrentPage(1);
     setCursorId(undefined);
-    setErrorMessage('');
   };
 
   // React-table setup
@@ -257,7 +239,7 @@ export default function CustomerTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {errorMessage || 'Không có kết quả.'}
+                  Không có dữ liệu.
                 </TableCell>
               </TableRow>
             )}

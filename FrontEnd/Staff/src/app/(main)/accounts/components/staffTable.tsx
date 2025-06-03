@@ -45,21 +45,15 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-
-export type Staff = {
-  id: string;
-  role: string;
-  name: string;
-  email: string;
-  phone: string;
-};
+import { ApiStaff } from '@/type/Account';
+import { StaffFormData } from './staffForm';
 
 export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSuccess?: () => void }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [data, setData] = useState<Staff[]>([]);
+  const [data, setData] = useState<StaffFormData[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
@@ -80,14 +74,6 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       .then((res) => {
         const data = res.data;
 
-        type ApiStaff = {
-          NV_id: string;
-          NV_vaiTro: number;
-          NV_hoTen: string;
-          NV_email: string;
-          NV_soDienThoai: string;
-        };
-
         const result: ApiStaff[] = data;
 
         if (result.length > 0) {
@@ -98,10 +84,10 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
             return 'Không xác định';
           };
 
-          const mapped: Staff[] = result.map((staff: ApiStaff) => ({
+          const mapped: StaffFormData[] = result.map((staff: ApiStaff) => ({
             id: staff.NV_id,
             role: getRole(staff.NV_vaiTro),
-            name: staff.NV_hoTen,
+            fullName: staff.NV_hoTen,
             email: staff.NV_email,
             phone: staff.NV_soDienThoai,
           }));
@@ -152,11 +138,11 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       });
   };
 
-  const handleDoubleClick = (staff: Staff) => {
+  const handleDoubleClick = (staff: StaffFormData) => {
     router.push(`/accounts/staff/${staff.id}`);
   };
 
-  const columns: ColumnDef<Staff>[] = [
+  const columns: ColumnDef<StaffFormData>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => (
@@ -178,7 +164,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       cell: ({ row }) => <div>{row.getValue('role')}</div>,
     },
     {
-      accessorKey: 'name',
+      accessorKey: 'fullName',
       header: 'Họ tên',
       enableHiding: false,
       cell: ({ row }) => <div>{row.getValue('name')}</div>,
@@ -207,17 +193,17 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
               Cập nhật
             </Link>
 
-            <span
+            <button
               className="cursor-pointer hover:underline"
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
-                  id: staff.id,
+                  id: staff.id ?? null,
                 });
               }}
             >
               Xóa
-            </span>
+            </button>
           </div>
         );
       },

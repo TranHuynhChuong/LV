@@ -24,11 +24,11 @@ const formSchema = z.object({
   parentId: z.number().nullable().optional(),
 });
 
-export type FormData = z.infer<typeof formSchema>;
+export type CategoryFormData = z.infer<typeof formSchema>;
 
 type CategoryFormProps = {
-  defaultValues?: Partial<FormData>;
-  onSubmit?: (data: FormData) => void;
+  defaultValues?: Partial<CategoryFormData>;
+  onSubmit?: (data: CategoryFormData) => void;
   onDelete?: () => void;
 };
 
@@ -40,9 +40,9 @@ export default function CategoryForm({
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [formDataToSubmit, setFormDataToSubmit] = useState<FormData | null>(null);
+  const [formDataToSubmit, setFormDataToSubmit] = useState<CategoryFormData | null>(null);
 
-  const form = useForm<FormData>({
+  const form = useForm<CategoryFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       id: null,
@@ -52,7 +52,7 @@ export default function CategoryForm({
     },
   });
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = (data: CategoryFormData) => {
     setFormDataToSubmit(data);
     setConfirmDialogOpen(true);
   };
@@ -114,7 +114,7 @@ export default function CategoryForm({
                   <FormControl>
                     <CategoryCombobox
                       value={field.value ?? null}
-                      onChange={(val) => field.onChange(val)}
+                      onChange={(val) => field.onChange(val?.[0])}
                       excludeId={form.getValues('id') ?? null}
                     />
                   </FormControl>

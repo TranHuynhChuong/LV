@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 import api from '@/lib/axiosClient';
-import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
-
+import { StaffForm, StaffFormData } from '@/app/(main)/accounts/components/staffForm';
 import { toast } from 'sonner';
-
 import Loading from './loading';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -15,14 +13,7 @@ export default function StaffDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [staffData, setStaffData] = useState<{
-    fullName: string;
-    phone: string;
-    email: string;
-    role: 'Admin' | 'Manager' | 'Sale';
-    id: string;
-    password: string;
-  } | null>(null);
+  const [staffData, setStaffData] = useState<StaffFormData | null>(null);
 
   useEffect(() => {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Hồ sơ' }]);

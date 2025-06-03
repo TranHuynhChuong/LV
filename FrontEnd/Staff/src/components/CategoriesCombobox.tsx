@@ -29,10 +29,11 @@ type Category = {
 };
 
 type CategoryComboboxProps = {
-  readonly value: number | number[] | null;
-  readonly onChange: (ids: number[]) => void;
-  readonly excludeId?: number | null;
-  readonly leafOnly?: boolean;
+  value: number | number[] | null;
+  onChange: (ids: number[]) => void;
+  excludeId?: number | null;
+  leafOnly?: boolean;
+  className?: string;
 };
 
 function buildTreeData(
@@ -49,8 +50,9 @@ export default function CategoryCombobox({
   value,
   onChange,
   excludeId,
+  className,
   leafOnly = false,
-}: CategoryComboboxProps) {
+}: Readonly<CategoryComboboxProps>) {
   const [categoriesRaw, setCategoriesRaw] = useState<BackendCategory[] | null>(null);
 
   useEffect(() => {
@@ -59,22 +61,6 @@ export default function CategoryCombobox({
       .then((res) => {
         const data = res.data as BackendCategory[];
         setCategoriesRaw(data.length > 0 ? data : []);
-
-        // Dữ liệu mẫu
-        const temp = [
-          { TL_id: 1, TL_ten: 'Thời trang', TL_idTL: null },
-          { TL_id: 2, TL_ten: 'Điện tử', TL_idTL: null },
-          { TL_id: 3, TL_ten: 'Áo thun', TL_idTL: 1 },
-          { TL_id: 4, TL_ten: 'Quần jean', TL_idTL: 1 },
-          { TL_id: 5, TL_ten: 'Điện thoại', TL_idTL: 2 },
-          { TL_id: 6, TL_ten: 'Laptop', TL_idTL: 2 },
-          { TL_id: 7, TL_ten: 'iPhone', TL_idTL: 5 },
-          { TL_id: 8, TL_ten: 'MacBook', TL_idTL: 6 },
-          { TL_id: 9, TL_ten: 'Áo sơ mi', TL_idTL: 1 },
-          { TL_id: 10, TL_ten: 'Phụ kiện', TL_idTL: null },
-          { TL_id: 11, TL_ten: 'Dây sạc', TL_idTL: 10 },
-        ];
-        setCategoriesRaw(temp);
       })
       .catch(() => {
         setCategoriesRaw([]);
@@ -117,7 +103,9 @@ export default function CategoryCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="flex flex-wrap items-center justify-start w-full pr-8 font-normal h-fit min-h-[2.5rem] p-1"
+          className={`flex flex-wrap items-center justify-start w-full pr-8 font-normal h-fit min-h-[2.5rem] p-1  ${
+            className ?? ''
+          }`}
           disabled={!categoriesRaw}
         >
           {!categoriesRaw ? (

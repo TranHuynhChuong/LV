@@ -5,7 +5,7 @@ import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { toast } from 'sonner';
-import { StaffForm } from '../components/staffForm';
+import { StaffForm, StaffFormData } from '../components/staffForm';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function New() {
@@ -21,13 +21,7 @@ export default function New() {
     ]);
   }, [setBreadcrumbs]);
 
-  const handleOnsubmit = (data: {
-    fullName: string;
-    phone: string;
-    email: string;
-    role: string;
-    password?: string;
-  }) => {
+  const handleOnsubmit = (data: StaffFormData) => {
     const payload = {
       NV_hoTen: data.fullName,
       NV_soDienThoai: data.phone,
@@ -36,7 +30,6 @@ export default function New() {
       NV_matKhau: data.password,
       NV_idNV: authData.userId,
     };
-    console.log(payload);
 
     api
       .post('/users/staff', payload)

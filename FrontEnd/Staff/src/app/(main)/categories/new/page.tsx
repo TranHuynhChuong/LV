@@ -6,12 +6,7 @@ import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import CategoryForm from '../components/categoryForm';
-
-type CategoryFormData = {
-  name?: string;
-  parentId?: number | null;
-};
+import CategoryForm, { CategoryFormData } from '../components/categoryForm';
 
 export default function NewCategory() {
   const router = useRouter();
@@ -49,7 +44,7 @@ export default function NewCategory() {
   };
 
   return (
-    <div className="w-full max-w-xl h-fit min-w-md ">
+    <div className="w-full max-w-2xl h-fit min-w-fit xl:max-w-4xl mx-auto">
       <CategoryForm onSubmit={handleSubmit}></CategoryForm>
     </div>
   );

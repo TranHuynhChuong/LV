@@ -41,18 +41,12 @@ import {
 } from '@/components/ui/dialog';
 
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Dữ liệu Category sử dụng tiếng Anh trong frontend
-export type Category = {
-  id: number;
-  name: string;
-  parent: string;
-};
+import { CategoryFormData } from './components/categoryForm';
 
 export default function Categories() {
   const { setBreadcrumbs } = useBreadcrumb();
 
-  const [data, setData] = useState<Category[]>([]);
+  const [data, setData] = useState<CategoryFormData[]>([]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -83,7 +77,7 @@ export default function Categories() {
 
         setTotal(categoriesRaw.length);
         // Map sang Category với parent là tên thể loại cha
-        const categoriesMapped: Category[] = categoriesRaw.map((cat) => {
+        const categoriesMapped: CategoryFormData[] = categoriesRaw.map((cat) => {
           const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
           return {
             id: cat.TL_id,
@@ -130,7 +124,7 @@ export default function Categories() {
       .finally(() => setLoading(false));
   };
 
-  const columns: ColumnDef<Category>[] = [
+  const columns: ColumnDef<CategoryFormData>[] = [
     {
       accessorKey: 'id',
       header: 'Mã',
@@ -159,17 +153,17 @@ export default function Categories() {
               Cập nhật
             </Link>
 
-            <span
+            <button
               className="cursor-pointer hover:underline"
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
-                  id: item.id,
+                  id: item.id ?? null,
                 });
               }}
             >
               Xóa
-            </span>
+            </button>
           </div>
         );
       },
