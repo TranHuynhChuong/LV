@@ -2,18 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ShippingFeeForm from '../components/ShippingFeeForm';
+import ShippingFeeForm, { ShippingFormData } from '../components/ShippingForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-type ShippingFormData = {
-  fee?: number;
-  weight?: number;
-  surcharge?: number;
-  surchargeUnit?: number;
-  provinceId?: number;
-};
 
 export default function CreateShippingPage() {
   const router = useRouter();

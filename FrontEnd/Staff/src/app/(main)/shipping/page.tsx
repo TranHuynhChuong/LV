@@ -47,8 +47,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { ApiShipping } from '@/type/Shipping';
 
-export type ShippingFee = {
+export type Shipping = {
   fee: number;
   level: string;
   surcharge?: number;
@@ -57,24 +58,16 @@ export type ShippingFee = {
   locationId: number;
 };
 
-export type ShippingFeeApi = {
-  PVC_phi: number;
-  PVC_ntl: string;
-  PVC_phuPhi?: number;
-  PVC_dvpp?: string;
-  T_id: number;
-};
-
 export default function Shipments() {
   const { setBreadcrumbs } = useBreadcrumb();
 
-  const [data, setData] = useState<ShippingFee[]>([]);
+  const [data, setData] = useState<Shipping[]>([]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [isLoading, setLoading] = useState<boolean>(true);
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
+  const [loading, setLoading] = useState<boolean>(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
     id: number | null;
   }>({
@@ -90,9 +83,9 @@ export default function Shipments() {
       .then(([shippingRes, locationRes]) => {
         setProvinces(locationRes);
 
-        const shippingRaw: ShippingFeeApi[] = shippingRes.data;
+        const shippingRaw: ApiShipping[] = shippingRes.data;
         setTotal(shippingRaw.length);
-        const mapped: ShippingFee[] = shippingRaw.map((item) => {
+        const mapped: Shipping[] = shippingRaw.map((item) => {
           const province = locationRes.find(
             (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
           ); // Dùng trực tiếp locationRes
@@ -147,7 +140,7 @@ export default function Shipments() {
       .finally(() => setLoading(false));
   };
 
-  const columns: ColumnDef<ShippingFee>[] = [
+  const columns: ColumnDef<Shipping>[] = [
     {
       accessorKey: 'location',
       header: 'Khu vực',
@@ -257,7 +250,7 @@ export default function Shipments() {
               Cập nhật
             </Link>
 
-            <span
+            <button
               className="cursor-pointer hover:underline"
               onClick={() => {
                 setDeleteDialogOpen({
@@ -267,7 +260,7 @@ export default function Shipments() {
               }}
             >
               Xóa
-            </span>
+            </button>
           </div>
         );
       },
@@ -357,7 +350,7 @@ export default function Shipments() {
               ))}
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {loading ? (
                 Array.from({ length: 3 }).map((_, index) => (
                   <TableRow key={index}>
                     {columns.map((col, i) => (
@@ -414,7 +407,7 @@ export default function Shipments() {
       </div>
       {/* Dialog xác nhận xóa */}
       <Dialog
-        open={isDeleteDialogOpen.open}
+        open={deleteDialogOpen.open}
         onOpenChange={(open) =>
           setDeleteDialogOpen((prev) => ({
             ...prev,
@@ -440,7 +433,7 @@ export default function Shipments() {
               Hủy
             </Button>
             <Button
-              onClick={() => handleConfirmDelete(isDeleteDialogOpen.id!)}
+              onClick={() => handleConfirmDelete(deleteDialogOpen.id!)}
               className="cursor-pointer"
             >
               Xóa
