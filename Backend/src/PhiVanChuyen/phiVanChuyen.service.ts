@@ -61,7 +61,7 @@ export class PhiVanChuyenService {
 
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.NhanVien.mapActions(lichSu) : [];
+      lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
     return result;
   }

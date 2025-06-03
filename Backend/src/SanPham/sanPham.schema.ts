@@ -48,7 +48,7 @@ export class SanPham {
   SP_ten: string;
 
   @Prop({ type: String, required: true, maxlength: 1000 })
-  SP_noiDung: string;
+  SP_tomTat: string;
 
   @Prop({ type: String, maxlength: 2000 })
   SP_moTa: string;
@@ -57,7 +57,7 @@ export class SanPham {
   SP_tacGia: string;
 
   @Prop({ type: String, required: true, maxlength: 250 })
-  SP_nhaXuaBan: string;
+  SP_nhaXuatBan: string;
 
   @Prop({ type: String, required: true, maxlength: 50 })
   SP_ngonNgu: string;
@@ -93,19 +93,22 @@ export class SanPham {
     type: [Number],
     required: true,
   })
-  SP_eNoiDung: number[];
+  SP_eTomTat: number[];
 
-  @Prop({ type: [AnhSPSchema], required: true, default: [] })
+  @Prop({ type: [AnhSPSchema], default: [] })
   SP_anh: AnhSP[];
 
   @Prop({ type: [LichSuThaoTacSPSchema] })
   lichSuThaoTac: LichSuThaoTacSP[];
+
+  @Prop({ type: Number, default: 0 })
+  SP_diemDG: number;
 }
 
 export const SanPhamSchema = SchemaFactory.createForClass(SanPham);
-SanPhamSchema.index({ SP_trangThai: 1, SP_id: 1 }); // Sort ngày thêm tăng dần
-SanPhamSchema.index({ SP_trangThai: 1, SP_id: -1 }); // Sort ngày thêm giảmdần
-SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: 1, SP_id: 1 }); // Giá tăng dần
-SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: -1, SP_id: -1 }); // Giá giảm dần
-SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: 1, SP_id: 1 }); // Doanh số tăng dần
-SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: -1, SP_id: -1 }); // Doanh số giảm dần
+SanPhamSchema.index({ SP_trangThai: 1, SP_id: 1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_id: -1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: 1, SP_id: 1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: -1, SP_id: -1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: 1, SP_id: 1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: -1, SP_id: -1 });

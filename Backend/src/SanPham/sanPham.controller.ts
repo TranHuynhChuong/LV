@@ -50,7 +50,8 @@ export class SanPhamController {
     const productImages = files.filter(
       (f) => f.fieldname === 'productImageFiles'
     );
-    return this.service.update(id, body, coverImage, productImages);
+    console.log(id, body, coverImage, productImages);
+    //return this.service.update(id, body, coverImage, productImages);
   }
 
   // Tìm sản phẩm theo keyword

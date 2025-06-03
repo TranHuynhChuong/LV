@@ -68,7 +68,7 @@ export class NhanVienService {
 
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.mapActions(lichSu) : [];
+      lichSu.length > 0 ? await this.mapActivityLog(lichSu) : [];
 
     return result;
   }
@@ -133,8 +133,10 @@ export class NhanVienService {
     return this.NhanVien.findAllIds(ids);
   }
 
-  async mapActions<T extends { NV_id?: string; thoiGian: any; thaoTac: any }>(
-    actions: T[]
+  async mapActivityLog<
+    T extends { NV_id?: string; thoiGian: any; thaoTac: any },
+  >(
+    activityLog: T[]
   ): Promise<
     {
       thoiGian: any;
@@ -147,21 +149,21 @@ export class NhanVienService {
       };
     }[]
   > {
-    if (actions.length === 0) return [];
+    if (activityLog.length === 0) return [];
 
     const ids = [
-      ...new Set(actions.map((a) => a.NV_id).filter(Boolean)),
+      ...new Set(activityLog.map((a) => a.NV_id).filter(Boolean)),
     ] as string[];
     const nhanViens = await this.findAllIds(ids);
 
     const nhanVienMap = new Map<string, any>();
     nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
 
-    return actions.map((action) => {
-      const nv = action.NV_id ? nhanVienMap.get(action.NV_id) : undefined;
+    return activityLog.map((a) => {
+      const nv = a.NV_id ? nhanVienMap.get(a.NV_id) : undefined;
       return {
-        thoiGian: action.thoiGian,
-        thaoTac: action.thaoTac,
+        thoiGian: a.thoiGian,
+        thaoTac: a.thaoTac,
         nhanVien: {
           NV_id: nv?.NV_id ?? null,
           NV_hoTen: nv?.NV_hoTen ?? null,
