@@ -120,4 +120,15 @@ export class CloudinaryService implements OnModuleInit {
       throw new InternalServerErrorException('Không thể xóa ảnh');
     }
   }
+
+  async deleteImage(publicId: string): Promise<void> {
+    if (!publicId) return;
+
+    try {
+      await cloudinary.api.delete_resources([publicId]);
+    } catch (error) {
+      console.error('[CloudinaryService] deleteImage error:', error);
+      throw new InternalServerErrorException('Không thể xóa ảnh');
+    }
+  }
 }
