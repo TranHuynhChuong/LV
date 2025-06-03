@@ -17,27 +17,37 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import CategoryCombobox from '@/components/CategoriesCombobox';
-import { Trash2 } from 'lucide-react';
+import { ImagePlus, Trash2 } from 'lucide-react';
 
 import ConfirmDialog from '@/components/ConfirmDialog';
 import FormFooterActions from '@/components/FormFooterActions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const MAX_PRODUCT_IMAGES = 14;
 let IS_EDITING = false;
 
 const productSchema = z.object({
   coverImageFile: z
-    .union([z.instanceof(File), z.undefined()])
+    .union([z.instanceof(File), z.undefined(), z.null()])
     .refine((file) => IS_EDITING || file instanceof File, {
       message: 'Không được để trống',
     }),
   productImageFiles: z.array(z.instanceof(File)).optional(),
   name: z.string({ required_error: 'Không được để trống' }).max(128),
-  summary: z.string({ required_error: 'Không được để trống' }).max(1000),
-  category: z
-    .array(z.number({ required_error: 'Không được để trống' }).min(1, 'Phần tử không hợp lệ'))
-    .min(1, { message: 'Không được để trống' }),
+  status: z.preprocess(
+    (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
+    z.number({ required_error: 'Không được để trống' })
+  ) as z.ZodType<number | undefined>,
 
+  category: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
+
+  summary: z.string({ required_error: 'Không được để trống' }).max(1000),
   description: z.string().max(3000).optional(),
   author: z.string({ required_error: 'Không được để trống' }),
   publisher: z.string({ required_error: 'Không được để trống' }),
@@ -72,10 +82,11 @@ const productSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 
-export type Product = {
+export type ProductFormType = {
   name: string;
-  summary: string;
   category: number[];
+  status: number;
+  summary: string;
   description?: string;
   author: string;
   publisher: string;
@@ -93,29 +104,35 @@ export type Product = {
 };
 
 interface ProductFormProps {
-  defaultValue?: Product | null;
-  onSubmit?: (newData: ProductFormValues, coverImage?: string, productImages?: string[]) => void;
+  defaultValue?: ProductFormType | null;
+  onSubmit?: (newData: ProductFormValues, productImages?: string[]) => void;
   onDelete?: () => void;
 }
 
-export default function ProductForm({ defaultValue, onSubmit, onDelete }: ProductFormProps) {
+export default function ProductForm({
+  defaultValue,
+  onSubmit,
+  onDelete,
+}: Readonly<ProductFormProps>) {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
+      status: 1,
+      category: [],
       ...defaultValue,
     },
   });
 
   IS_EDITING = !!defaultValue;
-
+  console.log(defaultValue);
   const { control } = form;
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [productImageFiles, setProductImageFiles] = useState<File[]>([]);
-  const [coverImage, setCoverImage] = useState<string | null>(defaultValue?.coverImage || null);
+  const [coverImage, setCoverImage] = useState<string | null>(defaultValue?.coverImage ?? null);
   const [productImages, setProductImages] = useState<string[]>(defaultValue?.productImages || []);
 
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const [formDataToSubmit, setFormDataToSubmit] = useState<ProductFormValues | null>(null);
 
@@ -161,7 +178,7 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
 
   const handleConfirmSubmit = () => {
     if (formDataToSubmit) {
-      onSubmit?.(formDataToSubmit, coverImage ?? '', productImages ?? []);
+      onSubmit?.(formDataToSubmit, productImages ?? []);
       setConfirmDialogOpen(false);
     }
   };
@@ -175,20 +192,26 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" noValidate>
-          <section className="p-6 space-y-6 bg-white rounded-sm shadow">
+          <section className="p-8 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin cơ bản</h3>
-            <div className="flex flex-col items-start space-x-0 space-y-8 sm:flex-row sm:space-x-8 sm:space-y-0">
-              {/* Cover Image */}
-              <FormField
-                control={control}
-                name="coverImageFile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ảnh bìa</FormLabel>
+            {/* Cover Image */}
+            <FormField
+              control={control}
+              name="coverImageFile"
+              render={({ field, fieldState }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Ảnh bìa
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <div className="relative overflow-hidden rounded-md w-42 h-42 bg-gray-50 group">
+                      <div className="relative overflow-hidden rounded-md w-40 h-42 bg-gray-50 group">
                         {!coverImageFile && !coverImage ? (
-                          <label className="absolute inset-0 flex items-center justify-center transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer hover:border-blue-500">
+                          <label
+                            className={`absolute inset-0 flex items-center justify-center transition-colors border-2 border-dashed rounded-md cursor-pointer hover:border-blue-500 ${
+                              fieldState.invalid ? 'border-red-500' : 'border-gray-400'
+                            }`}
+                          >
                             <input
                               type="file"
                               accept="image/*"
@@ -196,18 +219,22 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                               onChange={(e) => {
                                 const file = e.target.files?.[0] ?? null;
                                 setCoverImageFile(file);
+                                console.log(file);
                                 field.onChange(file);
                               }}
                             />
-                            <span className="text-3xl text-gray-400">+</span>
+                            <div className="text-xs flex flex-col items-center justify-center text-gray-400">
+                              <ImagePlus />
+                              (0/1)
+                            </div>
                           </label>
                         ) : (
                           <div className="relative w-full h-full overflow-hidden border-2 border-gray-400 rounded-md group">
                             <Image
-                              src={getPreviewUrl(coverImageFile) || coverImage || ''}
+                              src={getPreviewUrl(coverImageFile) ?? coverImage ?? ''}
                               alt="Ảnh bìa"
                               fill
-                              className="object-cover"
+                              className="object-contain"
                             />
                             <div className="absolute inset-0 transition-opacity opacity-0 bg-black/30 group-hover:opacity-100" />
                             <button
@@ -225,107 +252,115 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                       </div>
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  </div>
+                </FormItem>
+              )}
+            />
 
-              {/* Product Images */}
-              <FormField
-                control={control}
-                name="productImageFiles"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Ảnh sản phẩm (tối đa {MAX_PRODUCT_IMAGES})</FormLabel>
-                    <FormControl>
-                      <div className="flex flex-wrap max-w-md space-x-2 space-y-2">
-                        {productImages.map((url, idx) => {
-                          return url ? (
-                            <div
-                              key={idx}
-                              className="relative w-20 h-20 overflow-hidden border border-gray-300 rounded-md group"
-                            >
-                              <Image
-                                src={url}
-                                alt={`Ảnh sản phẩm ${idx + 1}`}
-                                fill
-                                className="object-cover"
-                              />
-                              <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
-                              <button
-                                type="button"
-                                className="absolute bottom-0 right-0 z-10 flex items-center justify-center w-full py-2 text-xs text-white transition-opacity opacity-0 cursor-pointer bg-zinc-600 group-hover:opacity-100"
-                                onClick={() => handleRemoveImage(idx)}
-                                aria-label={`Xóa ảnh ${idx + 1}`}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          ) : null;
-                        })}
-                        {productImageFiles.map((file, idx) => {
-                          const url = getPreviewUrl(file);
-                          return url ? (
-                            <div
-                              key={idx}
-                              className="relative w-20 h-20 overflow-hidden border border-gray-300 rounded-md group"
-                            >
-                              <Image
-                                src={url}
-                                alt={`Ảnh sản phẩm ${idx + 1}`}
-                                fill
-                                className="object-cover"
-                              />
-                              <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
-                              <button
-                                type="button"
-                                className="absolute bottom-0 right-0 z-10 flex items-center justify-center w-full py-2 text-xs text-white transition-opacity opacity-0 cursor-pointer bg-zinc-600 group-hover:opacity-100"
-                                onClick={() => handleRemoveImageFile(idx)}
-                                aria-label={`Xóa ảnh ${idx + 1}`}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          ) : null;
-                        })}
-
-                        {productImages.length + productImageFiles.length < MAX_PRODUCT_IMAGES && (
-                          <label
-                            htmlFor="add-product-images"
-                            className="relative flex items-center justify-center w-20 h-20 overflow-hidden transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer bg-gray-50 hover:border-blue-500"
-                            title="Thêm ảnh sản phẩm"
+            {/* Product Images */}
+            <FormField
+              control={control}
+              name="productImageFiles"
+              render={() => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26  sm:text-end">Ảnh sản phẩm</FormLabel>
+                  <FormControl>
+                    <div className="flex flex-wrap max-w-md space-x-2 space-y-2">
+                      {productImages.map((url, idx) => {
+                        return url ? (
+                          <div
+                            key={idx}
+                            className="relative w-20 h-22 overflow-hidden border border-gray-300 rounded-md group"
                           >
-                            <input
-                              id="add-product-images"
-                              type="file"
-                              multiple
-                              accept="image/*"
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                              onChange={handleAddProductImages}
+                            <Image
+                              src={url}
+                              alt={`Ảnh sản phẩm ${idx + 1}`}
+                              fill
+                              className="object-contain"
                             />
-                            <span className="text-3xl text-gray-400">+</span>
-                          </label>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                            <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
+                            <button
+                              type="button"
+                              className="absolute bottom-0 right-0 z-10 flex items-center justify-center w-full py-2 text-xs text-white transition-opacity opacity-0 cursor-pointer bg-zinc-600 group-hover:opacity-100"
+                              onClick={() => handleRemoveImage(idx)}
+                              aria-label={`Xóa ảnh ${idx + 1}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ) : null;
+                      })}
+                      {productImageFiles.map((file, idx) => {
+                        const url = getPreviewUrl(file);
+                        return url ? (
+                          <div
+                            key={idx}
+                            className="relative w-20 h-22 overflow-hidden border border-gray-300 rounded-md group"
+                          >
+                            <Image
+                              src={url}
+                              alt={`Ảnh sản phẩm ${idx + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
+                            <button
+                              type="button"
+                              className="absolute bottom-0 right-0 z-10 flex items-center justify-center w-full py-2 text-xs text-white transition-opacity opacity-0 cursor-pointer bg-zinc-600 group-hover:opacity-100"
+                              onClick={() => handleRemoveImageFile(idx)}
+                              aria-label={`Xóa ảnh ${idx + 1}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ) : null;
+                      })}
+
+                      {productImages.length + productImageFiles.length < MAX_PRODUCT_IMAGES && (
+                        <label
+                          htmlFor="add-product-images"
+                          className="relative flex items-center justify-center w-20 h-22 overflow-hidden transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer bg-gray-50 hover:border-blue-500"
+                          title="Thêm ảnh sản phẩm"
+                        >
+                          <input
+                            id="add-product-images"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={handleAddProductImages}
+                          />
+                          <div className="text-xs flex flex-col items-center justify-center text-gray-400">
+                            <ImagePlus />({productImages.length}/14)
+                          </div>
+                        </label>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Name */}
             <FormField
               control={control}
               name="name"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tên sách</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} maxLength={128} onChange={field.onChange} />
-                  </FormControl>
-                  <div className="flex justify-between mt-1 text-sm text-right text-muted-foreground">
-                    <FormMessage />
-                    {field.value?.length || 0} / 128
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Tên sách
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} maxLength={128} onChange={field.onChange} />
+                    </FormControl>
+                    <div className="flex justify-between">
+                      <FormMessage />
+                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                        {field.value?.length || 0} / 128
+                      </div>
+                    </div>
                   </div>
                 </FormItem>
               )}
@@ -335,25 +370,56 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
             <FormField
               control={control}
               name="category"
+              render={({ field, fieldState }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Thể loại
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <CategoryCombobox
+                        value={field.value}
+                        leafOnly={true}
+                        onChange={(value) => {
+                          const cleanedValue = (value || []).filter((v) => v !== undefined);
+                          field.onChange(cleanedValue);
+                        }}
+                        className={fieldState.invalid ? 'border border-red-500 rounded-md' : ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="status"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thể loại</FormLabel>
-                  <FormControl>
-                    <CategoryCombobox
-                      value={field.value}
-                      leafOnly={true}
-                      onChange={(value) => {
-                        const cleanedValue = (value || []).filter((v) => v !== undefined);
-                        field.onChange(cleanedValue);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">Trạng thái</FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Select
+                        value={field.value?.toString() ?? ''}
+                        onValueChange={(val) => field.onChange(Number(val))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="-- Chọn trạng thái --" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Hiển thị</SelectItem>
+                          <SelectItem value="2">Ẩn</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
           </section>
-
           {/* Detail */}
           <section className="p-6 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin chi tiết</h3>
@@ -363,19 +429,25 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
               control={control}
               name="summary"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tóm tắt</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={field.value ?? ''}
-                      maxLength={1000}
-                      onChange={field.onChange}
-                      className="h-40 resize-none"
-                    />
-                  </FormControl>
-                  <div className="flex justify-between mt-1 text-sm text-right text-muted-foreground">
-                    <FormMessage />
-                    {field.value?.length || 0} / 1000
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Tóm tắt
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Textarea
+                        value={field.value ?? ''}
+                        maxLength={1000}
+                        onChange={field.onChange}
+                        className="h-40 resize-none"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between mx-1">
+                      <FormMessage />
+                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                        {field.value?.length ?? 0} / 1000
+                      </div>
+                    </div>
                   </div>
                 </FormItem>
               )}
@@ -386,19 +458,23 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
               control={control}
               name="description"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mô tả</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      value={field.value ?? ''}
-                      maxLength={3000}
-                      onChange={field.onChange}
-                      className="h-48 resize-none"
-                    />
-                  </FormControl>
-                  <div className="flex justify-between mt-1 text-sm text-right text-muted-foreground">
-                    <FormMessage />
-                    {field.value?.length || 0} / 3000
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">Mô tả</FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Textarea
+                        value={field.value ?? ''}
+                        maxLength={3000}
+                        onChange={field.onChange}
+                        className="h-48 resize-none"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between mx-1">
+                      <FormMessage />
+                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                        {field.value?.length ?? 0} / 3000
+                      </div>
+                    </div>
                   </div>
                 </FormItem>
               )}
@@ -408,12 +484,16 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
               control={control}
               name="author"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tác giả</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Tác giả
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -422,27 +502,84 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
               control={control}
               name="publisher"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nhà xuất bản</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Nhà xuất bản
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
 
+            <FormField
+              control={control}
+              name="isbn"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>ISBN
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="language"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">
+                    <span className="text-red-500">*</span>Ngôn ngữ
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="translator"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end">Người dịch</FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input value={field.value ?? ''} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={control}
                 name="publishYear"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Năm xuất bản</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-26 sm:justify-end">
+                      <span className="text-red-500">*</span>Năm xuất bản
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -451,56 +588,20 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                 control={control}
                 name="page"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Số trang</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-26 sm:justify-end">
+                      <span className="text-red-500">*</span>Số trang
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
             </div>
-
-            <FormField
-              control={control}
-              name="isbn"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ISBN</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name="language"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ngôn ngữ</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name="translator"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Người dịch</FormLabel>
-                  <FormControl>
-                    <Input value={field.value ?? ''} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </section>
           <section className="p-6 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin bán hàng</h3>
@@ -510,12 +611,16 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                 control={control}
                 name="price"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Giá bán</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-24 sm:justify-end">
+                      <span className="text-red-500">*</span>Giá bán
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -524,12 +629,16 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                 control={control}
                 name="cost"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Giá nhập</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-24 sm:justify-end">
+                      <span className="text-red-500">*</span>Giá nhập
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -537,12 +646,16 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                 control={control}
                 name="stock"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tồn kho</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-24 sm:justify-end">
+                      <span className="text-red-500">*</span>Tồn kho
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -551,12 +664,16 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
                 control={control}
                 name="weight"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trọng lượng (g)</FormLabel>
-                    <FormControl>
-                      <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormItem className="flex flex-col sm:flex-row ">
+                    <FormLabel className="items-start w-24 sm:justify-end">
+                      <span className="text-red-500">*</span>Trọng lượng
+                    </FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl>
+                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
                   </FormItem>
                 )}
               />
@@ -568,7 +685,7 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
       </Form>
       {/* Dialog xác nhận xóa */}
       <ConfirmDialog
-        open={isDeleteDialogOpen}
+        open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         mode="delete"
@@ -576,7 +693,7 @@ export default function ProductForm({ defaultValue, onSubmit, onDelete }: Produc
 
       {/* Dialog xác nhận thêm/cập nhật */}
       <ConfirmDialog
-        open={isConfirmDialogOpen}
+        open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         onConfirm={handleConfirmSubmit}
         mode="submit"
