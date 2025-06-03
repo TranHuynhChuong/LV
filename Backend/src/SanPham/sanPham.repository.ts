@@ -8,11 +8,11 @@ export type SanPhamSortType = 1 | 2 | 3 | -1 | -2 | -3;
 
 const project = {
   SP_id: 1,
-  TL_id: 1,
+  SP_diemDG: 1,
   SP_ten: 1,
   SP_giaBan: 1,
-  SP_doanhSo: 1,
-  SP_khoHang: 1,
+  SP_tonKho: 1,
+  SP_daBan: 1,
   SP_anh: {
     $arrayElemAt: [
       {
@@ -43,6 +43,8 @@ export interface SanPhamSummary {
   SP_anh: string;
 }
 
+export type SanPhamFilterType = 1 | 2 | 12;
+
 @Injectable()
 export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
   constructor(
@@ -72,7 +74,7 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
   }
 
   protected buildFilter(
-    filterType: 1 | 2 | 12,
+    filterType: SanPhamFilterType,
     id?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
@@ -90,22 +92,35 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
     return filter;
   }
 
-  protected async findAllPaginated(
-    mode: 'head' | 'tail' | 'cursor',
-    direction: 'forward' | 'back' = mode === 'tail' ? 'back' : 'forward',
-    cursorId?: string,
-    skip = 0,
-    limit = 24,
-    sortType: SanPhamSortType = 1,
-    filterType: 1 | 2 | 12 = 12,
-    keyword?: string,
-    id?: number
-  ): Promise<{
+  protected async findAllPaginated(option: {
+    mode: 'head' | 'tail' | 'cursor';
+    direction?: 'forward' | 'back';
+    cursorId?: string;
+    skip?: number;
+    limit?: number;
+    sortType?: SanPhamSortType;
+    filterType?: SanPhamFilterType;
+    keyword?: string;
+    id?: number;
+  }): Promise<{
     data: any[];
     totalItems: number;
     totalPage: number;
     pages: number[];
   }> {
+    const {
+      mode,
+      direction,
+      cursorId,
+      skip = 0,
+      limit = 24,
+      sortType = 1,
+      filterType = 12,
+      keyword,
+      id,
+    } = option;
+
+    const actualDirection = direction ?? (mode === 'tail' ? 'back' : 'forward');
     const [sort, sortField] = this.getSanPhamSort(sortType);
     const filter = this.buildFilter(filterType, id);
     let search: Record<string, any> | undefined;
@@ -119,7 +134,7 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
       skip,
       limit,
       filter,
-      direction,
+      direction: actualDirection,
       idField: 'SP_id',
       project,
       mode,
@@ -134,21 +149,21 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
     skip = 0,
     limit = 24,
     sortType?: SanPhamSortType,
-    filterType?: 1 | 2 | 12,
+    filterType?: SanPhamFilterType,
     keyword?: string,
     id?: number
   ) {
-    return this.findAllPaginated(
-      'cursor',
-      'forward',
+    return this.findAllPaginated({
+      mode: 'cursor',
+      direction: 'forward',
       cursorId,
       skip,
       limit,
       sortType,
       filterType,
       keyword,
-      id
-    );
+      id,
+    });
   }
 
   async findAllBack(
@@ -156,65 +171,55 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
     skip = 0,
     limit = 24,
     sortType?: SanPhamSortType,
-    filterType?: 1 | 2 | 12,
+    filterType?: SanPhamFilterType,
     keyword?: string,
     id?: number
   ) {
-    return this.findAllPaginated(
-      'cursor',
-      'back',
+    return this.findAllPaginated({
+      mode: 'cursor',
+      direction: 'back',
       cursorId,
       skip,
       limit,
       sortType,
       filterType,
       keyword,
-      id
-    );
+      id,
+    });
   }
 
   async findAllHead(
     limit = 24,
     sortType?: SanPhamSortType,
-    filterType?: 1 | 2 | 12,
+    filterType?: SanPhamFilterType,
     keyword?: string,
     id?: number
   ) {
-    return this.findAllPaginated(
-      'head',
-      undefined,
-      '',
-      0,
+    return this.findAllPaginated({
+      mode: 'head',
       limit,
       sortType,
       filterType,
       keyword,
-      id
-    );
+      id,
+    });
   }
 
   async findAllTail(
     limit = 24,
     sortType?: SanPhamSortType,
-    filterType?: 1 | 2 | 12,
+    filterType?: SanPhamFilterType,
     keyword?: string,
     id?: number
   ) {
-    return this.findAllPaginated(
-      'tail',
-      undefined,
-      '',
-      0,
+    return this.findAllPaginated({
+      mode: 'tail',
       limit,
       sortType,
       filterType,
       keyword,
-      id
-    );
-  }
-
-  async create(data: Partial<SanPham>): Promise<SanPham> {
-    return this.model.create(data);
+      id,
+    });
   }
 
   async findLastId(): Promise<number> {
@@ -228,14 +233,18 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
   ): Promise<SanPham | null> {
     const select =
       mode === 'default'
-        ? '-SP_eNoiDung -lichSuThaoTac -SP_giaNhap'
-        : '-SP_eNoiDung';
+        ? '-SP_eTomTat -SP_diemDG'
+        : '-SP_eTomTat -lichSuThaoTac';
 
     return this.model
       .findOne({ SP_id: id, SP_trangThai: { $ne: 0 } })
       .select(select)
       .lean()
       .exec();
+  }
+
+  async create(data: Partial<SanPham>): Promise<SanPham> {
+    return this.model.create(data);
   }
 
   async update(id: number, data: Partial<SanPham>): Promise<SanPham | null> {
@@ -256,6 +265,10 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
         { new: true }
       )
       .lean();
+  }
+
+  async remove(id: number): Promise<SanPham | null> {
+    return this.model.findOneAndDelete({ SP_id: id }).lean();
   }
 
   async countAll(): Promise<{

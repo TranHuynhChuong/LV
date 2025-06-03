@@ -3,7 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SanPhamRepository } from './sanPham.repository';
+import {
+  SanPhamRepository,
+  SanPhamFilterType,
+  SanPhamSortType,
+} from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
 import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
@@ -16,7 +20,7 @@ const typeOfChange: Record<string, string> = {
   TL_id: 'Thể loại',
   SP_trangThai: 'Trạng thái',
   SP_ten: 'Tên',
-  SP_noiDung: 'Nội dung tóm tắt',
+  SP_tomTat: 'Nội dung tóm tắt',
   SP_moTa: 'Mô tả',
   SP_tacGia: 'Tác giả',
   SP_nhaXuaBan: 'Nhà xuất bản',
@@ -44,52 +48,11 @@ export class SanPhamService {
   async create(
     data: CreateDto,
     coverImage?: Express.Multer.File,
-    Images?: Express.Multer.File[]
+    images?: Express.Multer.File[]
   ): Promise<SanPham> {
-    // Tạo vector embedding
-    const vector = await this.Transform.getTextEmbedding(data.SP_noiDung);
-
-    // Lấy id mới cho sản phẩm
+    const vector = await this.Transform.getTextEmbedding(data.SP_tomTat);
     const lastId = await this.SanPham.findLastId();
     const nextId = lastId + 1;
-
-    // Mảng ảnh sản phẩm
-    const images: AnhSP[] = [];
-
-    // Upload ảnh bìa
-    if (!coverImage) {
-      throw new BadRequestException();
-    }
-
-    const { uploaded } = await this.Cloudinary.uploadSingleImage(
-      nextId.toString(),
-      coverImage,
-      folderPrefix
-    );
-
-    images.push({
-      A_anhBia: true,
-      A_publicId: uploaded.public_id,
-      A_url: uploaded.url,
-    });
-
-    // Upload nhiều ảnh thường - có thể có hoặc không
-    if (Images && Images.length > 0) {
-      const { uploaded } = await this.Cloudinary.uploadMultipleImages(
-        nextId.toString(),
-        Images,
-        folderPrefix
-      );
-
-      // uploaded là mảng các ảnh trả về
-      for (const img of uploaded) {
-        images.push({
-          A_anhBia: false,
-          A_publicId: img.public_id,
-          A_url: img.url,
-        });
-      }
-    }
 
     const thaoTac = {
       thaoTac: 'Tạo mới',
@@ -97,121 +60,145 @@ export class SanPhamService {
       thoiGian: new Date(),
     };
 
-    // Dữ liệu để tạo sản phẩm
     const dataToSave: Partial<SanPham> = {
       ...data,
       SP_id: nextId,
-      SP_eNoiDung: vector,
-      SP_anh: images,
+      SP_eTomTat: vector,
+      SP_anh: [],
       lichSuThaoTac: [thaoTac],
     };
 
-    const create = await this.SanPham.create(dataToSave);
+    const created = await this.SanPham.create(dataToSave);
+    if (!created) throw new BadRequestException();
 
-    if (!create) {
+    try {
+      const uploadedImages = await this.handleImageUploads(
+        nextId,
+        coverImage,
+        images
+      );
+      if (!uploadedImages.find((i) => i.A_anhBia)) {
+        throw new BadRequestException();
+      }
+
+      const updated = await this.SanPham.update(nextId, {
+        SP_anh: uploadedImages,
+      });
+      if (!updated) throw new Error();
+
+      return updated;
+    } catch {
+      await this.SanPham.remove(nextId);
+      await this.Cloudinary.deleteFolder(`${folderPrefix}/${nextId}`);
       throw new BadRequestException();
     }
-    return create;
   }
 
   async update(
     id: number,
     data: UpdateDto,
     coverImage?: Express.Multer.File,
-    Images?: Express.Multer.File[]
+    images?: Express.Multer.File[]
   ): Promise<SanPham> {
     const existing = await this.SanPham.findById(id);
-    if (!existing) {
-      throw new BadRequestException();
+    if (!existing) throw new BadRequestException();
+
+    const vector =
+      data.SP_tomTat && data.SP_tomTat !== existing.SP_tomTat
+        ? await this.Transform.getTextEmbedding(data.SP_tomTat)
+        : existing.SP_eTomTat;
+
+    let newImages: AnhSP[] = [];
+
+    if (images || coverImage) {
+      try {
+        newImages = await this.handleImageUploads(id, coverImage, images);
+      } catch {
+        throw new BadRequestException();
+      }
     }
 
-    // Nếu có nội dung mới thì tạo lại vector
-    const vector =
-      data.SP_noiDung && data.SP_noiDung !== existing.SP_noiDung
-        ? await this.Transform.getTextEmbedding(data.SP_noiDung)
-        : existing.SP_eNoiDung;
+    const allImages = [
+      ...existing.SP_anh.filter((img) => !img.A_anhBia),
+      ...newImages,
+    ];
 
-    // Upload ảnh và trả về mảng ảnh mới
-    const images = await this.handleImageUploads(id, coverImage, Images);
+    if (newImages.find((i) => i.A_anhBia)) {
+      // reset ảnh bìa nếu có ảnh bìa mới
+      for (const img of allImages) img.A_anhBia = false;
+      const cover = newImages.find((i) => i.A_anhBia);
+      if (cover) cover.A_anhBia = true;
+    }
 
-    const allImages = [...existing.SP_anh, ...images];
-
-    // So sánh và xác định trường có thay đổi
     const { fieldsChange, updatePayload } = this.detectChangedFields(
       data,
       existing
     );
-
-    // Nếu có vector mới (do nội dung thay đổi)
-    if (vector !== existing.SP_eNoiDung) {
-      updatePayload.SP_eNoiDung = vector;
-    }
-
-    // Nếu có ảnh mới
-    if (images.length > 0) {
+    if (vector !== existing.SP_eTomTat) updatePayload.SP_eTomTat = vector;
+    if (newImages.length) {
       updatePayload.SP_anh = allImages;
-      fieldsChange.push('Thêm hình ảnh');
+      fieldsChange.push('Cập nhật hình ảnh');
     }
 
-    // Thêm lịch sử thao tác nếu có thay đổi
     if (fieldsChange.length > 0 && data.NV_id) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-        NV_id: data.NV_id,
-        thoiGian: new Date(),
-      };
-      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+      updatePayload.lichSuThaoTac = [
+        ...existing.lichSuThaoTac,
+        {
+          thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+          NV_id: data.NV_id,
+          thoiGian: new Date(),
+        },
+      ];
     }
 
-    // Nếu không có gì thay đổi => trả lại luôn
-    if (Object.keys(updatePayload).length === 0) {
-      return existing;
+    if (Object.keys(updatePayload).length === 0) return existing;
+
+    try {
+      const updated = await this.SanPham.update(id, updatePayload);
+      if (!updated) throw new Error();
+      return updated;
+    } catch {
+      await this.rollbackUploadedImages(newImages);
+      throw new BadRequestException();
     }
-
-    const updated = await this.SanPham.update(id, updatePayload);
-    if (!updated) throw new BadRequestException();
-
-    return updated;
   }
 
   private async handleImageUploads(
     id: number,
     coverImage?: Express.Multer.File,
-    Images?: Express.Multer.File[]
+    images?: Express.Multer.File[]
   ): Promise<AnhSP[]> {
-    const images: AnhSP[] = [];
+    const uploaded: AnhSP[] = [];
 
-    // Upload ảnh bìa mới nếu có
     if (coverImage) {
-      const { uploaded } = await this.Cloudinary.uploadSingleImage(
+      const { uploaded: cover } = await this.Cloudinary.uploadSingleImage(
         id.toString(),
         coverImage,
-        id.toString()
+        folderPrefix
       );
-      images.push({
+      uploaded.push({
         A_anhBia: true,
-        A_publicId: uploaded.public_id,
-        A_url: uploaded.url,
+        A_publicId: cover.public_id,
+        A_url: cover.url,
       });
     }
 
-    // Upload nhiều ảnh thường nếu có
-    if (Images?.length) {
-      const { uploaded } = await this.Cloudinary.uploadMultipleImages(
+    if (images?.length) {
+      const { uploaded: imgs } = await this.Cloudinary.uploadMultipleImages(
         id.toString(),
-        Images,
-        id.toString()
+        images,
+        folderPrefix
       );
-      for (const img of uploaded) {
-        images.push({
+      uploaded.push(
+        ...imgs.map((img) => ({
           A_anhBia: false,
           A_publicId: img.public_id,
           A_url: img.url,
-        });
-      }
+        }))
+      );
     }
 
-    return images;
+    return uploaded;
   }
 
   private detectChangedFields(
@@ -236,13 +223,23 @@ export class SanPhamService {
     return { fieldsChange, updatePayload };
   }
 
+  private async rollbackUploadedImages(images: AnhSP[]) {
+    for (const img of images) {
+      try {
+        await this.Cloudinary.deleteImage(img.A_publicId);
+      } catch {
+        console.warn(`Không thể xóa ảnh đã upload: ${img.A_publicId}`);
+      }
+    }
+  }
+
   async findAll(options: {
     mode?: 'head' | 'tail' | 'cursor';
     cursorId?: string;
     currentPage?: number;
     targetPage?: number;
-    sortType?: 1 | 2 | 3;
-    filterType?: 1 | 2 | 12;
+    sortType?: SanPhamSortType;
+    filterType?: SanPhamFilterType;
     limit?: number;
     keyword?: string;
     categoryId?: number;
@@ -360,15 +357,17 @@ export class SanPhamService {
   async findById(
     id: number,
     mode: 'default' | 'full' = 'default'
-  ): Promise<any> {
+  ): Promise<{ product: any }> {
     const result: any = await this.SanPham.findById(id, mode);
     if (!result) {
       throw new NotFoundException();
     }
+    console.log(result);
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.NhanVien.mapActions(lichSu) : [];
-    return result;
+      lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
+
+    return { product: result };
   }
 
   async delete(id: number): Promise<SanPham> {
