@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsBoolean,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -8,22 +7,9 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Expose, Transform, Type, plainToInstance } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
 
-export class AnhSPDto {
-  @IsString()
-  @Expose()
-  A_publicId: string;
-
-  @IsString()
-  @Expose()
-  A_url: string;
-
-  @IsBoolean()
-  @Expose()
-  A_anhBia: boolean;
-}
 export class CreateDto {
   @Transform(({ value }) => {
     if (!value) return [];
@@ -40,7 +26,6 @@ export class CreateDto {
     return [];
   })
   @IsArray()
-  @Transform(({ value }) => Number(value))
   TL_id: number[];
 
   @Transform(({ value }) => Number(value))
@@ -54,7 +39,7 @@ export class CreateDto {
 
   @IsString()
   @MaxLength(1000)
-  SP_noiDung: string;
+  SP_tomTat: string;
 
   @IsString()
   @IsOptional()
@@ -120,16 +105,15 @@ export class UpdateDto extends PartialType(CreateDto) {
     if (!value) return [];
     if (typeof value === 'string') {
       try {
-        return plainToInstance(AnhSPDto, JSON.parse(value));
+        return JSON.parse(value) as string[];
       } catch {
         return [];
       }
     }
-    return plainToInstance(AnhSPDto, value);
+    return value as string[];
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AnhSPDto)
   @IsOptional()
-  SP_anh?: AnhSPDto[];
+  imagesToDelete?: string[];
 }

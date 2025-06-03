@@ -26,11 +26,7 @@ export class ExceptionLoggingFilter implements ExceptionFilter {
         : 'Lỗi hệ thống';
 
     this.logger.error(
-      `${
-        exception instanceof Error
-          ? `Message: ${exception.message}`
-          : `Raw: ${JSON.stringify(exception)}`
-      }`,
+      `Status: ${status}\n` + `Message: ${JSON.stringify(message, null, 2)}`,
       exception instanceof Error ? exception.stack : undefined
     );
 
