@@ -68,11 +68,11 @@ const formSchema = z
     path: ['surcharge'],
   });
 
-type FormValues = z.infer<typeof formSchema>;
+export type ShippingFormData = z.infer<typeof formSchema>;
 
 type Props = {
-  defaultValues?: Partial<FormValues>;
-  onSubmit?: (data: FormValues) => void;
+  defaultValues?: Partial<ShippingFormData>;
+  onSubmit?: (data: ShippingFormData) => void;
   onDelete?: () => void;
 };
 
@@ -80,11 +80,11 @@ function InfoLabel({
   label,
   title,
   description,
-}: {
+}: Readonly<{
   label: string;
   title: string;
   description: string;
-}) {
+}>) {
   return (
     <HoverCard>
       <span>{label}</span>
@@ -105,11 +105,11 @@ export default function ShippingFeeForm({
   onDelete,
 }: Readonly<Props>) {
   const isEditing = Boolean(Object.keys(defaultValues).length);
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isConfirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [formDataToSubmit, setFormDataToSubmit] = useState<FormValues | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [formDataToSubmit, setFormDataToSubmit] = useState<ShippingFormData | null>(null);
 
-  const form = useForm<FormValues>({
+  const form = useForm<ShippingFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       provinceId: defaultValues.provinceId,
@@ -128,7 +128,7 @@ export default function ShippingFeeForm({
     }
   }, [surchargeValue, form]);
 
-  const handleSubmit = useCallback((data: FormValues) => {
+  const handleSubmit = useCallback((data: ShippingFormData) => {
     setFormDataToSubmit(data);
     setConfirmDialogOpen(true);
   }, []);
@@ -276,7 +276,7 @@ export default function ShippingFeeForm({
 
       {/* Dialog xác nhận xóa */}
       <ConfirmDialog
-        open={isDeleteDialogOpen}
+        open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         mode="delete"
@@ -284,7 +284,7 @@ export default function ShippingFeeForm({
 
       {/* Dialog xác nhận thêm/cập nhật */}
       <ConfirmDialog
-        open={isConfirmDialogOpen}
+        open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}
         onConfirm={handleConfirmSubmit}
         mode="submit"
