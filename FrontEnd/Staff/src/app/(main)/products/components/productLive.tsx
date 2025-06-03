@@ -1,112 +1,99 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ProductTable, { Product } from '../components/productTab';
+import ProductTable from '../components/productTab';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import PaginationControls from '@/components/PaginationControls';
+import api from '@/lib/axiosClient';
+import { ApiProductSimple, ProductSimple } from '@/type/Product';
 
 export default function ProductLive() {
-  const [data, setData] = useState<Product[]>([]);
-  const [paginate, setPaginate] = useState<number[]>([]);
+  const [data, setData] = useState<ProductSimple[]>([]);
+  const [paginate, setPaginate] = useState<number[]>([1]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [cursorId, setCursorId] = useState<string | undefined>(undefined);
   const [totalPage, setTotalPage] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const pageSize = 24;
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const limit = 24;
 
-  const allProducts = Array.from({ length: 1000 }, (_, i) => ({
-    code: i + 1,
-    name: `Sản phẩm ${i + 1}`,
-    quantity: Math.floor(Math.random() * 100),
-    price: 10000 + i * 10,
-    sold: Math.floor(Math.random() * 50),
-    status: 1,
-    imageUrl: `https://picsum.photos/seed/${i + 1}/200/200`,
-  }));
-
-  const [allData, setAllData] = useState<Product[]>([]);
-
-  useEffect(() => {
-    setAllData(allProducts);
-    setTotalItems(allProducts.length);
-    setTotalPage(Math.ceil(allProducts.length / pageSize));
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    const timeoutId = setTimeout(() => {
-      const start = (currentPage - 1) * pageSize;
-      const end = start + pageSize;
-      setData(allData.slice(start, end));
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [allData, currentPage]);
-
-  useEffect(() => {
-    setPaginate(generatePaginate(currentPage, totalPage));
-  }, [currentPage, totalPage]);
-
-  const generatePaginate = (current: number, total: number): number[] => {
-    const delta = 2;
-    const range: number[] = [];
-
-    let start = Math.max(1, current - delta);
-    let end = Math.min(total, current + delta);
-
-    // Cố gắng giữ đủ (2 * delta + 1) trang nếu có thể
-    const pagesToShow = 2 * delta + 1;
-    const actualCount = end - start + 1;
-
-    if (actualCount < pagesToShow) {
-      const missing = pagesToShow - actualCount;
-
-      // Ưu tiên dồn về đầu nếu gần cuối
-      if (start > 2) {
-        start = Math.max(2, start - missing);
-      } else if (end < total - 1) {
-        end = Math.min(total - 1, end + missing);
-      }
+  const fetchData = (mode: 'head' | 'tail' | 'cursor', targetPage?: number, cursor?: string) => {
+    setIsLoading(true);
+    let params;
+    if (targetPage && cursor) {
+      params = {
+        mode,
+        cursorId: cursor,
+        currentPage,
+        targetPage,
+        limit,
+      };
+    } else {
+      params = {
+        mode,
+        limit,
+      };
     }
 
-    for (let i = start; i <= end; i++) {
-      range.push(i);
+    return api
+      .get('/products', {
+        params: params,
+      })
+      .then((res) => {
+        const { data, paginate, currentPage, cursorId, totalPage, totalItems } = res.data;
+
+        if (!data.length) {
+          setData([]);
+          setPaginate([1]);
+          return;
+        }
+
+        const mapped: ProductSimple[] = data.map((item: ApiProductSimple) => ({
+          id: item.SP_id,
+          name: item.SP_ten,
+          price: item.SP_giaBan,
+          stock: item.SP_tonKho,
+          cost: item.SP_giaNhap,
+          sold: item.SP_daBan,
+          image: item.SP_anh,
+        }));
+
+        setData(mapped);
+        setPaginate(paginate);
+        setCurrentPage(currentPage);
+        setCursorId(cursorId);
+        setTotalPage(totalPage);
+        setTotalItems(totalItems);
+      })
+      .catch(() => {
+        setData([]);
+        setPaginate([1]);
+      })
+      .finally(() => setIsLoading(false));
+  };
+
+  // Khởi tạo dữ liệu khi load trang hoặc khi currentPage thay đổi
+  useEffect(() => {
+    // luôn bắt đầu bằng mode 'head' nếu chưa có cursorId, hoặc mode 'cursor' nếu có
+    if (!cursorId) {
+      fetchData('head');
+    } else {
+      fetchData('cursor', currentPage, cursorId);
     }
+  }, [currentPage]);
 
-    return range;
+  // Xử lý click chuyển trang pagination shadcn
+  const handlePageChange = (page: number) => {
+    if (page === currentPage) return;
+    fetchData('cursor', page, cursorId);
   };
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
   const handleFirstPage = () => {
-    setCurrentPage(1);
+    fetchData('head');
   };
-
   const handleLastPage = () => {
-    setCurrentPage(totalPage);
-  };
-
-  const handleDelete = (code: number) => {
-    if (window.confirm(`Xác nhận xóa sản phẩm: ${code}?`)) {
-      setAllData((prev) => prev.filter((item) => item.code !== code));
-      alert('Đã xóa!');
-      const newTotal = allData.length - 1;
-      const maxPage = Math.ceil(newTotal / pageSize);
-      setTotalItems(newTotal);
-      setTotalPage(maxPage);
-      if (currentPage > maxPage) setCurrentPage(maxPage);
-    }
-  };
-
-  const handleToggleStatus = (code: number, newStatus: number) => {
-    setAllData((prev) =>
-      prev.map((item) => (item.code === code ? { ...item, status: newStatus } : item))
-    );
-    alert(`Đã ${newStatus === 1 ? 'hiện' : 'ẩn'} sản phẩm mã: ${code}`);
+    fetchData('head');
   };
 
   return (
@@ -119,12 +106,7 @@ export default function ProductLive() {
           </Button>
         </Link>
       </div>
-      <ProductTable
-        data={data}
-        loading={loading}
-        onDelete={handleDelete}
-        onToggleStatus={handleToggleStatus}
-      />
+      <ProductTable data={data} loading={isLoading} />
       <PaginationControls
         paginate={paginate}
         totalPage={totalPage}
