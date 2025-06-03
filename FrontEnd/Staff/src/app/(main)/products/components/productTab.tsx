@@ -22,34 +22,23 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-
-export type Product = {
-  code: number;
-  name: string;
-  quantity: number;
-  price: number;
-  sold: number;
-  status: number; // 1 = hiện, 2 = ẩn
-  imageUrl: string;
-};
+import { ProductSimple } from '@/type/Product';
 
 interface ProductTableProps {
-  data: Product[];
+  data: ProductSimple[];
   loading?: boolean;
-  onEdit?: (row: Product) => void;
+  onEdit?: (row: ProductSimple) => void;
   onDelete?: (code: number) => void;
-  onToggleStatus?: (code: number, newStatus: number) => void;
 }
 
 export default function ProductTable({
   data,
   loading = false,
   onDelete,
-  onToggleStatus,
-}: ProductTableProps) {
+}: Readonly<ProductTableProps>) {
   const [deleteCode, setDeleteCode] = useState<number | null>(null);
 
-  const columns: ColumnDef<Product>[] = [
+  const columns: ColumnDef<ProductSimple>[] = [
     {
       accessorKey: 'name',
       header: 'Sản phẩm',
@@ -57,15 +46,15 @@ export default function ProductTable({
         const product = row.original;
         return (
           <div className=" rounded-sm flex gap-4 pl-2">
-            <Avatar className="w-10 h-12 rounded-sm">
-              <AvatarImage src={product.imageUrl} alt={product.name} />
-              <AvatarFallback>SP</AvatarFallback>
+            <Avatar className="w-10 h-12 rounded-xs">
+              <AvatarImage src={product.image} alt={product.name} />
+              <AvatarFallback>#{product.id}</AvatarFallback>
             </Avatar>
             <div className="text-sm">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild className="cursor-pointer">
-                    <div className="font-semibold leading-5  truncate max-w-36 lg:max-w-none">
+                    <div className="font-semibold text-sm leading-5 truncate max-w-36 lg:max-w-none">
                       {product.name}
                     </div>
                   </TooltipTrigger>
@@ -75,16 +64,16 @@ export default function ProductTable({
                 </Tooltip>
               </TooltipProvider>
 
-              <div className="text-xs text-muted-foreground">#{product.code}</div>
+              <div className="text-xs text-muted-foreground">#{product.id}</div>
             </div>
           </div>
         );
       },
     },
     {
-      accessorKey: 'quantity',
+      accessorKey: 'stock',
       header: 'Số lượng',
-      cell: ({ row }) => <div>{row.getValue('quantity')}</div>,
+      cell: ({ row }) => <div>{row.getValue('stock')}</div>,
     },
     {
       accessorKey: 'price',
@@ -110,33 +99,9 @@ export default function ProductTable({
         const product = row.original;
         return (
           <div className="flex flex-col space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/product/${product.code}`}>
+            <Link className="cursor-pointer hover:underline" href={`/products/${product.id}`}>
               Cập nhật
             </Link>
-
-            {product.status === 1 ? (
-              <span
-                className="cursor-pointer hover:underline"
-                onClick={() => onToggleStatus?.(product.code, 2)}
-              >
-                Ẩn
-              </span>
-            ) : (
-              <>
-                <span
-                  className="cursor-pointer hover:underline"
-                  onClick={() => onToggleStatus?.(product.code, 1)}
-                >
-                  Hiện
-                </span>
-                <span
-                  className="cursor-pointer hover:underline"
-                  onClick={() => setDeleteCode(product.code)}
-                >
-                  Xóa
-                </span>
-              </>
-            )}
           </div>
         );
       },
