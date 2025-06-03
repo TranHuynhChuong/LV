@@ -30,13 +30,15 @@ function AppBreadcrumb() {
           <Skeleton className="h-6 rounded-md w-52" />
         ) : (
           breadcrumbs.map((crumb, index) => (
-            <BreadcrumbList key={index} className="flex items-center ">
+            <BreadcrumbList key={index} className="flex items-center">
               {index > 0 && <BreadcrumbSeparator />}
               <BreadcrumbItem>
                 {crumb.href ? (
-                  <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                  <BreadcrumbLink className=" whitespace-nowrap" href={crumb.href}>
+                    {crumb.label}
+                  </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  <BreadcrumbPage className=" whitespace-nowrap">{crumb.label}</BreadcrumbPage>
                 )}
               </BreadcrumbItem>
             </BreadcrumbList>
