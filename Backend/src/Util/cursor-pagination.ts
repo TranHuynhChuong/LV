@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, FilterQuery } from 'mongoose';
 import { BadRequestException } from '@nestjs/common';
 
 export type SortType = Record<string, 1 | -1>;
@@ -185,7 +185,9 @@ export class PaginateRepository<T extends { [key: string]: any }> {
     if (!cursorId) throw new BadRequestException('Missing cursorId');
     if (!sortField) throw new BadRequestException('Missing sortField');
 
-    const cursorDoc = await this.model.findById(cursorId).lean();
+    const cursorDoc = await this.model
+      .findOne({ [idField]: cursorId } as FilterQuery<T>)
+      .lean();
     if (!cursorDoc) throw new BadRequestException('Invalid cursorId');
 
     const cursorVal = cursorDoc[sortField];
