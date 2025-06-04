@@ -51,7 +51,7 @@ export class SanPhamController {
       (f) => f.fieldname === 'productImageFiles'
     );
     console.log(id, body, coverImage, productImages);
-    //return this.service.update(id, body, coverImage, productImages);
+    return this.service.update(id, body, coverImage, productImages);
   }
 
   // Tìm sản phẩm theo keyword
@@ -76,7 +76,7 @@ export class SanPhamController {
       currentPage = '1',
       targetPage = '1',
       sortType = '1',
-      filterType = '12',
+      filterType,
       limit = '24',
     } = query;
 
@@ -87,7 +87,7 @@ export class SanPhamController {
       currentPage: Number(currentPage),
       targetPage: Number(targetPage),
       sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | 12,
+      filterType: Number(filterType) as 1 | 2 | undefined,
       limit: Number(limit),
     };
 
@@ -116,7 +116,7 @@ export class SanPhamController {
       currentPage = '1',
       targetPage = '1',
       sortType = '1',
-      filterType = '12',
+      filterType,
       limit = '24',
     } = query;
 
@@ -126,7 +126,7 @@ export class SanPhamController {
       currentPage: Number(currentPage),
       targetPage: Number(targetPage),
       sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | 12,
+      filterType: Number(filterType) as 1 | 2 | undefined,
       limit: Number(limit),
       categoryId,
     };
@@ -141,6 +141,12 @@ export class SanPhamController {
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number
   ) {
     return this.service.findByVector(query, limit);
+  }
+
+  // Đếm tổng số sản phẩm
+  @Get('/total')
+  countAll() {
+    return this.service.countAll();
   }
 
   // Danh sách sản phẩm có phân trang và lọc trạng thái
@@ -164,7 +170,7 @@ export class SanPhamController {
       currentPage = '1',
       targetPage = '1',
       sortType = '1',
-      filterType = '12',
+      filterType,
       limit = '24',
     } = query;
     const searchParams = {
@@ -173,7 +179,7 @@ export class SanPhamController {
       currentPage: Number(currentPage),
       targetPage: Number(targetPage),
       sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | 12,
+      filterType: Number(filterType) as 1 | 2 | undefined,
       limit: Number(limit),
     };
 
@@ -193,11 +199,5 @@ export class SanPhamController {
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
-  }
-
-  // Đếm tổng số sản phẩm
-  @Get('/count/total')
-  countAll() {
-    return this.service.countAll();
   }
 }
