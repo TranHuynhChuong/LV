@@ -13,6 +13,8 @@ const project = {
   SP_giaBan: 1,
   SP_tonKho: 1,
   SP_daBan: 1,
+  SP_giaNhap: 1,
+  SP_trangThai: 1,
   SP_anh: {
     $arrayElemAt: [
       {
@@ -43,7 +45,7 @@ export interface SanPhamSummary {
   SP_anh: string;
 }
 
-export type SanPhamFilterType = 1 | 2 | 12;
+export type SanPhamFilterType = 1 | 2 | undefined;
 
 @Injectable()
 export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
@@ -115,7 +117,7 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
       skip = 0,
       limit = 24,
       sortType = 1,
-      filterType = 12,
+      filterType,
       keyword,
       id,
     } = option;
@@ -273,19 +275,19 @@ export class SanPhamRepository extends PaginateRepository<SanPhamDocument> {
 
   async countAll(): Promise<{
     total: number;
-    show: number;
+    live: number;
     hidden: number;
   }> {
-    const [total, show, hidden] = await Promise.all([
+    const [total, live, hidden] = await Promise.all([
       this.model.countDocuments({ SP_trangThai: { $ne: 0 } }), // tổng: gồm hiện + ẩn
       this.model.countDocuments({ SP_trangThai: 1 }), // hiện
       this.model.countDocuments({ SP_trangThai: 2 }), // ẩn
     ]);
 
-    return { total, show, hidden };
+    return { total, live, hidden };
   }
 
-  async count(filterType: 1 | 2 | 12): Promise<number> {
+  async count(filterType: 1 | 2 | undefined): Promise<number> {
     const filter: any = {};
 
     if (filterType === 1) filter.SP_trangThai = 1;
