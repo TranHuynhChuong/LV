@@ -85,7 +85,7 @@ export default function Products() {
   };
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto lg:max-w-4xl min-w-fit h-fit">
+    <div className="relative w-full max-w-2xl mx-auto lg:max-w-3xl h-fit">
       {isSubmitting && (
         <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
