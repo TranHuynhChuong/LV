@@ -124,7 +124,7 @@ export default function ProductForm({
   });
 
   IS_EDITING = !!defaultValue;
-  console.log(defaultValue);
+
   const { control } = form;
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [productImageFiles, setProductImageFiles] = useState<File[]>([]);
@@ -191,7 +191,7 @@ export default function ProductForm({
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" noValidate>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 min-w-fit" noValidate>
           <section className="p-8 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin cơ bản</h3>
             {/* Cover Image */}
@@ -200,7 +200,7 @@ export default function ProductForm({
               name="coverImageFile"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Ảnh bìa
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -209,7 +209,7 @@ export default function ProductForm({
                         {!coverImageFile && !coverImage ? (
                           <label
                             className={`absolute inset-0 flex items-center justify-center transition-colors border-2 border-dashed rounded-md cursor-pointer hover:border-blue-500 ${
-                              fieldState.invalid ? 'border-red-500' : 'border-gray-400'
+                              fieldState.invalid ? 'border-red-500' : 'border-gray-300'
                             }`}
                           >
                             <input
@@ -219,7 +219,6 @@ export default function ProductForm({
                               onChange={(e) => {
                                 const file = e.target.files?.[0] ?? null;
                                 setCoverImageFile(file);
-                                console.log(file);
                                 field.onChange(file);
                               }}
                             />
@@ -229,7 +228,7 @@ export default function ProductForm({
                             </div>
                           </label>
                         ) : (
-                          <div className="relative w-full h-full overflow-hidden border-2 border-gray-400 rounded-md group">
+                          <div className="relative w-full h-full overflow-hidden border border-gray-300 rounded-md group">
                             <Image
                               src={getPreviewUrl(coverImageFile) ?? coverImage ?? ''}
                               alt="Ảnh bìa"
@@ -263,7 +262,9 @@ export default function ProductForm({
               name="productImageFiles"
               render={() => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26  sm:text-end">Ảnh sản phẩm</FormLabel>
+                  <FormLabel className="items-start w-26  sm:text-end  mt-2">
+                    Ảnh sản phẩm
+                  </FormLabel>
                   <FormControl>
                     <div className="flex flex-wrap max-w-md space-x-2 space-y-2">
                       {productImages.map((url, idx) => {
@@ -348,7 +349,7 @@ export default function ProductForm({
               name="name"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Tên sách
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -372,7 +373,7 @@ export default function ProductForm({
               name="category"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Thể loại
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -398,7 +399,7 @@ export default function ProductForm({
               name="status"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">Trạng thái</FormLabel>
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Trạng thái</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Select
@@ -430,7 +431,7 @@ export default function ProductForm({
               name="summary"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Tóm tắt
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -459,7 +460,7 @@ export default function ProductForm({
               name="description"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">Mô tả</FormLabel>
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Mô tả</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Textarea
@@ -485,7 +486,7 @@ export default function ProductForm({
               name="author"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Tác giả
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -503,7 +504,7 @@ export default function ProductForm({
               name="publisher"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Nhà xuất bản
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -521,7 +522,7 @@ export default function ProductForm({
               name="isbn"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>ISBN
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -538,7 +539,7 @@ export default function ProductForm({
               name="language"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
                     <span className="text-red-500">*</span>Ngôn ngữ
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -555,7 +556,7 @@ export default function ProductForm({
               name="translator"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end">Người dịch</FormLabel>
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Người dịch</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Input value={field.value ?? ''} onChange={field.onChange} />
@@ -571,7 +572,7 @@ export default function ProductForm({
                 name="publishYear"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-26 sm:justify-end">
+                    <FormLabel className="items-start w-26 sm:justify-end mt-2">
                       <span className="text-red-500">*</span>Năm xuất bản
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -589,12 +590,17 @@ export default function ProductForm({
                 name="page"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-26 sm:justify-end">
+                    <FormLabel className="items-start w-26 sm:justify-end mt-2">
                       <span className="text-red-500">*</span>Số trang
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </div>
@@ -612,12 +618,25 @@ export default function ProductForm({
                 name="price"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end">
+                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
                       <span className="text-red-500">*</span>Giá bán
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            className="pl-12"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                          />
+                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
+                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
+                              VND
+                            </span>
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </div>
@@ -630,12 +649,25 @@ export default function ProductForm({
                 name="cost"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end">
+                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
                       <span className="text-red-500">*</span>Giá nhập
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            className="pl-12"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                          />
+                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
+                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
+                              VND
+                            </span>
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </div>
@@ -647,12 +679,17 @@ export default function ProductForm({
                 name="stock"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end">
+                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
                       <span className="text-red-500">*</span>Tồn kho
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
                       <FormMessage />
                     </div>
@@ -665,12 +702,26 @@ export default function ProductForm({
                 name="weight"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end">
+                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
                       <span className="text-red-500">*</span>Trọng lượng
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input type="number" value={field.value ?? ''} onChange={field.onChange} />
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            inputMode="numeric"
+                            className="pl-13"
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
+                          />
+
+                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
+                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
+                              Gram
+                            </span>
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </div>
