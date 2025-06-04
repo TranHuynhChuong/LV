@@ -55,7 +55,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<StaffFormData[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<{
     open: boolean;
     id: string | null;
   }>({
@@ -130,11 +130,11 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
       })
       .catch((error) => {
         if (error.response?.status === 400) {
-          toast.error('Xóa nhân viên thất bại!');
+          toast.error('Xóa thất bại!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
-        console.error('Xóa nhân viên thất bại:', error);
+        console.error('Xóa thất bại:', error);
       });
   };
 
@@ -346,7 +346,7 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
 
       {/* Dialog xác nhận xóa */}
       <Dialog
-        open={isDeleteDialogOpen.open}
+        open={deleteDialogOpen.open}
         onOpenChange={(open) =>
           setDeleteDialogOpen((prev) => ({
             ...prev,
@@ -370,8 +370,8 @@ export default function StaffTable({ onDeleteSuccess }: { readonly onDeleteSucce
             <Button
               variant="destructive"
               onClick={() => {
-                if (isDeleteDialogOpen.id) {
-                  handleConfirmDelete(isDeleteDialogOpen.id);
+                if (deleteDialogOpen.id) {
+                  handleConfirmDelete(deleteDialogOpen.id);
                 }
               }}
             >
