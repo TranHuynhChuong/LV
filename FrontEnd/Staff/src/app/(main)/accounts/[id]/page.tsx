@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { StaffForm } from '@/app/(main)/accounts/components/staffForm';
 import { toast } from 'sonner';
@@ -13,10 +13,10 @@ import { ActivityLog } from '@/type/ActivityLog';
 import { Metadata } from '@/type/Metadata';
 import { StaffFormData } from '../components/staffForm';
 
-export default function StaffDetailPage({ params }: { readonly params: Promise<{ id: string }> }) {
+export default function StaffDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
-  const unwrappedParams = use(params);
-  const { id } = unwrappedParams;
+  const params = useParams();
+  const id = params?.id as string;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [staffData, setStaffData] = useState<StaffFormData | null>(null);
