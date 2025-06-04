@@ -6,6 +6,7 @@ export type ApiProductSimple = {
   SP_daBan: number;
   SP_tonKho: number;
   SP_anh: string;
+  SP_trangThai: number;
 };
 
 export type ProductSimple = {
@@ -16,4 +17,5 @@ export type ProductSimple = {
   cost: number;
   image: string;
   sold: number;
+  state: number;
 };
