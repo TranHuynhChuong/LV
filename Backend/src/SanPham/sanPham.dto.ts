@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  ValidateNested,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
@@ -113,7 +112,6 @@ export class UpdateDto extends PartialType(CreateDto) {
     return value as string[];
   })
   @IsArray()
-  @ValidateNested({ each: true })
   @IsOptional()
   imagesToDelete?: string[];
 }
