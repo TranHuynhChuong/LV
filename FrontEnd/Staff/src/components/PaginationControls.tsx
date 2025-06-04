@@ -27,37 +27,30 @@ export default function PaginationControls({
 }: Readonly<PaginationControlsProps>) {
   if (!paginate || paginate.length === 0) return null;
 
-  const showFirst = paginate[0] > 1;
-  const showLast = paginate[paginate.length - 1] < totalPage;
+  const pages = paginate.filter((page) => page !== 1 && page !== totalPage);
 
   return (
     <Pagination className="py-2">
       <PaginationContent>
-        {/* Trang đầu và dấu ... nếu cần */}
-        {showFirst && (
-          <>
-            <PaginationItem>
-              <PaginationLink
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onFirstPage();
-                }}
-                isActive={currentPage === 1}
-              >
-                1
-              </PaginationLink>
-            </PaginationItem>
-            {paginate[0] > 2 && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
-          </>
+        <PaginationItem>
+          <PaginationLink
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onFirstPage();
+            }}
+            isActive={currentPage === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+        {pages.length > 0 && pages[0] > 2 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
         )}
 
-        {/* Các trang giữa */}
-        {paginate.map((page) => (
+        {pages.map((page) => (
           <PaginationItem key={page}>
             <PaginationLink
               href="#"
@@ -73,27 +66,25 @@ export default function PaginationControls({
           </PaginationItem>
         ))}
 
-        {/* Dấu ... và trang cuối nếu cần */}
-        {showLast && (
-          <>
-            {paginate[paginate.length - 1] < totalPage - 1 && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-            )}
-            <PaginationItem>
-              <PaginationLink
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onLastPage();
-                }}
-                isActive={currentPage === totalPage}
-              >
-                {totalPage}
-              </PaginationLink>
-            </PaginationItem>
-          </>
+        {pages.length > 0 && pages[pages.length - 1] < totalPage - 1 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+
+        {pages.length > 0 && (
+          <PaginationItem>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onLastPage();
+              }}
+              isActive={currentPage === totalPage}
+            >
+              {totalPage}
+            </PaginationLink>
+          </PaginationItem>
         )}
       </PaginationContent>
     </Pagination>
