@@ -118,17 +118,12 @@ export class SanPhamService {
       }
     }
 
-    const allImages = [
-      ...existing.SP_anh.filter((img) => !img.A_anhBia),
-      ...newImages,
-    ];
+    const imagesToDelete = data.imagesToDelete ?? [];
+    const remainingImages = existing.SP_anh.filter(
+      (img) => !imagesToDelete.includes(img.A_url)
+    );
 
-    if (newImages.find((i) => i.A_anhBia)) {
-      // reset ảnh bìa nếu có ảnh bìa mới
-      for (const img of allImages) img.A_anhBia = false;
-      const cover = newImages.find((i) => i.A_anhBia);
-      if (cover) cover.A_anhBia = true;
-    }
+    const allImages = [...remainingImages, ...newImages];
 
     const { fieldsChange, updatePayload } = this.detectChangedFields(
       data,
@@ -209,18 +204,35 @@ export class SanPhamService {
     const updatePayload: Partial<SanPham> = {};
 
     for (const key of Object.keys(data)) {
-      if (
-        data[key] !== undefined &&
-        data[key] !== existing[key] &&
-        key !== 'NV_id'
-      ) {
-        const label = typeOfChange[key] || key;
+      if (key === 'NV_id') continue;
+
+      const newValue = data[key];
+      const oldValue = existing[key];
+
+      if (newValue === undefined) continue;
+
+      const bothAreArrays = Array.isArray(newValue) && Array.isArray(oldValue);
+
+      const hasChanged = bothAreArrays
+        ? !this.areArraysEqual(newValue, oldValue)
+        : newValue !== oldValue;
+
+      if (hasChanged) {
+        const label = typeOfChange[key];
         fieldsChange.push(label);
-        updatePayload[key] = data[key];
+        updatePayload[key] = newValue;
       }
     }
 
     return { fieldsChange, updatePayload };
+  }
+
+  private areArraysEqual(arr1: any[], arr2: any[]): boolean {
+    if (arr1.length !== arr2.length) return false;
+    for (let i = 0; i < arr1.length; i++) {
+      if (arr1[i] !== arr2[i]) return false;
+    }
+    return true;
   }
 
   private async rollbackUploadedImages(images: AnhSP[]) {
@@ -261,7 +273,7 @@ export class SanPhamService {
       currentPage = 1,
       targetPage = 1,
       sortType = 1,
-      filterType = 12,
+      filterType,
       limit = 24,
       keyword,
       categoryId,
@@ -304,9 +316,8 @@ export class SanPhamService {
 
       case 'cursor': {
         const skip = Math.abs(targetPage - currentPage) * limit;
-        if (skip === 0) return;
 
-        const direction = targetPage > currentPage ? 'forward' : 'back';
+        const direction = targetPage >= currentPage ? 'forward' : 'back';
         if (direction === 'forward') {
           result = await this.SanPham.findAllForward(
             cursorId ?? '',
@@ -335,7 +346,7 @@ export class SanPhamService {
 
     const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
     const newCursorId =
-      result.data.length > 0 ? String(result.data[0].SP_id) : (cursorId ?? '');
+      result.data.length > 0 ? String(result.data[0].SP_id) : '';
 
     return {
       data: result.data,
@@ -362,7 +373,7 @@ export class SanPhamService {
     if (!result) {
       throw new NotFoundException();
     }
-    console.log(result);
+
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
@@ -378,7 +389,7 @@ export class SanPhamService {
     return deleted;
   }
 
-  async countAll(): Promise<{ total: number; show: number; hidden: number }> {
+  async countAll(): Promise<{ total: number; live: number; hidden: number }> {
     return this.SanPham.countAll();
   }
 }
