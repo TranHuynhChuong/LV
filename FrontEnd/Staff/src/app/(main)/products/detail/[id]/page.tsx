@@ -3,15 +3,16 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import ProductForm, { ProductFormValues, ProductFormType } from '../components/productForm';
+import ProductForm, { ProductFormValues, ProductFormType } from '../../components/productForm';
 import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 import { ActionHistorySheet } from '@/components/ActivityLogSheet';
 import { ActivityLog } from '@/type/ActivityLog';
 import { Metadata } from '@/type/Metadata';
 import { Image } from '@/type/Image';
+import Loader from '@/components/Loader';
+import Loading from '../../components/productFormLoading';
 
 export default function ProductDetail() {
   const params = useParams();
@@ -58,35 +59,35 @@ export default function ProductDetail() {
     if (values.weight !== undefined && values.weight !== null)
       formData.append('SP_trongLuong', values.weight.toString());
     if (authData.userId) formData.append('NV_id', authData.userId);
-    if (values.coverImageFile) {
-      formData.append('coverImageFile', values.coverImageFile);
-    }
     if (values.productImageFiles?.length) {
       values.productImageFiles.forEach((file) => {
         formData.append('productImageFiles', file);
       });
     }
-
     const imagesToDelete = (data?.productImages ?? []).filter(
       (url) => !productImages?.includes(url)
     );
 
-    if (imagesToDelete.length) {
-      // Gửi danh sách url ảnh cần xoá cho backend
+    if (values.coverImageFile) {
+      formData.append('coverImageFile', values.coverImageFile);
+      imagesToDelete.push(data?.coverImage ?? '');
+    }
+
+    if (imagesToDelete.length > 0) {
       formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
     }
 
     api
-      .post('/products', formData, {
+      .put(`/products/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then(() => {
-        toast.success('Thêm mới thành công!');
+        toast.success('Cập nhật thành công!');
         router.back();
       })
       .catch((error) => {
         if (error?.status === 400) {
-          toast.error('Thêm mới thất bại!');
+          toast.error('Cập nhật thất bại!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
@@ -100,7 +101,6 @@ export default function ProductDetail() {
   const [data, setData] = useState<ProductFormType>();
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Helper functions to reduce nesting
   const getCoverImageUrl = (images: Image[]): string => {
     const cover = images.find((img) => img.A_anhBia);
     return cover ? cover.A_url : '';
@@ -162,17 +162,32 @@ export default function ProductDetail() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <></>;
+  const handleOnDelete = () => {
+    setIsSubmitting(true);
+    api
+      .delete(`/products/${id}`)
+      .then(() => {
+        toast.success('Xóa thành công!');
+        router.back();
+      })
+      .catch((error) => {
+        setIsSubmitting(false);
+        if (error.status === 400) {
+          toast.error('Xóa thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
+        console.error('Lỗi khi xóa:', error);
+      });
+  };
 
-  return (
-    <div className="relative w-full max-w-2xl mx-auto lg:max-w-4xl min-w-fit h-fit">
-      {isSubmitting && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-      )}
-      <ProductForm onSubmit={onSubmit} defaultValue={data} />
-      <ActionHistorySheet metadata={metadata} />
-    </div>
-  );
+  if (loading) return <Loading />;
+  else
+    return (
+      <div className="relative w-full max-w-2xl xl:max-w-4xl mx-auto  h-fit">
+        {isSubmitting && <Loader />}
+        <ProductForm onSubmit={onSubmit} defaultValue={data} onDelete={handleOnDelete} />
+        <ActionHistorySheet metadata={metadata} />
+      </div>
+    );
 }
