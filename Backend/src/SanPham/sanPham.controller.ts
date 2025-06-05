@@ -154,7 +154,6 @@ export class SanPhamController {
   findAll(
     @Query()
     query: {
-      keyword: string;
       mode?: 'head' | 'tail' | 'cursor';
       cursorId?: string;
       currentPage?: string;
