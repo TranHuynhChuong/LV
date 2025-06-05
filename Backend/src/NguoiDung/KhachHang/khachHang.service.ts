@@ -69,9 +69,8 @@ export class KhachHangsService {
 
       case 'cursor': {
         const skip = Math.abs(targetPage - currentPage) * limit;
-        if (skip === 0) return;
 
-        const direction = targetPage > currentPage ? 'forward' : 'back';
+        const direction = targetPage >= currentPage ? 'forward' : 'back';
         if (direction === 'forward') {
           result = await this.KhachHang.findAllForward(
             cursorId ?? '',
@@ -94,8 +93,7 @@ export class KhachHangsService {
 
     const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
     const tmp = result.data[0] as unknown as { _id: string };
-    const newCursorId =
-      result.data.length > 0 ? String(tmp._id) : (cursorId ?? '');
+    const newCursorId = result.data.length > 0 ? String(tmp._id) : '';
 
     return {
       data: result.data,
