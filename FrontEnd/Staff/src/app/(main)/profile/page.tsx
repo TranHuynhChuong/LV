@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 import api from '@/lib/axiosClient';
-import { StaffForm, StaffFormData } from '@/app/(main)/accounts/components/staffForm';
+import { StaffForm, StaffFormData } from '@/app/(main)/accounts/staffs/staffForm';
 import { toast } from 'sonner';
 import Loading from './loading';
 import { useAuth } from '@/contexts/AuthContext';
