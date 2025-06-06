@@ -9,47 +9,49 @@ import {
 } from '@/components/ui/pagination';
 
 interface PaginationControlsProps {
-  paginate: number[];
+  pagination: number[];
   currentPage: number;
   totalPage: number;
-  onPageChange: (page: number) => void;
-  onFirstPage: () => void;
-  onLastPage: () => void;
+  onPageChange: (targetPage: number) => void;
 }
 
 export default function PaginationControls({
-  paginate,
+  pagination,
   currentPage,
   totalPage,
   onPageChange,
-  onFirstPage,
-  onLastPage,
 }: Readonly<PaginationControlsProps>) {
-  if (!paginate || paginate.length === 0) return null;
-
-  const pages = paginate.filter((page) => page !== 1 && page !== totalPage);
+  const pages = pagination || [];
 
   return (
-    <Pagination className="py-2">
+    <Pagination>
       <PaginationContent>
-        <PaginationItem>
-          <PaginationLink
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onFirstPage();
-            }}
-            isActive={currentPage === 1}
-          >
-            1
-          </PaginationLink>
-        </PaginationItem>
-        {pages.length > 0 && pages[0] > 2 && (
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
+        {/* Hiện trang 1 nếu thiếu */}
+        {pages.length > 0 && pages[0] !== 1 && (
+          <>
+            <PaginationItem>
+              <PaginationLink
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onPageChange(1);
+                }}
+                isActive={currentPage === 1}
+              >
+                1
+              </PaginationLink>
+            </PaginationItem>
+
+            {/* Ellipsis nếu pages[0] > 2 (tức bỏ qua trang 2) */}
+            {pages[0] > 2 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+          </>
         )}
 
+        {/* Render các trang hiện tại */}
         {pages.map((page) => (
           <PaginationItem key={page}>
             <PaginationLink
@@ -66,19 +68,21 @@ export default function PaginationControls({
           </PaginationItem>
         ))}
 
+        {/* Ellipsis nếu còn khoảng cách phía sau */}
         {pages.length > 0 && pages[pages.length - 1] < totalPage - 1 && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
 
-        {pages.length > 0 && (
+        {/* Hiện trang totalPage nếu bị thiếu */}
+        {pages.length > 0 && pages[pages.length - 1] !== totalPage && (
           <PaginationItem>
             <PaginationLink
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                onLastPage();
+                onPageChange(totalPage);
               }}
               isActive={currentPage === totalPage}
             >
