@@ -124,11 +124,7 @@ export default function CategoryForm({
             />
           </div>
 
-          <FormFooterActions
-            isEditing={isEditing}
-            isView={isEditing}
-            onDelete={() => setDeleteDialogOpen(true)}
-          />
+          <FormFooterActions isEditing={isEditing} onDelete={() => setDeleteDialogOpen(true)} />
         </form>
       </Form>
 
