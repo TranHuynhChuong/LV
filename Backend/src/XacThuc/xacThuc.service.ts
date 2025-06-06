@@ -115,7 +115,7 @@ export class XacThucService {
       { userId, role },
       {
         secret: this.configService.get('auth.jwtSecret'),
-        expiresIn: '6h',
+        expiresIn: '1d',
       }
     );
   }

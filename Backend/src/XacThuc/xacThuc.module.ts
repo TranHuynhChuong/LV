@@ -18,7 +18,7 @@ import { Otp, OtpSchema } from './xacThuc.otp.schema';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('auth.jwtSecret'),
-        signOptions: { expiresIn: '6h' },
+        signOptions: { expiresIn: '1d' },
       }),
     }),
     MongooseModule.forFeature([{ name: Otp.name, schema: OtpSchema }]),
