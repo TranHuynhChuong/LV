@@ -17,5 +17,5 @@ export type ProductSimple = {
   cost: number;
   image: string;
   sold: number;
-  state: number;
+  status: number;
 };
