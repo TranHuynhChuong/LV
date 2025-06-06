@@ -27,11 +27,11 @@ import {
 import { Skeleton } from '../ui/skeleton';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { authData } = useAuth();
+  const { authData, isLoading } = useAuth();
   const fullNav = [
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
     { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
-    { title: 'Danh mục', url: '/categories', icon: ChartBar },
+    { title: 'Thể loại', url: '/categories', icon: ChartBar },
     { title: 'Đơn hàng', url: '/orders', icon: Package },
     { title: 'Khuyến mãi', url: '/promotions', icon: Percent },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
@@ -66,14 +66,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 logo
               </div>
               <div className="grid flex-1 text-left text-lg leading-tight ml-5">
-                <span className="truncate font-semibold">Bookie</span>
+                <span className="truncate font-semibold">Dật Lạc</span>
               </div>
             </Link>
           </SidebarMenuButton>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {authData.userId ? (
+        {!isLoading ? (
           <NavMain items={data.navMain} />
         ) : (
           <div className="space-y-2 p-2">
@@ -84,7 +84,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
       <SidebarFooter>
-        {authData.userId ? (
+        {!isLoading ? (
           <NavUser user={data.user} />
         ) : (
           <div className="p-2">
