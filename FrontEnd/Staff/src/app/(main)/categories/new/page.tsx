@@ -37,6 +37,8 @@ export default function NewCategory() {
         console.error(error);
         if (error.status === 400) {
           toast.error('Thêm mới thất bại!');
+        } else if (error.status === 409) {
+          toast.error('Thể loại đã tồn tại!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
