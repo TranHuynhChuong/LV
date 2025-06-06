@@ -101,9 +101,8 @@ export default function CategoryCombobox({
         <Button
           ref={triggerRef}
           variant="outline"
-          role="combobox"
           aria-expanded={open}
-          className={`flex flex-wrap items-center justify-start w-full pr-8 font-normal h-fit min-h-[2.5rem] p-1  ${
+          className={`flex flex-wrap items-center justify-start w-full font-normal h-fit px-2.5 ${
             className ?? ''
           }`}
           disabled={!categoriesRaw}
@@ -111,20 +110,18 @@ export default function CategoryCombobox({
           {!categoriesRaw ? (
             <Skeleton className="w-24 h-5" />
           ) : selectedCategories.length === 0 ? (
-            <span className="px-2">Chọn thể loại ... </span>
+            <span className="text-zinc-500">Chọn thể loại ... </span>
           ) : (
             selectedCategories.map((c) => (
-              <span
-                key={c.id}
-                className="m-1 px-2 py-0.5 bg-muted rounded text-sm whitespace-nowrap"
-              >
+              <span key={c.id} className="px-2 bg-muted rounded text-sm whitespace-nowrap">
                 {c.name}
               </span>
             ))
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0" style={{ width: triggerRef.current?.offsetWidth }}>
+
+      <PopoverContent className="p-0 min-w-fit" style={{ width: triggerRef.current?.offsetWidth }}>
         {!categoriesRaw ? (
           <div className="p-4 space-y-2">
             {[...Array(5)].map((_, i) => (
@@ -164,7 +161,10 @@ export default function CategoryCombobox({
                         }
                       }}
                     >
-                      <span style={{ paddingLeft: `${category.depth * 1.25}rem` }}>
+                      <span
+                        style={{ paddingLeft: `${category.depth * 1.25}rem` }}
+                        className=" whitespace-nowrap"
+                      >
                         {category.name}
                       </span>
 
