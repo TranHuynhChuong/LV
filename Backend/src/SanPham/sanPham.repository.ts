@@ -28,7 +28,7 @@ export class SanPhamRepository {
       case -3:
         return { SP_daBan: -1, SP_id: -1 };
       default:
-        return { SP_id: 1 };
+        return { SP_id: -1 };
     }
   }
 
@@ -51,10 +51,11 @@ export class SanPhamRepository {
     return filter;
   }
   protected getSearch(keyword?: string) {
-    const search = {
+    if (!keyword || keyword === '') return undefined;
+    return {
       index: 'default',
       text: {
-        query: keyword ?? '',
+        query: keyword,
         path: ['SP_ten', 'SP_tacGia', 'SP_nhaXuatBan'],
         fuzzy: {
           maxEdits: 2,
@@ -62,8 +63,6 @@ export class SanPhamRepository {
         },
       },
     };
-
-    return search;
   }
 
   protected getProject() {
@@ -102,7 +101,7 @@ export class SanPhamRepository {
     sortType: number,
     filterType?: number,
     limit = 24
-  ): Promise<PaginateResult<SanPhamDocument>> {
+  ): Promise<ProductListResults> {
     const project = this.getProject();
     const filter = this.getFilter(filterType);
     const sort = this.getSort(sortType);
@@ -126,7 +125,7 @@ export class SanPhamRepository {
     limit = 24,
     keyword?: string,
     categoryId?: number
-  ): Promise<PaginateResult<SanPhamDocument>> {
+  ): Promise<ProductListResults> {
     const project = this.getProject();
     const filter = this.getFilter(filterType, categoryId);
     const sort = this.getSort(sortType);
