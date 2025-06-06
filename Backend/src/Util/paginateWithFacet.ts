@@ -33,8 +33,7 @@ export interface PaginateResult<T> {
   metadata: {
     totalItems: number;
     totalPage: number;
-    paginations: number[];
-    page: number;
+    pagination: number[];
   };
 }
 
@@ -121,15 +120,14 @@ export async function paginateWithFacet<T>({
   const data = result[0]?.data ?? [];
 
   const totalPage = Math.ceil(totalItems / limit);
-  const paginations = calculatePaginate(page, totalItems, limit);
+  const pagination = calculatePaginate(page, totalItems, limit);
 
   return {
     data,
     metadata: {
       totalItems,
       totalPage,
-      paginations,
-      page,
+      pagination,
     },
   };
 }
