@@ -246,7 +246,7 @@ export class SanPhamService {
     sortType?: number;
     filterType?: number;
     limit?: number;
-  }): Promise<ProductListResults | undefined> {
+  }): Promise<ProductListResults> {
     const { page = 1, sortType = 1, filterType, limit = 24 } = options;
 
     return this.SanPham.findAll(page, sortType, filterType, limit);
@@ -259,7 +259,7 @@ export class SanPhamService {
     limit?: number;
     keyword?: string;
     categoryId?: number;
-  }): Promise<ProductListResults | undefined> {
+  }): Promise<ProductListResults> {
     const {
       page = 1,
       sortType = 1,
