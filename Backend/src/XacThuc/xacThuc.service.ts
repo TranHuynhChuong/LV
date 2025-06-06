@@ -43,7 +43,7 @@ export class XacThucService {
     if (!createdCustomer) {
       throw new BadRequestException();
     }
-
+    await this.otp.deleteOne({ email });
     return createdCustomer;
   }
 
@@ -57,6 +57,23 @@ export class XacThucService {
     if (!updatedCustomer) {
       throw new BadRequestException();
     }
+    await this.otp.deleteOne({ email });
+    return updatedCustomer;
+  }
+
+  async changePassword(email: string, newPass: string, otp: string) {
+    const verifyOtp = await this.verifyOtp(email, otp);
+    if (!verifyOtp) {
+      throw new BadRequestException();
+    }
+
+    const updatedCustomer = await this.KhachHang.update(email, {
+      KH_matKhau: newPass,
+    });
+    if (!updatedCustomer) {
+      throw new BadRequestException();
+    }
+    await this.otp.deleteOne({ email });
     return updatedCustomer;
   }
 
@@ -73,9 +90,9 @@ export class XacThucService {
     }
   }
 
-  async sendOtp(email: string) {
+  async sendOtp(email: string, isNew: boolean) {
     const isExit = await this.KhachHang.findByEmail(email);
-    if (isExit) {
+    if (isExit && isNew) {
       throw new ConflictException();
     }
 

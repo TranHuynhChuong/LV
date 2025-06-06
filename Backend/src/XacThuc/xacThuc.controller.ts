@@ -15,13 +15,22 @@ export class XacThucController {
     @Param('email') email: string,
     @Body() { newEmail, otp }: { newEmail: string; otp: string }
   ) {
-    await this.authService.changeEmail(email, newEmail, otp);
-    return { message: 'Cập nhật email thành công' };
+    return this.authService.changeEmail(email, newEmail, otp);
+  }
+
+  @Put('change-password/:email')
+  async updatePasswordCustomer(
+    @Param('email') email: string,
+    @Body() { newPassword, otp }: { newPassword: string; otp: string }
+  ) {
+    return this.authService.changePassword(email, newPassword, otp);
   }
 
   @Post('send-otp')
-  async checkEmail(@Body() { email }: { email: string }) {
-    return await this.authService.sendOtp(email);
+  async checkEmail(
+    @Body() { email, isNew }: { email: string; isNew: boolean }
+  ) {
+    return await this.authService.sendOtp(email, isNew);
   }
 
   @Post('login-customer')
