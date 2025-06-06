@@ -1,74 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, UpdateQuery } from 'mongoose';
 import { KhachHang, KhachHangDocument } from './khachHang.schema';
-import { PaginateRepository } from 'src/Util/cursor-pagination';
+import { PaginateResult, paginateWithFacet } from 'src/Util/paginateWithFacet';
 
 @Injectable()
-export class KhachHangRepository extends PaginateRepository<KhachHangDocument> {
+export class KhachHangRepository {
   constructor(
     @InjectModel(KhachHang.name)
-    model: Model<KhachHangDocument>
-  ) {
-    super(model);
-  }
+    private readonly model: Model<KhachHangDocument>
+  ) {}
 
   async create(data: any): Promise<KhachHang> {
     const created = new this.model(data);
     return created.save();
   }
 
-  protected async findAllPaginated(
-    mode: 'head' | 'tail' | 'cursor',
-    direction: 'forward' | 'back' = mode === 'tail' ? 'back' : 'forward',
-    cursorId?: string,
-    skip = 0,
+  async findAll(
+    page: number,
     limit = 24
-  ): Promise<{
-    data: any[];
-    totalItems: number;
-    totalPage: number;
-    pages: number[];
-  }> {
-    const filter = {}; // filter rỗng, không lọc gì
+  ): Promise<PaginateResult<KhachHangDocument>> {
+    const project = undefined;
+    const filter = undefined;
+    const sort = undefined;
+    const search = undefined;
 
-    const result = await this.paginateCursor({
-      cursorId: cursorId ?? '',
-      skip,
+    return paginateWithFacet({
+      model: this.model,
+      page,
       limit,
+      search,
       filter,
-      direction,
-      project: {},
-      mode,
+      sort,
+      project,
     });
-
-    return result;
   }
 
-  async findAllForward(cursorId: string, skip = 0, limit = 24) {
-    return this.findAllPaginated('cursor', 'forward', cursorId, skip, limit);
-  }
-
-  async findAllBack(cursorId: string, skip = 0, limit = 24) {
-    return this.findAllPaginated('cursor', 'back', cursorId, skip, limit);
-  }
-
-  async findAllHead(limit = 24) {
-    return this.findAllPaginated('head', undefined, '', 0, limit);
-  }
-
-  async findAllTail(limit = 24) {
-    return this.findAllPaginated('tail', undefined, '', 0, limit);
-  }
-
-  async findByEmail(email: string): Promise<KhachHang | null> {
-    return this.model.findOne({ KH_email: email }).exec();
+  async findByEmail(
+    email: string,
+    status: 0 | 1 = 1
+  ): Promise<KhachHang | null> {
+    const filter = status !== undefined ? { KH_trangThai: status } : {};
+    return this.model.findOne({ KH_email: email, ...filter }).exec();
   }
 
   async update(email: string, data: any): Promise<KhachHang | null> {
+    const update: UpdateQuery<KhachHang> = { $set: data };
+
     return this.model
-      .findOneAndUpdate({ KH_email: email }, data, {
+      .findOneAndUpdate({ KH_email: email }, update, {
         new: true,
+        runValidators: true,
       })
       .exec();
   }

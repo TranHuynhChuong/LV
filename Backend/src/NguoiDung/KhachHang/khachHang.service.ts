@@ -7,7 +7,7 @@ import {
 import { KhachHangRepository } from './khachHang.repository';
 import { CreateDto, UpdateDto } from './khachHang.dto';
 import { KhachHang } from './khachHang.schema';
-import { calculatePaginate } from 'src/Util/cursor-pagination';
+import { calculatePaginate } from 'src/Util/paginateWithFacet';
 
 @Injectable()
 export class KhachHangsService {
@@ -25,13 +25,13 @@ export class KhachHangsService {
     return created;
   }
 
-  async findAll(
-    mode: 'head' | 'tail' | 'cursor' = 'head',
-    cursorId?: string,
-    currentPage = 1,
-    targetPage = 1,
-    limit = 24
-  ): Promise<
+  async findAll(options: {
+    mode?: 'head' | 'tail' | 'cursor';
+    cursorId?: string;
+    currentPage?: number;
+    targetPage?: number;
+    limit?: number;
+  }): Promise<
     | {
         paginate: number[];
         currentPage: number;
@@ -43,6 +43,14 @@ export class KhachHangsService {
       }
     | undefined
   > {
+    const {
+      mode = 'head',
+      cursorId,
+      currentPage = 1,
+      targetPage = 1,
+      limit = 24,
+    } = options;
+
     const totalItems = await this.KhachHang.countAll();
     const totalPage = Math.ceil(totalItems / limit);
 

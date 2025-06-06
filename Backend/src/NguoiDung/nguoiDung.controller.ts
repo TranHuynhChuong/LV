@@ -45,19 +45,32 @@ export class NguoiDungController {
   @Roles(1)
   @Get('customers')
   async getAllCustomers(
-    @Query('mode') mode: 'head' | 'tail' | 'cursor' = 'head',
-    @Query('cursorId') cursorId?: string,
-    @Query('currentPage') currentPage = '1',
-    @Query('targetPage') targetPage = '1',
-    @Query('limit') limit = '24'
+    @Query()
+    query: {
+      mode?: 'head' | 'tail' | 'cursor';
+      cursorId?: string;
+      currentPage?: string;
+      targetPage?: string;
+      filterType?: string;
+      limit?: string;
+    }
   ) {
-    return await this.KhachHangsService.findAll(
+    const {
+      mode = 'head',
+      cursorId = '',
+      currentPage,
+      targetPage,
+      limit,
+    } = query;
+
+    const searchParams = {
       mode,
       cursorId,
-      Number(currentPage),
-      Number(targetPage),
-      Number(limit)
-    );
+      currentPage: currentPage ? Number(currentPage) : undefined,
+      targetPage: targetPage ? Number(targetPage) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    };
+    return await this.KhachHangsService.findAll(searchParams);
   }
 
   @Get('customer/:email')

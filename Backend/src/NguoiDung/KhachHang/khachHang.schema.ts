@@ -25,12 +25,11 @@ export class KhachHang {
 
   @Prop({ type: String, required: true, minlength: 6, maxlength: 72 })
   KH_matKhau: string;
-
-  @Prop({ type: Number, default: 1 })
-  KH_trangThai: number;
 }
 
 export const KhachHangSchema = SchemaFactory.createForClass(KhachHang);
+
+KhachHangSchema.index({ KH_trangThai: 1 });
 
 KhachHangSchema.pre('save', async function (next) {
   const user = this as KhachHangDocument;
@@ -46,10 +45,17 @@ KhachHangSchema.pre('save', async function (next) {
 KhachHangSchema.pre('findOneAndUpdate', async function (next) {
   const update = this.getUpdate() as UpdateQuery<KhachHang>;
 
-  if (update?.KH_matKhau) {
+  const matKhau = update?.KH_matKhau || update?.$set?.KH_matKhau;
+  if (matKhau) {
     const saltRounds = 10;
-    const hashed = await bcrypt.hash(update.KH_matKhau, saltRounds);
-    update.KH_matKhau = hashed;
+    const hashed = await bcrypt.hash(matKhau, saltRounds);
+
+    if (update.KH_matKhau) {
+      update.KH_matKhau = hashed;
+    } else if (update.$set?.KH_matKhau) {
+      update.$set.KH_matKhau = hashed;
+    }
+
     this.setUpdate(update);
   }
 
