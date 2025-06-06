@@ -7,7 +7,7 @@ import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react'; // sử dụng icon quay tròn từ lucide-react
+import Loader from '@/components/Loader';
 
 export default function Products() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -86,11 +86,7 @@ export default function Products() {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto lg:max-w-3xl h-fit">
-      {isSubmitting && (
-        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-10 rounded-lg">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        </div>
-      )}
+      {isSubmitting && <Loader />}
       <ProductForm onSubmit={onSubmit} />
     </div>
   );
