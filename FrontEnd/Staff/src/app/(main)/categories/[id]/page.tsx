@@ -11,6 +11,7 @@ import Loading from './loading';
 import { ActionHistorySheet } from '@/components/ActivityLogSheet';
 import { ActivityLog } from '@/type/ActivityLog';
 import { Metadata } from '@/type/Metadata';
+import Loader from '@/components/Loader';
 
 export default function CategoryDetailPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function CategoryDetailPage() {
 
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initialData, setInitialData] = useState<CategoryFormData | null>(null);
 
@@ -76,7 +77,7 @@ export default function CategoryDetailPage() {
 
     // Use data.id if available, otherwise fallback to the id from params
     const categoryId = data.id ?? id;
-    console.log(apiData);
+    setIsSubmitting(true);
     api
       .put(`/categories/${categoryId}`, apiData)
       .then(() => {
@@ -90,10 +91,14 @@ export default function CategoryDetailPage() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error(error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   const handleDelete = () => {
+    setIsSubmitting(true);
     api
       .delete(`/categories/${id}`)
       .then((res) => {
@@ -107,6 +112,9 @@ export default function CategoryDetailPage() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error(error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
@@ -114,7 +122,8 @@ export default function CategoryDetailPage() {
   if (!initialData) return <Loading />;
 
   return (
-    <div className="relative w-full max-w-xl h-fit min-w-md">
+    <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
+      {isSubmitting && <Loader />}
       <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={initialData} />
       <ActionHistorySheet metadata={metadata} />
     </div>
