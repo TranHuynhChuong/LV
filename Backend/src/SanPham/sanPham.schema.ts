@@ -62,7 +62,7 @@ export class SanPham {
   @Prop({ type: String, required: true, maxlength: 50 })
   SP_ngonNgu: string;
 
-  @Prop({ type: String, required: true, maxlength: 120 })
+  @Prop({ type: String, maxlength: 250 })
   SP_nguoiDich: string;
 
   @Prop({ type: Number, required: true })
