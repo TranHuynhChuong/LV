@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
@@ -24,28 +24,45 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { ProductSimple } from '@/type/Product';
+import { Checkbox } from '@/components/ui/checkbox';
+import PaginationControls from '@/components/PaginationControls';
 
 interface ProductTableProps {
   data: ProductSimple[];
   loading?: boolean;
   onDelete?: (code: number) => void;
+  isComponent: boolean;
+  total: number;
+  pagination: number[];
+  totalPage: number;
+  page: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function ProductTable({
   data,
   loading = false,
   onDelete,
+  isComponent = false,
+  total,
+  pagination,
+  totalPage,
+  page,
+  onPageChange,
 }: Readonly<ProductTableProps>) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
+  const [rowSelection, setRowSelection] = useState({});
 
-  const columns: ColumnDef<ProductSimple>[] = [
+  const [selectedData, setSelectedData] = useState<ProductSimple[]>([]);
+
+  let columns: ColumnDef<ProductSimple>[] = [
     {
       accessorKey: 'name',
       header: 'Sản phẩm',
       cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className=" rounded-sm flex gap-4 pl-2">
+          <div className=" rounded-sm flex gap-4">
             <Avatar className="w-10 h-12 rounded-xs">
               <AvatarImage src={product.image} alt={product.name} />
               <AvatarFallback>#{product.id}</AvatarFallback>
@@ -53,8 +70,8 @@ export default function ProductTable({
             <div className="text-sm">
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild className="cursor-pointer">
-                    <div className="font-semibold text-sm leading-5 truncate max-w-36 lg:max-w-none">
+                  <TooltipTrigger asChild>
+                    <div className="text-sm leading-5 truncate max-w-36 lg:max-w-none">
                       {product.name}
                     </div>
                   </TooltipTrigger>
@@ -88,10 +105,14 @@ export default function ProductTable({
       ),
     },
     {
-      accessorKey: 'sold',
-      header: 'Đã bán',
-      cell: ({ row }) => <div>{row.getValue('sold')}</div>,
+      accessorKey: 'cost',
+      header: undefined,
+      enableHiding: false,
+      cell: () => {
+        return undefined;
+      },
     },
+
     {
       id: 'actions',
       header: 'Thao tác',
@@ -99,14 +120,11 @@ export default function ProductTable({
         const product = row.original;
         return (
           <div className="flex flex-col space-y-1">
-            <Link
-              className="cursor-pointer hover:underline"
-              href={`/products/detail/${product.id}`}
-            >
+            <Link className="cursor-pointer hover:underline" href={`/products/${product.id}`}>
               Cập nhật
             </Link>
 
-            {product.state === 2 && (
+            {product.status === 2 && (
               <button
                 className="cursor-pointer hover:underline w-fit"
                 onClick={() => {
@@ -122,90 +140,161 @@ export default function ProductTable({
     },
   ];
 
+  if (isComponent) {
+    columns = [
+      {
+        id: 'select',
+        header: '',
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Ô chọn"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      ...columns,
+    ];
+  }
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id.toString(), // <<< THÊM DÒNG NÀY
+    onRowSelectionChange: (updater) => {
+      const newRowSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
+
+      setRowSelection(newRowSelection);
+
+      const selected = Object.keys(newRowSelection).map(
+        (rowId) => table.getRowModel().rowsById[rowId]?.original
+      );
+
+      // Cập nhật selectedData
+      setSelectedData(selected.filter(Boolean) as ProductSimple[]);
+    },
+    state: {
+      rowSelection,
+    },
   });
 
-  return (
-    <div className="border rounded-md mt-4">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className={headerGroup.headers[0].id === header.id ? 'pl-4' : ''}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {loading ? (
-            Array.from({ length: 6 }).map((_, index) => (
-              <TableRow key={index}>
-                {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex}>
-                    <Skeleton className="h-4 w-full" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center py-8">
-                Không có dữ liệu.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+  useEffect(() => {
+    const defaultRowSelection: Record<string, boolean> = {};
 
-      {/* Dialog xác nhận xóa */}
-      <Dialog
-        open={deleteDialogOpen !== null}
-        onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-          </DialogHeader>
-          <DialogDescription>Thao tác này sẽ không thể hoàn tác.</DialogDescription>
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
+    selectedData.forEach((item) => {
+      defaultRowSelection[item.id.toString()] = true;
+    });
+
+    setRowSelection(defaultRowSelection);
+  }, [data]);
+
+  return (
+    <div>
+      <div className="border rounded-md mt-4 min-w-fit mb-2 overflow-hidden">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <TableRow key={index}>
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell, cellIndex) => (
+                    <TableCell
+                      key={cell.id}
+                      className={isComponent && cellIndex === 0 ? 'w-5' : undefined}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center py-8">
+                  Không có dữ liệu.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+
+        {/* Dialog xác nhận xóa */}
+        <Dialog
+          open={deleteDialogOpen !== null}
+          onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>Thao tác này sẽ không thể hoàn tác.</DialogDescription>
+            <DialogFooter className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
+                Hủy
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (deleteDialogOpen !== null) {
+                    onDelete?.(deleteDialogOpen);
+                    setDeleteDialogOpen(null);
+                  }
+                }}
+              >
+                Xóa
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="my-4">
+        <PaginationControls
+          pagination={pagination}
+          totalPage={totalPage}
+          currentPage={page}
+          onPageChange={onPageChange}
+        />
+      </div>
+      {isComponent && (
+        <div className="flex flex-1 items-center justify-between">
+          <div className="text-muted-foreground flex-1 text-sm pl-2">
+            {selectedData.length} / {total} đã chọn.
+          </div>
+          <div className="space-x-2">
+            <Button onClick={() => console.log(selectedData)}>Xác nhận</Button>
+            <Button variant="outline" onClick={() => setSelectedData([])}>
               Hủy
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (deleteDialogOpen !== null) {
-                  onDelete?.(deleteDialogOpen);
-                  setDeleteDialogOpen(null);
-                }
-              }}
-            >
-              Xóa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
