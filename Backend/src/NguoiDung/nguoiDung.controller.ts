@@ -19,6 +19,7 @@ import {
 } from './NhanVien/nhanVien.dto';
 import { XacThucGuard } from '../XacThuc/xacThuc.guard';
 import { Roles } from '../XacThuc/xacThuc.roles.decorator';
+import { parsePositiveInt } from 'src/Util/convert';
 
 @Controller('api/users')
 @UseGuards(XacThucGuard)
@@ -43,34 +44,24 @@ export class NguoiDungController {
   /** CUSTOMER APIs */
 
   @Roles(1)
-  @Get('customers')
-  async getAllCustomers(
+  @Get('/customer')
+  findAll(
     @Query()
     query: {
-      mode?: 'head' | 'tail' | 'cursor';
-      cursorId?: string;
-      currentPage?: string;
-      targetPage?: string;
-      filterType?: string;
+      page?: number;
+
       limit?: string;
     }
   ) {
-    const {
-      mode = 'head',
-      cursorId = '',
-      currentPage,
-      targetPage,
-      limit,
-    } = query;
-
-    const searchParams = {
-      mode,
-      cursorId,
-      currentPage: currentPage ? Number(currentPage) : undefined,
-      targetPage: targetPage ? Number(targetPage) : undefined,
-      limit: limit ? Number(limit) : undefined,
+    const { page = '1', limit = '24' } = query;
+    const params = {
+      page: parsePositiveInt(page),
+      limit: parsePositiveInt(limit),
     };
-    return await this.KhachHangsService.findAll(searchParams);
+
+    console.log(params);
+
+    return this.KhachHangsService.findAll(params);
   }
 
   @Get('customer/:email')

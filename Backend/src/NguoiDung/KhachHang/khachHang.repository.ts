@@ -4,6 +4,8 @@ import { Model, UpdateQuery } from 'mongoose';
 import { KhachHang, KhachHangDocument } from './khachHang.schema';
 import { PaginateResult, paginateWithFacet } from 'src/Util/paginateWithFacet';
 
+export type CustomerListResults = PaginateResult<KhachHangDocument>;
+
 @Injectable()
 export class KhachHangRepository {
   constructor(
@@ -16,10 +18,7 @@ export class KhachHangRepository {
     return created.save();
   }
 
-  async findAll(
-    page: number,
-    limit = 24
-  ): Promise<PaginateResult<KhachHangDocument>> {
+  async findAll(page: number, limit = 24): Promise<CustomerListResults> {
     const project = undefined;
     const filter = undefined;
     const sort = undefined;

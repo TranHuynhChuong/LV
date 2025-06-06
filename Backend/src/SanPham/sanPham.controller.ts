@@ -98,9 +98,6 @@ export class SanPhamController {
       keyword: keyword,
       categoryId: parsePositiveInt(categoryId),
     };
-
-    console.log(params);
-
     return this.service.search(params);
   }
 
@@ -121,9 +118,6 @@ export class SanPhamController {
       filterType: parsePositiveInt(filterType),
       limit: parsePositiveInt(limit),
     };
-
-    console.log(params);
-
     return this.service.findAll(params);
   }
 

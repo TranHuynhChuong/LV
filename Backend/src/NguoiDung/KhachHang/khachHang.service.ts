@@ -4,10 +4,12 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import { KhachHangRepository } from './khachHang.repository';
+import {
+  CustomerListResults,
+  KhachHangRepository,
+} from './khachHang.repository';
 import { CreateDto, UpdateDto } from './khachHang.dto';
 import { KhachHang } from './khachHang.schema';
-import { calculatePaginate } from 'src/Util/paginateWithFacet';
 
 @Injectable()
 export class KhachHangsService {
@@ -26,92 +28,12 @@ export class KhachHangsService {
   }
 
   async findAll(options: {
-    mode?: 'head' | 'tail' | 'cursor';
-    cursorId?: string;
-    currentPage?: number;
-    targetPage?: number;
+    page?: number;
     limit?: number;
-  }): Promise<
-    | {
-        paginate: number[];
-        currentPage: number;
-        cursorId: string;
-        data: any[];
-        totalItems: number;
-        totalPage: number;
-        pages: number[];
-      }
-    | undefined
-  > {
-    const {
-      mode = 'head',
-      cursorId,
-      currentPage = 1,
-      targetPage = 1,
-      limit = 24,
-    } = options;
+  }): Promise<CustomerListResults> {
+    const { page = 1, limit = 24 } = options;
 
-    const totalItems = await this.KhachHang.countAll();
-    const totalPage = Math.ceil(totalItems / limit);
-
-    let result: {
-      data: any[];
-      totalItems: number;
-      totalPage: number;
-      pages: number[];
-    };
-
-    let newCurrentPage = targetPage;
-
-    switch (mode) {
-      case 'head': {
-        result = await this.KhachHang.findAllHead(limit);
-        break;
-      }
-
-      case 'tail': {
-        result = await this.KhachHang.findAllTail(limit);
-        newCurrentPage = totalPage;
-        break;
-      }
-
-      case 'cursor': {
-        const skip = Math.abs(targetPage - currentPage) * limit;
-
-        const direction = targetPage >= currentPage ? 'forward' : 'back';
-        if (direction === 'forward') {
-          result = await this.KhachHang.findAllForward(
-            cursorId ?? '',
-            skip,
-            limit
-          );
-        } else {
-          result = await this.KhachHang.findAllBack(
-            cursorId ?? '',
-            skip,
-            limit
-          );
-        }
-        break;
-      }
-
-      default:
-        return;
-    }
-
-    const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
-    const tmp = result.data[0] as unknown as { _id: string };
-    const newCursorId = result.data.length > 0 ? String(tmp._id) : '';
-
-    return {
-      data: result.data,
-      totalItems: result.totalItems,
-      totalPage: result.totalPage,
-      paginate,
-      currentPage: newCurrentPage,
-      cursorId: newCursorId,
-      pages: result.pages,
-    };
+    return this.KhachHang.findAll(page, limit);
   }
 
   async update(email: string, data: UpdateDto): Promise<KhachHang> {
