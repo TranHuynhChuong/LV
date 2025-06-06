@@ -3,17 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  SanPhamRepository,
-  SanPhamFilterType,
-  SanPhamSortType,
-} from './sanPham.repository';
+import { SanPhamRepository, ProductListResults } from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
 import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
-import { calculatePaginate } from 'src/Util/cursor-pagination';
+
 const folderPrefix = 'Products';
 
 const typeOfChange: Record<string, string> = {
@@ -246,32 +242,26 @@ export class SanPhamService {
   }
 
   async findAll(options: {
-    mode?: 'head' | 'tail' | 'cursor';
-    cursorId?: string;
-    currentPage?: number;
-    targetPage?: number;
-    sortType?: SanPhamSortType;
-    filterType?: SanPhamFilterType;
+    page?: number;
+    sortType?: number;
+    filterType?: number;
+    limit?: number;
+  }): Promise<ProductListResults | undefined> {
+    const { page = 1, sortType = 1, filterType, limit = 24 } = options;
+
+    return this.SanPham.findAll(page, sortType, filterType, limit);
+  }
+
+  async search(options: {
+    page?: number;
+    sortType?: number;
+    filterType?: number;
     limit?: number;
     keyword?: string;
     categoryId?: number;
-  }): Promise<
-    | {
-        paginate: number[];
-        currentPage: number;
-        cursorId: string;
-        data: any[];
-        totalItems: number;
-        totalPage: number;
-        pages: number[];
-      }
-    | undefined
-  > {
+  }): Promise<ProductListResults | undefined> {
     const {
-      mode = 'head',
-      cursorId,
-      currentPage = 1,
-      targetPage = 1,
+      page = 1,
       sortType = 1,
       filterType,
       limit = 24,
@@ -279,84 +269,14 @@ export class SanPhamService {
       categoryId,
     } = options;
 
-    const totalItems = await this.SanPham.count(filterType);
-    const totalPage = Math.ceil(totalItems / limit);
-
-    let result: {
-      data: any[];
-      totalItems: number;
-      totalPage: number;
-      pages: number[];
-    };
-    let newCurrentPage = targetPage;
-
-    switch (mode) {
-      case 'head': {
-        result = await this.SanPham.findAllHead(
-          limit,
-          sortType,
-          filterType,
-          keyword,
-          categoryId
-        );
-        break;
-      }
-
-      case 'tail': {
-        result = await this.SanPham.findAllTail(
-          limit,
-          sortType,
-          filterType,
-          keyword,
-          categoryId
-        );
-        newCurrentPage = totalPage;
-        break;
-      }
-
-      case 'cursor': {
-        const skip = Math.abs(targetPage - currentPage) * limit;
-
-        const direction = targetPage >= currentPage ? 'forward' : 'back';
-        if (direction === 'forward') {
-          result = await this.SanPham.findAllForward(
-            cursorId ?? '',
-            skip,
-            limit,
-            sortType,
-            filterType,
-            keyword,
-            categoryId
-          );
-        } else {
-          result = await this.SanPham.findAllBack(
-            cursorId ?? '',
-            skip,
-            limit,
-            sortType,
-            filterType
-          );
-        }
-        break;
-      }
-
-      default:
-        return;
-    }
-
-    const paginate = calculatePaginate(newCurrentPage, totalItems, limit);
-    const newCursorId =
-      result.data.length > 0 ? String(result.data[0].SP_id) : '';
-
-    return {
-      data: result.data,
-      totalItems: result.totalItems,
-      totalPage: result.totalPage,
-      paginate,
-      currentPage: newCurrentPage,
-      cursorId: newCursorId,
-      pages: result.pages,
-    };
+    return this.SanPham.search(
+      page,
+      sortType,
+      filterType,
+      limit,
+      keyword,
+      categoryId
+    );
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
@@ -367,9 +287,10 @@ export class SanPhamService {
 
   async findById(
     id: number,
-    mode: 'default' | 'full' = 'default'
+    mode: 'default' | 'full' | 'search' = 'default',
+    filterType?: number
   ): Promise<{ product: any }> {
-    const result: any = await this.SanPham.findById(id, mode);
+    const result: any = await this.SanPham.findById(id, mode, filterType);
     if (!result) {
       throw new NotFoundException();
     }

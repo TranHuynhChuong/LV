@@ -17,6 +17,7 @@ import { SanPhamService } from './sanPham.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
+import { parsePositiveInt } from 'src/Util/convert';
 
 @UseGuards(XacThucGuard)
 @Controller('api/products')
@@ -39,7 +40,7 @@ export class SanPhamController {
   }
 
   // Cập nhật sản phẩm
-  @Put(':id')
+  @Put('/:id')
   @UseInterceptors(AnyFilesInterceptor())
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -54,88 +55,8 @@ export class SanPhamController {
     return this.service.update(id, body, coverImage, productImages);
   }
 
-  // Tìm sản phẩm theo keyword
-  @Get('search')
-  findByKeyword(
-    @Query()
-    query: {
-      keyword: string;
-      mode?: 'head' | 'tail' | 'cursor';
-      cursorId?: string;
-      currentPage?: string;
-      targetPage?: string;
-      sortType?: string;
-      filterType?: string;
-      limit?: string;
-    }
-  ) {
-    const {
-      keyword,
-      mode = 'head',
-      cursorId = '',
-      currentPage = '1',
-      targetPage = '1',
-      sortType = '1',
-      filterType,
-      limit = '24',
-    } = query;
-
-    const searchParams = {
-      keyword,
-      mode,
-      cursorId,
-      currentPage: Number(currentPage),
-      targetPage: Number(targetPage),
-      sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | undefined,
-      limit: Number(limit),
-    };
-
-    return this.service.findAll(searchParams);
-  }
-
-  // Tìm sản phẩm theo thể loại (categoryId - mã thể loại)
-  @Get('category')
-  findByCategory(
-    @Query()
-    query: {
-      categoryId: number;
-      mode?: 'head' | 'tail' | 'cursor';
-      cursorId?: string;
-      currentPage?: string;
-      targetPage?: string;
-      sortType?: string;
-      filterType?: string;
-      limit?: string;
-    }
-  ) {
-    const {
-      categoryId,
-      mode = 'head',
-      cursorId = '',
-      currentPage = '1',
-      targetPage = '1',
-      sortType = '1',
-      filterType,
-      limit = '24',
-    } = query;
-
-    const searchParams = {
-      mode,
-      cursorId,
-      currentPage: Number(currentPage),
-      targetPage: Number(targetPage),
-      sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | undefined,
-      limit: Number(limit),
-      categoryId,
-    };
-
-    return this.service.findAll(searchParams);
-  }
-
   // Tìm sản phẩm tương tự (vector search)
-  @Get('similar')
+  @Get('/similar')
   findByVector(
     @Query('query') query: string,
     @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number
@@ -149,53 +70,75 @@ export class SanPhamController {
     return this.service.countAll();
   }
 
-  // Danh sách sản phẩm có phân trang và lọc trạng thái
+  @Get('/search')
+  search(
+    @Query()
+    query: {
+      page?: number;
+      sortType?: string;
+      filterType?: string;
+      limit?: string;
+      keyword?: string;
+      categoryId?: string;
+    }
+  ) {
+    const {
+      page = '1',
+      sortType = '1',
+      filterType,
+      limit = '24',
+      keyword,
+      categoryId,
+    } = query;
+    const params = {
+      page: parsePositiveInt(page),
+      sortType: parsePositiveInt(sortType),
+      filterType: parsePositiveInt(filterType),
+      limit: parsePositiveInt(limit),
+      keyword: keyword,
+      categoryId: parsePositiveInt(categoryId),
+    };
+
+    console.log(params);
+
+    return this.service.search(params);
+  }
+
   @Get()
   findAll(
     @Query()
     query: {
-      mode?: 'head' | 'tail' | 'cursor';
-      cursorId?: string;
-      currentPage?: string;
-      targetPage?: string;
+      page?: number;
       sortType?: string;
       filterType?: string;
       limit?: string;
     }
   ) {
-    const {
-      mode = 'head',
-      cursorId = '',
-      currentPage = '1',
-      targetPage = '1',
-      sortType = '1',
-      filterType,
-      limit = '24',
-    } = query;
-    const searchParams = {
-      mode,
-      cursorId,
-      currentPage: Number(currentPage),
-      targetPage: Number(targetPage),
-      sortType: Number(sortType) as 1 | 2 | 3,
-      filterType: Number(filterType) as 1 | 2 | undefined,
-      limit: Number(limit),
+    const { page = '1', sortType = '1', filterType, limit = '24' } = query;
+    const params = {
+      page: parsePositiveInt(page),
+      sortType: parsePositiveInt(sortType),
+      filterType: parsePositiveInt(filterType),
+      limit: parsePositiveInt(limit),
     };
 
-    return this.service.findAll(searchParams);
+    console.log(params);
+
+    return this.service.findAll(params);
   }
 
   // Chi tiết sản phẩm
-  @Get(':id')
+  @Get('/:id')
   findById(
     @Param('id', ParseIntPipe) id: number,
-    @Query('mode') mode: 'default' | 'full' = 'default'
+    @Query('filterType') filterType: string,
+    @Query('mode') mode: 'default' | 'full' | 'search'
   ) {
-    return this.service.findById(id, mode);
+    return this.service.findById(id, mode, parsePositiveInt(filterType));
   }
 
   // Xóa sản phẩm (ẩn - soft delete)
-  @Delete(':id')
+  @Delete('/:id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
   }
