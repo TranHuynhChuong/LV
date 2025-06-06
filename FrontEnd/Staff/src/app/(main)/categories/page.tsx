@@ -154,7 +154,7 @@ export default function Categories() {
             </Link>
 
             <button
-              className="cursor-pointer hover:underline"
+              className="cursor-pointer hover:underline w-fit"
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
@@ -187,7 +187,7 @@ export default function Categories() {
     },
     initialState: {
       pagination: {
-        pageSize: 24,
+        pageSize: 12,
       },
     },
   });
