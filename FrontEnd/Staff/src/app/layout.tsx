@@ -1,15 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Roboto, Geist } from 'next/font/google';
 
 const geistSans = Geist({
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  variable: '--font-geistSans',
 });
 
-const geistMono = Geist_Mono({
+const robotoSans = Roboto({
   subsets: ['latin'],
-  variable: '--font-geist-mono',
+  variable: '--font-robotoSans',
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { readonly children: React.Reac
     <html lang="en">
       <body
         className={`
-          ${geistSans.variable} ${geistMono.variable}
+          ${geistSans.className} ${robotoSans.className} 
           font-sans text-base antialiased
           bg-zinc-100 text-zinc-900
           min-h-screen w-full flex flex-row relative
