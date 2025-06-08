@@ -29,18 +29,21 @@ export class KhuyenMaiController {
   findAll(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-    @Query('status') status?: '0' | '1'
+    @Query('filterType') filterType?: '0' | '1'
   ) {
     return this.khuyenMaiService.getAllKhuyenMai({
       page: Number(page),
       limit: Number(limit),
-      status: status !== undefined ? (Number(status) as 0 | 1) : undefined,
+      filterType:
+        filterType !== undefined ? (Number(filterType) as 0 | 1) : undefined,
     });
   }
 
   // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
   @Get(':id')
-  findById(@Param('id') id: string) {
+  async findById(
+    @Param('id') id: string
+  ): Promise<ReturnType<typeof this.khuyenMaiService.getKhuyenMaiById>> {
     return this.khuyenMaiService.getKhuyenMaiById(id);
   }
 
