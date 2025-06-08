@@ -8,6 +8,7 @@ import { UtilModule } from './Util/util.module';
 import { XacThucModule } from './XacThuc/xacThuc.module';
 import { TheLoaiModule } from './TheLoai/theLoai.module';
 import { SanPhamModule } from './SanPham/sanPham.module';
+import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SanPhamModule } from './SanPham/sanPham.module';
     PhiVanChuyenModule,
     TheLoaiModule,
     SanPhamModule,
+    KhuyenMaiModule,
   ],
 })
 export class AppModule {}
