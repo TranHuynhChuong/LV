@@ -3,12 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SanPhamRepository, ProductListResults } from './sanPham.repository';
+import { SanPhamRepository } from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
 import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { KhuyenMaiService } from 'src/KhuyenMai/khuyenMai.service';
 
 const folderPrefix = 'Products';
 
@@ -38,7 +39,8 @@ export class SanPhamService {
     private readonly SanPham: SanPhamRepository,
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
-    private readonly NhanVien: NhanVienService
+    private readonly NhanVien: NhanVienService,
+    private readonly KhuyenMai: KhuyenMaiService
   ) {}
 
   async create(
@@ -246,10 +248,33 @@ export class SanPhamService {
     sortType?: number;
     filterType?: number;
     limit?: number;
-  }): Promise<ProductListResults> {
+  }): Promise<{
+    data: any[];
+    metadata: any;
+    promotions: any[];
+  }> {
     const { page = 1, sortType = 1, filterType, limit = 24 } = options;
 
-    return this.SanPham.findAll(page, sortType, filterType, limit);
+    const result = await this.SanPham.findAll(
+      page,
+      sortType,
+      filterType,
+      limit
+    );
+
+    const data = result.data || [];
+
+    const SPIds = data.map((sp) => sp.SP_id);
+
+    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(SPIds);
+
+    const promotions = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
+
+    return {
+      data,
+      metadata: result.metadata,
+      promotions,
+    };
   }
 
   async search(options: {
@@ -259,7 +284,11 @@ export class SanPhamService {
     limit?: number;
     keyword?: string;
     categoryId?: number;
-  }): Promise<ProductListResults> {
+  }): Promise<{
+    data: any[];
+    metadata: any;
+    promotions: any[];
+  }> {
     const {
       page = 1,
       sortType = 1,
@@ -269,7 +298,7 @@ export class SanPhamService {
       categoryId,
     } = options;
 
-    return this.SanPham.search(
+    const result = await this.SanPham.search(
       page,
       sortType,
       filterType,
@@ -277,6 +306,20 @@ export class SanPhamService {
       keyword,
       categoryId
     );
+
+    const data = result.data || [];
+
+    const SPIds = data.map((sp) => sp.SP_id);
+
+    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(SPIds);
+
+    const promotions = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
+
+    return {
+      data,
+      metadata: result.metadata,
+      promotions,
+    };
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
@@ -289,7 +332,7 @@ export class SanPhamService {
     id: number,
     mode: 'default' | 'full' | 'search' = 'default',
     filterType?: number
-  ): Promise<{ product: any }> {
+  ): Promise<{ product: any; promotion: any }> {
     const result: any = await this.SanPham.findById(id, mode, filterType);
     if (!result) {
       throw new NotFoundException();
@@ -299,7 +342,13 @@ export class SanPhamService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
-    return { product: result };
+    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(
+      result.SP_id
+    );
+
+    const promotion = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
+
+    return { product: result, promotion: promotion };
   }
 
   async delete(id: number): Promise<SanPham> {
