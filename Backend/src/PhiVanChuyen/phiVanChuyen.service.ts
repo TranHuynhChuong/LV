@@ -12,11 +12,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const typeOfChange: Record<string, string> = {
-  PVC_phi: 'Họ tên',
-  PVC_ntl: 'Email',
-  PVC_phuPhi: 'Số điện thoại',
-  PVC_dvpp: 'Vai trò',
-  T_id: 'Mật khẩu',
+  PVC_phi: 'Phí',
+  PVC_ntl: 'Ngưỡng khối lượng',
+  PVC_phuPhi: 'Phụ phí',
+  PVC_dvpp: 'Đơ vị phụ phí',
+  T_id: 'Khu vực',
 };
 
 @Injectable()
