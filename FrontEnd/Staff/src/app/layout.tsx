@@ -25,8 +25,7 @@ export default function RootLayout({ children }: { readonly children: React.Reac
           ${geistSans.className} ${robotoSans.className} 
           font-sans text-base antialiased
           bg-zinc-100 text-zinc-900
-          min-h-screen w-full flex flex-row relative
-        `}
+          w-full h-screen flex flex-row relative `}
       >
         {children}
       </body>
