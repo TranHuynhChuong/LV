@@ -28,17 +28,17 @@ export class KhuyenMaiRepository {
   async findAllKhuyenMai({
     page,
     limit,
-    status,
+    filterType,
   }: {
     page: number;
     limit: number;
-    status?: 0 | 1;
+    filterType?: 0 | 1;
   }) {
     const now = new Date();
     const filter: Record<string, any> = { KM_daXoa: false };
-    if (status === 1) {
+    if (filterType === 1) {
       filter.KM_ketThuc = { $gte: now };
-    } else if (status === 0) {
+    } else if (filterType === 0) {
       filter.KM_ketThuc = { $lt: now };
     }
 
@@ -136,7 +136,7 @@ export class KhuyenMaiRepository {
           KM_moTa: 1,
           KM_batDau: 1,
           KM_ketThuc: 1,
-          LichSuThaoTac: 1,
+          lichSuThaoTac: 1,
           chiTietKhuyenMai: {
             CTKM_tyLe: 1,
             CTKM_giaTri: 1,
