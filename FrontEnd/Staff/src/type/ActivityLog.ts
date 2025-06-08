@@ -1,7 +1,7 @@
 export type ActivityLog = {
   thoiGian: string;
   thaoTac: string;
-  nhanVien?: {
+  nhanVien: {
     NV_id: string;
     NV_hoTen: string;
     NV_soDienThoai: string;
