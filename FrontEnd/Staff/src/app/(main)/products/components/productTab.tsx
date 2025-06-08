@@ -8,7 +8,6 @@ import api from '@/lib/axiosClient';
 import { ApiProductSimple, ProductSimple } from '@/type/Product';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import ProductSearchBar from './productSearchBar';
 
 interface ProductTabProp {
@@ -20,6 +19,9 @@ interface ProductTabProp {
   onSearch?: (param: { type?: 'id' | 'keyword'; keyword?: string; categoryId?: string }) => void;
   onClearSearch?: () => void;
   onPageChange?: (page: number) => void;
+  onClose?: () => void;
+  selectedData?: ProductSimple[];
+  onConfirmSelect?: (selecData: ProductSimple[]) => void;
 }
 
 const filterMap: Record<string, number | undefined> = {
@@ -37,8 +39,10 @@ export default function ProductTab({
   onSearch,
   onClearSearch,
   onPageChange,
+  onClose,
+  selectedData,
+  onConfirmSelect,
 }: Readonly<ProductTabProp>) {
-  const { setBreadcrumbs } = useBreadcrumb();
   const [data, setData] = useState<ProductSimple[]>([]);
   const [pagination, setPagination] = useState<number[]>([1]);
   const [totalPage, setTotalPage] = useState<number>(1);
@@ -54,10 +58,6 @@ export default function ProductTab({
   const sortType = undefined;
   const filterType = filterMap[status] ?? undefined;
   const limit = 24;
-
-  useEffect(() => {
-    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sản phẩm' }]);
-  }, [setBreadcrumbs]);
 
   const fetchData = useCallback(
     async (
@@ -229,7 +229,7 @@ export default function ProductTab({
 
   return (
     <div className="space-y-4 bg-white min-w-fit">
-      <div className="flex items-center justify-between my-4">
+      <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold pl-4">{totalItems} Sản phẩm</h1>
         {!isComponent && (
           <Link href="/products/new">
@@ -258,6 +258,9 @@ export default function ProductTab({
         pagination={pagination}
         page={page}
         totalPage={totalPage}
+        onClose={onClose}
+        onConfirmSelect={onConfirmSelect}
+        selectedData={selectedData}
       />
     </div>
   );
