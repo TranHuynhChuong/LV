@@ -191,7 +191,7 @@ export default function ProductForm({
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 min-w-fit" noValidate>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full" noValidate>
           <section className="p-8 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin cơ bản</h3>
             {/* Cover Image */}
