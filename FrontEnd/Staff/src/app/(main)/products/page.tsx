@@ -5,6 +5,7 @@ import api from '@/lib/axiosClient';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProductTab from './components/productTab';
+import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 export default function Products() {
   const [total, setTotal] = useState({ total: 0, live: 0, hidden: 0 });
@@ -16,6 +17,11 @@ export default function Products() {
   useEffect(() => {
     fetchTotal();
   }, []);
+
+  const { setBreadcrumbs } = useBreadcrumb();
+  useEffect(() => {
+    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sản phẩm' }]);
+  }, [setBreadcrumbs]);
 
   const router = useRouter();
   const searchParams = useSearchParams();
