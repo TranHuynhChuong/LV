@@ -37,10 +37,14 @@ interface ProductTableProps {
   totalPage: number;
   page: number;
   onPageChange: (page: number) => void;
+  onClose?: () => void;
+  selectedData?: ProductSimple[];
+  onConfirmSelect?: (selecData: ProductSimple[]) => void;
 }
 
 export default function ProductTable({
   data,
+  selectedData,
   loading = false,
   onDelete,
   isComponent = false,
@@ -49,11 +53,13 @@ export default function ProductTable({
   totalPage,
   page,
   onPageChange,
+  onClose,
+  onConfirmSelect,
 }: Readonly<ProductTableProps>) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   const [rowSelection, setRowSelection] = useState({});
 
-  const [selectedData, setSelectedData] = useState<ProductSimple[]>([]);
+  const [selectData, setSelectData] = useState<ProductSimple[]>([]);
 
   let columns: ColumnDef<ProductSimple>[] = [
     {
@@ -63,7 +69,7 @@ export default function ProductTable({
         const product = row.original;
         return (
           <div className=" rounded-sm flex gap-4">
-            <Avatar className="w-10 h-12 rounded-xs">
+            <Avatar className="w-fit h-12 rounded-xs">
               <AvatarImage src={product.image} alt={product.name} />
               <AvatarFallback>#{product.id}</AvatarFallback>
             </Avatar>
@@ -106,17 +112,28 @@ export default function ProductTable({
     },
     {
       accessorKey: 'cost',
-      header: undefined,
+      header: !isComponent ? undefined : 'Giá nhập',
       enableHiding: false,
-      cell: () => {
-        return undefined;
+      cell: ({ row }) => {
+        if (!isComponent) return undefined;
+
+        const value = row.getValue<number>('cost');
+        return (
+          <div>
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+            }).format(value)}
+          </div>
+        );
       },
     },
 
     {
       id: 'actions',
-      header: 'Thao tác',
+      header: isComponent ? undefined : 'Thao tác',
       cell: ({ row }) => {
+        if (isComponent) return undefined;
         const product = row.original;
         return (
           <div className="flex flex-col space-y-1">
@@ -145,13 +162,24 @@ export default function ProductTable({
       {
         id: 'select',
         header: '',
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Ô chọn"
-          />
-        ),
+        cell: ({ row }) => {
+          const product = row.original;
+          const selectedIds = new Set(selectedData?.map((p) => p.id) || []);
+          const isPreSelected = selectedIds.has(product.id);
+
+          return (
+            <Checkbox
+              checked={row.getIsSelected() || isPreSelected}
+              disabled={isPreSelected}
+              onCheckedChange={(value) => {
+                if (!isPreSelected) {
+                  row.toggleSelected(!!value);
+                }
+              }}
+              aria-label="Ô chọn"
+            />
+          );
+        },
         enableSorting: false,
         enableHiding: false,
       },
@@ -173,8 +201,7 @@ export default function ProductTable({
         (rowId) => table.getRowModel().rowsById[rowId]?.original
       );
 
-      // Cập nhật selectedData
-      setSelectedData(selected.filter(Boolean) as ProductSimple[]);
+      setSelectData(selected.filter(Boolean) as ProductSimple[]);
     },
     state: {
       rowSelection,
@@ -184,12 +211,12 @@ export default function ProductTable({
   useEffect(() => {
     const defaultRowSelection: Record<string, boolean> = {};
 
-    selectedData.forEach((item) => {
+    [...(selectedData || []), ...selectData].forEach((item) => {
       defaultRowSelection[item.id.toString()] = true;
     });
 
     setRowSelection(defaultRowSelection);
-  }, [data]);
+  }, [data, selectedData]);
 
   return (
     <div>
@@ -285,11 +312,27 @@ export default function ProductTable({
       {isComponent && (
         <div className="flex flex-1 items-center justify-between">
           <div className="text-muted-foreground flex-1 text-sm pl-2">
-            {selectedData.length} / {total} đã chọn.
+            {selectData.length} / {total} đã chọn.
           </div>
           <div className="space-x-2">
-            <Button onClick={() => console.log(selectedData)}>Xác nhận</Button>
-            <Button variant="outline" onClick={() => setSelectedData([])}>
+            <Button
+              onClick={() => {
+                // Loại bỏ những sản phẩm đã được chọn sẵn (selectedData) khỏi selectData
+                const selectedIds = new Set(selectedData?.map((p) => p.id));
+                const newSelected = selectData.filter((item) => !selectedIds.has(item.id));
+                onConfirmSelect?.(newSelected);
+              }}
+            >
+              Xác nhận
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectData([]);
+                onClose?.();
+              }}
+            >
               Hủy
             </Button>
           </div>
