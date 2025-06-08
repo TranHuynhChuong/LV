@@ -1,55 +1,78 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
-import { type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
-import { Collapsible } from '@/components/ui/collapsible';
+import { usePathname } from 'next/navigation';
 import {
-  SidebarGroup,
+  Sidebar,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarGroup,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
+import { LucideIcon } from 'lucide-react';
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon?: LucideIcon;
+  items?: {
+    title: string;
+    url: string;
+  }[];
+};
 
 export function NavMain({
-  items,
+  navMain,
 }: {
-  readonly items: readonly {
-    readonly title: string;
-    readonly url: string;
-    readonly icon?: LucideIcon;
-  }[];
-}) {
+  navMain: NavItem[];
+} & React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {items.map((item) => {
-          const isActive = pathname === item.url;
+        {navMain.map((item) => {
+          const isActive = pathname.includes(item.url) && !item.items;
 
           return (
-            <Collapsible
-              key={item.title}
-              asChild
-              defaultOpen={isActive}
-              className="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  className={`cursor-pointer ${
-                    isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold' : ''
-                  }`}
-                  asChild
-                >
-                  <Link href={item.url} className="flex items-center gap-2 w-full">
-                    {item.icon && <item.icon className="w-4 h-4" />}
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </Collapsible>
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                className={` ${
+                  isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold' : ''
+                }`}
+              >
+                <Link href={item.url} className="flex items-center gap-2 w-full  cursor-pointer">
+                  {item.icon && <item.icon className="w-4 h-4" />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+
+              {item.items?.length ? (
+                <SidebarMenuSub className="pr-0 mr-0">
+                  {item.items.map((sub) => {
+                    const isSubActive = pathname.includes(sub.url);
+                    return (
+                      <SidebarMenuSubItem key={sub.title}>
+                        <SidebarMenuSubButton
+                          asChild
+                          className={`h-fit py-1 px-2 ${
+                            isSubActive
+                              ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
+                              : ''
+                          }`}
+                        >
+                          <Link href={sub.url} className="">
+                            {sub.title}
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    );
+                  })}
+                </SidebarMenuSub>
+              ) : null}
+            </SidebarMenuItem>
           );
         })}
       </SidebarMenu>

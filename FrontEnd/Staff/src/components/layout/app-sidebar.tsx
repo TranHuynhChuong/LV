@@ -33,12 +33,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
     { title: 'Thể loại', url: '/categories', icon: ChartBar },
     { title: 'Đơn hàng', url: '/orders', icon: Package },
-    { title: 'Khuyến mãi', url: '/promotions', icon: Percent },
+    {
+      title: 'Khuyến mãi',
+      url: '/promotions',
+      icon: Percent,
+      items: [
+        { title: 'Giảm giá sản phẩm', url: '/promotions' },
+        { title: 'Mã giảm giá', url: '/voucher' },
+      ],
+    },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
     { title: 'Vận chuyển', url: '/shipping', icon: Truck },
   ];
 
-  type NavItem = { title: string; url: string; icon: LucideIcon };
+  type NavItem = {
+    title: string;
+    url: string;
+    icon: LucideIcon;
+    items?: { title: string; url: string }[];
+  };
   let navMain: NavItem[] = [];
 
   if (authData.role === 1) {
@@ -74,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         {!isLoading ? (
-          <NavMain items={data.navMain} />
+          <NavMain navMain={data.navMain} />
         ) : (
           <div className="space-y-2 p-2">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -84,13 +97,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
       <SidebarFooter>
-        {!isLoading ? (
-          <NavUser user={data.user} />
-        ) : (
-          <div className="p-2">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        )}
+        {!isLoading ? <NavUser user={data.user} /> : <div className="p-2"></div>}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
