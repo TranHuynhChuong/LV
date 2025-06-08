@@ -51,7 +51,6 @@ export class KhuyenMaiService {
     if (KM_chiTiet && KM_chiTiet.length > 0) {
       const chiTietWithKMId = KM_chiTiet.map((ct) => ({
         ...ct,
-        KM_id: data.KM_id,
       }));
 
       await this.khuyenMaiRepo.createChiTietKM(chiTietWithKMId);
@@ -64,18 +63,23 @@ export class KhuyenMaiService {
   async getAllKhuyenMai(params: {
     page: number;
     limit: number;
-    status?: 0 | 1;
+    filterType?: 0 | 1;
   }) {
     return this.khuyenMaiRepo.findAllKhuyenMai(params);
   }
 
   // Lấy chi tiết khuyến mãi theo id
-  async getKhuyenMaiById(KM_id: string) {
-    const km = await this.khuyenMaiRepo.findKhuyenMaiById(KM_id);
-    if (!km) {
+  async getKhuyenMaiById(KM_id: string): Promise<any> {
+    const result: any = await this.khuyenMaiRepo.findKhuyenMaiById(KM_id);
+    if (!result) {
       throw new NotFoundException();
     }
-    return km;
+    console.log(result);
+    const lichSu = result.lichSuThaoTac ?? [];
+    result.lichSuThaoTac =
+      lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
+
+    return result;
   }
 
   async updateKhuyenMai(id: string, newData: UpdateDto): Promise<KhuyenMai> {
@@ -175,23 +179,14 @@ export class KhuyenMaiService {
 
   // Xóa mềm khuyến mãi và các chi tiết khuyến mãi liên quan (song song)
   async deleteKhuyenMai(KM_id: string) {
-    await this.khuyenMaiRepo.deleteKhuyenMai(KM_id);
+    return this.khuyenMaiRepo.deleteKhuyenMai(KM_id);
   }
 
   // ========== Chi tiết Khuyến Mãi ==========
 
   // Lấy danh sách chi tiết khuyến mãi theo id khuyến mãi
-  async getChiTietKMByKM(KM_id: string): Promise<any> {
-    const result: any = await this.khuyenMaiRepo.findChiTietKMByKM(KM_id);
-    if (!result) {
-      throw new NotFoundException();
-    }
-
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
-
-    return result;
+  async getChiTietKMByKM(KM_id: string) {
+    return this.khuyenMaiRepo.findChiTietKMByKM(KM_id);
   }
 
   // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách SP_id
