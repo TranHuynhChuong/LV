@@ -7,14 +7,12 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  ValidateNested,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { Transform, Type as TransformType } from 'class-transformer';
 
 export class ChiTietKmDto {
   @IsInt()
-  @Transform(({ value }) => parseInt(value))
   SP_id: number;
 
   @IsString()
@@ -27,7 +25,6 @@ export class ChiTietKmDto {
   CTKM_tamNgung: boolean;
 
   @IsInt()
-  @Transform(({ value }) => parseInt(value))
   CTKM_giaTri: number;
 }
 
@@ -52,19 +49,7 @@ export class CreateDto {
   @IsNotEmpty()
   NV_id: string;
 
-  @Transform(({ value }) => {
-    if (!value) return [];
-    if (typeof value === 'string') {
-      try {
-        return JSON.parse(value) as ChiTietKmDto[];
-      } catch {
-        return [];
-      }
-    }
-    return value as ChiTietKmDto[];
-  })
   @IsArray()
-  @ValidateNested({ each: true })
   @TransformType(() => ChiTietKmDto)
   @IsOptional()
   KM_chiTiet?: ChiTietKmDto[];
