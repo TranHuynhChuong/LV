@@ -18,13 +18,13 @@ const typeOfChange: Record<string, string> = {
 @Injectable()
 export class KhuyenMaiService {
   constructor(
-    private readonly khuyenMaiRepo: KhuyenMaiRepository,
+    private readonly khuyenMai: KhuyenMaiRepository,
     private readonly NhanVien: NhanVienService
   ) {}
 
-  // Tạo khuyến mãi mới
+  //=========================== Tạo khuyến mãi mới=======================================
   async createKhuyenMai(data: CreateDto) {
-    const existing = await this.khuyenMaiRepo.findKhuyenMaiById(data.KM_id);
+    const existing = await this.khuyenMai.findKhuyenMaiById(data.KM_id);
     if (existing) {
       throw new ConflictException('Mã khuyến mãi đã tồn tại');
     }
@@ -38,7 +38,7 @@ export class KhuyenMaiService {
     const { KM_chiTiet, ...khuyenMaiData } = data;
 
     // Tạo khuyến mãi chính
-    const created = await this.khuyenMaiRepo.createKhuyenMai({
+    const created = await this.khuyenMai.createKhuyenMai({
       ...khuyenMaiData,
       lichSuThaoTac: [thaoTac],
     });
@@ -53,24 +53,24 @@ export class KhuyenMaiService {
         ...ct,
       }));
 
-      await this.khuyenMaiRepo.createChiTietKM(chiTietWithKMId);
+      await this.khuyenMai.createChiTietKM(chiTietWithKMId);
     }
 
     return created;
   }
 
-  // Lấy danh sách khuyến mãi phân trang và theo trạng thái (0: hết hạn, 1: còn hiệu lực)
+  //=========== Lấy danh sách khuyến mãi phân trang và theo trạng thái (0: đã kết thúc, 1: chưa kết thúc) ==============
   async getAllKhuyenMai(params: {
     page: number;
     limit: number;
     filterType?: 0 | 1;
   }) {
-    return this.khuyenMaiRepo.findAllKhuyenMai(params);
+    return this.khuyenMai.findAllKhuyenMai(params);
   }
 
-  // Lấy chi tiết khuyến mãi theo id
+  // =======================Lấy chi tiết khuyến mãi theo id==========================
   async getKhuyenMaiById(KM_id: string): Promise<any> {
-    const result: any = await this.khuyenMaiRepo.findKhuyenMaiById(KM_id);
+    const result: any = await this.khuyenMai.findKhuyenMaiById(KM_id);
     if (!result) {
       throw new NotFoundException();
     }
@@ -82,57 +82,88 @@ export class KhuyenMaiService {
     return result;
   }
 
+  // ==================== Cập nhật khuyến mãi =======================================
   async updateKhuyenMai(id: string, newData: UpdateDto): Promise<KhuyenMai> {
-    const existing = await this.khuyenMaiRepo.findKhuyenMaiById(id);
-    if (!existing) {
-      throw new NotFoundException();
-    }
+    const existing = await this.khuyenMai.findKhuyenMaiById(id);
+    if (!existing) throw new NotFoundException();
 
     const { KM_chiTiet, ...khuyenMaiData } = newData;
 
-    const fieldsChange: string[] = [];
-    const updatePayload: any = {};
+    const { updatePayload, fieldsChange } = this.getUpdateFields(
+      khuyenMaiData,
+      existing
+    );
 
-    for (const key of Object.keys(khuyenMaiData)) {
+    const isUpdateChiTiet = await this.processChiTietKhuyenMai(
+      id,
+      KM_chiTiet || []
+    );
+
+    if ((fieldsChange.length > 0 || isUpdateChiTiet) && newData.NV_id) {
+      this.addLichSuThaoTac(
+        updatePayload,
+        existing,
+        fieldsChange,
+        isUpdateChiTiet,
+        newData.NV_id
+      );
+    }
+
+    if (Object.keys(updatePayload).length === 0) return existing;
+
+    const updated = await this.khuyenMai.updateKhuyenMai(id, updatePayload);
+    if (!updated) throw new BadRequestException();
+
+    return updated;
+  }
+  // Xác định loại cập nhật
+  private getUpdateFields(
+    newData: any,
+    oldData: any
+  ): { updatePayload: any; fieldsChange: string[] } {
+    const updatePayload: any = {};
+    const fieldsChange: string[] = [];
+
+    for (const key of Object.keys(newData)) {
       if (
-        khuyenMaiData[key] !== undefined &&
-        khuyenMaiData[key] !== existing[key] &&
+        newData[key] !== undefined &&
+        newData[key] !== oldData[key] &&
         key !== 'NV_id' &&
         key !== 'KM_id'
       ) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
-        updatePayload[key] = khuyenMaiData[key];
+        updatePayload[key] = newData[key];
       }
     }
 
-    // ========== So sánh và xử lý Chi tiết Khuyến mãi ==========
-    let isUpdateChiTiet = false;
-    const oldChiTietKM = await this.khuyenMaiRepo.findChiTietKMByKM(id);
-    const newChiTietKM = KM_chiTiet || [];
-
-    const oldMap = new Map(oldChiTietKM.map((item) => [item.SP_id, item]));
-    const newMap = new Map(newChiTietKM.map((item) => [item.SP_id, item]));
+    return { updatePayload, fieldsChange };
+  }
+  // Kiểm tra cập nhật các chi tiết khuyến mãi
+  private async processChiTietKhuyenMai(
+    KM_id: string,
+    newList: any[]
+  ): Promise<boolean> {
+    const oldList = await this.khuyenMai.findChiTietKMByKM(KM_id);
+    const oldMap = new Map(oldList.map((item) => [item.SP_id, item]));
+    const newMap = new Map(newList.map((item) => [item.SP_id, item]));
 
     const promises: Promise<any>[] = [];
+    let changed = false;
 
-    // 1. Thêm mới và cập nhật
-    for (const newItem of newChiTietKM) {
+    for (const newItem of newList) {
       const oldItem = oldMap.get(newItem.SP_id);
-
       if (!oldItem) {
-        isUpdateChiTiet = true;
-        promises.push(
-          this.khuyenMaiRepo.createChiTietKM([{ ...newItem, KM_id: id }])
-        );
+        changed = true;
+        promises.push(this.khuyenMai.createChiTietKM([{ ...newItem, KM_id }]));
       } else if (
         oldItem.CTKM_tyLe !== newItem.CTKM_tyLe ||
         oldItem.CTKM_giaTri !== newItem.CTKM_giaTri ||
         oldItem.CTKM_tamNgung !== newItem.CTKM_tamNgung
       ) {
-        isUpdateChiTiet = true;
+        changed = true;
         promises.push(
-          this.khuyenMaiRepo.updateChiTietKM(newItem.SP_id, id, {
+          this.khuyenMai.updateChiTietKM(newItem.SP_id, KM_id, {
             CTKM_tyLe: newItem.CTKM_tyLe,
             CTKM_giaTri: newItem.CTKM_giaTri,
             CTKM_tamNgung: newItem.CTKM_tamNgung,
@@ -141,56 +172,47 @@ export class KhuyenMaiService {
       }
     }
 
-    // 2. Xóa chi tiết cũ không còn trong danh sách mới
-    for (const oldItem of oldChiTietKM) {
+    for (const oldItem of oldList) {
       if (!newMap.has(oldItem.SP_id)) {
-        isUpdateChiTiet = true;
-        promises.push(this.khuyenMaiRepo.deleteOneChiTietKM(id, oldItem.SP_id));
+        changed = true;
+        promises.push(this.khuyenMai.deleteOneChiTietKM(KM_id, oldItem.SP_id));
       }
     }
 
     await Promise.all(promises);
+    return changed;
+  }
+  // Thêm lịch sử thao tác cập nhật
+  private addLichSuThaoTac(
+    updatePayload: any,
+    existing: any,
+    fieldsChange: string[],
+    isUpdateChiTiet: boolean,
+    NV_id: string
+  ) {
+    const thaoTac = {
+      thaoTac: `Cập nhật: ${fieldsChange.join(', ')}${isUpdateChiTiet ? ', Chi tiết' : ''}`,
+      NV_id,
+      thoiGian: new Date(),
+    };
 
-    // ========== Lưu lại lịch sử thao tác nếu có thay đổi ==========
-    if ((fieldsChange.length > 0 || isUpdateChiTiet) && newData.NV_id) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}${
-          isUpdateChiTiet ? ', Chi tiết' : ''
-        }`,
-        NV_id: newData.NV_id,
-        thoiGian: new Date(),
-      };
-
-      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    }
-
-    // Nếu không có thay đổi nào, trả lại bản ghi cũ
-    if (Object.keys(updatePayload).length === 0) {
-      return existing;
-    }
-
-    const updated = await this.khuyenMaiRepo.updateKhuyenMai(id, updatePayload);
-    if (!updated) {
-      throw new BadRequestException();
-    }
-
-    return updated;
+    updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
   }
 
-  // Xóa mềm khuyến mãi và các chi tiết khuyến mãi liên quan (song song)
+  // ============= Xóa mềm khuyến mãi và các chi tiết khuyến mãi liên quan ============
   async deleteKhuyenMai(KM_id: string) {
-    return this.khuyenMaiRepo.deleteKhuyenMai(KM_id);
+    return this.khuyenMai.deleteKhuyenMai(KM_id);
   }
 
   // ========== Chi tiết Khuyến Mãi ==========
 
   // Lấy danh sách chi tiết khuyến mãi theo id khuyến mãi
   async getChiTietKMByKM(KM_id: string) {
-    return this.khuyenMaiRepo.findChiTietKMByKM(KM_id);
+    return this.khuyenMai.findChiTietKMByKM(KM_id);
   }
 
   // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách SP_id
   async getValidChiTietKhuyenMai(SPIds: number[]) {
-    return this.khuyenMaiRepo.findValidChiTietKhuyenMai(SPIds);
+    return this.khuyenMai.findValidChiTietKhuyenMai(SPIds);
   }
 }
