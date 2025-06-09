@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import Loader from '@/components/Loader';
 import ProductPromotionForm, { ProductPromotionFormType } from '../components/ProductPromotionForm';
 
-function mapFormToCreateDto(formData: ProductPromotionFormType, NV_id: string | null) {
+export function mapDataPushPut(formData: ProductPromotionFormType, NV_id: string | null) {
   return {
     KM_ten: formData.name || '', // nếu optional thì check default ''
     KM_id: formData.code,
@@ -21,7 +21,7 @@ function mapFormToCreateDto(formData: ProductPromotionFormType, NV_id: string | 
       formData.detail?.map((item) => ({
         KM_id: formData.code,
         SP_id: item.productId,
-        CTKM_tyLe: item.isPercent,
+        CTKM_theoTyLe: item.isPercent,
         CTKM_giaTri: item.value,
         CTKM_tamNgung: item.isBlocked,
       })) || [],
@@ -44,7 +44,7 @@ export default function ProductPromotionNew() {
   }, [setBreadcrumbs]);
 
   const onSubmit = (data: ProductPromotionFormType) => {
-    const apiData = mapFormToCreateDto(data, authData.userId);
+    const apiData = mapDataPushPut(data, authData.userId);
     console.log(apiData);
     api
       .post('/promotions', apiData)
@@ -67,7 +67,7 @@ export default function ProductPromotionNew() {
 
   return (
     <div className="relative w-full h-fit ">
-      <div className="w-full mx-auto h-fit min-w-fit max-w-4xl p-4">
+      <div className="w-full max-w-4xl p-4 mx-auto h-fit min-w-fit">
         <ProductPromotionForm onSubmit={onSubmit} />
       </div>
       {isSubmitting && <Loader />}
