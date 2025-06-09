@@ -10,7 +10,6 @@ import {
   UploadedFiles,
   UseInterceptors,
   ParseIntPipe,
-  DefaultValuePipe,
   UseGuards,
 } from '@nestjs/common';
 import { SanPhamService } from './sanPham.service';
@@ -19,12 +18,12 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 import { parsePositiveInt } from 'src/Util/convert';
 
-@UseGuards(XacThucGuard)
 @Controller('api/products')
 export class SanPhamController {
   constructor(private readonly service: SanPhamService) {}
 
   // Tạo sản phẩm
+  @UseGuards(XacThucGuard)
   @Post()
   @UseInterceptors(AnyFilesInterceptor())
   create(
@@ -40,6 +39,7 @@ export class SanPhamController {
   }
 
   // Cập nhật sản phẩm
+  @UseGuards(XacThucGuard)
   @Put('/:id')
   @UseInterceptors(AnyFilesInterceptor())
   update(
@@ -56,12 +56,10 @@ export class SanPhamController {
   }
 
   // Tìm sản phẩm tương tự (vector search)
-  @Get('/similar')
-  findByVector(
-    @Query('query') query: string,
-    @Query('limit', new DefaultValuePipe(5), ParseIntPipe) limit: number
-  ) {
-    return this.service.findByVector(query, limit);
+  @Post('/similar')
+  findByVectorViaPost(@Body() body: { query: string; limit?: number }) {
+    const limit = body.limit ?? 5;
+    return this.service.findByVector(body.query, limit);
   }
 
   // Đếm tổng số sản phẩm
@@ -74,7 +72,7 @@ export class SanPhamController {
   search(
     @Query()
     query: {
-      page?: number;
+      page?: string;
       sortType?: string;
       filterType?: string;
       limit?: string;
@@ -105,7 +103,7 @@ export class SanPhamController {
   findAll(
     @Query()
     query: {
-      page?: number;
+      page?: string;
       sortType?: string;
       filterType?: string;
       limit?: string;
