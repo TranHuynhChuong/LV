@@ -122,10 +122,12 @@ export default function CategoryDetailPage() {
   if (!initialData) return <Loading />;
 
   return (
-    <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
-      {isSubmitting && <Loader />}
-      <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={initialData} />
-      <ActionHistorySheet metadata={metadata} />
+    <div className="p-4">
+      <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
+        {isSubmitting && <Loader />}
+        <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={initialData} />
+        <ActionHistorySheet metadata={metadata} />
+      </div>
     </div>
   );
 }
