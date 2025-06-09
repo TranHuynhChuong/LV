@@ -312,7 +312,10 @@ export default function ProductTable({
       {isComponent && (
         <div className="flex flex-1 items-center justify-between">
           <div className="text-muted-foreground flex-1 text-sm pl-2">
-            {selectData.length} / {total} đã chọn.
+            {(selectedData?.length ?? 0) +
+              selectData.filter((item) => !new Set(selectedData?.map((p) => p.id)).has(item.id))
+                .length}
+            / {total} đã chọn.
           </div>
           <div className="space-x-2">
             <Button
