@@ -53,7 +53,7 @@ export class ChiTietKhuyenMai {
   SP_id: number;
 
   @Prop({ type: Boolean, required: true })
-  CTKM_tyLe: boolean;
+  CTKM_theoTyLe: boolean;
 
   @Prop({ type: Number, required: true })
   CTKM_giaTri: number;
