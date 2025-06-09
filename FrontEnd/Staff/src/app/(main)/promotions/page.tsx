@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import api from '@/lib/axiosClient';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import ProductPromotionsTable from './components/ProductPromotionsTable';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { ProductPromotionSearchBar } from './components/ProductPromotionSearchBar';
@@ -45,12 +45,12 @@ export default function ProductPromotion() {
   const [isLoading, setIsLoading] = useState(false);
 
   const searchParams = useSearchParams();
-  const [promotionId, setPromotionId] = useState<number | undefined>(undefined);
-  const [startAt, setStartAt] = useState<Date | undefined>(undefined);
-  const [endAt, setEndAt] = useState<Date | undefined>(undefined);
 
+  const router = useRouter();
   const status = searchParams.get('status') ?? 'live';
   const page = parseInt(searchParams.get('page') ?? '1');
+
+  const promotionId = searchParams.get('id') ?? undefined;
 
   const filterType = filterMap[status] ?? undefined;
   const limit = 24;
@@ -64,68 +64,35 @@ export default function ProductPromotion() {
       totalProducts: item.KM_slsp,
     }));
 
-  const fetchData = useCallback(
-    async (
-      page: number,
-      filterType?: number,
-      promotionId?: number,
-      startAt?: Date,
-      endAt?: Date
-    ) => {
-      setIsLoading(true);
+  const fetchData = useCallback(async (page: number, filterType?: number, promotionId?: string) => {
+    setIsLoading(true);
 
-      if (promotionId) {
-        const idNumber = Number(promotionId);
-        if (Number.isNaN(idNumber)) {
-          setData([]);
-          setPagination([1]);
-          setTotalPage(1);
-          setTotalItems(0);
-          setIsLoading(false);
-          return;
-        }
-
-        api
-          .get(`promotions/search/${promotionId}`)
-          .then((res) => {
-            const item = res.data;
-            const mapped: ProductPromotionSimple = {
-              id: item.KM_id,
-              name: item.KM_ten,
-              startAt: item.KM_batDau,
-              endAt: item.KM_ketThuc,
-              totalProducts: item.KM_slsp,
-            };
-            setData([mapped]);
-            setPagination([]);
-            setTotalPage(1);
-            setTotalItems(1);
-          })
-          .catch(() => {
-            setData([]);
-            setPagination([1]);
-            setTotalPage(1);
-            setTotalItems(0);
-          })
-          .finally(() => setIsLoading(false));
-
+    if (promotionId) {
+      const idNumber = Number(promotionId);
+      if (Number.isNaN(idNumber)) {
+        setData([]);
+        setPagination([1]);
+        setTotalPage(1);
+        setTotalItems(0);
+        setIsLoading(false);
         return;
       }
 
-      const params = {
-        page,
-        limit,
-        filterType,
-      };
-
       api
-        .get('/promotions', { params })
+        .get(`promotions/${promotionId}`)
         .then((res) => {
-          const { data, metadata } = res.data;
-          setData(mapProducts(data));
-          setPagination(metadata.pagination);
-          setTotalPage(metadata.totalPage);
-          setTotalItems(metadata.totalItems);
+          const item = res.data;
+          const mapped: ProductPromotionSimple = {
+            id: item.KM_id,
+            name: item.KM_ten,
+            startAt: item.KM_batDau,
+            endAt: item.KM_ketThuc,
+            totalProducts: item.KM_slsp,
+          };
+          setData([mapped]);
+          setPagination([]);
+          setTotalPage(1);
+          setTotalItems(1);
         })
         .catch(() => {
           setData([]);
@@ -134,22 +101,49 @@ export default function ProductPromotion() {
           setTotalItems(0);
         })
         .finally(() => setIsLoading(false));
-    },
-    []
-  );
+
+      return;
+    }
+
+    const params = {
+      page,
+      limit,
+      filterType,
+    };
+
+    api
+      .get('/promotions', { params })
+      .then((res) => {
+        const { data, metadata } = res.data;
+        setData(mapProducts(data));
+        setPagination(metadata.pagination);
+        setTotalPage(metadata.totalPage);
+        setTotalItems(metadata.totalItems);
+      })
+      .catch(() => {
+        setData([]);
+        setPagination([1]);
+        setTotalPage(1);
+        setTotalItems(0);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
 
   useEffect(() => {
-    fetchData(page, filterType, promotionId, startAt, endAt);
-  }, [status, page, filterType, promotionId, startAt, endAt, fetchData]);
+    fetchData(page, filterType, promotionId);
+  }, [status, page, filterType, promotionId, fetchData]);
 
   const handlePageChange = (targetPage: number) => {
     if (targetPage !== page) {
-      fetchData(targetPage, filterType, promotionId, startAt, endAt);
+      fetchData(targetPage, filterType, promotionId);
     }
   };
 
-  const handleSearch = (param: { promotionId?: number; startAt: Date; endAt: Date }) => {
-    fetchData(1, filterType, param.promotionId, param.startAt, param.endAt);
+  const handleSearch = (code: string) => {
+    const search = new URLSearchParams();
+    search.set('status', status);
+    search.set('id', code);
+    router.push(`/promotions?${search.toString()}`);
   };
 
   const handleClearSearch = () => {
@@ -162,7 +156,7 @@ export default function ProductPromotion() {
       .delete(`/promotions/${id}`)
       .then(() => {
         toast.success('Xóa thành công!');
-        fetchData(page, filterType, promotionId, startAt, endAt);
+        fetchData(page, filterType, promotionId);
       })
       .catch((error) => {
         toast.error(error.response?.status === 400 ? 'Xóa thất bại!' : 'Đã xảy ra lỗi!');
@@ -194,19 +188,10 @@ export default function ProductPromotion() {
             </Button>
           </Link>
         </div>
-        <ProductPromotionSearchBar
-          onApply={({ code, dateRange }) => {
-            console.log('Đã áp dụng', code, dateRange);
-            // Gọi API hoặc lọc dữ liệu
-          }}
-          onReset={() => {
-            console.log('Đã reset bộ lọc');
-            // Reset dữ liệu hiển thị
-          }}
-        />
+        <ProductPromotionSearchBar onApply={handleSearch} onReset={handleClearSearch} />
         <ProductPromotionsTable
           data={data}
-          loading={false}
+          loading={isLoading}
           onDelete={handleDelete}
           pagination={pagination}
           totalPage={totalPage}
