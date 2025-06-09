@@ -74,7 +74,6 @@ export class KhuyenMaiService {
     if (!result) {
       throw new NotFoundException();
     }
-    console.log(result);
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
@@ -157,14 +156,14 @@ export class KhuyenMaiService {
         changed = true;
         promises.push(this.KhuyenMai.createChiTietKM([{ ...newItem, KM_id }]));
       } else if (
-        oldItem.CTKM_tyLe !== newItem.CTKM_tyLe ||
+        oldItem.CTKM_theoTyLe !== newItem.CTKM_theoTyLe ||
         oldItem.CTKM_giaTri !== newItem.CTKM_giaTri ||
         oldItem.CTKM_tamNgung !== newItem.CTKM_tamNgung
       ) {
         changed = true;
         promises.push(
           this.KhuyenMai.updateChiTietKM(newItem.SP_id, KM_id, {
-            CTKM_tyLe: newItem.CTKM_tyLe,
+            CTKM_theoTyLe: newItem.CTKM_theoTyLe,
             CTKM_giaTri: newItem.CTKM_giaTri,
             CTKM_tamNgung: newItem.CTKM_tamNgung,
           })
