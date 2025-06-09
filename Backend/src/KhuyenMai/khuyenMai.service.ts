@@ -87,7 +87,7 @@ export class KhuyenMaiService {
     const existing = await this.KhuyenMai.findKhuyenMaiById(id);
     if (!existing) throw new NotFoundException();
 
-    const { KM_chiTiet, ...KhuyenMaiData } = newData;
+    const { KM_chiTiet, ...khuyenMaiData } = newData;
 
     const { updatePayload, fieldsChange } = this.getUpdateFields(
       khuyenMaiData,
