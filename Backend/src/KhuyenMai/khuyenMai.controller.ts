@@ -27,8 +27,8 @@ export class KhuyenMaiController {
   // ======= [GET] /khuyen-mai - Lấy danh sách khuyến mãi (phân trang, status) =======
   @Get()
   findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('page') page: '1',
+    @Query('limit') limit: string,
     @Query('filterType') filterType?: '0' | '1'
   ) {
     return this.khuyenMaiService.getAllKhuyenMai({
