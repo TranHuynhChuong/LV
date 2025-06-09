@@ -234,7 +234,7 @@ export class SanPhamRepository {
         {
           $vectorSearch: {
             index: 'vector_index',
-            path: 'SP_eNoiDung',
+            path: 'SP_eTomTat',
             queryVector, // Mảng số (vector)
             numCandidates: 100, // Số lượng bản ghi được xét để tìm top kết quả
             limit, // Số kết quả trả về
@@ -242,7 +242,10 @@ export class SanPhamRepository {
         },
         { $limit: limit },
         {
-          $project: project,
+          $project: {
+            ...project,
+            score: { $meta: 'vectorSearchScore' },
+          },
         },
       ])
       .exec();
