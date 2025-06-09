@@ -106,10 +106,12 @@ export default function ProductPromotionsTable({
         return (
           <div className="flex flex-col space-y-1">
             <Link className="cursor-pointer hover:underline" href={`/promotions/${item.id}`}>
-              Cập nhật
+              {new Date(item.endAt) > date && new Date(item.startAt) < date
+                ? 'Chi tiết'
+                : 'Cập nhật'}
             </Link>
 
-            {(new Date(item.endAt) < date || new Date(item.startAt) > date) && (
+            {!(new Date(item.endAt) > date && new Date(item.startAt) < date) && (
               <button
                 className="cursor-pointer hover:underline w-fit"
                 onClick={() => {
