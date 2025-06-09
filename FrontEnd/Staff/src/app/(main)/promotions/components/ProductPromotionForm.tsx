@@ -60,6 +60,7 @@ type ProductPromotionFormProps = {
   products?: ProductSimple[];
   onSubmit?: (data: ProductPromotionFormType) => void;
   onDelete?: () => void;
+  isViewing?: boolean;
 };
 
 type Detail = {
@@ -74,6 +75,7 @@ export default function ProductPromotionForm({
   products,
   onSubmit,
   onDelete,
+  isViewing,
 }: Readonly<ProductPromotionFormProps>) {
   const form = useForm<ProductPromotionFormType>({
     resolver: zodResolver(productPromotionSchema),
@@ -141,26 +143,27 @@ export default function ProductPromotionForm({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 " noValidate>
           <section className="p-6 space-y-4 bg-white rounded-sm shadow">
-            <h3 className="font-medium">Thông tin cơ bản</h3>
+            <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
 
             <FormField
               control={control}
               name="name"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-32 sm:justify-end mt-2">
+                  <FormLabel className="items-start w-32 mt-2 sm:justify-end">
                     Tên khuyến mãi
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <div className="w-full relative ">
+                      <div className="relative w-full ">
                         <Input
                           value={field.value ?? ''}
                           maxLength={128}
                           onChange={field.onChange}
                           className="pr-18"
+                          disabled={isViewing}
                         />
-                        <span className=" absolute top-1/2 right-3  -translate-y-1/2 text-sm  text-muted-foreground whitespace-nowrap ">
+                        <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                           {field.value?.length || 0} / 48
                         </span>
                       </div>
@@ -177,19 +180,20 @@ export default function ProductPromotionForm({
               name="code"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row">
-                  <FormLabel className="items-start w-32 sm:justify-end mt-2">
+                  <FormLabel className="items-start w-32 mt-2 sm:justify-end">
                     Mã khuyến mãi
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <div className="w-full relative ">
+                      <div className="relative w-full ">
                         <Input
                           value={field.value ?? ''}
                           onChange={field.onChange}
                           maxLength={7}
                           className="pr-12"
+                          disabled={isViewing || isEditing}
                         />
-                        <span className=" absolute top-1/2 right-3  -translate-y-1/2 text-sm  text-muted-foreground whitespace-nowrap ">
+                        <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                           {field.value?.length || 0} / 7
                         </span>
                       </div>
@@ -205,7 +209,7 @@ export default function ProductPromotionForm({
                 name="from"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row">
-                    <FormLabel className="items-start w-32 sm:justify-end mt-2">Bắt đầu</FormLabel>
+                    <FormLabel className="items-start w-32 mt-2 sm:justify-end">Bắt đầu</FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl className="w-fit">
                         <Input
@@ -216,6 +220,7 @@ export default function ProductPromotionForm({
                               : ''
                           }
                           onChange={(e) => field.onChange(new Date(e.target.value))}
+                          disabled={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -228,7 +233,7 @@ export default function ProductPromotionForm({
                 name="to"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row">
-                    <FormLabel className="items-start w-32 sm:justify-end mt-2">Kết thúc</FormLabel>
+                    <FormLabel className="items-start w-32 mt-2 sm:justify-end">Kết thúc</FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl className="w-fit">
                         <Input
@@ -239,6 +244,7 @@ export default function ProductPromotionForm({
                               : ''
                           }
                           onChange={(e) => field.onChange(new Date(e.target.value))}
+                          disabled={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -250,7 +256,7 @@ export default function ProductPromotionForm({
           </section>
 
           <section className="p-6 space-y-6 bg-white rounded-sm shadow">
-            <div className="flex flex-1 justify-between">
+            <div className="flex justify-between flex-1">
               <div>
                 <h2 className="font-medium">Sản phẩm khuyến mãi</h2>
                 <p className="text-xs">
@@ -259,15 +265,18 @@ export default function ProductPromotionForm({
               </div>
 
               <Button
-                className="font-normal  cursor-pointer  border-zinc-700"
+                className="font-normal cursor-pointer border-zinc-700"
                 variant="outline"
                 type="button"
                 onClick={() => setOpenProductTable(true)}
+                disabled={isViewing}
               >
-                <Plus className="mr-2 h-4 w-4" /> Thêm sản phẩm
+                <Plus className="w-4 h-4 mr-2" /> Thêm sản phẩm
               </Button>
             </div>
+
             <ProductDiscountTable
+              isViewing={isViewing}
               products={selectedData}
               detail={detail}
               register={register}
@@ -277,12 +286,16 @@ export default function ProductPromotionForm({
             />
           </section>
 
-          <FormFooterActions isEditing={isEditing} onDelete={() => setDeleteDialogOpen(true)} />
+          <FormFooterActions
+            isViewing={isViewing}
+            isEditing={isEditing}
+            onDelete={() => setDeleteDialogOpen(true)}
+          />
         </form>
       </Form>
       {openProductTable && (
-        <div className="fixed inset-0 bg-zinc-500/50 flex items-center justify-center z-50 rounded-lg">
-          <div className="w-fit bg-white p-6 rounded-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center rounded-lg bg-zinc-500/50">
+          <div className="p-6 bg-white rounded-sm w-fit">
             <ProductTab
               status="live"
               page={1}
