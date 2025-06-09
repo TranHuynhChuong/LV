@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 import api from '@/lib/axiosClient';
-//import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useParams, useRouter } from 'next/navigation';
 import Loader from '@/components/Loader';
@@ -14,11 +14,12 @@ import { Metadata } from '@/type/Metadata';
 import Loading from './loading';
 import { ActivityLog } from '@/type/ActivityLog';
 import { ActionHistorySheet } from '@/components/ActivityLogSheet';
+import { mapDataPushPut } from '../new/page';
 
 export type ChiTietKhuyenMai = {
   KM_id: string;
   SP_id: number;
-  CTKM_tyLe: boolean;
+  CTKM_theoTyLe: boolean;
   CTKM_giaTri: number;
   CTKM_tamNgung: boolean;
   CTKM_daXoa: boolean;
@@ -56,7 +57,7 @@ function mapDataGet(apiData: KhuyenMaiChiTiet): {
     to: new Date(apiData.KM_ketThuc),
     detail: apiData.chiTietKhuyenMai.map((ct: ChiTietKhuyenMai) => ({
       productId: ct.SP_id,
-      isPercent: ct.CTKM_tyLe,
+      isPercent: ct.CTKM_theoTyLe,
       value: ct.CTKM_giaTri,
       isBlocked: ct.CTKM_tamNgung,
     })),
@@ -90,12 +91,12 @@ function mapDataGet(apiData: KhuyenMaiChiTiet): {
 
 export default function ProductPromotionDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
-  //const { authData } = useAuth();
+  const { authData } = useAuth();
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [isViewing, setIsViewing] = useState<boolean>(true);
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -104,27 +105,25 @@ export default function ProductPromotionDetail() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = (data: ProductPromotionFormType) => {
-    console.log(data);
-    // api
-    //   .post('/products', {
-    //     headers: { 'Content-Type': 'multipart/form-data' },
-    //   })
-    //   .then(() => {
-    //     toast.success('Thêm mới thành công!');
-    //     router.back();
-    //   })
-    //   .catch((error) => {
-    //     if (error?.status === 400) {
-    //       toast.error('Thêm mới thất bại!');
-    //     } else {
-    //       toast.error('Đã xảy ra lỗi!');
-    //     }
-    //     console.error(error);
-    //   })
-    //   .finally(() => {
-    //     setIsSubmitting(false);
-    //   });
+  const onSubmit = async (data: ProductPromotionFormType) => {
+    const updateData = mapDataPushPut(data, authData.userId);
+    api
+      .put(`/promotions/${id}`, updateData)
+      .then(() => {
+        toast.success('Cập nhật thành công!');
+        router.back();
+      })
+      .catch((error) => {
+        if (error?.status === 400) {
+          toast.error('Cập nhật thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
+        console.error(error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const [data, setData] = useState<ProductPromotionFormType>();
@@ -133,16 +132,14 @@ export default function ProductPromotionDetail() {
 
   const [metadata, setMetadata] = useState<Metadata[]>([]);
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-
+  const fetchData = async () => {
     api
       .get(`/promotions/${id}`)
       .then((res) => {
         const { data, products, metadata } = mapDataGet(res.data);
-        console.log(data, products, metadata);
         setData(data);
+        const date = new Date();
+        setIsViewing(new Date(data.to) > date && new Date(data.from) < date);
         setProducts(products);
         setMetadata(metadata);
       })
@@ -151,33 +148,45 @@ export default function ProductPromotionDetail() {
         toast.error('Không tìm thấy sản phẩm!');
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    fetchData();
   }, [id]);
 
-  // const handleOnDelete = () => {
-  //   setIsSubmitting(true);
-  //   api
-  //     .delete(`/products/${id}`)
-  //     .then(() => {
-  //       toast.success('Xóa thành công!');
-  //       router.back();
-  //     })
-  //     .catch((error) => {
-  //       setIsSubmitting(false);
-  //       if (error.status === 400) {
-  //         toast.error('Xóa thất bại!');
-  //       } else {
-  //         toast.error('Đã xảy ra lỗi!');
-  //       }
-  //       console.error('Lỗi khi xóa:', error);
-  //     });
-  // };
+  const handleOnDelete = async () => {
+    setIsSubmitting(true);
+    api
+      .delete(`/promotions/${id}`)
+      .then(() => {
+        toast.success('Xóa thành công!');
+        router.back();
+      })
+      .catch((error) => {
+        setIsSubmitting(false);
+        if (error.status === 400) {
+          toast.error('Xóa thất bại!');
+        } else {
+          toast.error('Đã xảy ra lỗi!');
+        }
+        console.error('Lỗi khi xóa:', error);
+      });
+  };
 
   if (loading) return <Loading />;
 
   return (
-    <div className=" w-full mx-auto h-fit min-w-fit max-w-4xl p-4">
+    <div className="w-full max-w-4xl p-4 mx-auto h-fit min-w-fit">
       <div className="relative ">
-        <ProductPromotionForm onSubmit={onSubmit} defaultValues={data} products={products} />
+        <ProductPromotionForm
+          isViewing={isViewing}
+          onSubmit={onSubmit}
+          defaultValues={data}
+          products={products}
+          onDelete={handleOnDelete}
+        />
         <ActionHistorySheet metadata={metadata} />
       </div>
 
