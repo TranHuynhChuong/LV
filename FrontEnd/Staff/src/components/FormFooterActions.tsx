@@ -5,27 +5,24 @@ import { useRouter } from 'next/navigation';
 
 type FormFooterActionsProps = {
   readonly isEditing?: boolean;
-  readonly isView?: boolean;
+  readonly isViewing?: boolean;
   readonly onDelete?: () => void;
 };
 
 export default function FormFooterActions({
   isEditing = false,
-  isView = false,
+  isViewing = false,
   onDelete,
 }: FormFooterActionsProps) {
   const router = useRouter();
 
-  if (isView) return null;
-
   return (
     <div className="flex items-center w-full p-6 space-x-4 bg-white rounded-md shadow-sm h-fit">
-      <Button
-        type="submit"
-        className={isEditing ? 'flex-1 cursor-pointer' : 'flex-2 cursor-pointer'}
-      >
-        {isEditing ? 'Cập nhật' : 'Thêm'}
-      </Button>
+      {!isViewing && (
+        <Button type="submit" className={`${isEditing ? 'flex-1' : 'flex-2'} cursor-pointer`}>
+          {isEditing ? 'Cập nhật' : 'Thêm'}
+        </Button>
+      )}
 
       {isEditing && onDelete && (
         <Button
@@ -44,7 +41,7 @@ export default function FormFooterActions({
         onClick={() => router.back()}
         className="flex-1 cursor-pointer"
       >
-        Hủy
+        {isViewing ? 'Thoát' : 'Hủy'}
       </Button>
     </div>
   );

@@ -46,7 +46,7 @@ export default function StaffDetailPage() {
 
   return (
     <div className="relative flex w-full max-w-xl space-x-2 h-fit">
-      {staffData && <StaffForm defaultValues={staffData} view={true} />}
+      {staffData && <StaffForm defaultValues={staffData} isViewing={true} />}
     </div>
   );
 }

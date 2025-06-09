@@ -44,15 +44,19 @@ type StaffFormProps = {
   defaultValues?: Partial<StaffFormData>;
   onSubmit?: (data: StaffFormData) => void;
   onDelete?: () => void;
-  view?: boolean;
+  isViewing?: boolean;
 };
 
-export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<StaffFormProps>) {
+export function StaffForm({
+  defaultValues,
+  onSubmit,
+  onDelete,
+  isViewing,
+}: Readonly<StaffFormProps>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setConfirmDialogOpen] = useState<boolean>(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<StaffFormData | null>(null);
-  const isView = Boolean(view ?? false);
   const roleOptions = [
     { label: 'Quản trị', value: '1' },
     { label: 'Quản lý', value: '2' },
@@ -117,7 +121,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                 <FormItem>
                   <FormLabel>Họ tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập họ tên" {...field} disabled={isView} />
+                    <Input placeholder="Nhập họ tên" {...field} disabled={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -131,7 +135,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập số điện thoại" {...field} disabled={isView} />
+                    <Input placeholder="Nhập số điện thoại" {...field} disabled={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -145,7 +149,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Nhập email" {...field} disabled={isView} />
+                    <Input type="email" placeholder="Nhập email" {...field} disabled={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,7 +168,7 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="w-full" disabled={isView}>
+                      <SelectTrigger className="w-full" disabled={isViewing}>
                         <SelectValue placeholder="Chọn vai trò" />
                       </SelectTrigger>
                     </FormControl>
@@ -190,17 +194,22 @@ export function StaffForm({ defaultValues, onSubmit, onDelete, view }: Readonly<
                 <FormItem>
                   <FormLabel>Mật khẩu</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="Nhập mật khẩu" {...field} disabled={isView} />
+                    <Input
+                      type="text"
+                      placeholder="Nhập mật khẩu"
+                      {...field}
+                      disabled={isViewing}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          {!isView && (
+          {!isViewing && (
             <FormFooterActions
               isEditing={isEditing}
-              isView={isView}
+              isViewing={isViewing}
               onDelete={() => setDeleteDialogOpen(true)}
             />
           )}
