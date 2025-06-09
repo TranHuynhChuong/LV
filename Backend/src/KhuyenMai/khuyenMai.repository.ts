@@ -18,8 +18,9 @@ export class KhuyenMaiRepository {
     @InjectModel(ChiTietKhuyenMai.name)
     private readonly chiTietModel: Model<ChiTietKhuyenMaiDocument>
   ) {}
-
+  // ===============================
   // ========== KhuyenMai ==========
+  // ===============================
 
   async createKhuyenMai(data: Partial<KhuyenMai>) {
     return this.khuyenMaiModel.create(data);
@@ -104,6 +105,7 @@ export class KhuyenMaiRepository {
                 SP_tonKho: 1,
                 SP_daBan: 1,
                 SP_giaNhap: 1,
+                SP_diemDG: 1,
                 SP_anh: {
                   $arrayElemAt: [
                     {
@@ -138,7 +140,7 @@ export class KhuyenMaiRepository {
           KM_ketThuc: 1,
           lichSuThaoTac: 1,
           chiTietKhuyenMai: {
-            CTKM_tyLe: 1,
+            CTKM_theoTyLe: 1,
             CTKM_giaTri: 1,
             CTKM_tamNgung: 1,
             CTKM_daXoa: 1,
@@ -200,7 +202,7 @@ export class KhuyenMaiRepository {
         $project: {
           KM_id: 1,
           SP_id: 1,
-          CTKM_tyLe: 1,
+          CTKM_theoTyLe: 1,
           CTKM_giaTri: 1,
           CTKM_tamNgung: 1,
         },
