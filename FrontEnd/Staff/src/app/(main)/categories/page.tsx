@@ -197,7 +197,7 @@ export default function Categories() {
   }, [setBreadcrumbs]);
 
   return (
-    <>
+    <div className="p-4">
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit min-w-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center pl-4 space-x-2">
@@ -321,6 +321,6 @@ export default function Categories() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
