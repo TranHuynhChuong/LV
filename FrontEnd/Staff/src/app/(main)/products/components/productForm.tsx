@@ -47,7 +47,7 @@ const productSchema = z.object({
 
   category: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
 
-  summary: z.string({ required_error: 'Không được để trống' }).max(1000),
+  summary: z.string({ required_error: 'Không được để trống' }).max(1200),
   description: z.string().max(3000).optional(),
   author: z.string({ required_error: 'Không được để trống' }),
   publisher: z.string({ required_error: 'Không được để trống' }),
@@ -438,7 +438,7 @@ export default function ProductForm({
                     <FormControl>
                       <Textarea
                         value={field.value ?? ''}
-                        maxLength={1000}
+                        maxLength={1200}
                         onChange={field.onChange}
                         className="h-40 resize-none"
                       />
@@ -446,7 +446,7 @@ export default function ProductForm({
                     <div className="flex justify-between mx-1">
                       <FormMessage />
                       <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
-                        {field.value?.length ?? 0} / 1000
+                        {field.value?.length ?? 0} / 1200
                       </div>
                     </div>
                   </div>
