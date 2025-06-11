@@ -24,6 +24,7 @@ import { ProductSimple } from '@/type/Product';
 
 import ProductDiscountTable from './ProductDiscountTable';
 import { format } from 'date-fns';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const productPromotionSchema = z
   .object({
@@ -35,7 +36,7 @@ const productPromotionSchema = z
       z.object({
         productId: z.number(),
         isPercent: z.boolean(),
-        value: z.number().nonnegative(),
+        value: z.number(),
         isBlocked: z.boolean(),
       })
     ),
@@ -294,16 +295,18 @@ export default function ProductPromotionForm({
         </form>
       </Form>
       {openProductTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center rounded-lg bg-zinc-500/50">
-          <div className="p-6 bg-white rounded-sm w-fit">
-            <ProductTab
-              status="live"
-              page={1}
-              selectedData={selectedData}
-              onClose={() => setOpenProductTable(false)}
-              onConfirmSelect={handleSelect}
-            />
-          </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center py-12 rounded-lg bg-zinc-500/50">
+          <ScrollArea className="h-full w-fit  bg-white rounded-lg ">
+            <div className="p-6">
+              <ProductTab
+                status="live"
+                page={1}
+                selectedData={selectedData}
+                onClose={() => setOpenProductTable(false)}
+                onConfirmSelect={handleSelect}
+              />
+            </div>
+          </ScrollArea>
         </div>
       )}
       {/* Dialog xác nhận xóa */}
