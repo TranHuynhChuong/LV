@@ -206,13 +206,12 @@ export function StaffForm({
               )}
             />
           </div>
-          {!isViewing && (
-            <FormFooterActions
-              isEditing={isEditing}
-              isViewing={isViewing}
-              onDelete={() => setDeleteDialogOpen(true)}
-            />
-          )}
+
+          <FormFooterActions
+            isEditing={isEditing}
+            isViewing={isViewing}
+            onDelete={() => setDeleteDialogOpen(true)}
+          />
         </form>
       </Form>
 
