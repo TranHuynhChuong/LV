@@ -28,7 +28,7 @@ export default function Customers() {
   const fetchData = async (targetPage?: number) => {
     setIsLoading(true);
     const params = {
-      targetPage,
+      page: targetPage,
       limit,
     };
 
@@ -107,39 +107,41 @@ export default function Customers() {
   }, [currentPage, search]);
 
   return (
-    <div className="w-full space-y-4 bg-white p-4 rounded-sm shadow">
-      <SwitchTab></SwitchTab>
-      <div className="flex items-center justify-end gap-2 py-4">
-        <div className="flex flex-1 space-x-4">
-          <Input
-            placeholder="Tìm theo email..."
-            value={inputEmail}
-            onChange={(e) => setInputEmail(e.target.value)}
-            className="max-w-sm"
-          />
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleApplySearch}>
-              Áp dụng
-            </Button>
-            <Button variant="outline" onClick={handleClearSearch}>
-              Đặt lại
-            </Button>
+    <div className="p-4">
+      <div className="w-full space-y-4 bg-white p-4 rounded-sm shadow">
+        <SwitchTab></SwitchTab>
+        <div className="flex items-center justify-end gap-2 py-4">
+          <div className="flex flex-1 space-x-4">
+            <Input
+              placeholder="Tìm theo email..."
+              value={inputEmail}
+              onChange={(e) => setInputEmail(e.target.value)}
+              className="max-w-sm"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleApplySearch}>
+                Áp dụng
+              </Button>
+              <Button variant="outline" onClick={handleClearSearch}>
+                Đặt lại
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <CustomerTable data={data} isLoading={isLoading} />
+        <CustomerTable data={data} isLoading={isLoading} />
 
-      <div className="flex justify-start py-4">
-        <PagiantionControls
-          pagination={pagination}
-          totalPage={totalPage}
-          currentPage={currentPage}
-          onPageChange={(page) => {
-            if (page === currentPage) return;
-            router.push(`/accounts/customers?p=${page}`);
-          }}
-        />
+        <div className="flex justify-start py-4">
+          <PagiantionControls
+            pagination={pagination}
+            totalPage={totalPage}
+            currentPage={currentPage}
+            onPageChange={(page) => {
+              if (page === currentPage) return;
+              router.push(`/accounts/customers?p=${page}`);
+            }}
+          />
+        </div>
       </div>
     </div>
   );
