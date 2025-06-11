@@ -44,7 +44,7 @@ export class NguoiDungController {
   /** CUSTOMER APIs */
 
   @Roles(1)
-  @Get('/customer')
+  @Get('/customers')
   findAll(
     @Query()
     query: {
