@@ -342,9 +342,9 @@ export class SanPhamService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
-    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(
-      result.SP_id
-    );
+    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai([
+      result.SP_id,
+    ]);
 
     const promotion = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
 
