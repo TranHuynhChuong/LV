@@ -267,11 +267,7 @@ export default function ShippingFeeForm({
           />
         </div>
 
-        <FormFooterActions
-          isEditing={isEditing}
-          isView={isEditing}
-          onDelete={() => setDeleteDialogOpen(true)}
-        />
+        <FormFooterActions isEditing={isEditing} onDelete={() => setDeleteDialogOpen(true)} />
       </form>
 
       {/* Dialog xác nhận xóa */}
