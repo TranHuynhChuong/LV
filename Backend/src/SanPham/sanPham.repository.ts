@@ -34,7 +34,7 @@ export class SanPhamRepository {
 
   protected getFilter(
     filterType?: number,
-    categoryId?: number
+    categoryIds?: number[]
   ): Record<string, any> {
     const filter: Record<string, any> = {};
 
@@ -43,9 +43,8 @@ export class SanPhamRepository {
     else if (filterType === 2) filter.SP_trangThai = 2;
     else filter.SP_trangThai = { $in: [1, 2] };
 
-    // Lọc theo thể loại
-    if (categoryId !== undefined) {
-      filter.TL_id = { $in: [categoryId] };
+    if (Array.isArray(categoryIds) && categoryIds.length > 0) {
+      filter.TL_id = { $in: categoryIds };
     }
 
     return filter;
@@ -124,10 +123,10 @@ export class SanPhamRepository {
     filterType?: number,
     limit = 24,
     keyword?: string,
-    categoryId?: number
+    categoryIds?: number[]
   ): Promise<ProductListResults> {
     const project = this.getProject();
-    const filter = this.getFilter(filterType, categoryId);
+    const filter = this.getFilter(filterType, categoryIds);
     const sort = this.getSort(sortType);
     const search = this.getSearch(keyword);
 

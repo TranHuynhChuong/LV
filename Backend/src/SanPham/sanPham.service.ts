@@ -10,6 +10,7 @@ import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 import { KhuyenMaiService } from 'src/KhuyenMai/khuyenMai.service';
+import { TheLoaiService } from 'src/TheLoai/theLoai.service';
 
 const folderPrefix = 'Products';
 
@@ -40,7 +41,8 @@ export class SanPhamService {
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
     private readonly NhanVien: NhanVienService,
-    private readonly KhuyenMai: KhuyenMaiService
+    private readonly KhuyenMai: KhuyenMaiService,
+    private readonly TheLoai: TheLoaiService
   ) {}
 
   async create(
@@ -298,13 +300,17 @@ export class SanPhamService {
       categoryId,
     } = options;
 
+    const categoryIds = categoryId
+      ? [categoryId, ...(await this.TheLoai.findAllChildren(categoryId))]
+      : undefined;
+
     const result = await this.SanPham.search(
       page,
       sortType,
       filterType,
       limit,
       keyword,
-      categoryId
+      categoryIds
     );
 
     const data = result.data || [];

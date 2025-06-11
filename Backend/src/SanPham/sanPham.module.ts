@@ -5,11 +5,13 @@ import { SanPhamService } from './sanPham.service';
 import { SanPhamRepository } from './sanPham.repository';
 import { SanPham, SanPhamSchema } from './sanPham.schema';
 import { KhuyenMaiModule } from 'src/KhuyenMai/khuyenMai.module';
+import { TheLoaiModule } from 'src/TheLoai/theLoai.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: SanPham.name, schema: SanPhamSchema }]),
     KhuyenMaiModule,
+    TheLoaiModule,
   ],
   controllers: [SanPhamController],
   providers: [SanPhamService, SanPhamRepository],
