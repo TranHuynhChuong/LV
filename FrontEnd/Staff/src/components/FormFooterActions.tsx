@@ -24,7 +24,7 @@ export default function FormFooterActions({
         </Button>
       )}
 
-      {isEditing && onDelete && (
+      {!isViewing && isEditing && onDelete && (
         <Button
           type="button"
           variant="outline"
