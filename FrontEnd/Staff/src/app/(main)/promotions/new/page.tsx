@@ -45,7 +45,6 @@ export default function ProductPromotionNew() {
 
   const onSubmit = (data: ProductPromotionFormType) => {
     const apiData = mapDataPushPut(data, authData.userId);
-    console.log(apiData);
     api
       .post('/promotions', apiData)
       .then(() => {
@@ -67,7 +66,7 @@ export default function ProductPromotionNew() {
 
   return (
     <div className="relative w-full h-fit ">
-      <div className="w-full max-w-4xl p-4 mx-auto h-fit min-w-fit">
+      <div className="w-full max-w-6xl p-4 mx-auto h-fit ">
         <ProductPromotionForm onSubmit={onSubmit} />
       </div>
       {isSubmitting && <Loader />}
