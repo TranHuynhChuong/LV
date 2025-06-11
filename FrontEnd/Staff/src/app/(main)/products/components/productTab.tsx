@@ -229,7 +229,7 @@ export default function ProductTab({
 
   return (
     <div className="space-y-4 bg-white min-w-fit">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center  justify-between">
         <h1 className="text-lg font-semibold pl-4">{totalItems} Sản phẩm</h1>
         {!isComponent && (
           <Link href="/products/new">

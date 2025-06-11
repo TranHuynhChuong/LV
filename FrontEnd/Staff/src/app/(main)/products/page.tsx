@@ -60,28 +60,30 @@ export default function Products() {
   };
 
   return (
-    <div className="space-y-4 bg-white p-4 rounded-sm shadow min-w-fit">
-      <div className="flex gap-2">
-        {['all', 'live', 'hidden'].map((tab) => (
-          <Link key={tab} href={{ pathname: `/products`, query: { status: tab, page: 1 } }}>
-            <Button variant={status === tab ? 'default' : 'outline'} className="cursor-pointer">
-              {tab === 'all' && `Tất cả (${total.total})`}
-              {tab === 'live' && `Đang hiển thị (${total.live})`}
-              {tab === 'hidden' && `Đã ẩn (${total.hidden})`}
-            </Button>
-          </Link>
-        ))}
+    <div className="p-4">
+      <div className="space-y-4 bg-white p-4 rounded-sm shadow min-w-fit">
+        <div className="flex gap-2">
+          {['all', 'live', 'hidden'].map((tab) => (
+            <Link key={tab} href={{ pathname: `/products`, query: { status: tab, page: 1 } }}>
+              <Button variant={status === tab ? 'default' : 'outline'} className="cursor-pointer">
+                {tab === 'all' && `Tất cả (${total.total})`}
+                {tab === 'live' && `Đang hiển thị (${total.live})`}
+                {tab === 'hidden' && `Đã ẩn (${total.hidden})`}
+              </Button>
+            </Link>
+          ))}
+        </div>
+        <ProductTab
+          status={status}
+          page={page}
+          keyword={keyword}
+          productId={productId}
+          categoryId={categoryId}
+          onSearch={handleSearch}
+          onClearSearch={handleClearSearch}
+          onPageChange={handlePageChange}
+        />
       </div>
-      <ProductTab
-        status={status}
-        page={page}
-        keyword={keyword}
-        productId={productId}
-        categoryId={categoryId}
-        onSearch={handleSearch}
-        onClearSearch={handleClearSearch}
-        onPageChange={handlePageChange}
-      />
     </div>
   );
 }

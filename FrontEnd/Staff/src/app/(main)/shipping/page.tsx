@@ -251,7 +251,8 @@ export default function Shipments() {
             </Link>
 
             <button
-              className="cursor-pointer hover:underline"
+              className="cursor-pointer hover:underline w-fit"
+              type="button"
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
@@ -294,7 +295,7 @@ export default function Shipments() {
   }, [setBreadcrumbs]);
 
   return (
-    <>
+    <div className="p-4 min-w-fit">
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 pl-4">
@@ -441,6 +442,6 @@ export default function Shipments() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

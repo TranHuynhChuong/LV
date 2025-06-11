@@ -85,7 +85,7 @@ export default function Products() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative p-4 max-w-4xl  w-full mx-auto">
       {isSubmitting && <Loader />}
       <ProductForm onSubmit={onSubmit} />
     </div>
