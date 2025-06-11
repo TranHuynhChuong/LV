@@ -11,6 +11,7 @@ import Loading from './loading';
 import { ActionHistorySheet } from '@/components/ActivityLogSheet';
 import { Metadata } from '@/type/Metadata';
 import { ActivityLog } from '@/type/ActivityLog';
+import Loader from '@/components/Loader';
 
 export default function ShippingDetailPage() {
   const router = useRouter();
@@ -21,8 +22,8 @@ export default function ShippingDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [loading, setLoading] = useState(true);
-  const [initialData, setInitialData] = useState<ShippingFormData | null>(null);
-
+  const [initialData, setInitialData] = useState<ShippingFormData>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [metadata, setMetadata] = useState<Metadata[]>([]);
 
   useEffect(() => {
@@ -64,9 +65,10 @@ export default function ShippingDetailPage() {
       .catch((error) => {
         console.error(error);
         toast.error('Đã xảy ra lỗi!');
+        router.back();
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [id]);
 
   const handleSubmit = (data: ShippingFormData) => {
     const apiData = {
@@ -77,7 +79,7 @@ export default function ShippingDetailPage() {
       T_id: data.provinceId ?? 0,
       NV_id: authData.userId,
     };
-
+    setIsSubmitting(true);
     api
       .put(`/shipping/${id}`, apiData)
       .then((res) => {
@@ -91,12 +93,13 @@ export default function ShippingDetailPage() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error(error);
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   const handleDelete = () => {
     if (!id) return;
-
+    setIsSubmitting(true);
     api
       .delete(`/shipping/${id}`)
       .then((res) => {
@@ -107,20 +110,30 @@ export default function ShippingDetailPage() {
         console.error(error);
         const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
         toast.error(msg);
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
-  if (loading) return <Loading />;
-  if (!initialData) return <p>Không tìm thấy dữ liệu.</p>;
+  if (loading)
+    return (
+      <div className="p-4">
+        <div className="relative w-full max-w-xl min-w-fit  mx-auto">
+          <Loading />
+        </div>
+      </div>
+    );
 
   return (
-    <div className="relative w-full max-w-xl h-fit min-w-md">
-      <ShippingFeeForm
-        onSubmit={handleSubmit}
-        onDelete={handleDelete}
-        defaultValues={initialData}
-      />
-      <ActionHistorySheet metadata={metadata} />
+    <div className="p-4">
+      <div className="relative w-full max-w-xl min-w-fit  mx-auto">
+        {isSubmitting && <Loader />}
+        <ShippingFeeForm
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+          defaultValues={initialData}
+        />
+        <ActionHistorySheet metadata={metadata} />
+      </div>
     </div>
   );
 }

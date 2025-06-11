@@ -8,11 +8,12 @@ import { ApiStaff } from '@/type/Account';
 import { StaffFormData } from './staffForm';
 import StaffTable from './staffTable';
 import SwitchTab from '../switchTab';
+import Loader from '@/components/Loader';
 
 export default function Staffs() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<StaffFormData[]>([]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const getData = () => {
     setIsLoading(true);
 
@@ -59,7 +60,7 @@ export default function Staffs() {
 
   const handleConfirmDelete = (id: string) => {
     if (!id) return;
-
+    setIsSubmitting(true);
     api
       .delete(`/users/staff/${id}`)
       .then(() => {
@@ -73,13 +74,19 @@ export default function Staffs() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Xóa thất bại:', error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
-    <div className="w-full space-y-4 bg-white p-4 rounded-sm shadow">
-      <SwitchTab></SwitchTab>
-      <StaffTable data={data} onDelete={handleConfirmDelete} isLoading={isLoading}></StaffTable>;
+    <div className="p-4">
+      <div className="w-full space-y-4 bg-white p-4 rounded-sm shadow">
+        {isSubmitting && <Loader />}
+        <SwitchTab></SwitchTab>
+        <StaffTable data={data} onDelete={handleConfirmDelete} isLoading={isLoading}></StaffTable>
+      </div>
     </div>
   );
 }

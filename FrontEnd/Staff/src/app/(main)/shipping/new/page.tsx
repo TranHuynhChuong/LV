@@ -5,13 +5,17 @@ import { toast } from 'sonner';
 import ShippingFeeForm, { ShippingFormData } from '../components/ShippingForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/Loader';
 
 export default function CreateShippingPage() {
   const router = useRouter();
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -28,7 +32,7 @@ export default function CreateShippingPage() {
       T_id: data.provinceId ?? 0,
       NV_id: authData.userId,
     };
-
+    setIsSubmitting(true);
     api
       .post('/shipping', apiData)
       .then(() => {
@@ -42,12 +46,16 @@ export default function CreateShippingPage() {
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
-    <div className="w-full max-w-xl h-fit min-w-md ">
-      <ShippingFeeForm onSubmit={handleSubmit} />
+    <div className="p-4  ">
+      <div className="w-full max-w-lg min-w-fit  mx-auto ">
+        {isSubmitting && <Loader />}
+        <ShippingFeeForm onSubmit={handleSubmit} />
+      </div>
     </div>
   );
 }

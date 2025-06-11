@@ -12,6 +12,7 @@ import { ActionHistorySheet } from '@/components/ActivityLogSheet';
 import { ActivityLog } from '@/type/ActivityLog';
 import { Metadata } from '@/type/Metadata';
 import { StaffFormData } from '../staffForm';
+import Loader from '@/components/Loader';
 
 export default function StaffDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -19,10 +20,10 @@ export default function StaffDetailPage() {
   const id = params?.id as string;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [staffData, setStaffData] = useState<StaffFormData | null>(null);
+  const [staffData, setStaffData] = useState<StaffFormData>();
   const [metadata, setMetadata] = useState<Metadata[]>([]);
   const { authData } = useAuth();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -60,6 +61,7 @@ export default function StaffDetailPage() {
       .catch((error) => {
         console.error('Lỗi khi lấy thông tin nhân viên:', error);
         toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
+        router.back();
       })
       .finally(() => {
         setIsLoading(false);
@@ -75,7 +77,7 @@ export default function StaffDetailPage() {
       NV_matKhau: data.password,
       NV_idNV: authData.userId,
     };
-
+    setIsSubmitting(true);
     api
       .put(`/users/staff/${id}`, payload)
       .then(() => {
@@ -89,10 +91,14 @@ export default function StaffDetailPage() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Lỗi khi cập nhật nhân viên:', error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   const handleOnDelete = () => {
+    setIsSubmitting(true);
     api
       .delete(`/users/staff/${id}`)
       .then(() => {
@@ -106,20 +112,34 @@ export default function StaffDetailPage() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Lỗi khi xóa nhân viên:', error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
-  if (isLoading) {
-    return <Loading />;
-  }
+  if (isLoading)
+    return (
+      <div className="p-4">
+        <div className="relative flex w-full max-w-xl space-x-2 mx-auto">
+          <Loading />
+        </div>
+      </div>
+    );
 
   return (
-    <div className="relative flex w-full max-w-xl space-x-2 h-fit">
-      {staffData && (
-        <StaffForm defaultValues={staffData} onSubmit={handleOnSubmit} onDelete={handleOnDelete} />
-      )}
-
-      <ActionHistorySheet metadata={metadata} />
+    <div className="p-4">
+      <div className="relative flex w-full max-w-xl space-x-2 mx-auto">
+        {staffData && (
+          <StaffForm
+            defaultValues={staffData}
+            onSubmit={handleOnSubmit}
+            onDelete={handleOnDelete}
+          />
+        )}
+        {isSubmitting && <Loader />}
+        <ActionHistorySheet metadata={metadata} />
+      </div>
     </div>
   );
 }

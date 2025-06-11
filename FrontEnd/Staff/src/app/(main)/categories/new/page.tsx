@@ -4,14 +4,18 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import CategoryForm, { CategoryFormData } from '../components/categoryForm';
+import Loader from '@/components/Loader';
 
 export default function NewCategory() {
   const router = useRouter();
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -25,8 +29,7 @@ export default function NewCategory() {
       TL_idTL: data.parentId ?? null,
       NV_id: authData.userId,
     };
-
-    console.log('Submitting category data:', apiData);
+    setIsSubmitting(true);
     api
       .post('/categories', apiData)
       .then(() => {
@@ -42,11 +45,15 @@ export default function NewCategory() {
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <div className="w-full max-w-2xl h-fit min-w-fit xl:max-w-4xl mx-auto">
+      {isSubmitting && <Loader />}
       <CategoryForm onSubmit={handleSubmit}></CategoryForm>
     </div>
   );

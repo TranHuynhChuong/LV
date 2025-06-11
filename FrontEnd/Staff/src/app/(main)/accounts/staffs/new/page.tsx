@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { toast } from 'sonner';
 import { StaffForm, StaffFormData } from '../staffForm';
 import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/Loader';
 
 export default function New() {
   const router = useRouter();
   const { authData } = useAuth();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { setBreadcrumbs } = useBreadcrumb();
   useEffect(() => {
     setBreadcrumbs([
@@ -30,7 +31,7 @@ export default function New() {
       NV_matKhau: data.password,
       NV_idNV: authData.userId,
     };
-
+    setIsSubmitting(true);
     api
       .post('/users/staff', payload)
       .then(() => {
@@ -44,11 +45,15 @@ export default function New() {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Lỗi khi thêm nhân viên:', error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <div className="w-full max-w-xl h-fit min-w-md">
+      {isSubmitting && <Loader />}
       <StaffForm onSubmit={handleOnsubmit} />
     </div>
   );
