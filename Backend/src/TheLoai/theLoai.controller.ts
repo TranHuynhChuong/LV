@@ -14,11 +14,11 @@ import { CreateDto, UpdateDto } from './theLoai.dto';
 import { TheLoai } from './theLoai.schema';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 
-@UseGuards(XacThucGuard)
 @Controller('api/categories')
 export class TheLoaiController {
   constructor(private readonly TheLoai: TheLoaiService) {}
 
+  @UseGuards(XacThucGuard)
   @Post()
   async create(@Body() data: CreateDto) {
     return await this.TheLoai.create(data);
@@ -34,6 +34,7 @@ export class TheLoaiController {
     return await this.TheLoai.findById(id);
   }
 
+  @UseGuards(XacThucGuard)
   @Put(':id')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateDto) {
     return await this.TheLoai.update(id, data);
