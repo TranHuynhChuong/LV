@@ -38,6 +38,34 @@ export class TheLoaiRepository {
       .exec();
   }
 
+  async findAllChildren(id: number): Promise<number[]> {
+    const result = await this.model
+      .aggregate([
+        {
+          $match: { TL_id: id },
+        },
+        {
+          $graphLookup: {
+            from: 'theloais',
+            startWith: '$TL_id',
+            connectFromField: 'TL_id',
+            connectToField: 'TL_idTL',
+            as: 'descendants',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            descendantIds: '$descendants.TL_id',
+          },
+        },
+      ])
+      .exec();
+
+    if (!result || result.length === 0) return [];
+    return result[0].descendantIds as number[];
+  }
+
   async findById(id: number): Promise<TheLoai | null> {
     return this.model.findOne({ TL_id: id, TL_daXoa: false }).lean().exec();
   }
