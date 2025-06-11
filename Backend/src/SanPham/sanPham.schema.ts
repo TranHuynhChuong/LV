@@ -47,22 +47,22 @@ export class SanPham {
   @Prop({ type: String, required: true, maxlength: 120 })
   SP_ten: string;
 
-  @Prop({ type: String, required: true, maxlength: 1000 })
+  @Prop({ type: String, required: true, maxlength: 1200 })
   SP_tomTat: string;
 
-  @Prop({ type: String, maxlength: 2000 })
+  @Prop({ type: String, maxlength: 3000 })
   SP_moTa: string;
 
-  @Prop({ type: String, required: true, maxlength: 250 })
+  @Prop({ type: String, required: true })
   SP_tacGia: string;
 
-  @Prop({ type: String, required: true, maxlength: 250 })
+  @Prop({ type: String, required: true })
   SP_nhaXuatBan: string;
 
-  @Prop({ type: String, required: true, maxlength: 50 })
+  @Prop({ type: String, required: true })
   SP_ngonNgu: string;
 
-  @Prop({ type: String, maxlength: 250 })
+  @Prop({ type: String })
   SP_nguoiDich: string;
 
   @Prop({ type: Number, required: true })
@@ -71,7 +71,7 @@ export class SanPham {
   @Prop({ type: Number, required: true })
   SP_soTrang: number;
 
-  @Prop({ type: String, required: true, maxlength: 13 })
+  @Prop({ type: String, required: true })
   SP_isbn: string;
 
   @Prop({ type: Number, required: true })

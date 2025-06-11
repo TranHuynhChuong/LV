@@ -37,7 +37,7 @@ export class CreateDto {
   SP_ten: string;
 
   @IsString()
-  @MaxLength(1000)
+  @MaxLength(1200)
   SP_tomTat: string;
 
   @IsString()
@@ -46,11 +46,9 @@ export class CreateDto {
   SP_moTa?: string;
 
   @IsString()
-  @MaxLength(250)
   SP_tacGia: string;
 
   @IsString()
-  @MaxLength(250)
   SP_nhaXuatBan: string;
 
   @Transform(({ value }) => Number(value))
@@ -62,16 +60,13 @@ export class CreateDto {
   SP_soTrang: number;
 
   @IsString()
-  @MaxLength(13)
   SP_isbn: string;
 
   @IsString()
-  @MaxLength(120)
   @IsOptional()
   SP_nguoiDich?: string;
 
   @IsString()
-  @MaxLength(50)
   SP_ngonNgu: string;
 
   @Transform(({ value }) => Number(value))
