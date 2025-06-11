@@ -132,7 +132,7 @@ export default function ProductDiscountTable({
                       type="number"
                       disabled={isBlocked || isViewing}
                       min={0}
-                      value={rawValue ?? ''}
+                      value={rawValue ?? 0}
                       onChange={(e) => setValue(valuePath, Number(e.target.value))}
                       className="max-w-32 min-w-24"
                     />
