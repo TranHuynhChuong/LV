@@ -175,22 +175,31 @@ export default function ProductPromotionDetail() {
       });
   };
 
-  if (loading) return <Loading />;
+  if (loading)
+    return (
+      <div className="p-4">
+        <div className="w-full max-w-6xl p-4 mx-auto ">
+          <Loading />
+        </div>
+      </div>
+    );
 
   return (
-    <div className="w-full max-w-4xl p-4 mx-auto h-fit min-w-fit">
-      <div className="relative ">
-        <ProductPromotionForm
-          isViewing={isViewing}
-          onSubmit={onSubmit}
-          defaultValues={data}
-          products={products}
-          onDelete={handleOnDelete}
-        />
-        <ActionHistorySheet metadata={metadata} />
-      </div>
+    <div className="p-4">
+      <div className="w-full max-w-6xl  mx-auto ">
+        <div className="relative ">
+          <ProductPromotionForm
+            isViewing={isViewing}
+            onSubmit={onSubmit}
+            defaultValues={data}
+            products={products}
+            onDelete={handleOnDelete}
+          />
+          <ActionHistorySheet metadata={metadata} />
+        </div>
 
-      {isSubmitting && <Loader />}
+        {isSubmitting && <Loader />}
+      </div>
     </div>
   );
 }

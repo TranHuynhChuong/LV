@@ -22,7 +22,7 @@ export default function CategoryDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [initialData, setInitialData] = useState<CategoryFormData | null>(null);
+  const [initialData, setInitialData] = useState<CategoryFormData>();
 
   const [metadata, setMetadata] = useState<Metadata[]>([]);
 
@@ -64,6 +64,7 @@ export default function CategoryDetailPage() {
       .catch((error) => {
         console.error(error);
         toast.error('Không tìm thấy thể loại!');
+        router.back();
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -118,8 +119,14 @@ export default function CategoryDetailPage() {
       });
   };
 
-  if (loading) return <Loading />;
-  if (!initialData) return <Loading />;
+  if (loading)
+    return (
+      <div className="p-4">
+        <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
+          <Loading />
+        </div>
+      </div>
+    );
 
   return (
     <div className="p-4">

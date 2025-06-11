@@ -158,6 +158,7 @@ export default function ProductDetail() {
       .catch((error) => {
         console.error(error);
         toast.error('Không tìm thấy sản phẩm!');
+        router.back();
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -171,23 +172,32 @@ export default function ProductDetail() {
         router.back();
       })
       .catch((error) => {
-        setIsSubmitting(false);
         if (error.status === 400) {
           toast.error('Xóa thất bại!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Lỗi khi xóa:', error);
-      });
+      })
+      .finally(() => setLoading(false));
   };
 
-  if (loading) return <Loading />;
-  else
+  if (loading)
     return (
-      <div className="relative w-full max-w-2xl xl:max-w-4xl mx-auto  h-fit">
+      <div className="p-4">
+        <div className="relative w-full max-w-4xl  mx-auto  h-fit">
+          <Loading />
+        </div>
+      </div>
+    );
+
+  return (
+    <div className="p-4">
+      <div className="relative w-full max-w-4xl  mx-auto  h-fit">
         {isSubmitting && <Loader />}
         <ProductForm onSubmit={onSubmit} defaultValue={data} onDelete={handleOnDelete} />
         <ActionHistorySheet metadata={metadata} />
       </div>
-    );
+    </div>
+  );
 }
