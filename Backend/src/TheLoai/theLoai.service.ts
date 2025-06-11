@@ -110,6 +110,11 @@ export class TheLoaiService {
     return this.TheLoai.findAll();
   }
 
+  async findAllChildren(id?: number): Promise<number[]> {
+    if (!id) return [];
+    return this.TheLoai.findAllChildren(id);
+  }
+
   async findById(id: number): Promise<any> {
     const result: any = await this.TheLoai.findById(id);
     if (!result) {
