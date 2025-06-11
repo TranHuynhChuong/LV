@@ -19,7 +19,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({ code, pass }),
     });
 
-    console.log(res);
     if (!res.ok) {
       return NextResponse.json({ message: 'Đăng nhập thất bại' }, { status: res.status });
     }
