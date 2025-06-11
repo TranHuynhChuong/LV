@@ -4,6 +4,7 @@ import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 @Injectable()
 export class TransformService implements OnModuleInit {
   private generateEmbeddings: any;
+  private tokenizer: any;
 
   async onModuleInit() {
     await this.initializePipeline();
@@ -14,11 +15,14 @@ export class TransformService implements OnModuleInit {
       const TransformersApi = Function(
         'return import("@xenova/transformers")'
       )();
-      const { pipeline } = await TransformersApi;
+      const { pipeline, AutoTokenizer } = await TransformersApi;
 
       this.generateEmbeddings = await pipeline(
         'feature-extraction',
-        'Xenova/all-MiniLM-L6-v2'
+        'Xenova/multilingual-e5-small'
+      );
+      this.tokenizer = await AutoTokenizer.from_pretrained(
+        'Xenova/multilingual-e5-small'
       );
     } catch (error) {
       console.error('Lỗi khi khởi tạo pipeline:', error);
@@ -37,5 +41,13 @@ export class TransformService implements OnModuleInit {
     }
 
     throw new BadRequestException();
+  }
+
+  async countTokens(input: string): Promise<number> {
+    if (!this.tokenizer) {
+      throw new BadRequestException('Tokenizer chưa được khởi tạo');
+    }
+    const tokenIds: number[] = await this.tokenizer.encode(input);
+    return tokenIds.length;
   }
 }
