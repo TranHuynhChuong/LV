@@ -42,6 +42,7 @@ import {
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { CategoryFormData } from './components/categoryForm';
+import { Input } from '@/components/ui/input';
 
 export default function Categories() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -77,14 +78,20 @@ export default function Categories() {
 
         setTotal(categoriesRaw.length);
         // Map sang Category với parent là tên thể loại cha
-        const categoriesMapped: CategoryFormData[] = categoriesRaw.map((cat) => {
-          const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
-          return {
-            id: cat.TL_id,
-            name: cat.TL_ten,
-            parent: parentCategory ? parentCategory.TL_ten : '',
-          };
-        });
+        const categoriesMapped: CategoryFormData[] = categoriesRaw
+          .map((cat) => {
+            const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
+            return {
+              id: cat.TL_id,
+              name: cat.TL_ten,
+              parent: parentCategory ? parentCategory.TL_ten : '',
+            };
+          })
+          .sort((a, b) => {
+            if (a.parent === '' && b.parent !== '') return -1;
+            if (a.parent !== '' && b.parent === '') return 1;
+            return a.parent.localeCompare(b.parent);
+          });
 
         setData(categoriesMapped);
       })
@@ -135,6 +142,7 @@ export default function Categories() {
       accessorKey: 'name',
       header: 'Tên',
       enableHiding: false,
+      enableColumnFilter: true,
     },
     {
       accessorKey: 'parent',
@@ -209,6 +217,14 @@ export default function Categories() {
               <Plus /> Thêm mới
             </Button>
           </Link>
+        </div>
+        <div className="mb-4">
+          <Input
+            placeholder="Tìm theo tên thể loại..."
+            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
+            className="w-full max-w-sm"
+          />
         </div>
         <div className="border rounded-md">
           <Table>
