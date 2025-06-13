@@ -24,7 +24,6 @@ import { ProductSimple } from '@/type/Product';
 
 import ProductDiscountTable from './ProductDiscountTable';
 import { format } from 'date-fns';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const productPromotionSchema = z
   .object({
@@ -204,7 +203,7 @@ export default function ProductPromotionForm({
                 </FormItem>
               )}
             />
-            <div className="flex">
+            <div className="flex flex-wrap gap-4 ">
               <FormField
                 control={control}
                 name="from"
@@ -295,18 +294,18 @@ export default function ProductPromotionForm({
         </form>
       </Form>
       {openProductTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center py-12 rounded-lg bg-zinc-500/50">
-          <ScrollArea className="h-full w-fit  bg-white rounded-lg ">
-            <div className="p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-500/50 py-12">
+          <div className="max-h-[90vh] max-w-full overflow-hidden rounded-lg bg-white shadow-lg">
+            <div className="overflow-y-auto max-h-[90vh] p-6">
               <ProductTab
-                status="live"
+                status="noPromotion"
                 page={1}
                 selectedData={selectedData}
                 onClose={() => setOpenProductTable(false)}
                 onConfirmSelect={handleSelect}
               />
             </div>
-          </ScrollArea>
+          </div>
         </div>
       )}
       {/* Dialog xác nhận xóa */}
