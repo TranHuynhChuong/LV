@@ -28,6 +28,7 @@ const filterMap: Record<string, number | undefined> = {
   all: undefined,
   live: 1,
   hidden: 2,
+  noPromotion: 0,
 };
 
 export default function ProductTab({
@@ -123,10 +124,11 @@ export default function ProductTab({
         return;
       }
 
+      console.log(isComponent);
       const params = {
         page,
         sortType,
-        filterType,
+        filterType: isComponent ? 0 : filterType,
         limit,
         keyword,
         categoryId,
@@ -155,12 +157,13 @@ export default function ProductTab({
   );
 
   useEffect(() => {
-    fetchData(page, sortType, filterType, keyword, categoryId, productId);
-    if (onPageChange || onSearch || onClearSearch) {
+    if (onPageChange && onSearch && onClearSearch) {
       setIscomponent(false);
     } else {
       setIscomponent(true);
     }
+    console.log(isComponent);
+    fetchData(page, sortType, filterType, keyword, categoryId, productId);
   }, [status, page, keyword, categoryId, productId, fetchData]);
 
   useEffect(() => {
