@@ -1,10 +1,8 @@
-import RegisterForm from '@/components/register-form';
+import RegisterForm from '@/app/auth/components/register-form';
 export default function Register() {
   return (
-    <div className="flex  w-full items-center justify-center">
-      <div className="w-full">
-        <RegisterForm />
-      </div>
+    <div className="w-full max-w-lg">
+      <RegisterForm />
     </div>
   );
 }
