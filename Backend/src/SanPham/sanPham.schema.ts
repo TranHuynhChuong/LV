@@ -106,9 +106,7 @@ export class SanPham {
 }
 
 export const SanPhamSchema = SchemaFactory.createForClass(SanPham);
-SanPhamSchema.index({ SP_trangThai: 1, SP_id: 1 });
+
 SanPhamSchema.index({ SP_trangThai: 1, SP_id: -1 });
-SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: 1, SP_id: 1 });
-SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: -1, SP_id: -1 });
-SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: 1, SP_id: 1 });
 SanPhamSchema.index({ SP_trangThai: 1, SP_daBan: -1, SP_id: -1 });
+SanPhamSchema.index({ SP_trangThai: 1, SP_giaBan: 1 });
