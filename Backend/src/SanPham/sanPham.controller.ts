@@ -68,6 +68,11 @@ export class SanPhamController {
     return this.service.countAll();
   }
 
+  @Get('/suggestions')
+  getAutocomplete(@Query('keyword') keyword: string) {
+    return this.service.searchAutocomplete(keyword);
+  }
+
   @Get('/search')
   search(
     @Query()
