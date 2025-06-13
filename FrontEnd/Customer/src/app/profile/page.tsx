@@ -142,7 +142,7 @@ export default function Profile() {
               <Calendar
                 mode="single"
                 selected={profile.dob || undefined}
-                onSelect={(date) => setProfile({ ...profile, dob: date ?? null })}
+                onSelect={(date: Date | undefined) => setProfile({ ...profile, dob: date ?? null })}
               />
             </PopoverContent>
           </Popover>
