@@ -1,42 +1,52 @@
 // contexts/AuthContext.tsx
 'use client';
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthData = {
   userId: string | null;
+  role: number | null;
 };
 
-const AuthContext = createContext<{
+type AuthContextType = {
   authData: AuthData;
   setAuthData: (data: AuthData) => void;
-}>({
-  authData: { userId: null },
+  isLoading: boolean;
+};
+
+const AuthContext = createContext<AuthContextType>({
+  authData: { userId: null, role: null },
   setAuthData: () => {},
+  isLoading: true,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authData, setAuthData] = useState<AuthData>({
     userId: null,
+    role: null,
   });
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/getAuth')
       .then(async (res) => {
-        if (!res.ok) {
-          setAuthData({ userId: null });
-          return;
-        }
         const data = await res.json();
-        setAuthData({ userId: data.userId });
+        setAuthData({ userId: data.userId, role: data.role });
       })
       .catch(() => {
-        setAuthData({ userId: null });
+        setAuthData({ userId: null, role: null });
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
-  const contextValue = useMemo(() => ({ authData, setAuthData }), [authData, setAuthData]);
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ authData, setAuthData, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
