@@ -8,21 +8,18 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function AuthButtons() {
   const router = useRouter();
 
-  const { authData, setAuthData } = useAuth();
+  const { authData } = useAuth();
 
   const isAuthenticated = !!authData.userId;
 
   const logOut = async () => {
-    await fetch('/api/logout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    setAuthData({ userId: null });
+    await fetch('/api/logout', { method: 'POST' });
+    router.replace('/');
   };
 
   if (!isAuthenticated) {
     return (
-      <div className="flex space-x-4 justify-end w-full">
+      <div className="flex space-x-2 justify-end w-full">
         <Button variant="outline" onClick={() => router.push('/auth/login')}>
           Đăng nhập
         </Button>
@@ -31,7 +28,7 @@ export default function AuthButtons() {
     );
   } else {
     return (
-      <div className="flex space-x-4 justify-end w-full">
+      <div className="flex space-x-2 justify-end w-full">
         <Button
           variant="outline"
           className="cursor-pointer"
