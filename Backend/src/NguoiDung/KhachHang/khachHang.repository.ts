@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, UpdateQuery } from 'mongoose';
+import { Model, PipelineStage, UpdateQuery } from 'mongoose';
 import { KhachHang, KhachHangDocument } from './khachHang.schema';
-import { PaginateResult, paginateWithFacet } from 'src/Util/paginateWithFacet';
+import {
+  PaginateResult,
+  paginateRawAggregate,
+} from 'src/Util/paginateWithFacet';
 
 export type CustomerListResults = PaginateResult<KhachHangDocument>;
 
@@ -18,20 +21,47 @@ export class KhachHangRepository {
     return created.save();
   }
 
-  async findAll(page: number, limit = 24): Promise<CustomerListResults> {
-    const project = undefined;
-    const filter = undefined;
-    const sort = undefined;
-    const search = undefined;
+  protected buildFacetPaginationPipeline({
+    skip,
+    limit,
+  }: {
+    skip: number;
+    limit: number;
+    project?: Record<string, any>;
+  }): PipelineStage[] {
+    const pipeline: PipelineStage[] = [];
 
-    return paginateWithFacet({
+    const dataStages: PipelineStage[] = [];
+
+    dataStages.push({ $skip: skip }, { $limit: limit });
+
+    const facetStage: Record<string, any> = {
+      data: dataStages,
+      totalCount: [{ $count: 'count' }],
+    };
+
+    pipeline.push({ $facet: facetStage });
+
+    return pipeline;
+  }
+
+  async findAll(page: number, limit = 24): Promise<CustomerListResults> {
+    const skip = (page - 1) * limit;
+
+    const dataPipeline: PipelineStage[] = [
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    const countPipeline: PipelineStage[] = [{ $match: { KH_daXoa: false } }];
+
+    return paginateRawAggregate({
       model: this.model,
       page,
       limit,
-      search,
-      filter,
-      sort,
-      project,
+      dataPipeline,
+      countPipeline,
     });
   }
 

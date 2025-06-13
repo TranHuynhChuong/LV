@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import {
   KhuyenMai,
   KhuyenMaiDocument,
@@ -7,7 +7,7 @@ import {
   ChiTietKhuyenMaiDocument,
 } from './khuyenMai.schema';
 import { Injectable } from '@nestjs/common';
-import { paginateWithFacet } from 'src/Util/paginateWithFacet';
+import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
 @Injectable()
 export class KhuyenMaiRepository {
@@ -22,10 +22,6 @@ export class KhuyenMaiRepository {
   // ========== KhuyenMai ==========
   // ===============================
 
-  async createKhuyenMai(data: Partial<KhuyenMai>) {
-    return this.khuyenMaiModel.create(data);
-  }
-
   async findAllKhuyenMai({
     page,
     limit,
@@ -37,23 +33,33 @@ export class KhuyenMaiRepository {
   }) {
     const now = new Date();
     const filter: Record<string, any> = { KM_daXoa: false };
+
     if (filterType === 1) {
-      filter.KM_ketThuc = { $gte: now };
+      filter.KM_ketThuc = { $gte: now }; // Đang hiệu lực
     } else if (filterType === 0) {
-      filter.KM_ketThuc = { $lt: now };
+      filter.KM_ketThuc = { $lt: now }; // Đã hết hạn
     }
 
-    return paginateWithFacet<KhuyenMaiDocument>({
+    const dataPipeline: PipelineStage[] = [
+      { $match: filter },
+      { $sort: { KM_batDau: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ];
+
+    const countPipeline: PipelineStage[] = [{ $match: filter }];
+
+    return paginateRawAggregate<KhuyenMaiDocument>({
       model: this.khuyenMaiModel,
-      page: page,
-      limit: limit,
-      filter: filter,
-      sort: { KM_batDau: -1 },
+      page,
+      limit,
+      dataPipeline,
+      countPipeline,
     });
   }
 
   async findKhuyenMaiById(KM_id: string): Promise<KhuyenMaiDocument | null> {
-    const result = await this.khuyenMaiModel.aggregate([
+    const pipeline: PipelineStage[] = [
       {
         $match: {
           KM_id,
@@ -69,7 +75,7 @@ export class KhuyenMaiRepository {
         },
       },
       {
-        $addFields: {
+        $set: {
           chiTietKhuyenMai: {
             $filter: {
               input: '$chiTietKhuyenMai',
@@ -80,8 +86,14 @@ export class KhuyenMaiRepository {
         },
       },
       {
-        $addFields: {
-          SP_ids: '$chiTietKhuyenMai.SP_id',
+        $set: {
+          SP_ids: {
+            $map: {
+              input: '$chiTietKhuyenMai',
+              as: 'ct',
+              in: '$$ct.SP_id',
+            },
+          },
         },
       },
       {
@@ -91,9 +103,7 @@ export class KhuyenMaiRepository {
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $in: ['$SP_id', '$$sp_ids'],
-                },
+                $expr: { $in: ['$SP_id', '$$sp_ids'] },
               },
             },
             {
@@ -150,9 +160,14 @@ export class KhuyenMaiRepository {
           sanPham: 1,
         },
       },
-    ]);
+    ];
 
+    const result = await this.khuyenMaiModel.aggregate(pipeline);
     return (result[0] ?? null) as KhuyenMaiDocument | null;
+  }
+
+  async createKhuyenMai(data: Partial<KhuyenMai>) {
+    return this.khuyenMaiModel.create(data);
   }
 
   async updateKhuyenMai(KM_id: string, update: Partial<KhuyenMai>) {
@@ -180,6 +195,7 @@ export class KhuyenMaiRepository {
         $match: {
           SP_id: { $in: SPIds },
           CTKM_daXoa: false,
+          CTKM_tamNgung: false,
         },
       },
       {
