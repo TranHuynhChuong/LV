@@ -1,9 +1,5 @@
 export function parsePositiveInt(value: any): number | undefined {
-  const str = String(value).trim();
+  const num = parseInt(String(value).trim(), 10);
 
-  if (/^[1-9]\d*$/.test(str)) {
-    return parseInt(str, 10);
-  }
-
-  return undefined;
+  return Number.isInteger(num) && num >= 0 ? num : undefined;
 }
