@@ -31,7 +31,7 @@ api.interceptors.response.use(
       if (status === 401 || status === 403) {
         await fetch('/api/logout', { method: 'POST' });
         if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
+          window.location.href = '/login';
         }
       }
     }
