@@ -43,6 +43,12 @@ export class KhuyenMai {
 }
 
 export const KhuyenMaiSchema = SchemaFactory.createForClass(KhuyenMai);
+KhuyenMaiSchema.index({
+  KM_id: 1,
+  KM_daXoa: 1,
+  KM_batDau: 1,
+  KM_ketThuc: 1,
+});
 
 @Schema()
 export class ChiTietKhuyenMai {
@@ -67,3 +73,11 @@ export class ChiTietKhuyenMai {
 
 export const ChiTietKhuyenMaiSchema =
   SchemaFactory.createForClass(ChiTietKhuyenMai);
+
+ChiTietKhuyenMaiSchema.index({ KM_id: 1 });
+ChiTietKhuyenMaiSchema.index({
+  SP_id: 1,
+  CTKM_daXoa: 1,
+  CTKM_tamNgung: 1,
+  KM_id: 1,
+});
