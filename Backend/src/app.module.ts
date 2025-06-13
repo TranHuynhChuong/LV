@@ -9,6 +9,7 @@ import { XacThucModule } from './XacThuc/xacThuc.module';
 import { TheLoaiModule } from './TheLoai/theLoai.module';
 import { SanPhamModule } from './SanPham/sanPham.module';
 import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
+import { GioHangModule } from './GioHang/gioHang.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
     TheLoaiModule,
     SanPhamModule,
     KhuyenMaiModule,
+    GioHangModule,
   ],
 })
 export class AppModule {}
