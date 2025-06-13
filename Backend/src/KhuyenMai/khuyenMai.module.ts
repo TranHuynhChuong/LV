@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   KhuyenMai,
@@ -9,7 +9,6 @@ import {
 import { KhuyenMaiRepository } from './khuyenMai.repository';
 import { KhuyenMaiService } from './khuyenMai.service';
 import { KhuyenMaiController } from './khuyenMai.controller';
-import { SanPhamModule } from '../SanPham/sanPham.module';
 
 @Module({
   imports: [
@@ -17,7 +16,6 @@ import { SanPhamModule } from '../SanPham/sanPham.module';
       { name: KhuyenMai.name, schema: KhuyenMaiSchema },
       { name: ChiTietKhuyenMai.name, schema: ChiTietKhuyenMaiSchema },
     ]),
-    forwardRef(() => SanPhamModule),
   ],
   providers: [KhuyenMaiRepository, KhuyenMaiService],
   controllers: [KhuyenMaiController],
