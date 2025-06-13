@@ -1,15 +1,20 @@
 import type { Metadata } from 'next';
-import { Roboto } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/layout/header/header';
 import Footer from '@/components/layout/footer/footer';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 
-const roboto = Roboto({
-  weight: ['100', '300', '400', '500', '700', '900'],
+import { Roboto, Geist } from 'next/font/google';
+
+const geistSans = Geist({
   subsets: ['latin'],
-  variable: '--font-roboto',
+  variable: '--font-geistSans',
+});
+
+const robotoSans = Roboto({
+  subsets: ['latin'],
+  variable: '--font-robotoSans',
 });
 
 export const metadata: Metadata = {
@@ -25,11 +30,15 @@ export default function RootLayout({
   return (
     <AuthProvider>
       <html lang="en">
-        <body className={`${roboto.className} antialiased min-h-screen flex flex-col`}>
+        <body
+          className={`${geistSans.className} ${robotoSans.className} font-sans text-base antialiased
+          bg-zinc-100 text-zinc-900
+          w-full h-screen flex flex-col relative overflow-y-auto`}
+        >
           <Header />
-          <main className="container mx-auto flex-1 w-full p-4">{children}</main>
-          <Toaster richColors position="top-right" duration={2000} />
+          <main className="container mx-auto flex-1 flex flex-col w-full p-4">{children}</main>
           <Footer />
+          <Toaster richColors position="top-right" duration={2000} />
         </body>
       </html>
     </AuthProvider>
