@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 
 import api from '@/lib/axiosClient';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -163,6 +164,12 @@ export default function RegisterForm() {
           <Button type="submit" disabled={loading}>
             {loading ? 'Đang đăng ký...' : 'Đăng ký'}
           </Button>
+          <div className="flex justify-center items-center text-sm gap-2 ">
+            <p>Đã có có tài khoản ? </p>
+            <Link href={'/auth/register'} className="hover:underline underline">
+              Đăng nhập
+            </Link>
+          </div>
         </CardFooter>
       </form>
     </Card>

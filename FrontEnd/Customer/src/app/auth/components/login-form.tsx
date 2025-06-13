@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 
 export default function LoginForm({ onForgotPassword }: { readonly onForgotPassword: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,6 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setAuthData } = useAuth();
   const router = useRouter();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -42,9 +41,6 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
         return;
       }
 
-      const resData = await res.json();
-      setAuthData({ userId: resData.userId });
-
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);
@@ -55,12 +51,12 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
   };
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card>
       <form onSubmit={onSubmit}>
-        <CardHeader className="mb-6">
+        <CardHeader>
           <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 mt-6 mb-4">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -106,12 +102,19 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
             </button>
           </div>
 
-          <div className="mt-2 text-red-500 text-sm text-center h-6">{error}</div>
+          <div className=" text-red-500 text-sm text-center h-4">{error}</div>
         </CardContent>
-        <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
+        <CardFooter className="flex flex-col items-stretch gap-4">
           <Button type="submit" disabled={loading}>
             {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </Button>
+          <div className="flex justify-center items-center text-sm gap-2 ">
+            <p>Chưa có tài khoản ? </p>{' '}
+            <Link href={'/auth/register'} className="hover:underline underline">
+              {' '}
+              Đăng ký{' '}
+            </Link>
+          </div>
         </CardFooter>
       </form>
     </Card>
