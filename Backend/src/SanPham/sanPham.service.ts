@@ -253,7 +253,6 @@ export class SanPhamService {
   }): Promise<{
     data: any[];
     metadata: any;
-    promotions: any[];
   }> {
     const { page = 1, sortType = 1, filterType, limit = 24 } = options;
 
@@ -264,18 +263,9 @@ export class SanPhamService {
       limit
     );
 
-    const data = result.data || [];
-
-    const SPIds = data.map((sp) => sp.SP_id);
-
-    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(SPIds);
-
-    const promotions = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
-
     return {
-      data,
+      data: result.data,
       metadata: result.metadata,
-      promotions,
     };
   }
 
@@ -289,7 +279,6 @@ export class SanPhamService {
   }): Promise<{
     data: any[];
     metadata: any;
-    promotions: any[];
   }> {
     const {
       page = 1,
@@ -313,19 +302,14 @@ export class SanPhamService {
       categoryIds
     );
 
-    const data = result.data || [];
-
-    const SPIds = data.map((sp) => sp.SP_id);
-
-    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai(SPIds);
-
-    const promotions = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
-
     return {
-      data,
+      data: result.data,
       metadata: result.metadata,
-      promotions,
     };
+  }
+
+  async searchAutocomplete(keyword: string): Promise<string[]> {
+    return this.SanPham.searchAutocomplete(keyword);
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
@@ -348,13 +332,25 @@ export class SanPhamService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
-    const allKhuyenMai = await this.KhuyenMai.getValidChiTietKhuyenMai([
+    const promotion = await this.KhuyenMai.getValidChiTietKhuyenMai([
       result.SP_id,
     ]);
 
-    const promotion = allKhuyenMai.filter((km) => !km.CTKM_tamNgung);
-
     return { product: result, promotion: promotion };
+  }
+
+  async findByIds(ids: number[]): Promise<{
+    products: Partial<SanPham>[];
+    promotions: any[];
+  }> {
+    const result: any = await this.SanPham.findByIds(ids);
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    const promotions = await this.KhuyenMai.getValidChiTietKhuyenMai(ids);
+
+    return { products: result, promotions: promotions };
   }
 
   async delete(id: number): Promise<SanPham> {
