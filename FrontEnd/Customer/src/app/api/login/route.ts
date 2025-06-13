@@ -13,21 +13,17 @@ export async function POST(request: Request) {
   try {
     const { email, pass } = await request.json();
 
-    const backendRes = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-customer`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-customer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, pass }),
     });
 
-    if (!backendRes.ok) {
-      const error = await backendRes.json();
-      return NextResponse.json(
-        { message: error.message || 'Login failed' },
-        { status: backendRes.status }
-      );
+    if (!res.ok) {
+      return NextResponse.json({ message: 'Đăng nhập thất bại' }, { status: res.status });
     }
 
-    const { token } = await backendRes.json();
+    const { token } = await res.json();
 
     // Giải mã token để lấy userId, role
     let userId = null;
