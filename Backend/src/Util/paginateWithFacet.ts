@@ -1,4 +1,5 @@
 import { Model } from 'mongoose';
+import type { PipelineStage } from 'mongoose';
 
 export function calculatePaginate(
   page: number,
@@ -37,88 +38,27 @@ export interface PaginateResult<T> {
   };
 }
 
-interface FacetPaginateOptions {
+interface RawAggregatePaginateOptions {
   model: Model<any>;
   page?: number;
   limit: number;
-  search?: Record<string, any>;
-  filter?: Record<string, any>;
-  sort?: Record<string, number>;
-  project?: Record<string, any>;
+  dataPipeline: PipelineStage[];
+  countPipeline: PipelineStage[];
 }
 
-/**
- * Build aggregation pipeline with $facet stage for pagination.
- */
-import type { PipelineStage } from 'mongoose';
-
-function buildFacetPaginationPipeline({
-  search,
-  filter = {},
-  sort = { _id: -1 },
-  skip,
-  limit,
-  project,
-}: {
-  search?: Record<string, any>;
-  filter?: Record<string, any>;
-  sort: Record<string, any>;
-  skip: number;
-  limit: number;
-  project?: Record<string, any>;
-}): PipelineStage[] {
-  const pipeline: PipelineStage[] = [];
-
-  // $search stage (MongoDB Atlas full text search)
-  if (search && Object.keys(search).length > 0) {
-    pipeline.push({ $search: search });
-  }
-
-  // $match stage for filter
-  pipeline.push({ $match: filter });
-
-  // $facet stage
-  const facetStage: Record<string, any> = {
-    data: [{ $sort: sort }, { $skip: skip }, { $limit: limit }],
-    totalCount: [{ $count: 'count' }],
-  };
-
-  if (project && Object.keys(project).length > 0) {
-    facetStage.data.push({ $project: project });
-  }
-
-  pipeline.push({ $facet: facetStage });
-
-  return pipeline;
-}
-
-/**
- * Paginate using aggregation with $facet.
- */
-export async function paginateWithFacet<T>({
+export async function paginateRawAggregate<T>({
   model,
   page = 1,
   limit,
-  search,
-  filter = {},
-  sort = { _id: -1 },
-  project,
-}: FacetPaginateOptions): Promise<PaginateResult<T>> {
-  const skip = (page - 1) * limit;
-  const pipeline = buildFacetPaginationPipeline({
-    search,
-    filter,
-    sort,
-    skip,
-    limit,
-    project,
-  });
+  dataPipeline,
+  countPipeline,
+}: RawAggregatePaginateOptions): Promise<PaginateResult<T>> {
+  const [data, countResult] = await Promise.all([
+    model.aggregate(dataPipeline),
+    model.aggregate(countPipeline),
+  ]);
 
-  const result = await model.aggregate(pipeline);
-
-  const totalItems = result[0]?.totalCount?.[0]?.count ?? 0;
-  const data = result[0]?.data ?? [];
-
+  const totalItems = countResult?.[0]?.count ?? 0;
   const totalPage = Math.ceil(totalItems / limit);
   const pagination = calculatePaginate(page, totalItems, limit);
 
