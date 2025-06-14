@@ -185,6 +185,15 @@ export class KhuyenMaiRepository {
     ]);
   }
 
+  async countValid(): Promise<number> {
+    const now = new Date();
+    // Assuming you are using Mongoose or similar ODM
+    return this.khuyenMaiModel.countDocuments({
+      KM_batDau: { $lte: now },
+      KM_ketThuc: { $gte: now },
+    });
+  }
+
   // ========== ChiTietKhuyenMai ==========
 
   async findValidChiTietKhuyenMai(SPIds: number[]) {

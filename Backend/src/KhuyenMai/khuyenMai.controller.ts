@@ -39,6 +39,13 @@ export class KhuyenMaiController {
     });
   }
 
+  // ======= [GET] /khuyen-mai - Lấy số lượng khuyến mãi hợp lệ =======
+
+  @Get('/count')
+  async count(): Promise<any> {
+    return await this.khuyenMaiService.countValid();
+  }
+
   // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
   @Get(':id')
   async findById(
