@@ -23,7 +23,7 @@ export class GioHangService {
       return await this.repo.create(dto);
     } catch (err) {
       if (err.code === 11000) {
-        throw new ConflictException('Sản phẩm đã tồn tại trong giỏ hàng');
+        throw new ConflictException();
       }
       throw err;
     }
@@ -41,7 +41,7 @@ export class GioHangService {
     );
 
     if (!updated) {
-      throw new NotFoundException('Không tìm thấy sản phẩm trong giỏ hàng');
+      throw new NotFoundException();
     }
 
     return updated;
@@ -50,7 +50,7 @@ export class GioHangService {
   async delete(KH_email: string, SP_id: number): Promise<GioHang> {
     const deleted = await this.repo.delete(KH_email, SP_id);
     if (!deleted) {
-      throw new NotFoundException('Không tìm thấy sản phẩm để xóa');
+      throw new NotFoundException();
     }
     return deleted;
   }
