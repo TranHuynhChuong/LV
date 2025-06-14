@@ -34,6 +34,11 @@ export class PhiVanChuyenController {
     return await this.PhiVanChuyen.getAllShippingFee();
   }
 
+  @Get('/count')
+  async count(): Promise<any> {
+    return await this.PhiVanChuyen.countAll();
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<any> {
     return await this.PhiVanChuyen.getShippingFeeById(id);

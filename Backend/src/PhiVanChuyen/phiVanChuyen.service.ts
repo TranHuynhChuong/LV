@@ -121,6 +121,10 @@ export class PhiVanChuyenService {
     return deleted;
   }
 
+  async countAll(): Promise<number> {
+    return this.PhiVanChuyen.countAll();
+  }
+
   loadAddressFiles(): { T_id: string; data: Record<string, unknown> }[] {
     const files = fs
       .readdirSync(this.dataDir)

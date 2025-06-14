@@ -29,6 +29,11 @@ export class TheLoaiController {
     return await this.TheLoai.findAll();
   }
 
+  @Get('/count')
+  async count(): Promise<any> {
+    return await this.TheLoai.countAll();
+  }
+
   @Get('/:id')
   async findById(@Param('id', ParseIntPipe) id: number): Promise<any> {
     return await this.TheLoai.findById(id);
