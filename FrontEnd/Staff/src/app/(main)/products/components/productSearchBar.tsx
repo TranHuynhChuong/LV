@@ -11,7 +11,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { RotateCcw, Search } from 'lucide-react';
 
 type Props = {
   searchType: 'id' | 'keyword' | undefined;
@@ -98,6 +98,7 @@ export default function ProductSearchBar({
             Tìm kiếm
           </Button>
           <Button variant="outline" className="cursor-pointer" onClick={handleReset}>
+            <RotateCcw className="mr-1 w-4 h-4" />
             Đặt lại
           </Button>
         </div>
