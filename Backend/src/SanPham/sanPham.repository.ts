@@ -504,14 +504,16 @@ export class SanPhamRepository {
     total: number;
     live: number;
     hidden: number;
+    outOfStock: number;
   }> {
-    const [total, live, hidden] = await Promise.all([
-      this.model.countDocuments({ SP_trangThai: { $ne: 0 } }), // tổng: gồm hiện + ẩn
-      this.model.countDocuments({ SP_trangThai: 1 }), // hiện
-      this.model.countDocuments({ SP_trangThai: 2 }), // ẩn
+    const [total, live, hidden, outOfStock] = await Promise.all([
+      this.model.countDocuments({ SP_trangThai: { $in: [1, 2] } }),
+      this.model.countDocuments({ SP_trangThai: 1 }),
+      this.model.countDocuments({ SP_trangThai: 2 }),
+      this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: 0 }),
     ]);
 
-    return { total, live, hidden };
+    return { total, live, hidden, outOfStock };
   }
 
   async count(filterType?: number): Promise<number> {
