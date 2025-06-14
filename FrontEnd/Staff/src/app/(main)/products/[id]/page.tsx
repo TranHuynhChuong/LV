@@ -112,55 +112,58 @@ export default function ProductDetail() {
 
   const [metadata, setMetadata] = useState<Metadata[]>([]);
 
+  const fetchData = async (id: string) => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/products/${id}`);
+      const { product } = res.data;
+
+      const mapped: ProductFormType = {
+        name: product.SP_ten,
+        category: product.TL_id,
+        status: product.SP_trangThai,
+        summary: product.SP_tomTat,
+        description: product.SP_moTa,
+        author: product.SP_tacGia,
+        publisher: product.SP_nhaXuatBan,
+        publishYear: product.SP_namXuatBan,
+        page: product.SP_soTrang,
+        isbn: product.SP_isbn,
+        language: product.SP_ngonNgu,
+        translator: product.SP_nguoiDich,
+        price: product.SP_giaBan,
+        cost: product.SP_giaNhap,
+        stock: product.SP_tonKho,
+        weight: product.SP_trongLuong,
+        coverImage: getCoverImageUrl(product.SP_anh),
+        productImages: getProductImageUrls(product.SP_anh),
+      };
+      setData(mapped);
+
+      const metadataFormatted =
+        product.lichSuThaoTac?.map((item: ActivityLog) => ({
+          time: item.thoiGian,
+          action: item.thaoTac,
+          user: {
+            id: item.nhanVien?.NV_id,
+            name: item.nhanVien?.NV_hoTen,
+            phone: item.nhanVien?.NV_soDienThoai,
+            email: item.nhanVien?.NV_email,
+          },
+        })) ?? [];
+      setMetadata(metadataFormatted);
+    } catch (error) {
+      console.error(error);
+      toast.error('Không tìm thấy sản phẩm!');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-
-    api
-      .get(`/products/${id}`)
-      .then((res) => {
-        const { product } = res.data;
-        const mapped: ProductFormType = {
-          name: product.SP_ten,
-          category: product.TL_id,
-          status: product.SP_trangThai,
-          summary: product.SP_tomTat,
-          description: product.SP_moTa,
-          author: product.SP_tacGia,
-          publisher: product.SP_nhaXuatBan,
-          publishYear: product.SP_namXuatBan,
-          page: product.SP_soTrang,
-          isbn: product.SP_isbn,
-          language: product.SP_ngonNgu,
-          translator: product.SP_nguoiDich,
-          price: product.SP_giaBan,
-          cost: product.SP_giaNhap,
-          stock: product.SP_tonKho,
-          weight: product.SP_trongLuong,
-          coverImage: getCoverImageUrl(product.SP_anh),
-          productImages: getProductImageUrls(product.SP_anh),
-        };
-        setData(mapped);
-
-        const metadataFormatted =
-          product.lichSuThaoTac?.map((item: ActivityLog) => ({
-            time: item.thoiGian,
-            action: item.thaoTac,
-            user: {
-              id: item.nhanVien?.NV_id,
-              name: item.nhanVien?.NV_hoTen,
-              phone: item.nhanVien?.NV_soDienThoai,
-              email: item.nhanVien?.NV_email,
-            },
-          })) ?? [];
-        setMetadata(metadataFormatted);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error('Không tìm thấy sản phẩm!');
-        router.back();
-      })
-      .finally(() => setLoading(false));
+    fetchData(id);
   }, [id]);
 
   const handleOnDelete = () => {

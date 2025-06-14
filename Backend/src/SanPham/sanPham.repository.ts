@@ -62,7 +62,7 @@ export class SanPhamRepository {
     const search = this.getSearch(keyword);
     const filter =
       filterType === 0
-        ? this.getFilter(1, categoryIds)
+        ? this.getFilter(11, categoryIds)
         : this.getFilter(filterType, categoryIds);
 
     const sort = this.getSort(sortType);
@@ -217,15 +217,29 @@ export class SanPhamRepository {
   }
 
   protected getFilter(
-    filterType?: number,
+    filterType: number = 11,
     categoryIds?: number[]
   ): Record<string, any> {
     const filter: Record<string, any> = {};
+    // Tách trạng thái từ filterType
+    const statusType = Math.floor(filterType / 10); // 1: live, 2: hidden, 3: all
+    const stockType = filterType % 10; // 0: all, 1: in stock, 2: out of stock
 
-    if (filterType === 1) filter.SP_trangThai = 1;
-    else if (filterType === 2) filter.SP_trangThai = 2;
-    else filter.SP_trangThai = { $in: [1, 2] };
+    // Trạng thái sản phẩm
+    if (statusType === 1 || statusType === 2) {
+      filter.SP_trangThai = statusType;
+    } else if (statusType === 3) {
+      filter.SP_trangThai = { $in: [1, 2] };
+    }
 
+    // Tồn kho
+    if (stockType === 2) {
+      filter.SP_tonKho = { $gt: 0 };
+    } else if (stockType === 3) {
+      filter.SP_tonKho = 0;
+    }
+
+    // Lọc theo thể loại (nếu có)
     if (Array.isArray(categoryIds) && categoryIds.length > 0) {
       filter.TL_id = { $in: categoryIds };
     }
@@ -330,7 +344,7 @@ export class SanPhamRepository {
   }
 
   async findByIds(ids: number[]): Promise<Partial<SanPham>[]> {
-    const filter = this.getFilter(1);
+    const filter = this.getFilter(10);
     const project = this.getProject();
 
     return this.model.aggregate([
@@ -501,19 +515,45 @@ export class SanPhamRepository {
   }
 
   async countAll(): Promise<{
-    total: number;
-    live: number;
-    hidden: number;
-    outOfStock: number;
+    all: { total: number; in: number; out: number };
+    live: { total: number; in: number; out: number };
+    hidden: { total: number; in: number; out: number };
   }> {
-    const [total, live, hidden, outOfStock] = await Promise.all([
+    const [
+      allTotal,
+      allIn,
+      allOut,
+      liveTotal,
+      liveIn,
+      liveOut,
+      hiddenTotal,
+      hiddenIn,
+      hiddenOut,
+    ] = await Promise.all([
       this.model.countDocuments({ SP_trangThai: { $in: [1, 2] } }),
+      this.model.countDocuments({
+        SP_trangThai: { $in: [1, 2] },
+        SP_tonKho: { $gt: 0 },
+      }),
+      this.model.countDocuments({
+        SP_trangThai: { $in: [1, 2] },
+        SP_tonKho: 0,
+      }),
+
       this.model.countDocuments({ SP_trangThai: 1 }),
-      this.model.countDocuments({ SP_trangThai: 2 }),
+      this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: { $gt: 0 } }),
       this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: 0 }),
+
+      this.model.countDocuments({ SP_trangThai: 2 }),
+      this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: { $gt: 0 } }),
+      this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: 0 }),
     ]);
 
-    return { total, live, hidden, outOfStock };
+    return {
+      all: { total: allTotal, in: allIn, out: allOut },
+      live: { total: liveTotal, in: liveIn, out: liveOut },
+      hidden: { total: hiddenTotal, in: hiddenIn, out: hiddenOut },
+    };
   }
 
   async count(filterType?: number): Promise<number> {

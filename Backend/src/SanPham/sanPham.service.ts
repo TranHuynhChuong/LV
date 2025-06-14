@@ -362,10 +362,9 @@ export class SanPhamService {
   }
 
   async countAll(): Promise<{
-    total: number;
-    live: number;
-    hidden: number;
-    outOfStock: number;
+    all: { total: number; in: number; out: number };
+    live: { total: number; in: number; out: number };
+    hidden: { total: number; in: number; out: number };
   }> {
     return this.SanPham.countAll();
   }

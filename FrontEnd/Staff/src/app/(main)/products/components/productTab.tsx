@@ -12,6 +12,7 @@ import ProductSearchBar from './productSearchBar';
 
 interface ProductTabProp {
   status: string;
+  type?: string;
   page: number;
   productId?: string;
   categoryId?: string;
@@ -24,15 +25,31 @@ interface ProductTabProp {
   onConfirmSelect?: (selecData: ProductSimple[]) => void;
 }
 
-const filterMap: Record<string, number | undefined> = {
-  all: undefined,
-  live: 1,
-  hidden: 2,
-  noPromotion: 0,
-};
+function buildFilterType(status: string, type: string): number {
+  const typeMap: Record<string, number> = {
+    noPromotion: 0,
+    all: 1,
+    live: 1,
+    hidden: 2,
+  };
+
+  const statusMap: Record<string, number> = {
+    all: 1,
+    in: 2,
+    out: 3,
+  };
+
+  const statusValue = statusMap[status];
+  const typeValue = typeMap[type];
+
+  if (statusValue === 0) return 0;
+
+  return parseInt(`${typeValue}${statusValue}`);
+}
 
 export default function ProductTab({
   status,
+  type = 'live',
   page,
   productId: initialProductId = undefined,
   categoryId: initialcategoryId = undefined,
@@ -57,7 +74,7 @@ export default function ProductTab({
 
   const [isComponent, setIscomponent] = useState<boolean>(false);
   const sortType = undefined;
-  const filterType = filterMap[status] ?? undefined;
+  const filterType = buildFilterType(status, type);
   const limit = 24;
 
   const fetchData = useCallback(
