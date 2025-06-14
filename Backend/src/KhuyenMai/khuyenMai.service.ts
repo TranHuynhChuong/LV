@@ -198,6 +198,10 @@ export class KhuyenMaiService {
     updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
   }
 
+  async countValid(): Promise<number> {
+    return this.KhuyenMai.countValid();
+  }
+
   // ============= Xóa mềm khuyến mãi và các chi tiết khuyến mãi liên quan ============
   async deleteKhuyenMai(KM_id: string) {
     return this.KhuyenMai.deleteKhuyenMai(KM_id);
