@@ -11,8 +11,8 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import ProductImageGallery from './components/productImgs';
-import ProductBaseInfo from './components/productBaseInf';
+import ProductImageGallery from '../components/productImgs';
+import ProductBaseInfo from '../components/productBaseInf';
 
 const mapProductToForm = (
   product: ProductDetailApiType,
