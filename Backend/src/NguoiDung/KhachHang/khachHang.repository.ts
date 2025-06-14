@@ -65,12 +65,8 @@ export class KhachHangRepository {
     });
   }
 
-  async findByEmail(
-    email: string,
-    status: 0 | 1 = 1
-  ): Promise<KhachHang | null> {
-    const filter = status !== undefined ? { KH_trangThai: status } : {};
-    return this.model.findOne({ KH_email: email, ...filter }).exec();
+  async findByEmail(email: string): Promise<KhachHang | null> {
+    return this.model.findOne({ KH_email: email }).exec();
   }
 
   async update(email: string, data: any): Promise<KhachHang | null> {
