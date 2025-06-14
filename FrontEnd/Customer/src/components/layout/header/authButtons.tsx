@@ -5,15 +5,17 @@ import { useRouter } from 'next/navigation';
 import { User } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
+
 export default function AuthButtons() {
   const router = useRouter();
 
-  const { authData } = useAuth();
+  const { authData, loadAuth } = useAuth();
 
   const isAuthenticated = !!authData.userId;
 
   const logOut = async () => {
     await fetch('/api/logout', { method: 'POST' });
+    await loadAuth();
     router.replace('/');
   };
 
@@ -23,7 +25,13 @@ export default function AuthButtons() {
         <Button variant="outline" onClick={() => router.push('/auth/login')}>
           Đăng nhập
         </Button>
-        <Button onClick={() => router.push('/auth/register')}>Đăng ký</Button>
+        <Button
+          onClick={() => {
+            router.push('/auth/register');
+          }}
+        >
+          Đăng ký
+        </Button>
       </div>
     );
   } else {

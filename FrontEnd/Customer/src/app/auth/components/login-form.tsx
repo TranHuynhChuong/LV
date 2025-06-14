@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginForm({ onForgotPassword }: { readonly onForgotPassword: () => void }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +18,7 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+  const { loadAuth } = useAuth();
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -40,7 +41,7 @@ export default function LoginForm({ onForgotPassword }: { readonly onForgotPassw
         setLoading(false);
         return;
       }
-
+      await loadAuth();
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);

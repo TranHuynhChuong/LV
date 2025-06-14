@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import api from '@/lib/axiosClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +19,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const router = useRouter();
-
+  const { loadAuth } = useAuth();
   const handleSendOtp = async () => {
     if (!email) {
       setError('Vui lòng nhập email trước khi gửi mã');
@@ -63,7 +64,7 @@ export default function RegisterForm() {
         email: email,
         password: password,
       });
-
+      await loadAuth();
       router.replace('/login');
     } catch (err) {
       setError('Email / Mật khẩu không đúng');
