@@ -23,12 +23,15 @@ import {
   Star,
   Truck,
   type LucideIcon,
+  FileChartLine,
+  Home,
 } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { authData, isLoading } = useAuth();
   const fullNav = [
+    { title: 'Trang chủ', url: '/', icon: Home },
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
     { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
     { title: 'Thể loại', url: '/categories', icon: ChartBar },
@@ -44,6 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
     { title: 'Vận chuyển', url: '/shipping', icon: Truck },
+    { title: 'Báo cáo', url: '/report', icon: FileChartLine },
   ];
 
   type NavItem = {
