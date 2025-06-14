@@ -60,7 +60,10 @@ export default function ForgotPasswordForm({ onBackToLogin }: { onBackToLogin: (
       setError('Mật khẩu xác nhận không khớp');
       return;
     }
-    const res = await api.put(`users/customer/${email}`, { KH_matKhau: password });
+    const res = await api.put(`/auth/change-password/${email}`, {
+      newPassword: password,
+      otp,
+    });
     toast.success('Mật khẩu được cập nhật thành công');
     console.log(res);
     onBackToLogin();
