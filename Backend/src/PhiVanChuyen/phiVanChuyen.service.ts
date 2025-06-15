@@ -31,7 +31,27 @@ export class PhiVanChuyenService {
   async createShippingFee(newData: CreateDto): Promise<PhiVanChuyen> {
     const exists = await this.PhiVanChuyen.findById(newData.T_id);
     if (exists) {
-      throw new ConflictException();
+      if (!exists.PVC_daXoa) {
+        throw new ConflictException();
+      }
+
+      const thaoTac = {
+        thaoTac: 'Khôi phục & cập nhật',
+        NV_id: newData.NV_id,
+        thoiGian: new Date(),
+      };
+
+      const updated = await this.PhiVanChuyen.update(newData.T_id, {
+        ...newData,
+        PVC_daXoa: false,
+        lichSuThaoTac: [...(exists.lichSuThaoTac || []), thaoTac],
+      });
+
+      if (!updated) {
+        throw new BadRequestException();
+      }
+
+      return updated;
     }
     const thaoTac = {
       thaoTac: 'Tạo mới',
