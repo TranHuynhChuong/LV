@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TheLoaiController } from './theLoai.controller';
-import { TheLoaiService } from './theLoai.service';
+import { TheLoaiService, TheLoaiUtilService } from './theLoai.service';
 import { TheLoaiRepository } from './theLoai.repository';
 import { TheLoai, TheLoaiSchema } from './theLoai.schema';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: TheLoai.name, schema: TheLoaiSchema }]),
-    NhanVienUtilsService,
+    NguoiDungModule,
   ],
   controllers: [TheLoaiController],
-  providers: [TheLoaiService, TheLoaiRepository],
-  exports: [TheLoaiService],
+  providers: [TheLoaiService, TheLoaiUtilService, TheLoaiRepository],
+  exports: [TheLoaiUtilService],
 })
 export class TheLoaiModule {}
