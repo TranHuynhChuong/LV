@@ -7,9 +7,9 @@ import {
   ChiTietKhuyenMaiSchema,
 } from './khuyenMai.schema';
 import { KhuyenMaiRepository } from './khuyenMai.repository';
-import { KhuyenMaiService } from './khuyenMai.service';
+import { KhuyenMaiService, KhuyenMaiUtilService } from './khuyenMai.service';
 import { KhuyenMaiController } from './khuyenMai.controller';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
 
 @Module({
   imports: [
@@ -17,10 +17,10 @@ import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
       { name: KhuyenMai.name, schema: KhuyenMaiSchema },
       { name: ChiTietKhuyenMai.name, schema: ChiTietKhuyenMaiSchema },
     ]),
-    NhanVienUtilsService,
+    NguoiDungModule,
   ],
-  providers: [KhuyenMaiRepository, KhuyenMaiService],
+  providers: [KhuyenMaiRepository, KhuyenMaiService, KhuyenMaiUtilService],
   controllers: [KhuyenMaiController],
-  exports: [KhuyenMaiService],
+  exports: [KhuyenMaiUtilService],
 })
 export class KhuyenMaiModule {}
