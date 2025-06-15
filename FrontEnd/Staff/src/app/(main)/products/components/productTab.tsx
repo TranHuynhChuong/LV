@@ -28,7 +28,7 @@ interface ProductTabProp {
 function buildFilterType(status: string, type: string): number {
   const typeMap: Record<string, number> = {
     noPromotion: 0,
-    all: 1,
+    all: 3,
     live: 1,
     hidden: 2,
   };
@@ -141,7 +141,6 @@ export default function ProductTab({
         return;
       }
 
-      console.log(isComponent);
       const params = {
         page,
         sortType,
@@ -179,7 +178,6 @@ export default function ProductTab({
     } else {
       setIscomponent(true);
     }
-    console.log(isComponent);
     fetchData(page, sortType, filterType, keyword, categoryId, productId);
   }, [status, page, keyword, categoryId, productId, fetchData]);
 
