@@ -47,7 +47,10 @@ export class KhuyenMaiRepository {
       { $limit: limit },
     ];
 
-    const countPipeline: PipelineStage[] = [{ $match: filter }];
+    const countPipeline: PipelineStage[] = [
+      { $match: filter },
+      { $count: 'count' },
+    ];
 
     return paginateRawAggregate<KhuyenMaiDocument>({
       model: this.khuyenMaiModel,

@@ -21,30 +21,6 @@ export class KhachHangRepository {
     return created.save();
   }
 
-  protected buildFacetPaginationPipeline({
-    skip,
-    limit,
-  }: {
-    skip: number;
-    limit: number;
-    project?: Record<string, any>;
-  }): PipelineStage[] {
-    const pipeline: PipelineStage[] = [];
-
-    const dataStages: PipelineStage[] = [];
-
-    dataStages.push({ $skip: skip }, { $limit: limit });
-
-    const facetStage: Record<string, any> = {
-      data: dataStages,
-      totalCount: [{ $count: 'count' }],
-    };
-
-    pipeline.push({ $facet: facetStage });
-
-    return pipeline;
-  }
-
   async findAll(page: number, limit = 24): Promise<CustomerListResults> {
     const skip = (page - 1) * limit;
 
@@ -54,7 +30,10 @@ export class KhachHangRepository {
       { $limit: limit },
     ];
 
-    const countPipeline: PipelineStage[] = [{ $match: { KH_daXoa: false } }];
+    const countPipeline: PipelineStage[] = [
+      ...dataPipeline,
+      { $count: 'count' },
+    ];
 
     return paginateRawAggregate({
       model: this.model,
