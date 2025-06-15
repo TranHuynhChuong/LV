@@ -7,25 +7,35 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cart.store';
 import { useEffect, useState } from 'react';
+import api from '@/lib/axiosClient';
+import { subscribeToCartChange } from '@/lib/cartEvents';
 
 export default function CartButton() {
   const router = useRouter();
   const { authData } = useAuth();
-
-  const cartLength = useCartStore((state) => state.carts.length);
-
+  const guestCartLength = useCartStore((state) => state.carts.length);
   const [quantity, setQuantity] = useState(0);
 
-  useEffect(() => {
-    if (authData?.userId == null) {
-      // Nếu chưa đăng nhập, tính tổng số lượng sản phẩm từ local store
-      setQuantity(cartLength);
+  // Function dùng chung để cập nhật số lượng
+  const updateQuantity = () => {
+    if (!authData.userEmail) {
+      setQuantity(guestCartLength);
     } else {
-      // Nếu đã đăng nhập, gọi API hoặc set mặc định là 0 (tuỳ logic của bạn)
-      // Giả sử chưa có API thì để tạm là 0
-      setQuantity(0);
+      api
+        .get(`/carts/${authData.userEmail}`)
+        .then((res) => setQuantity(res.data.length))
+        .catch(() => setQuantity(0));
     }
-  }, [authData?.userId, cartLength]);
+  };
+
+  useEffect(() => {
+    updateQuantity(); // Lần đầu tiên mount
+
+    const unsubscribe = subscribeToCartChange(updateQuantity); // Lắng nghe sự kiện
+    return () => {
+      unsubscribe();
+    }; // Cleanup khi unmount
+  }, [authData.userEmail, guestCartLength]);
 
   return (
     <Button
