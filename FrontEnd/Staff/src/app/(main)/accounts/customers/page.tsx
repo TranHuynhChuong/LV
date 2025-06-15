@@ -32,7 +32,7 @@ export default function Customers() {
       limit,
     };
 
-    return api
+    api
       .get('/users/customers', { params })
       .then((res) => {
         const { data, metadata } = res.data;
@@ -55,7 +55,7 @@ export default function Customers() {
       .finally(() => setIsLoading(false));
   };
 
-  const getByEmail = (email: string) => {
+  const getByEmail = async (email: string) => {
     setIsLoading(true);
     api
       .get(`/users/customer/${email}`)
