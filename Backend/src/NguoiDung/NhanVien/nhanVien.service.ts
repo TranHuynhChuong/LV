@@ -27,11 +27,63 @@ const typeOfChange: Record<string, string> = {
 };
 
 @Injectable()
+export class NhanVienUtilsService {
+  constructor(private readonly NhanVien: NhanVienRepository) {}
+
+  protected async findAllIds(ids: string[]): Promise<NhanVien[]> {
+    return this.NhanVien.findAllIds(ids);
+  }
+
+  async mapActivityLog<
+    T extends { NV_id?: string; thoiGian: any; thaoTac: any },
+  >(
+    activityLog: T[]
+  ): Promise<
+    {
+      thoiGian: any;
+      thaoTac: any;
+      nhanVien: {
+        NV_id: string | null;
+        NV_hoTen: string | null;
+        NV_email: string | null;
+        NV_soDienThoai: string | null;
+      };
+    }[]
+  > {
+    if (activityLog.length === 0) return [];
+
+    const ids = [
+      ...new Set(activityLog.map((a) => a.NV_id).filter(Boolean)),
+    ] as string[];
+    const nhanViens = await this.findAllIds(ids);
+
+    const nhanVienMap = new Map<string, any>();
+    nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
+
+    return activityLog.map((a) => {
+      const nv = a.NV_id ? nhanVienMap.get(a.NV_id) : undefined;
+      return {
+        thoiGian: a.thoiGian,
+        thaoTac: a.thaoTac,
+        nhanVien: {
+          NV_id: nv?.NV_id ?? null,
+          NV_hoTen: nv?.NV_hoTen ?? null,
+          NV_email: nv?.NV_email ?? null,
+          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
+        },
+      };
+    });
+  }
+}
+
+@Injectable()
 export class NhanVienService {
   private readonly codeLength = 7;
 
-  constructor(private readonly NhanVien: NhanVienRepository) {}
-
+  constructor(
+    private readonly NhanVien: NhanVienRepository,
+    private readonly NhanVienUtils: NhanVienUtilsService
+  ) {}
   async create(newData: CreateDto): Promise<NhanVien> {
     const lastCode = await this.NhanVien.findLastId();
     const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
@@ -68,7 +120,7 @@ export class NhanVienService {
 
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.mapActivityLog(lichSu) : [];
+      lichSu.length > 0 ? await this.NhanVienUtils.mapActivityLog(lichSu) : [];
 
     return result;
   }
@@ -127,50 +179,5 @@ export class NhanVienService {
 
   async countAll(): Promise<number> {
     return await this.NhanVien.countAll();
-  }
-
-  async findAllIds(ids: string[]) {
-    return this.NhanVien.findAllIds(ids);
-  }
-
-  async mapActivityLog<
-    T extends { NV_id?: string; thoiGian: any; thaoTac: any },
-  >(
-    activityLog: T[]
-  ): Promise<
-    {
-      thoiGian: any;
-      thaoTac: any;
-      nhanVien: {
-        NV_id: string | null;
-        NV_hoTen: string | null;
-        NV_email: string | null;
-        NV_soDienThoai: string | null;
-      };
-    }[]
-  > {
-    if (activityLog.length === 0) return [];
-
-    const ids = [
-      ...new Set(activityLog.map((a) => a.NV_id).filter(Boolean)),
-    ] as string[];
-    const nhanViens = await this.findAllIds(ids);
-
-    const nhanVienMap = new Map<string, any>();
-    nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
-
-    return activityLog.map((a) => {
-      const nv = a.NV_id ? nhanVienMap.get(a.NV_id) : undefined;
-      return {
-        thoiGian: a.thoiGian,
-        thaoTac: a.thaoTac,
-        nhanVien: {
-          NV_id: nv?.NV_id ?? null,
-          NV_hoTen: nv?.NV_hoTen ?? null,
-          NV_email: nv?.NV_email ?? null,
-          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
-        },
-      };
-    });
   }
 }
