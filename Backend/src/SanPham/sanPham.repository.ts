@@ -232,7 +232,7 @@ export class SanPhamRepository {
     const filter: Record<string, any> = {};
     // Tách trạng thái từ filterType
     const statusType = Math.floor(filterType / 10); // 1: live, 2: hidden, 3: all
-    const stockType = filterType % 10; // 0: all, 1: in stock, 2: out of stock
+    const stockType = filterType % 10; // 1: all, 2: in stock, 3: out of stock
 
     // Trạng thái sản phẩm
     if (statusType === 1 || statusType === 2) {
