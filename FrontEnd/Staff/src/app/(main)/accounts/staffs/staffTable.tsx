@@ -146,7 +146,7 @@ export default function StaffTable({ data, isLoading, onDelete }: Readonly<Custo
         <div className="space-y-4 py-4">
           <div className="flex items-center justify-between">
             <span className="pl-2 font-medium text-lg">{data.length} Nhân viên</span>
-            <Link href="accounts/new">
+            <Link href="/accounts/staffs/new">
               <Button className="cursor-pointer">
                 <Plus /> Thêm mới
               </Button>
