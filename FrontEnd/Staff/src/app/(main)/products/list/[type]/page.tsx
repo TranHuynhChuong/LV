@@ -12,7 +12,6 @@ export default function ProductsListType() {
   const type = params.type as 'all' | 'live' | 'hidden';
 
   const [total, setTotal] = useState({
-    all: { total: 0, in: 0, out: 0 },
     live: { total: 0, in: 0, out: 0 },
     hidden: { total: 0, in: 0, out: 0 },
   });
@@ -78,7 +77,7 @@ export default function ProductsListType() {
                 variant={pathname.includes(`/products/list/${tab}`) ? 'default' : 'outline'}
                 className="cursor-pointer"
               >
-                {tab === 'all' && `Tất cả (${total.all.total})`}
+                {tab === 'all' && `Tất cả (${total.live.total + total.hidden.total})`}
                 {tab === 'live' && `Đang hiển thị (${total.live.total})`}
                 {tab === 'hidden' && `Đã ẩn (${total.hidden.total})`}
               </Button>
@@ -94,9 +93,16 @@ export default function ProductsListType() {
               href={{ pathname: `/products/list/${type}`, query: { status: tab, page: 1 } }}
             >
               <Button variant={status === tab ? 'default' : 'outline'} className="cursor-pointer">
-                {tab === 'all' && `Tất cả (${total[type].total})`}
-                {tab === 'in' && `Còn hàng (${total[type].in})`}
-                {tab === 'out' && `Hết hàng (${total[type].out})`}
+                {tab === 'all' &&
+                  `Tất cả (${
+                    type === 'all' ? total.live.total + total.hidden.total : total[type].total
+                  })`}
+                {tab === 'in' &&
+                  `Tất cả (${type === 'all' ? total.live.in + total.hidden.in : total[type].in})`}
+                {tab === 'out' &&
+                  `Tất cả (${
+                    type === 'all' ? total.live.out + total.hidden.out : total[type].out
+                  })`}
               </Button>
             </Link>
           ))}
