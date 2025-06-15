@@ -4,10 +4,12 @@ import { TheLoaiController } from './theLoai.controller';
 import { TheLoaiService } from './theLoai.service';
 import { TheLoaiRepository } from './theLoai.repository';
 import { TheLoai, TheLoaiSchema } from './theLoai.schema';
+import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: TheLoai.name, schema: TheLoaiSchema }]),
+    NhanVienUtilsService,
   ],
   controllers: [TheLoaiController],
   providers: [TheLoaiService, TheLoaiRepository],

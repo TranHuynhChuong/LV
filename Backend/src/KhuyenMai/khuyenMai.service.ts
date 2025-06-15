@@ -7,7 +7,7 @@ import {
 import { KhuyenMaiRepository } from './khuyenMai.repository';
 import { KhuyenMai } from './khuyenMai.schema';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
-import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
   KM_ten: 'Tên',
@@ -19,7 +19,7 @@ const typeOfChange: Record<string, string> = {
 export class KhuyenMaiService {
   constructor(
     private readonly KhuyenMai: KhuyenMaiRepository,
-    private readonly NhanVien: NhanVienService
+    private readonly NhanVien: NhanVienUtilsService
   ) {}
 
   //=========================== Tạo khuyến mãi mới=======================================

@@ -8,7 +8,7 @@ import { TransformService } from '../Util/transform.service';
 import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
-import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 import { KhuyenMaiService } from 'src/KhuyenMai/khuyenMai.service';
 import { TheLoaiService } from 'src/TheLoai/theLoai.service';
 
@@ -40,7 +40,7 @@ export class SanPhamService {
     private readonly SanPham: SanPhamRepository,
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
-    private readonly NhanVien: NhanVienService,
+    private readonly NhanVien: NhanVienUtilsService,
     private readonly KhuyenMai: KhuyenMaiService,
     private readonly TheLoai: TheLoaiService
   ) {}

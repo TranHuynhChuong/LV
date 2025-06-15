@@ -7,7 +7,7 @@ import {
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
 import { TheLoai } from './theLoai.schema';
-import { NhanVienService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
   TL_ten: 'Tên thể loại',
@@ -18,7 +18,7 @@ const typeOfChange: Record<string, string> = {
 export class TheLoaiService {
   constructor(
     private readonly TheLoai: TheLoaiRepository,
-    private readonly NhanVien: NhanVienService
+    private readonly NhanVien: NhanVienUtilsService
   ) {}
 
   // Tạo thể loại mới
