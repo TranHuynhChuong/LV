@@ -31,7 +31,7 @@ export default function ProductDetail() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = async (values: ProductFormValues, productImages?: string[]) => {
+  const onSubmit = (values: ProductFormValues, productImages?: string[]) => {
     const formData = new FormData();
     setIsSubmitting(true);
 
@@ -116,8 +116,7 @@ export default function ProductDetail() {
     setLoading(true);
     try {
       const res = await api.get(`/products/${id}`);
-      const { product } = res.data;
-
+      const product = res.data;
       const mapped: ProductFormType = {
         name: product.SP_ten,
         category: product.TL_id,
