@@ -4,14 +4,14 @@ import { PhiVanChuyenController } from './phiVanChuyen.controller';
 import { PhiVanChuyenService } from './phiVanChuyen.service';
 import { PhiVanChuyenRepository } from './phiVanChuyen.repository';
 import { PhiVanChuyen, PhiVanChuyenSchema } from './phiVanChuyen.schema';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: PhiVanChuyen.name, schema: PhiVanChuyenSchema },
     ]),
-    NhanVienUtilsService,
+    NguoiDungModule,
   ],
   controllers: [PhiVanChuyenController],
   providers: [PhiVanChuyenService, PhiVanChuyenRepository],

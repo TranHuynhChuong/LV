@@ -4,7 +4,7 @@ import {
   Injectable,
   BadRequestException,
 } from '@nestjs/common';
-import { NhanVienUtilsService } from '../NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilService } from '../NguoiDung/NhanVien/nhanVien.service';
 import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
 import { PhiVanChuyenRepository } from './phiVanChuyen.repository';
 import { PhiVanChuyen } from './phiVanChuyen.schema';
@@ -25,7 +25,7 @@ export class PhiVanChuyenService {
 
   constructor(
     private readonly PhiVanChuyen: PhiVanChuyenRepository,
-    private readonly NhanVien: NhanVienUtilsService
+    private readonly NhanVien: NhanVienUtilService
   ) {}
 
   async createShippingFee(newData: CreateDto): Promise<PhiVanChuyen> {
