@@ -7,7 +7,7 @@ import {
 import { KhuyenMaiRepository } from './khuyenMai.repository';
 import { KhuyenMai } from './khuyenMai.schema';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
   KM_ten: 'Tên',
@@ -16,10 +16,19 @@ const typeOfChange: Record<string, string> = {
 };
 
 @Injectable()
+export class KhuyenMaiUtilService {
+  constructor(private readonly KhuyenMai: KhuyenMaiRepository) {}
+  // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách SP_id
+  async getValidChiTietKhuyenMai(SPIds: number[]) {
+    return this.KhuyenMai.findValidChiTietKhuyenMai(SPIds);
+  }
+}
+
+@Injectable()
 export class KhuyenMaiService {
   constructor(
     private readonly KhuyenMai: KhuyenMaiRepository,
-    private readonly NhanVien: NhanVienUtilsService
+    private readonly NhanVien: NhanVienUtilService
   ) {}
 
   //=========================== Tạo khuyến mãi mới=======================================
@@ -212,10 +221,5 @@ export class KhuyenMaiService {
   // Lấy danh sách chi tiết khuyến mãi theo id khuyến mãi
   async getChiTietKMByKM(KM_id: string) {
     return this.KhuyenMai.findChiTietKMByKM(KM_id);
-  }
-
-  // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách SP_id
-  async getValidChiTietKhuyenMai(SPIds: number[]) {
-    return this.KhuyenMai.findValidChiTietKhuyenMai(SPIds);
   }
 }
