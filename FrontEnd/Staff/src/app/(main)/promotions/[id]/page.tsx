@@ -105,7 +105,7 @@ export default function ProductPromotionDetail() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = async (data: ProductPromotionFormType) => {
+  const onSubmit = (data: ProductPromotionFormType) => {
     const updateData = mapDataPushPut(data, authData.userId);
     api
       .put(`/promotions/${id}`, updateData)
@@ -132,7 +132,7 @@ export default function ProductPromotionDetail() {
 
   const [metadata, setMetadata] = useState<Metadata[]>([]);
 
-  const fetchData = async () => {
+  const fetchData = () => {
     api
       .get(`/promotions/${id}`)
       .then((res) => {
@@ -156,7 +156,7 @@ export default function ProductPromotionDetail() {
     fetchData();
   }, [id]);
 
-  const handleOnDelete = async () => {
+  const handleOnDelete = () => {
     setIsSubmitting(true);
     api
       .delete(`/promotions/${id}`)

@@ -231,7 +231,7 @@ export default function ProductTab({
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!id) return;
     api
       .delete(`/products/${id}`)

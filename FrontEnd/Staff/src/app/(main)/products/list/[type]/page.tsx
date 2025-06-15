@@ -16,8 +16,11 @@ export default function ProductsListType() {
     hidden: { total: 0, in: 0, out: 0 },
   });
 
-  const fetchTotal = async () => {
-    api.get('products/total').then((res) => setTotal(res.data));
+  const fetchTotal = () => {
+    api
+      .get('products/total')
+      .then((res) => setTotal(res.data))
+      .catch((error) => console.log(error));
   };
 
   useEffect(() => {

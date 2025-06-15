@@ -25,7 +25,7 @@ export default function Customers() {
   const currentPage = Number(searchParams.get('p')) || 1;
   const search = searchParams.get('search') ?? '';
 
-  const fetchData = async (targetPage?: number) => {
+  const fetchData = (targetPage?: number) => {
     setIsLoading(true);
     const params = {
       page: targetPage,
@@ -55,7 +55,7 @@ export default function Customers() {
       .finally(() => setIsLoading(false));
   };
 
-  const getByEmail = async (email: string) => {
+  const getByEmail = (email: string) => {
     setIsLoading(true);
     api
       .get(`/users/customer/${email}`)

@@ -24,7 +24,7 @@ export default function Products() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = async (values: ProductFormValues) => {
+  const onSubmit = (values: ProductFormValues) => {
     const formData = new FormData();
     setIsSubmitting(true);
 

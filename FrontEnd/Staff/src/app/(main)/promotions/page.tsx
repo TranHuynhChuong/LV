@@ -64,7 +64,7 @@ export default function ProductPromotion() {
       totalProducts: item.KM_slsp,
     }));
 
-  const fetchData = useCallback(async (page: number, filterType?: number, promotionId?: string) => {
+  const fetchData = useCallback((page: number, filterType?: number, promotionId?: string) => {
     setIsLoading(true);
 
     if (promotionId) {
@@ -115,6 +115,7 @@ export default function ProductPromotion() {
       .get('/promotions', { params })
       .then((res) => {
         const { data, metadata } = res.data;
+
         setData(mapProducts(data));
         setPagination(metadata.pagination);
         setTotalPage(metadata.totalPage);
@@ -150,7 +151,7 @@ export default function ProductPromotion() {
     fetchData(1, filterType);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!id) return;
     api
       .delete(`/promotions/${id}`)
