@@ -4,8 +4,8 @@ import {
   UnauthorizedException,
   ConflictException,
 } from '@nestjs/common';
-import { KhachHangsService } from '../NguoiDung/KhachHang/khachHang.service';
-import { NhanVienService } from '../NguoiDung/NhanVien/nhanVien.service';
+import { KhachHangService } from '../NguoiDung/KhachHang/khachHang.service';
+import { NhanVienUtilService } from '../NguoiDung/NhanVien/nhanVien.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
@@ -17,8 +17,8 @@ import { EmailService } from 'src/Util/email.service';
 @Injectable()
 export class XacThucService {
   constructor(
-    private readonly KhachHang: KhachHangsService,
-    private readonly NhanVien: NhanVienService,
+    private readonly KhachHang: KhachHangService,
+    private readonly NhanVien: NhanVienUtilService,
     private readonly EmailService: EmailService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
