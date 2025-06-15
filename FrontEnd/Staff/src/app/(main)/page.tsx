@@ -21,7 +21,6 @@ export default function Home() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [totalProducts, setTotalProducts] = useState({
-    all: { total: 0, in: 0, out: 0 },
     live: { total: 0, in: 0, out: 0 },
     hidden: { total: 0, in: 0, out: 0 },
   });
