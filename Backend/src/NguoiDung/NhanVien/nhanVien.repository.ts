@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { NhanVien, NhanVienDocument } from './nhanVien.schema';
 
 @Injectable()
@@ -10,25 +10,21 @@ export class NhanVienRepository {
     private readonly model: Model<NhanVienDocument>
   ) {}
 
-  async create(createDto: any): Promise<NhanVien> {
+  async create(createDto: any, session?: ClientSession): Promise<NhanVien> {
     const created = new this.model(createDto);
-    return await created.save();
+    return created.save({ session });
   }
 
-  async findLastId(): Promise<string> {
+  async findLastId(session?: ClientSession): Promise<string> {
     const result = await this.model
       .find({})
       .sort({ NV_id: -1 })
       .limit(1)
       .select('NV_id')
+      .session(session ?? null)
       .lean();
 
-    if (result.length === 0) {
-      return '0000000';
-    }
-
-    const lastId = result[0].NV_id;
-    return lastId;
+    return result.length > 0 ? result[0].NV_id : '0000000';
   }
 
   async findAll(): Promise<NhanVien[]> {
