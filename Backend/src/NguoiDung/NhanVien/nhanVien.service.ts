@@ -6,6 +6,8 @@ import {
 import { NhanVienRepository } from './nhanVien.repository';
 import { CreateDto, UpdateDto } from './nhanVien.dto';
 import { NhanVien } from './nhanVien.schema';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 
 export interface ThaoTac {
   thoiGian: Date;
@@ -27,7 +29,7 @@ const typeOfChange: Record<string, string> = {
 };
 
 @Injectable()
-export class NhanVienUtilsService {
+export class NhanVienUtilService {
   constructor(private readonly NhanVien: NhanVienRepository) {}
 
   protected async findAllIds(ids: string[]): Promise<NhanVien[]> {
@@ -74,6 +76,15 @@ export class NhanVienUtilsService {
       };
     });
   }
+
+  async findById(id: string): Promise<NhanVien> {
+    const result = await this.NhanVien.findById(id);
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    return result;
+  }
 }
 
 @Injectable()
@@ -82,30 +93,48 @@ export class NhanVienService {
 
   constructor(
     private readonly NhanVien: NhanVienRepository,
-    private readonly NhanVienUtils: NhanVienUtilsService
+    private readonly NhanVienUtils: NhanVienUtilService,
+    @InjectConnection() private readonly connection: Connection
   ) {}
   async create(newData: CreateDto): Promise<NhanVien> {
-    const lastCode = await this.NhanVien.findLastId();
-    const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
-    const newNumericCode = numericCode + 1;
-    const newCode = newNumericCode.toString().padStart(this.codeLength, '0');
+    const session = await this.connection.startSession();
 
-    const thaoTac = {
-      thaoTac: 'Tạo mới',
-      NV_id: newData.NV_idNV,
-      thoiGian: new Date(),
-    };
+    try {
+      let result: NhanVien;
 
-    const created = await this.NhanVien.create({
-      ...newData,
-      NV_id: newCode,
-      lichSuThaoTac: [thaoTac],
-    });
+      await session.withTransaction(async () => {
+        const lastCode = await this.NhanVien.findLastId(session);
+        const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
+        const newNumericCode = numericCode + 1;
+        const newCode = newNumericCode
+          .toString()
+          .padStart(this.codeLength, '0');
 
-    if (!created) {
-      throw new BadRequestException();
+        const thaoTac = {
+          thaoTac: 'Tạo mới',
+          NV_id: newData.NV_idNV,
+          thoiGian: new Date(),
+        };
+
+        const created = await this.NhanVien.create(
+          {
+            ...newData,
+            NV_id: newCode,
+            lichSuThaoTac: [thaoTac],
+          },
+          session
+        );
+
+        if (!created) throw new BadRequestException();
+        result = created;
+      });
+
+      await session.endSession();
+      return result!;
+    } catch (error) {
+      await session.endSession();
+      throw error;
     }
-    return created;
   }
 
   async findAll(): Promise<NhanVien[]> {
