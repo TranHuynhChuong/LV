@@ -12,7 +12,12 @@ import { CreateDto, UpdateDto } from './khachHang.dto';
 import { KhachHang } from './khachHang.schema';
 
 @Injectable()
-export class KhachHangsService {
+export class KhachHangUtilService {
+  constructor(private readonly KhachHang: KhachHangRepository) {}
+}
+
+@Injectable()
+export class KhachHangService {
   constructor(private readonly KhachHang: KhachHangRepository) {}
 
   async create(data: CreateDto): Promise<KhachHang> {
@@ -44,14 +49,6 @@ export class KhachHangsService {
     return updated;
   }
 
-  async findByEmail(email: string): Promise<KhachHang> {
-    const result = await this.KhachHang.findByEmail(email);
-    if (!result) {
-      throw new NotFoundException();
-    }
-    return result;
-  }
-
   async updateEmail(email: string, newEmail: string): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(newEmail);
     if (existing) {
@@ -67,6 +64,14 @@ export class KhachHangsService {
 
   async countAll(): Promise<number> {
     return await this.KhachHang.countAll();
+  }
+
+  async findByEmail(email: string): Promise<KhachHang> {
+    const result = await this.KhachHang.findByEmail(email);
+    if (!result) {
+      throw new NotFoundException();
+    }
+    return result;
   }
 
   async countByMonth(year = new Date().getFullYear()): Promise<number[]> {
