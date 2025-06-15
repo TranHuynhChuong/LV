@@ -35,6 +35,48 @@ const typeOfChange: Record<string, string> = {
 };
 
 @Injectable()
+export class SanPhamUtilService {
+  constructor(
+    private readonly SanPham: SanPhamRepository,
+    private readonly KhuyenMai: KhuyenMaiService
+  ) {}
+
+  async findByIds(ids: number[]): Promise<any[]> {
+    const result = await this.SanPham.findByIds(ids);
+    if (!result || result.length === 0) {
+      throw new NotFoundException();
+    }
+
+    const promotions = await this.KhuyenMai.getValidChiTietKhuyenMai(ids);
+
+    // Tạo Map để tra khuyến mãi theo SP_id
+    const promotionMap = new Map<string | number, any>();
+    for (const promo of promotions) {
+      promotionMap.set(promo.SP_id, promo);
+    }
+
+    // Áp dụng khuyến mãi cho từng sản phẩm
+    const productsWithDiscount: any[] = result.map((sp): any => {
+      const promo = promotionMap.get(sp.SP_id);
+      let SP_giaGiam = sp.SP_giaBan;
+
+      if (promo) {
+        SP_giaGiam = promo.CTKM_theoTyLe
+          ? sp.SP_giaBan - sp.SP_giaBan * (promo.CTKM_giaTri / 100)
+          : sp.SP_giaBan - promo.CTKM_giaTri;
+      }
+
+      return {
+        ...sp,
+        SP_giaGiam,
+      };
+    });
+
+    return productsWithDiscount;
+  }
+}
+
+@Injectable()
 export class SanPhamService {
   constructor(
     private readonly SanPham: SanPhamRepository,
@@ -322,7 +364,7 @@ export class SanPhamService {
     id: number,
     mode: 'default' | 'full' | 'search' = 'default',
     filterType?: number
-  ): Promise<{ product: any; promotion: any }> {
+  ): Promise<any> {
     const result: any = await this.SanPham.findById(id, mode, filterType);
     if (!result) {
       throw new NotFoundException();
@@ -336,21 +378,18 @@ export class SanPhamService {
       result.SP_id,
     ]);
 
-    return { product: result, promotion: promotion };
-  }
+    let SP_giaGiam = result.SP_giaBan;
 
-  async findByIds(ids: number[]): Promise<{
-    products: Partial<SanPham>[];
-    promotions: any[];
-  }> {
-    const result: any = await this.SanPham.findByIds(ids);
-    if (!result) {
-      throw new NotFoundException();
+    if (promotion && promotion.length > 0) {
+      SP_giaGiam = promotion[0].CTKM_theoTyLe
+        ? result.SP_giaBan - result.SP_giaBan * (promotion[0].CTKM_giaTri / 100)
+        : result.SP_giaBan - promotion[0].CTKM_giaTri;
     }
 
-    const promotions = await this.KhuyenMai.getValidChiTietKhuyenMai(ids);
-
-    return { products: result, promotions: promotions };
+    return {
+      ...result,
+      SP_giaGiam,
+    };
   }
 
   async delete(id: number): Promise<SanPham> {

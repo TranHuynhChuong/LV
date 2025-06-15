@@ -343,7 +343,7 @@ export class SanPhamRepository {
     });
   }
 
-  async findByIds(ids: number[]): Promise<Partial<SanPham>[]> {
+  async findByIds(ids: number[]): Promise<any[]> {
     const filter = this.getFilter(10);
     const project = this.getProject();
 
