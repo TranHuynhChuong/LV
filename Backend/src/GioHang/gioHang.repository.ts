@@ -7,7 +7,7 @@ import { GioHang, GioHangDocument } from './gioHang.schema';
 export class GioHangRepository {
   constructor(
     @InjectModel(GioHang.name)
-    private readonly gioHangModel: Model<GioHangDocument>
+    private readonly model: Model<GioHangDocument>
   ) {}
 
   async create(data: {
@@ -16,7 +16,7 @@ export class GioHangRepository {
     GH_soLuong: number;
   }): Promise<GioHang> {
     const now = new Date();
-    return this.gioHangModel.create({
+    return this.model.create({
       ...data,
       GH_thoiGian: now,
     });
@@ -27,7 +27,7 @@ export class GioHangRepository {
     SP_id: number,
     GH_soLuong: number
   ): Promise<GioHang | null> {
-    return this.gioHangModel.findOneAndUpdate(
+    return this.model.findOneAndUpdate(
       { KH_email, SP_id },
       {
         GH_soLuong,
@@ -38,10 +38,14 @@ export class GioHangRepository {
   }
 
   async delete(KH_email: string, SP_id: number): Promise<GioHang | null> {
-    return this.gioHangModel.findOneAndDelete({ KH_email, SP_id });
+    return this.model.findOneAndDelete({ KH_email, SP_id });
   }
 
   async findAllByEmail(KH_email: string): Promise<GioHang[]> {
-    return this.gioHangModel.find({ KH_email }).sort({ GH_thoiGian: -1 });
+    return this.model.find({ KH_email }).sort({ GH_thoiGian: -1 });
+  }
+
+  async findOne(KH_email: string, SP_id: number): Promise<GioHang | null> {
+    return this.model.findOne({ KH_email, SP_id });
   }
 }
