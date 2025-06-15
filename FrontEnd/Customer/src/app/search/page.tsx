@@ -67,7 +67,7 @@ export default function SearchPage() {
       categoryId: category,
       page,
       sortType: sort,
-      filterType: '1',
+      filterType: '11',
       limit: pageSize,
     };
 
@@ -85,7 +85,7 @@ export default function SearchPage() {
       setTotalItems(0);
       setTotalPage(0);
     }
-  }, [keyword, category, page, sort, pageSize]); // 👈 thêm pageSize vào deps nếu nó thay đổi
+  }, [keyword, category, page, sort, pageSize]);
 
   useEffect(() => {
     fetchData();
