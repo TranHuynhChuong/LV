@@ -1,17 +1,13 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { GioHangRepository } from './gioHang.repository';
 import { GioHang } from './gioHang.schema';
-import { SanPhamService } from 'src/SanPham/sanPham.service';
+import { SanPhamUtilService } from 'src/SanPham/sanPham.service';
 
 @Injectable()
 export class GioHangService {
   constructor(
-    private readonly repo: GioHangRepository,
-    private readonly SanPham: SanPhamService
+    private readonly GioHang: GioHangRepository,
+    private readonly SanPham: SanPhamUtilService
   ) {}
 
   async create(dto: {
@@ -19,14 +15,20 @@ export class GioHangService {
     SP_id: number;
     GH_soLuong: number;
   }): Promise<GioHang> {
-    try {
-      return await this.repo.create(dto);
-    } catch (err) {
-      if (err.code === 11000) {
-        throw new ConflictException();
+    const { KH_email, SP_id, GH_soLuong } = dto;
+
+    const existing = await this.GioHang.findOne(KH_email, SP_id);
+
+    if (existing) {
+      const newQuantity = existing.GH_soLuong + GH_soLuong;
+      const updated = await this.GioHang.update(KH_email, SP_id, newQuantity);
+      if (!updated) {
+        throw new BadRequestException();
       }
-      throw err;
+      return updated;
     }
+
+    return this.GioHang.create(dto);
   }
 
   async update(dto: {
@@ -34,29 +36,29 @@ export class GioHangService {
     SP_id: number;
     GH_soLuong: number;
   }): Promise<GioHang> {
-    const updated = await this.repo.update(
+    const updated = await this.GioHang.update(
       dto.KH_email,
       dto.SP_id,
       dto.GH_soLuong
     );
 
     if (!updated) {
-      throw new NotFoundException();
+      throw new BadRequestException();
     }
 
     return updated;
   }
 
   async delete(KH_email: string, SP_id: number): Promise<GioHang> {
-    const deleted = await this.repo.delete(KH_email, SP_id);
+    const deleted = await this.GioHang.delete(KH_email, SP_id);
     if (!deleted) {
-      throw new NotFoundException();
+      throw new BadRequestException();
     }
     return deleted;
   }
 
   async findUserCarts(KH_email: string): Promise<any[]> {
-    const carts = await this.repo.findAllByEmail(KH_email);
+    const carts = await this.GioHang.findAllByEmail(KH_email);
     return this.getCarts(carts);
   }
 
@@ -65,10 +67,10 @@ export class GioHangService {
       .map((c) => c.SP_id)
       .filter((id): id is number => id !== undefined);
 
-    const { products, promotions } = await this.SanPham.findByIds(productIds);
+    const products = await this.SanPham.findByIds(productIds);
 
     const result = carts
-      .map((cart) => {
+      .map((cart): any => {
         const product = products.find((p) => p.SP_id === cart.SP_id);
         if (!product) return null; // ❌ Không có sản phẩm
 
@@ -77,25 +79,10 @@ export class GioHangService {
         const quantity = Math.min(cart.GH_soLuong ?? 0, product.SP_tonKho ?? 0);
         if (quantity <= 0) return null; // ❌ Không còn số lượng phù hợp
 
-        const promo = promotions.find(
-          (km) => km.SP_id === cart.SP_id && !km.CTKM_tamNgung
-        );
-
-        let giaGiam = product.SP_giaBan;
-        if (promo) {
-          if (promo.CTKM_theoTyLe) {
-            giaGiam = (product.SP_giaBan ?? 0) * (1 - promo.CTKM_giaTri / 100);
-          } else {
-            giaGiam = (product.SP_giaBan ?? 0) - promo.CTKM_giaTri;
-          }
-          if (giaGiam < 0) giaGiam = 0;
-        }
-
         return {
           ...cart,
           ...product,
           GH_soLuong: quantity, // ✅ số lượng đã được giới hạn
-          SP_giaGiam: Math.floor(giaGiam ?? 0),
         };
       })
       .filter(Boolean)
