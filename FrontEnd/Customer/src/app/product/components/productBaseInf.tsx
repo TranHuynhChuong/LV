@@ -53,7 +53,7 @@ export default function ProductBaseInfo({ data }: Readonly<Props>) {
                 </Badge>
               </>
             ) : (
-              <span className="font-bold">{formatCurrency(data.price)}</span>
+              <span className="font-bold text-3xl">{formatCurrency(data.price)}</span>
             )}
           </div>
 
@@ -63,7 +63,10 @@ export default function ProductBaseInfo({ data }: Readonly<Props>) {
             </div>
           )}
         </div>
-        <div className="p-4 w-full shadow md:shadow-none md:px-8 md:pb-8">
+        <div className="md:p-4 w-full shadow md:shadow-none md:px-8 md:pb-8">
+          <div className="flex md:hidden items-center px-6 pb-6">
+            <span className="text-sm text-zinc-600">Số lượng {data.stock} sản phẩm có sẵn</span>
+          </div>
           <AddToCartButton stock={data.stock} id={data.id} />
         </div>
       </div>

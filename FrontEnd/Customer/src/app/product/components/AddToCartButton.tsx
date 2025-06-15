@@ -6,6 +6,8 @@ import { Minus, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cart.store'; // đường dẫn tùy cấu trúc dự án
+import api from '@/lib/axiosClient';
+import { emitCartChange } from '@/lib/cartEvents';
 
 type Props = {
   stock: number;
@@ -29,12 +31,17 @@ export default function AddToCartButton({ stock, id }: Props) {
   };
 
   const handleAddToCart = () => {
-    if (!authData.userId) {
+    if (!authData.userEmail) {
       addToCart({
         SP_id: id,
         GH_soLuong: quantity,
         GH_thoiGian: new Date().toISOString(),
       });
+    } else {
+      api
+        .post('/carts', { KH_email: authData.userEmail, SP_id: id, GH_soLuong: quantity })
+        .then(() => emitCartChange())
+        .catch((error) => console.log(error));
     }
   };
 
