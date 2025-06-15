@@ -21,7 +21,11 @@ export class GioHangService {
 
     if (existing) {
       const newQuantity = existing.GH_soLuong + GH_soLuong;
-      const updated = await this.GioHang.update(KH_email, SP_id, newQuantity);
+      const updated = await this.GioHang.update({
+        KH_email,
+        SP_id,
+        GH_soLuong: newQuantity,
+      });
       if (!updated) {
         throw new BadRequestException();
       }
@@ -35,18 +39,18 @@ export class GioHangService {
     KH_email: string;
     SP_id: number;
     GH_soLuong: number;
-  }): Promise<GioHang> {
-    const updated = await this.GioHang.update(
-      dto.KH_email,
-      dto.SP_id,
-      dto.GH_soLuong
-    );
-
-    if (!updated) {
-      throw new BadRequestException();
+  }): Promise<any[]> {
+    const item = await this.getCarts([dto]);
+    console.log(item);
+    if (item.length === 0) {
+      await this.delete(dto.KH_email, dto.SP_id);
+    } else {
+      const updated = await this.GioHang.update(item[0]);
+      if (!updated) {
+        throw new BadRequestException();
+      }
     }
-
-    return updated;
+    return item;
   }
 
   async delete(KH_email: string, SP_id: number): Promise<GioHang> {

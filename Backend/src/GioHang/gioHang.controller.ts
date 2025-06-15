@@ -27,7 +27,7 @@ export class GioHangController {
   @Put()
   async update(
     @Body() dto: { KH_email: string; SP_id: number; GH_soLuong: number }
-  ): Promise<GioHang> {
+  ): Promise<any[]> {
     return this.gioHangService.update(dto);
   }
 

@@ -22,18 +22,20 @@ export class GioHangRepository {
     });
   }
 
-  async update(
-    KH_email: string,
-    SP_id: number,
-    GH_soLuong: number
-  ): Promise<GioHang | null> {
+  async update(data: {
+    KH_email: string;
+    SP_id: number;
+    GH_soLuong: number;
+  }): Promise<GioHang | null> {
+    const now = new Date();
+
     return this.model.findOneAndUpdate(
-      { KH_email, SP_id },
+      { KH_email: data.KH_email, SP_id: data.SP_id },
       {
-        GH_soLuong,
-        GH_thoiGian: new Date(),
+        GH_soLuong: data.GH_soLuong,
+        GH_thoiGian: now,
       },
-      { new: true } // trả về bản ghi sau khi cập nhật
+      { new: true }
     );
   }
 
