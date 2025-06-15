@@ -12,7 +12,7 @@ export default function ProductItem({ product }: Readonly<ProductItemProps>) {
   const { name, price, selePrice, image, sold, score, discountPercent, id } = product;
 
   return (
-    <Link href={`/${id}`}>
+    <Link href={`product/${id}`}>
       <Card className="hover:shadow-[0_0_10px_rgba(0,0,0,0.2)] hover:z-10 transition-shadow duration-300 relative shadow-none rounded-sm overflow-hidden py-4 gap-2 h-full w-full flex flex-col cursor-pointer">
         <div className="">
           <div className=" relative h-42 inset-0 flex justify-center items-center">
