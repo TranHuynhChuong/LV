@@ -6,7 +6,7 @@ import {
   paginateRawAggregate,
   PaginateResult,
 } from 'src/Util/paginateWithFacet';
-import type { PipelineStage } from 'mongoose';
+import type { ClientSession, PipelineStage } from 'mongoose';
 export type ProductListResults = PaginateResult<SanPhamDocument>;
 
 @Injectable()
@@ -16,16 +16,27 @@ export class SanPhamRepository {
     private readonly model: Model<SanPhamDocument>
   ) {}
 
-  async create(data: Partial<SanPham>): Promise<SanPham> {
-    return this.model.create(data);
+  async create(
+    data: Partial<SanPham>,
+    session?: ClientSession
+  ): Promise<SanPham> {
+    const created = await this.model.create([data], session ? { session } : {});
+    return created[0];
   }
 
-  async update(id: number, data: Partial<SanPham>): Promise<SanPham | null> {
+  async update(
+    id: number,
+    data: Partial<SanPham>,
+    session?: ClientSession
+  ): Promise<SanPham | null> {
     return this.model
       .findOneAndUpdate(
         { SP_id: id, SP_trangThai: { $ne: 0 } },
         { $set: data },
-        { new: true }
+        {
+          new: true,
+          session,
+        }
       )
       .lean();
   }
@@ -93,9 +104,7 @@ export class SanPhamRepository {
       dataPipeline.push(...this.getDiscountLookupStage(false));
     }
 
-    if (project && Object.keys(project).length > 0) {
-      dataPipeline.push({ $project: project });
-    }
+    dataPipeline.push({ $project: project });
 
     return { dataPipeline, countPipeline };
   }
@@ -344,32 +353,35 @@ export class SanPhamRepository {
   }
 
   async findByIds(ids: number[]): Promise<any[]> {
-    const filter = this.getFilter(10);
-    const project = this.getProject();
-
     return this.model.aggregate([
       {
         $match: {
           SP_id: { $in: ids },
-          ...filter,
+          ...this.getFilter(10),
         },
       },
-      {
-        $project: project,
-      },
+      ...this.getDiscountLookupStage(false),
+      { $project: this.getProject() },
     ]);
   }
 
-  async findLastId(): Promise<number> {
-    const last = await this.model.findOne().sort({ SP_id: -1 }).lean();
-    return last?.SP_id ?? 0;
+  async findLastId(session?: ClientSession): Promise<number> {
+    const result = await this.model
+      .findOne()
+      .sort({ SP_id: -1 })
+      .session(session ?? null)
+      .lean();
+
+    return result?.SP_id ?? 0;
   }
 
   async findById(
     id: number,
     mode: 'default' | 'full' | 'search' = 'default',
     filterType?: number
-  ): Promise<SanPham | null> {
+  ): Promise<any> {
+    const discountStages = this.getDiscountLookupStage(false);
+
     if (mode === 'search') {
       const filter = {
         SP_id: id,
@@ -377,7 +389,11 @@ export class SanPhamRepository {
       };
       const project = this.getProject();
       return this.model
-        .aggregate([{ $match: filter }, { $project: project }])
+        .aggregate([
+          { $match: filter },
+          ...discountStages,
+          { $project: project },
+        ])
         .then((result: SanPham[]) => result[0] ?? null);
     }
 
@@ -407,7 +423,7 @@ export class SanPhamRepository {
               },
             },
           },
-
+          ...discountStages,
           {
             $project: {
               SP_eTomTat: 0,
@@ -515,42 +531,21 @@ export class SanPhamRepository {
   }
 
   async countAll(): Promise<{
-    all: { total: number; in: number; out: number };
     live: { total: number; in: number; out: number };
     hidden: { total: number; in: number; out: number };
   }> {
-    const [
-      allTotal,
-      allIn,
-      allOut,
-      liveTotal,
-      liveIn,
-      liveOut,
-      hiddenTotal,
-      hiddenIn,
-      hiddenOut,
-    ] = await Promise.all([
-      this.model.countDocuments({ SP_trangThai: { $in: [1, 2] } }),
-      this.model.countDocuments({
-        SP_trangThai: { $in: [1, 2] },
-        SP_tonKho: { $gt: 0 },
-      }),
-      this.model.countDocuments({
-        SP_trangThai: { $in: [1, 2] },
-        SP_tonKho: 0,
-      }),
+    const [liveTotal, liveIn, liveOut, hiddenTotal, hiddenIn, hiddenOut] =
+      await Promise.all([
+        this.model.countDocuments({ SP_trangThai: 1 }),
+        this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: { $gt: 0 } }),
+        this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: 0 }),
 
-      this.model.countDocuments({ SP_trangThai: 1 }),
-      this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: { $gt: 0 } }),
-      this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: 0 }),
-
-      this.model.countDocuments({ SP_trangThai: 2 }),
-      this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: { $gt: 0 } }),
-      this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: 0 }),
-    ]);
+        this.model.countDocuments({ SP_trangThai: 2 }),
+        this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: { $gt: 0 } }),
+        this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: 0 }),
+      ]);
 
     return {
-      all: { total: allTotal, in: allIn, out: allOut },
       live: { total: liveTotal, in: liveIn, out: liveOut },
       hidden: { total: hiddenTotal, in: hiddenIn, out: hiddenOut },
     };

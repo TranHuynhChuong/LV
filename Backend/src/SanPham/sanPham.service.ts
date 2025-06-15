@@ -8,9 +8,8 @@ import { TransformService } from '../Util/transform.service';
 import { SanPham, AnhSP } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
-import { KhuyenMaiService } from 'src/KhuyenMai/khuyenMai.service';
-import { TheLoaiService } from 'src/TheLoai/theLoai.service';
+import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { TheLoaiUtilService } from 'src/TheLoai/theLoai.service';
 
 const folderPrefix = 'Products';
 
@@ -36,10 +35,7 @@ const typeOfChange: Record<string, string> = {
 
 @Injectable()
 export class SanPhamUtilService {
-  constructor(
-    private readonly SanPham: SanPhamRepository,
-    private readonly KhuyenMai: KhuyenMaiService
-  ) {}
+  constructor(private readonly SanPham: SanPhamRepository) {}
 
   async findByIds(ids: number[]): Promise<any[]> {
     const result = await this.SanPham.findByIds(ids);
@@ -47,34 +43,12 @@ export class SanPhamUtilService {
       throw new NotFoundException();
     }
 
-    const promotions = await this.KhuyenMai.getValidChiTietKhuyenMai(ids);
-
-    // Tạo Map để tra khuyến mãi theo SP_id
-    const promotionMap = new Map<string | number, any>();
-    for (const promo of promotions) {
-      promotionMap.set(promo.SP_id, promo);
-    }
-
-    // Áp dụng khuyến mãi cho từng sản phẩm
-    const productsWithDiscount: any[] = result.map((sp): any => {
-      const promo = promotionMap.get(sp.SP_id);
-      let SP_giaGiam = sp.SP_giaBan;
-
-      if (promo) {
-        SP_giaGiam = promo.CTKM_theoTyLe
-          ? sp.SP_giaBan - sp.SP_giaBan * (promo.CTKM_giaTri / 100)
-          : sp.SP_giaBan - promo.CTKM_giaTri;
-      }
-
-      return {
-        ...sp,
-        SP_giaGiam,
-      };
-    });
-
-    return productsWithDiscount;
+    return result;
   }
 }
+
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 
 @Injectable()
 export class SanPhamService {
@@ -82,9 +56,9 @@ export class SanPhamService {
     private readonly SanPham: SanPhamRepository,
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
-    private readonly NhanVien: NhanVienUtilsService,
-    private readonly KhuyenMai: KhuyenMaiService,
-    private readonly TheLoai: TheLoaiService
+    private readonly NhanVien: NhanVienUtilService,
+    private readonly TheLoai: TheLoaiUtilService,
+    @InjectConnection() private readonly connection: Connection
   ) {}
 
   async create(
@@ -92,47 +66,59 @@ export class SanPhamService {
     coverImage?: Express.Multer.File,
     images?: Express.Multer.File[]
   ): Promise<SanPham> {
-    const vector = await this.Transform.getTextEmbedding(data.SP_tomTat);
-    const lastId = await this.SanPham.findLastId();
-    const nextId = lastId + 1;
-
-    const thaoTac = {
-      thaoTac: 'Tạo mới',
-      NV_id: data.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const dataToSave: Partial<SanPham> = {
-      ...data,
-      SP_id: nextId,
-      SP_eTomTat: vector,
-      SP_anh: [],
-      lichSuThaoTac: [thaoTac],
-    };
-
-    const created = await this.SanPham.create(dataToSave);
-    if (!created) throw new BadRequestException();
-
+    const session = await this.connection.startSession();
+    let nextId: number = 0;
     try {
-      const uploadedImages = await this.handleImageUploads(
-        nextId,
-        coverImage,
-        images
-      );
-      if (!uploadedImages.find((i) => i.A_anhBia)) {
-        throw new BadRequestException();
-      }
+      let finalResult: SanPham;
+      await session.withTransaction(async () => {
+        const vector = await this.Transform.getTextEmbedding(data.SP_tomTat);
+        const lastId = await this.SanPham.findLastId(session);
+        nextId = lastId + 1;
 
-      const updated = await this.SanPham.update(nextId, {
-        SP_anh: uploadedImages,
+        const thaoTac = {
+          thaoTac: 'Tạo mới',
+          NV_id: data.NV_id,
+          thoiGian: new Date(),
+        };
+
+        const dataToSave: Partial<SanPham> = {
+          ...data,
+          SP_id: nextId,
+          SP_eTomTat: vector,
+          SP_anh: [],
+          lichSuThaoTac: [thaoTac],
+        };
+
+        const created = await this.SanPham.create(dataToSave, session);
+        if (!created) throw new BadRequestException();
+
+        const uploadedImages = await this.handleImageUploads(
+          nextId,
+          coverImage,
+          images
+        );
+        if (!uploadedImages.find((i) => i.A_anhBia)) {
+          throw new BadRequestException('Thiếu ảnh bìa');
+        }
+
+        const updated = await this.SanPham.update(
+          nextId,
+          { SP_anh: uploadedImages },
+          session
+        );
+        if (!updated) throw new Error();
+
+        finalResult = updated;
       });
-      if (!updated) throw new Error();
 
-      return updated;
-    } catch {
-      await this.SanPham.remove(nextId);
-      await this.Cloudinary.deleteFolder(`${folderPrefix}/${nextId}`);
-      throw new BadRequestException();
+      await session.endSession();
+      return finalResult!;
+    } catch (error) {
+      await session.endSession();
+      if (nextId !== 0) {
+        await this.Cloudinary.deleteFolder(`${folderPrefix}/${nextId}`);
+      }
+      throw error;
     }
   }
 
@@ -188,7 +174,7 @@ export class SanPhamService {
       ];
     }
 
-    if (Object.keys(updatePayload).length === 0) return existing;
+    if (Object.keys(updatePayload).length === 0) return existing as SanPham;
 
     try {
       const updated = await this.SanPham.update(id, updatePayload);
@@ -374,22 +360,7 @@ export class SanPhamService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
-    const promotion = await this.KhuyenMai.getValidChiTietKhuyenMai([
-      result.SP_id,
-    ]);
-
-    let SP_giaGiam = result.SP_giaBan;
-
-    if (promotion && promotion.length > 0) {
-      SP_giaGiam = promotion[0].CTKM_theoTyLe
-        ? result.SP_giaBan - result.SP_giaBan * (promotion[0].CTKM_giaTri / 100)
-        : result.SP_giaBan - promotion[0].CTKM_giaTri;
-    }
-
-    return {
-      ...result,
-      SP_giaGiam,
-    };
+    return result;
   }
 
   async delete(id: number): Promise<SanPham> {
@@ -401,7 +372,6 @@ export class SanPhamService {
   }
 
   async countAll(): Promise<{
-    all: { total: number; in: number; out: number };
     live: { total: number; in: number; out: number };
     hidden: { total: number; in: number; out: number };
   }> {
