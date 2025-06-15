@@ -205,7 +205,7 @@ export default function ProductForm({
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <div className="relative overflow-hidden rounded-md w-40 h-42 bg-gray-50 group">
+                      <div className="relative overflow-hidden rounded-md aspect-square w-40 bg-gray-50 group">
                         {!coverImageFile && !coverImage ? (
                           <label
                             className={`absolute inset-0 flex items-center justify-center transition-colors border-2 border-dashed rounded-md cursor-pointer hover:border-blue-500 ${
@@ -228,11 +228,13 @@ export default function ProductForm({
                             </div>
                           </label>
                         ) : (
-                          <div className="relative w-full h-full overflow-hidden border border-gray-300 rounded-md group">
+                          <div className="relative aspect-square w-40 overflow-hidden border border-gray-300 rounded-md group">
                             <Image
                               src={getPreviewUrl(coverImageFile) ?? coverImage ?? ''}
                               alt="Ảnh bìa"
                               fill
+                              priority
+                              sizes="160px"
                               className="object-contain"
                             />
                             <div className="absolute inset-0 transition-opacity opacity-0 bg-black/30 group-hover:opacity-100" />
@@ -271,12 +273,13 @@ export default function ProductForm({
                         return url ? (
                           <div
                             key={idx}
-                            className="relative w-20 h-22 overflow-hidden border border-gray-300 rounded-md group"
+                            className="relative aspect-square w-20 overflow-hidden border border-gray-300 rounded-md group"
                           >
                             <Image
                               src={url}
                               alt={`Ảnh sản phẩm ${idx + 1}`}
                               fill
+                              sizes="80px"
                               className="object-contain"
                             />
                             <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
@@ -296,7 +299,7 @@ export default function ProductForm({
                         return url ? (
                           <div
                             key={idx}
-                            className="relative w-20 h-22 overflow-hidden border border-gray-300 rounded-md group"
+                            className="relative aspect-square w-20 overflow-hidden border border-gray-300 rounded-md group"
                           >
                             <Image
                               src={url}
@@ -320,7 +323,7 @@ export default function ProductForm({
                       {productImages.length + productImageFiles.length < MAX_PRODUCT_IMAGES && (
                         <label
                           htmlFor="add-product-images"
-                          className="relative flex items-center justify-center w-20 h-22 overflow-hidden transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer bg-gray-50 hover:border-blue-500"
+                          className="relative flex items-center justify-center w-20 h-20 overflow-hidden transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer bg-gray-50 hover:border-blue-500"
                           title="Thêm ảnh sản phẩm"
                         >
                           <input

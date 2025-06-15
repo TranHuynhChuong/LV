@@ -52,7 +52,7 @@ export default function New() {
   };
 
   return (
-    <div className="w-full max-w-xl h-fit min-w-md">
+    <div className="w-full max-w-xl h-fit min-w-md mx-auto p-4">
       {isSubmitting && <Loader />}
       <StaffForm onSubmit={handleOnsubmit} />
     </div>
