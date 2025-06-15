@@ -86,6 +86,7 @@ export type ProductDetailApiType = {
   SP_ngonNgu: string;
   SP_nguoiDich: string;
   SP_giaBan: number;
+  giaGiam: number;
   SP_giaNhap: number;
   SP_tonKho: number;
   SP_trongLuong: number;
@@ -96,12 +97,4 @@ export type ProductDetailApiType = {
     A_url: string;
     A_anhBia: boolean;
   }[];
-};
-
-export type PromotionApiItem = {
-  KM_id: number;
-  SP_id: number;
-  CTKM_theoTyLe: boolean;
-  CTKM_giaTri: number;
-  CTKM_tamNgung: boolean;
 };
