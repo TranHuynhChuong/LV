@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NguoiDungController } from './nguoiDung.controller';
-import { KhachHangsService } from './KhachHang/khachHang.service';
+import { KhachHangService } from './KhachHang/khachHang.service';
 import { KhachHangRepository } from './KhachHang/khachHang.repository';
 import { KhachHang, KhachHangSchema } from './KhachHang/khachHang.schema';
 import {
   NhanVienService,
-  NhanVienUtilsService,
+  NhanVienUtilService,
 } from './NhanVien/nhanVien.service';
 import { NhanVienRepository } from './NhanVien/nhanVien.repository';
 import { NhanVien, NhanVienSchema } from './NhanVien/nhanVien.schema';
@@ -22,12 +22,12 @@ import { NhanVien, NhanVienSchema } from './NhanVien/nhanVien.schema';
   ],
   controllers: [NguoiDungController],
   providers: [
-    KhachHangsService,
+    KhachHangService,
     KhachHangRepository,
     NhanVienService,
-    NhanVienUtilsService,
+    NhanVienUtilService,
     NhanVienRepository,
   ],
-  exports: [KhachHangsService, NhanVienUtilsService],
+  exports: [KhachHangService, NhanVienUtilService],
 })
 export class NguoiDungModule {}

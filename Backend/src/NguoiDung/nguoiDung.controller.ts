@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { KhachHangsService } from './KhachHang/khachHang.service';
+import { KhachHangService } from './KhachHang/khachHang.service';
 import { NhanVienService } from './NhanVien/nhanVien.service';
 import { UpdateDto as UpdateDto_KH } from './KhachHang/khachHang.dto';
 import {
@@ -25,7 +25,7 @@ import { parsePositiveInt } from 'src/Util/convert';
 @UseGuards(XacThucGuard)
 export class NguoiDungController {
   constructor(
-    private readonly KhachHangsService: KhachHangsService,
+    private readonly KhachHangService: KhachHangService,
     private readonly NhanVienService: NhanVienService
   ) {}
 
@@ -34,7 +34,7 @@ export class NguoiDungController {
   @Get('total')
   async getTotal(): Promise<{ staff: number; customer: number }> {
     const staff = await this.NhanVienService.countAll();
-    const customer = await this.KhachHangsService.countAll();
+    const customer = await this.KhachHangService.countAll();
     return {
       staff,
       customer,
@@ -61,12 +61,12 @@ export class NguoiDungController {
 
     console.log(params);
 
-    return this.KhachHangsService.findAll(params);
+    return this.KhachHangService.findAll(params);
   }
 
   @Get('customer/:email')
   async getCustomerByEmail(@Param('email') email: string) {
-    return await this.KhachHangsService.findByEmail(email);
+    return await this.KhachHangService.findByEmail(email);
   }
 
   @Put('customer/:email')
@@ -74,7 +74,7 @@ export class NguoiDungController {
     @Param('email') email: string,
     @Body() data: UpdateDto_KH
   ) {
-    return await this.KhachHangsService.update(email, data);
+    return await this.KhachHangService.update(email, data);
   }
 
   /** STAFF APIs */
