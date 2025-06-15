@@ -7,7 +7,7 @@ import {
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
 import { TheLoai } from './theLoai.schema';
-import { NhanVienUtilsService } from 'src/NguoiDung/NhanVien/nhanVien.service';
+import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
   TL_ten: 'Tên thể loại',
@@ -15,38 +15,70 @@ const typeOfChange: Record<string, string> = {
 };
 
 @Injectable()
+export class TheLoaiUtilService {
+  constructor(private readonly TheLoai: TheLoaiRepository) {}
+
+  async findAllChildren(id?: number): Promise<number[]> {
+    if (!id) return [];
+    return this.TheLoai.findAllChildren(id);
+  }
+}
+
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
+@Injectable()
 export class TheLoaiService {
   constructor(
     private readonly TheLoai: TheLoaiRepository,
-    private readonly NhanVien: NhanVienUtilsService
+    private readonly NhanVien: NhanVienUtilService,
+    @InjectConnection() private readonly connection: Connection
   ) {}
 
   // Tạo thể loại mới
   async create(newData: CreateDto): Promise<TheLoai> {
-    const exists = await this.TheLoai.findByName(newData.TL_ten);
-    if (exists) {
-      throw new ConflictException();
+    const session = await this.connection.startSession();
+
+    try {
+      let result: TheLoai;
+
+      await session.withTransaction(async () => {
+        // Kiểm tra tên trùng trong transaction
+        const exists = await this.TheLoai.findByName(newData.TL_ten, session);
+        if (exists) {
+          throw new ConflictException();
+        }
+
+        const thaoTac = {
+          thaoTac: 'Tạo mới',
+          NV_id: newData.NV_id,
+          thoiGian: new Date(),
+        };
+
+        const lastId = await this.TheLoai.findLastId(session);
+        const newId = lastId + 1;
+
+        const created = await this.TheLoai.create(
+          {
+            ...newData,
+            TL_id: newId,
+            lichSuThaoTac: [thaoTac],
+          },
+          session
+        );
+
+        if (!created) {
+          throw new BadRequestException();
+        }
+
+        result = created;
+      });
+
+      await session.endSession();
+      return result!;
+    } catch (error) {
+      await session.endSession();
+      throw error;
     }
-
-    const thaoTac = {
-      thaoTac: 'Tạo mới',
-      NV_id: newData.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const lastId = await this.TheLoai.findLastId();
-    const newId = lastId + 1;
-
-    const created = await this.TheLoai.create({
-      ...newData,
-      TL_id: newId,
-      lichSuThaoTac: [thaoTac],
-    });
-
-    if (!created) {
-      throw new BadRequestException();
-    }
-    return created;
   }
 
   async update(id: number, newData: UpdateDto): Promise<TheLoai> {
@@ -108,11 +140,6 @@ export class TheLoaiService {
   // Lấy tất cả thể loại cơ bản
   async findAll(): Promise<Partial<TheLoai>[]> {
     return this.TheLoai.findAll();
-  }
-
-  async findAllChildren(id?: number): Promise<number[]> {
-    if (!id) return [];
-    return this.TheLoai.findAllChildren(id);
   }
 
   async findById(id: number): Promise<any> {

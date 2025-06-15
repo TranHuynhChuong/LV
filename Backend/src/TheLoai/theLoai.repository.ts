@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { TheLoai, TheLoaiDocument } from './theLoai.schema';
 
 @Injectable()
@@ -10,24 +10,33 @@ export class TheLoaiRepository {
     private readonly model: Model<TheLoaiDocument>
   ) {}
 
-  async create(data: any): Promise<TheLoai> {
+  async create(data: any, session?: ClientSession): Promise<TheLoai> {
     const created = new this.model(data);
-    return created.save();
+    return created.save({ session });
   }
 
-  async findLastId(): Promise<number> {
+  async findLastId(session?: ClientSession): Promise<number> {
     const result = await this.model
       .find({})
       .sort({ TL_id: -1 })
       .limit(1)
       .select('TL_id')
+      .session(session ?? null)
       .lean()
       .exec();
 
-    if (result.length === 0) {
-      return 0;
-    }
-    return result[0].TL_id;
+    return result.length > 0 ? result[0].TL_id : 0;
+  }
+
+  async findByName(
+    name: string,
+    session?: ClientSession
+  ): Promise<TheLoai | null> {
+    return this.model
+      .findOne({ TL_ten: name, TL_daXoa: false })
+      .session(session ?? null)
+      .lean()
+      .exec();
   }
 
   async findAll(): Promise<Partial<TheLoai>[]> {
@@ -68,10 +77,6 @@ export class TheLoaiRepository {
 
   async findById(id: number): Promise<TheLoai | null> {
     return this.model.findOne({ TL_id: id, TL_daXoa: false }).lean().exec();
-  }
-
-  async findByName(name: string): Promise<TheLoai | null> {
-    return this.model.findOne({ TL_ten: name, TL_daXoa: false }).lean().exec();
   }
 
   async update(id: number, data: any): Promise<TheLoai | null> {
