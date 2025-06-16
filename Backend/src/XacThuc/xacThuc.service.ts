@@ -64,7 +64,7 @@ export class XacThucService {
   async changePassword(email: string, newPass: string, otp: string) {
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
-      throw new BadRequestException();
+      throw new ConflictException();
     }
 
     const updatedCustomer = await this.KhachHang.update(email, {
