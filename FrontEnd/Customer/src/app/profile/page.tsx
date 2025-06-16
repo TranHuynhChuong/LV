@@ -36,7 +36,7 @@ export default function Profile() {
 
   // 🔄 Lấy dữ liệu người dùng từ API
   useEffect(() => {
-    api.get(`/users/customer/${authData.userId}`).then((res) => {
+    api.get(`/users/customer/${authData.userEmail}`).then((res) => {
       const data = res.data;
       setProfile({
         fullName: data.KH_hoTen ?? '',
@@ -60,7 +60,7 @@ export default function Profile() {
     };
 
     api
-      .put(`/users/customer/${authData.userId}`, payload)
+      .put(`/users/customer/${authData.userEmail}`, payload)
       .then(() => {
         toast.success('Cập nhật thành công');
         router.refresh();
@@ -77,7 +77,7 @@ export default function Profile() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 w-full min-w-md md:max-w-lg p-6 border shadow rounded-sm"
+      className="space-y-6 w-full  p-6 border shadow rounded-md bg-white"
     >
       {/* Họ tên */}
       <div className="space-y-2">
@@ -95,7 +95,7 @@ export default function Profile() {
           <Input value={profile.email} disabled className="flex-1" />
           <Button
             type="button"
-            variant="secondary"
+            variant="outline"
             onClick={() => router.push('/profile/changeEmail')}
             className="cursor-pointer"
           >

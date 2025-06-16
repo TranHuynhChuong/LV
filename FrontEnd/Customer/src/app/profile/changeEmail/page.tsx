@@ -53,7 +53,7 @@ export default function ChangeEmail() {
     }
 
     api
-      .put(`/auth/change-email/${authData.userId}`, {
+      .put(`/auth/change-email/${authData.userEmail}`, {
         newEmail: newEmail,
         otp,
       })
@@ -67,7 +67,7 @@ export default function ChangeEmail() {
   };
 
   return (
-    <Card className="w-full md:max-w-md rounded-sm">
+    <Card className="w-full  rounded-md bg-white">
       <CardHeader className="mb-4">
         <CardTitle className="text-xl flex items-center">Thay đổi email</CardTitle>
       </CardHeader>
