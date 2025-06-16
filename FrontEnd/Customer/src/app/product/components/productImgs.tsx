@@ -6,6 +6,7 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/button';
 import styles from './product.component.module.css';
+import Overlay from '@/components/overLay';
 
 type Props = {
   coverImage: string;
@@ -81,7 +82,7 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
                 alt={`thumb-${index}`}
                 fill
                 className={clsx(
-                  'object-contain rounded-sm border',
+                  'object-contain rounded-sm border cursor-pointer',
                   img === activeImage && 'ring-1 ring-zinc-500'
                 )}
               />
@@ -92,47 +93,49 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
 
       {/* === XEM ẢNH TO (Modal full màn hình) === */}
       {previewOpen && (
-        <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center">
-          <Button
-            variant="ghost"
-            className="absolute top-4 right-4 text-white z-10 cursor-pointer"
-            onClick={() => setPreviewOpen(false)}
-          >
-            <X size={32} />
-          </Button>
+        <Overlay>
+          <div className="flex flex-col items-center justify-center h-full w-full">
+            <Button
+              variant="ghost"
+              className="absolute top-4 right-4 text-white z-50 cursor-pointer bg-zinc-800/90"
+              onClick={() => setPreviewOpen(false)}
+            >
+              <X size={32} />
+            </Button>
 
-          {/* Ảnh to */}
-          <div className="relative w-full flex-1">
-            <Image
-              src={activeImage}
-              alt="Ảnh chính"
-              fill
-              className="object-contain p-2 cursor-pointer"
-            />
-          </div>
+            {/* Ảnh to */}
+            <div className="relative w-full flex-1 ">
+              <Image
+                src={activeImage}
+                alt="Ảnh chính"
+                fill
+                className="object-contain p-2 cursor-pointer"
+              />
+            </div>
 
-          {/* Ảnh nhỏ bên dưới */}
-          <div className="flex gap-2 overflow-x-auto max-w-full pb-4 p-1">
-            {displayImages.map((img, index) => (
-              <Button
-                variant="ghost"
-                key={index}
-                className="relative w-20 h-20 cursor-pointer"
-                onClick={() => setActiveImage(img)}
-              >
-                <Image
-                  src={img}
-                  alt={`preview-thumb-${index}`}
-                  fill
-                  className={clsx(
-                    'object-cover rounded-sm',
-                    img === activeImage && 'ring-2 ring-blue-500'
-                  )}
-                />
-              </Button>
-            ))}
+            {/* Ảnh nhỏ bên dưới */}
+            <div className="flex gap-2 overflow-x-auto max-w-full pb-4 p-1">
+              {displayImages.map((img, index) => (
+                <Button
+                  variant="ghost"
+                  key={index}
+                  className="relative w-20 h-20 cursor-pointer"
+                  onClick={() => setActiveImage(img)}
+                >
+                  <Image
+                    src={img}
+                    alt={`preview-thumb-${index}`}
+                    fill
+                    className={clsx(
+                      'object-cover rounded-sm',
+                      img === activeImage && 'ring-2 ring-blue-500'
+                    )}
+                  />
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        </Overlay>
       )}
     </>
   );
