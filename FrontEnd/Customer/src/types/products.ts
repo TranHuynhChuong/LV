@@ -1,3 +1,5 @@
+import { ApiMetadate } from './metadata';
+
 export type ApiProductSimple = {
   SP_id: number;
   SP_ten: string;
@@ -27,11 +29,6 @@ export type ProductSimple = {
   discountPercent?: number;
 };
 
-export type ApiMetadate = {
-  pagination: number[];
-  totalItems: number;
-  totalPage: number;
-};
 export type ApiResponse = {
   data: ApiProductSimple[];
   metadata: ApiMetadate;
@@ -63,6 +60,7 @@ export type ProductDetailType = {
   coverImage: string;
   salePrice: number;
   productImages: string[];
+  similar: ProductSimple[];
 };
 
 export type ImageApi = {
@@ -74,7 +72,7 @@ export type ImageApi = {
 export type ProductDetailApiType = {
   SP_id: number;
   SP_ten: string;
-  SP_TL: { id: number; ten: string }[];
+  SP_TL: { TL_id: number; TL_ten: string }[];
   SP_trangThai: number;
   SP_tomTat: string;
   SP_moTa?: string;
@@ -86,7 +84,7 @@ export type ProductDetailApiType = {
   SP_ngonNgu: string;
   SP_nguoiDich: string;
   SP_giaBan: number;
-  giaGiam: number;
+  SP_giaGiam: number;
   SP_giaNhap: number;
   SP_tonKho: number;
   SP_trongLuong: number;
@@ -97,4 +95,5 @@ export type ProductDetailApiType = {
     A_url: string;
     A_anhBia: boolean;
   }[];
+  SP_tuongTu: ApiProductSimple[];
 };
