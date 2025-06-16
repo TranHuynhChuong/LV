@@ -27,7 +27,7 @@ export default function CartItem({
   onToggle,
   onQuantityChange,
   onRemove,
-}: CartItemProps) {
+}: Readonly<CartItemProps>) {
   const quantity = product.GH_soLuong;
 
   const handleMinus = () => {

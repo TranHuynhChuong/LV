@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3002",
+    "prebuild": "node scripts/runOnBuild.mjs",
     "build": "next build",
     "start": "next start -p 3002",
     "lint": "next lint"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.2.0",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-avatar": "^1.1.9",
     "@radix-ui/react-checkbox": "^1.3.2",
@@ -28,8 +30,10 @@
     "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "cookie": "^1.0.2",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
@@ -37,6 +41,7 @@
     "next": "15.3.1",
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
+    "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.3",
     "sonner": "^2.0.3",

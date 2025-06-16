@@ -5,7 +5,7 @@ import { useCartStore } from '@/stores/cart.store';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/axiosClient';
 import { Checkbox } from '@/components/ui/checkbox';
-import CartItem, { ProductInCart } from './components/CartItem';
+import CartItem, { ProductInCart } from './components/cartItem';
 import { emitCartChange } from '@/lib/cartEvents';
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
@@ -134,7 +134,7 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    const selectedItems = products.filter((p) => selected.includes(p.SP_id));
+    //const selectedItems = products.filter((p) => selected.includes(p.SP_id));
     // Gửi selectedItems đến trang thanh toán
   };
 
