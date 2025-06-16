@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/axiosClient';
 import PaginationControls from '@/components/PaginationControls';
-import { ApiMetadate, ApiProductSimple, ProductSimple, ApiResponse } from '@/types/products';
+import { ProductSimple, ApiResponse } from '@/types/products';
 import { ProductList } from '@/components/product/productList';
 import {
   Select,
@@ -17,10 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-function mapProductList(apiRes: {
-  data: ApiProductSimple[];
-  metadata: ApiMetadate;
-}): ProductSimple[] {
+function mapProductList(apiRes: ApiResponse): ProductSimple[] {
   const { data } = apiRes;
 
   return data.map((item) => {
