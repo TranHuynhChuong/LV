@@ -21,7 +21,7 @@ const typeOfChange: Record<string, string> = {
 
 @Injectable()
 export class PhiVanChuyenService {
-  private readonly dataDir = path.join(__dirname, 'data');
+  private readonly dataDir = path.join(__dirname, '../../data');
 
   constructor(
     private readonly PhiVanChuyen: PhiVanChuyenRepository,
