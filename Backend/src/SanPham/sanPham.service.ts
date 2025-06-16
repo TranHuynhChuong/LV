@@ -360,7 +360,19 @@ export class SanPhamService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
-    return result;
+    if (mode === 'full') {
+      const SP_tuongTuRaw = await this.SanPham.findByVector(
+        result.SP_eTomTat,
+        11
+      );
+
+      // Lọc bỏ sản phẩm trùng id
+      const SP_tuongTu = SP_tuongTuRaw.filter((sp) => sp.SP_id !== id);
+
+      delete result.SP_eTomTat;
+
+      return { ...result, SP_tuongTu };
+    } else return result;
   }
 
   async delete(id: number): Promise<SanPham> {

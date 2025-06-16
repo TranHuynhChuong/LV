@@ -161,7 +161,7 @@ export class SanPhamRepository {
       },
       {
         $addFields: {
-          giaGiam: {
+          SP_giaGiam: {
             $cond: {
               if: { $gt: [{ $size: '$khuyenMai' }, 0] },
               then: {
@@ -277,7 +277,7 @@ export class SanPhamRepository {
       SP_diemDG: 1,
       SP_ten: 1,
       SP_giaBan: 1,
-      SP_giaGiam: '$giaGiam',
+      SP_giaGiam: 1,
       SP_tonKho: 1,
       SP_daBan: 1,
       SP_giaNhap: 1,
@@ -426,9 +426,9 @@ export class SanPhamRepository {
           ...discountStages,
           {
             $project: {
-              SP_eTomTat: 0,
               lichSuThaoTac: 0,
-              SP_TL_info: 0, // ẩn mảng trung gian nếu không cần
+              SP_TL_info: 0,
+              khuyenMai: 0,
             },
           },
         ])
@@ -508,6 +508,7 @@ export class SanPhamRepository {
 
   async findByVector(queryVector: number[], limit = 5): Promise<any[]> {
     const project = this.getProject();
+    const discountStages = this.getDiscountLookupStage(false);
     return this.model
       .aggregate([
         {
@@ -519,7 +520,13 @@ export class SanPhamRepository {
             limit, // Số kết quả trả về
           },
         },
+        {
+          $match: {
+            SP_trangThai: 1,
+          },
+        },
         { $limit: limit },
+        ...discountStages,
         {
           $project: {
             ...project,
