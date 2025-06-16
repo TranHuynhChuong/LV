@@ -53,7 +53,7 @@ export function ProfileSidebar() {
                   href={item.href}
                   className={clsx(
                     'flex justify-between items-center px-3 py-2 rounded-md text-sm transition-colors',
-                    isActive ? 'bg-zinc-200 ' : 'hover:bg-muted'
+                    isActive ? 'bg-zinc-200/60 font-medium' : 'hover:bg-muted'
                   )}
                 >
                   <span>{item.label}</span>
@@ -91,7 +91,7 @@ export function ProfileSidebar() {
       </div>
 
       {/* Desktop: Static Sidebar */}
-      <div className="hidden md:block border h-full rounded-sm shadow">
+      <div className="hidden md:block border h-fit rounded-md shadow bg-white">
         <SidebarContent />
       </div>
     </div>
