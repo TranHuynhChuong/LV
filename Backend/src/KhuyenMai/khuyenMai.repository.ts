@@ -35,9 +35,13 @@ export class KhuyenMaiRepository {
     const filter: Record<string, any> = { KM_daXoa: false };
 
     if (filterType === 1) {
-      filter.KM_ketThuc = { $gte: now }; // Đang hiệu lực
+      filter.KM_ketThuc = { $gte: now }; // Chưa kết thúc
     } else if (filterType === 0) {
       filter.KM_ketThuc = { $lt: now }; // Đã hết hạn
+    } else if (filterType === 2) {
+      // Đang hiệu lực
+      filter.KM_batDau = { $lte: now };
+      filter.KM_ketThuc = { $gte: now };
     }
 
     const dataPipeline: PipelineStage[] = [
