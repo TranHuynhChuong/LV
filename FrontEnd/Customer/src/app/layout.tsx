@@ -33,7 +33,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.className} ${robotoSans.className} font-sans text-base antialiased
           bg-zinc-100 text-zinc-900
-          w-full h-screen flex flex-col relative overflow-y-auto`}
+          w-full min-h-screen h-full flex flex-col relative overflow-y-auto isolate`}
         >
           <Header />
           <main className="container mx-auto flex-1 flex flex-col w-full p-4">{children}</main>

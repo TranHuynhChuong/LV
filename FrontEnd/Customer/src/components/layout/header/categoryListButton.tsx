@@ -113,14 +113,14 @@ export function CategoryTreeNodes({ nodes }: { nodes: CategoryNode[] }) {
 export function CategoryTreeMenuOnDesktop({ nodes }: { nodes: CategoryNode[] }) {
   return (
     <>
-      <div className="h-full md:pb-4 hidden md:block">
+      <div className="h-full md:pb-4 hidden md:block ">
         <div className="bg-white h-full px-1 flex items-center">
           <Menu />
         </div>
       </div>
-      <div className="absolute w-full h-fit px-4 lg:px-0 pb-6 top-full left-0 hidden md:group-hover:block transition-all duration-200">
+      <div className="absolute bg-white z-50 rounded-b-md shadow w-full h-fit px-4 lg:px-0 pb-6 top-full left-0 hidden md:group-hover:block transition-all duration-200">
         <ScrollArea className="h-90">
-          <div className="flex flex-wrap space-y-5 bg-white shadow-md rounded-b-md z-50 p-6 h-fit">
+          <div className="flex flex-wrap space-y-5  p-6 h-fit">
             {nodes.map((node) => (
               <div
                 key={node.id}
