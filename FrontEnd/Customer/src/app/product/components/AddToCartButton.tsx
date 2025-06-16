@@ -50,7 +50,7 @@ export default function AddToCartButton({ stock, id }: Props) {
       className={clsx(
         ' flex items-center bg-white justify-center md:justify-start w-full border-t gap-4 ',
         'md:static md:border-none md:p-0',
-        'fixed bottom-0 left-0 right-0 z-20 md:z-auto w-full'
+        'fixed bottom-0 left-0 right-0 z-20 w-full'
       )}
     >
       <div className="gap-4 flex flex-row md:flex-col">
