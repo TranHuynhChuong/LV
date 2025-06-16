@@ -13,12 +13,12 @@ import { KhuyenMaiService } from './khuyenMai.service';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 
-@UseGuards(XacThucGuard)
 @Controller('api/promotions')
 export class KhuyenMaiController {
   constructor(private readonly khuyenMaiService: KhuyenMaiService) {}
 
   // ======= [POST] /khuyen-mai - Tạo mới khuyến mãi =======
+  @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateDto) {
     return this.khuyenMaiService.createKhuyenMai(data);
@@ -55,12 +55,14 @@ export class KhuyenMaiController {
   }
 
   // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======
+  @UseGuards(XacThucGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateDto) {
     return this.khuyenMaiService.updateKhuyenMai(id, data);
   }
 
   // ======= [DELETE] /khuyen-mai/:id - Xóa mềm khuyến mãi =======
+  @UseGuards(XacThucGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.khuyenMaiService.deleteKhuyenMai(id);

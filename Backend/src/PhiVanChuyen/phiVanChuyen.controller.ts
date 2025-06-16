@@ -14,7 +14,6 @@ import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
 import { PhiVanChuyen } from './phiVanChuyen.schema';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 
-@UseGuards(XacThucGuard)
 @Controller('api/shipping')
 export class PhiVanChuyenController {
   constructor(private readonly PhiVanChuyen: PhiVanChuyenService) {}
@@ -23,7 +22,7 @@ export class PhiVanChuyenController {
   getAllShipmentJson() {
     return this.PhiVanChuyen.loadAddressFiles();
   }
-
+  @UseGuards(XacThucGuard)
   @Post()
   async create(@Body() data: CreateDto) {
     return await this.PhiVanChuyen.createShippingFee(data);
@@ -43,12 +42,12 @@ export class PhiVanChuyenController {
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<any> {
     return await this.PhiVanChuyen.getShippingFeeById(id);
   }
-
+  @UseGuards(XacThucGuard)
   @Put(':id')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateDto) {
     await this.PhiVanChuyen.updateShippingFee(id, data);
   }
-
+  @UseGuards(XacThucGuard)
   @Delete(':id')
   async delete(@Param('id', ParseIntPipe) id: number) {
     return await this.PhiVanChuyen.deleteShippingFee(id);
