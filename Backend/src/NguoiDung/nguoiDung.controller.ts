@@ -64,17 +64,14 @@ export class NguoiDungController {
     return this.KhachHangService.findAll(params);
   }
 
-  @Get('customer/:email')
-  async getCustomerByEmail(@Param('email') email: string) {
-    return await this.KhachHangService.findByEmail(email);
+  @Get('customer/:id')
+  async getCustomerByEmail(@Param('id') id: string) {
+    return await this.KhachHangService.findById(id);
   }
 
-  @Put('customer/:email')
-  async updateCustomer(
-    @Param('email') email: string,
-    @Body() data: UpdateDto_KH
-  ) {
-    return await this.KhachHangService.update(email, data);
+  @Put('customer/:id')
+  async updateCustomer(@Param('id') id: string, @Body() data: UpdateDto_KH) {
+    return await this.KhachHangService.update(id, data);
   }
 
   /** STAFF APIs */
