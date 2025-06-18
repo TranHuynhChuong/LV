@@ -59,7 +59,10 @@ export default function Combobox({ data, onSelect, value, placeholders }: Combob
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-full font-normal"
+          className={cn(
+            'justify-between w-full font-normal',
+            !selectedItem && 'text-muted-foreground'
+          )}
           disabled={isDisabled}
         >
           {selectedItem ? selectedItem.name : ph.select}

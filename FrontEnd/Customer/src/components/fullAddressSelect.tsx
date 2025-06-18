@@ -85,9 +85,9 @@ export default function AddressSelect({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <span className="text-sm font-medium">Chọn tỉnh/thành phố</span>
+        <p className="text-sm font-medium mb-1">Tỉnh/thành phố</p>
         <Combobox
           data={provincesData}
           value={valueProvinceId}
@@ -101,7 +101,7 @@ export default function AddressSelect({
       </div>
 
       <div>
-        <span className="text-sm font-medium">Chọn xã/phường</span>
+        <p className="text-sm font-medium mb-1">Xã/phường</p>
         <Combobox
           data={wardsData}
           value={valueWardId}
