@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthData = {
-  userEmail: string | null;
+  userId: number | null;
 };
 
 type AuthContextType = {
@@ -14,7 +14,7 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType>({
-  authData: { userEmail: null },
+  authData: { userId: null },
   setAuthData: () => {},
   isLoading: true,
   loadAuth: async () => {},
@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authData, setAuthData] = useState<AuthData>({
-    userEmail: null,
+    userId: null,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -32,9 +32,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const res = await fetch('/api/getAuth');
       const data = await res.json();
-      setAuthData({ userEmail: data.userEmail });
+      setAuthData({ userId: data.userId });
     } catch {
-      setAuthData({ userEmail: null });
+      setAuthData({ userId: null });
     } finally {
       setIsLoading(false);
     }
