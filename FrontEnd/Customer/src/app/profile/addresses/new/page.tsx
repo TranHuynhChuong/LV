@@ -1,33 +1,58 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import AddressForm, { AddressFormHandle } from '../components/addressForm';
 import { mapAddressToApi } from '@/types/address';
+import api from '@/lib/axiosClient';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function NewAddressPage() {
   const router = useRouter();
   const formRef = useRef<AddressFormHandle>(null);
+  const { authData } = useAuth();
+  const [openAddDialog, setOpenAddDialog] = useState(false);
 
   const handleSubmit = async () => {
     const data = await formRef.current?.submit();
     if (data) {
-      console.log('📦 Dữ liệu nhận được:', data);
-      const mapped = mapAddressToApi({
-        ...data,
-        province: { id: data.provinceId },
-        ward: { id: data.wardId },
-      });
+      const mapped = mapAddressToApi(
+        {
+          ...data,
 
-      console.log(mapped);
+          province: { id: data.provinceId },
+          ward: { id: data.wardId },
+        },
+        authData.userId ?? undefined
+      );
+
+      api
+        .post(`/addresses`, mapped)
+        .then(() => {
+          toast.success('Thêm thành công');
+          router.back();
+        })
+        .catch((error) => {
+          toast.error('Thêm thất bại');
+          console.log(error);
+        });
     }
   };
 
   return (
-    <div className="w-full p-6 bg-white shadow rounded-md space-y-6">
+    <div className="w-full p-6 border bg-white shadow rounded-md space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" className="text-sm cursor-pointer" onClick={() => router.back()}>
@@ -44,8 +69,29 @@ export default function NewAddressPage() {
         <Button variant="outline" onClick={() => router.back()}>
           Hủy
         </Button>
-        <Button onClick={handleSubmit}>Thêm</Button>
+        <Button onClick={() => setOpenAddDialog(true)}>Thêm</Button>
       </div>
+      <Dialog open={openAddDialog} onOpenChange={setOpenAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận thêm</DialogTitle>
+            <DialogDescription>Bạn có chắc muốn thêm thông tin nhận hàng này?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenAddDialog(false)}>
+              Hủy
+            </Button>
+            <Button
+              onClick={() => {
+                setOpenAddDialog(false);
+                handleSubmit();
+              }}
+            >
+              Xác nhận thêm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
