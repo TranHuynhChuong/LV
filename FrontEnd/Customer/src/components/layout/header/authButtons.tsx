@@ -11,7 +11,7 @@ export default function AuthButtons() {
 
   const { authData, loadAuth } = useAuth();
 
-  const isAuthenticated = !!authData.userEmail;
+  const isAuthenticated = !!authData.userId;
 
   const logOut = async () => {
     await fetch('/api/logout', { method: 'POST' });
