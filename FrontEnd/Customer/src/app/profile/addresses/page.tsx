@@ -1,56 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import AddressItem from './components/addressItem';
-import AddressForm from './components/addressForm';
+import { Button } from '@/components/ui/button';
+import AddressList from './components/addressList';
+import Link from 'next/link';
 
-export default function ShippingAddressPage() {
-  const [addresses, setAddresses] = useState<any[]>([]); // mock data hoặc fetch
-  const [editing, setEditing] = useState<any | null>(null);
-  const [showForm, setShowForm] = useState(false);
-
-  const handleSave = (data: any) => {
-    if (editing) {
-      setAddresses((prev) => prev.map((a) => (a.id === editing.id ? { ...a, ...data } : a)));
-    } else {
-      setAddresses((prev) => [...prev, { id: Date.now(), ...data }]);
-    }
-    setEditing(null);
-    setShowForm(false);
-  };
-
-  const setDefault = (id: string) => {
-    setAddresses((prev) => prev.map((a) => ({ ...a, macDinh: a.id === id })));
-  };
-
+export default function AddressPage() {
   return (
     <div className="w-full p-6 bg-white shadow rounded-md space-y-6">
-      <h1 className="text-xl font-bold">Thông tin nhận hàng</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">Thông tin nhận hàng</h1>
+        <Link href={'/profile/addresses/new'} className="h-fit">
+          <Button className="text-sm cursor-pointer hidden sm:flex">+ Thêm địa chỉ mới</Button>
+        </Link>
+      </div>
 
-      {showForm && <AddressForm onSubmit={handleSave} defaultValue={editing} />}
+      <AddressList />
 
-      <button
-        className="text-sm text-blue-600 underline"
-        onClick={() => {
-          setShowForm(true);
-          setEditing(null);
-        }}
-      >
-        + Thêm địa chỉ mới
-      </button>
-
-      <div className="space-y-4">
-        {addresses.map((a) => (
-          <AddressItem
-            key={a.id}
-            address={a}
-            onEdit={() => {
-              setEditing(a);
-              setShowForm(true);
-            }}
-            onSetDefault={() => setDefault(a.id)}
-          />
-        ))}
+      <div className="justify-end flex sm:hidden">
+        <Link href={'/profile/addresses/new'} className="h-fit">
+          <Button className="text-sm cursor-pointer ">+ Thêm địa chỉ mới</Button>
+        </Link>
       </div>
     </div>
   );
