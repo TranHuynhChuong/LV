@@ -104,6 +104,14 @@ export class PhiVanChuyenService {
     return result;
   }
 
+  async getShippingFee(id: number): Promise<any> {
+    const result: any = await this.PhiVanChuyen.findByProvinceId(id);
+    if (!result) {
+      throw new NotFoundException();
+    }
+    return result;
+  }
+
   async updateShippingFee(
     id: number,
     newData: UpdateDto

@@ -37,7 +37,11 @@ export class PhiVanChuyenRepository {
   }
 
   async findByProvinceId(id: number): Promise<PhiVanChuyen | null> {
-    return this.model.findOne({ T_id: id, PVC_daXoa: false }).lean().exec();
+    return this.model
+      .findOne({ T_id: id, PVC_daXoa: false })
+      .select('-lichSuThaoTac')
+      .lean()
+      .exec();
   }
 
   async findById(id: number): Promise<PhiVanChuyen | null> {

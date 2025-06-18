@@ -38,10 +38,16 @@ export class PhiVanChuyenController {
     return await this.PhiVanChuyen.countAll();
   }
 
+  @Get('inf/:id')
+  async getShippingFee(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    return await this.PhiVanChuyen.getShippingFee(id);
+  }
+
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number): Promise<any> {
     return await this.PhiVanChuyen.getShippingFeeById(id);
   }
+
   @UseGuards(XacThucGuard)
   @Put(':id')
   async update(@Param('id', ParseIntPipe) id: number, @Body() data: UpdateDto) {
