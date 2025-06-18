@@ -10,6 +10,7 @@ import { TheLoaiModule } from './TheLoai/theLoai.module';
 import { SanPhamModule } from './SanPham/sanPham.module';
 import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
 import { GioHangModule } from './GioHang/gioHang.module';
+import { TTNhanHangModule } from './TTNhanHang/ttNhanHang.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { GioHangModule } from './GioHang/gioHang.module';
     SanPhamModule,
     KhuyenMaiModule,
     GioHangModule,
+    TTNhanHangModule,
   ],
 })
 export class AppModule {}
