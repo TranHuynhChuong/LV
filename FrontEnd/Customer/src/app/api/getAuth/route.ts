@@ -22,8 +22,13 @@ export async function GET(req: NextRequest) {
       throw new Error();
     }
 
+    const userId = Number(payload.userId);
+    if (!Number.isInteger(userId)) {
+      throw new Error('Invalid userId in token');
+    }
+
     return NextResponse.json({
-      userId: payload.userId,
+      userId,
       token,
     });
   } catch {
