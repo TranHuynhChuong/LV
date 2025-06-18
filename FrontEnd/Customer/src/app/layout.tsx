@@ -38,7 +38,7 @@ export default function RootLayout({
           <Header />
           <main className="container mx-auto flex-1 flex flex-col w-full p-4">{children}</main>
           <Footer />
-          <Toaster richColors position="top-right" duration={2000} />
+          <Toaster richColors position="bottom-right" duration={2000} />
         </body>
       </html>
     </AuthProvider>
