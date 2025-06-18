@@ -21,7 +21,7 @@ export class KhachHangRepository {
     return created.save({ session });
   }
 
-  async findLastId(session?: ClientSession): Promise<string> {
+  async findLastId(session?: ClientSession): Promise<number> {
     const result = await this.model
       .find({})
       .sort({ KH_id: -1 })
@@ -30,7 +30,7 @@ export class KhachHangRepository {
       .session(session ?? null)
       .lean();
 
-    return result.length > 0 ? result[0].KH_id : '0';
+    return result.length > 0 ? result[0].KH_id : 0;
   }
 
   async findAll(page: number, limit = 24): Promise<CustomerListResults> {

@@ -26,8 +26,8 @@ export class KhachHang {
   @Prop({ type: String, required: true, minlength: 6, maxlength: 72 })
   KH_matKhau: string;
 
-  @Prop({ type: String, unique: true })
-  KH_id: string;
+  @Prop({ type: Number, unique: true })
+  KH_id: number;
 }
 
 export const KhachHangSchema = SchemaFactory.createForClass(KhachHang);

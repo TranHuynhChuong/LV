@@ -38,8 +38,7 @@ export class KhachHangService {
         }
 
         const lastId = await this.KhachHang.findLastId(session);
-        const newNumericCode = lastId ? parseInt(lastId, 10) : 0;
-        const newId = (newNumericCode + 1).toString();
+        const newId = lastId + 1;
 
         const created = await this.KhachHang.create({ ...data, KH_id: newId });
         if (!created) {
