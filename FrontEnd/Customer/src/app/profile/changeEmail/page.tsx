@@ -53,7 +53,7 @@ export default function ChangeEmail() {
     }
 
     api
-      .put(`/auth/change-email/${authData.userEmail}`, {
+      .put(`/auth/change-email/${authData.userId}`, {
         newEmail: newEmail,
         otp,
       })

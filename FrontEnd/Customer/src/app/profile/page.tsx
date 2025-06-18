@@ -36,7 +36,7 @@ export default function Profile() {
 
   // 🔄 Lấy dữ liệu người dùng từ API
   useEffect(() => {
-    api.get(`/users/customer/${authData.userEmail}`).then((res) => {
+    api.get(`/users/customer/${authData.userId}`).then((res) => {
       const data = res.data;
       setProfile({
         fullName: data.KH_hoTen ?? '',
@@ -60,7 +60,7 @@ export default function Profile() {
     };
 
     api
-      .put(`/users/customer/${authData.userEmail}`, payload)
+      .put(`/users/customer/${authData.userId}`, payload)
       .then(() => {
         toast.success('Cập nhật thành công');
         router.refresh();
