@@ -33,7 +33,7 @@ export default function CartPage() {
     const fetchCartProducts = async () => {
       setLoading(true);
       try {
-        if (!authData.userEmail) {
+        if (!authData.userId) {
           const res = await api.post<ProductInCart[]>('/carts/get-carts', localCarts);
           const validProducts = res.data.filter(Boolean);
           setProducts(validProducts);
@@ -46,7 +46,7 @@ export default function CartPage() {
             }))
           );
         } else {
-          const res = await api.get(`/carts/${authData.userEmail}`);
+          const res = await api.get(`/carts/${authData.userId}`);
           const validProducts = res.data.filter(Boolean);
           setProducts(validProducts);
         }
@@ -58,7 +58,7 @@ export default function CartPage() {
     };
 
     fetchCartProducts();
-  }, [authData.userEmail, hydrated]);
+  }, [authData.userId, hydrated]);
 
   const toggleSelect = (id: number) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((spid) => spid !== id) : [...prev, id]));
@@ -69,7 +69,7 @@ export default function CartPage() {
     const product = products.find((p) => p.SP_id === id);
     if (!product) return;
 
-    if (!authData?.userEmail) {
+    if (!authData?.userId) {
       try {
         const response = await api.post<ProductInCart[]>('/carts/get-carts', [
           { SP_id: id, GH_soLuong: quantity },
@@ -90,7 +90,7 @@ export default function CartPage() {
     } else {
       try {
         const response = await api.put<ProductInCart[]>('/carts', {
-          KH_email: authData.userEmail,
+          KH_email: authData.userId,
           SP_id: id,
           GH_soLuong: quantity,
         });
@@ -113,14 +113,14 @@ export default function CartPage() {
   };
 
   const handleRemove = async (id: number) => {
-    if (!authData?.userEmail) {
+    if (!authData?.userId) {
       removeFromCart(id);
       setProducts((prev) => prev.filter((p) => p.SP_id !== id));
       setSelected((prev) => prev.filter((spid) => spid !== id));
     } else {
       try {
         await api.delete<ProductInCart[]>('/carts', {
-          params: { KH_email: authData.userEmail, SP_id: id },
+          params: { KH_email: authData.userId, SP_id: id },
         });
 
         emitCartChange();

@@ -31,7 +31,7 @@ export default function AddToCartButton({ stock, id }: Props) {
   };
 
   const handleAddToCart = () => {
-    if (!authData.userEmail) {
+    if (!authData.userId) {
       addToCart({
         SP_id: id,
         GH_soLuong: quantity,
@@ -39,7 +39,7 @@ export default function AddToCartButton({ stock, id }: Props) {
       });
     } else {
       api
-        .post('/carts', { KH_email: authData.userEmail, SP_id: id, GH_soLuong: quantity })
+        .post('/carts', { KH_email: authData.userId, SP_id: id, GH_soLuong: quantity })
         .then(() => emitCartChange())
         .catch((error) => console.log(error));
     }

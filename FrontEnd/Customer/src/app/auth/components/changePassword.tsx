@@ -20,7 +20,7 @@ export default function ChangePassword({ onBackToLogin, mode }: Readonly<Props>)
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
-  const [email, setEmail] = useState(authData.userEmail ?? '');
+  const [email, setEmail] = useState(authData.userId ?? '');
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {

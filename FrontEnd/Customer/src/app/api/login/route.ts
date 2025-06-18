@@ -26,15 +26,15 @@ export async function POST(request: Request) {
     const { token } = await res.json();
 
     // Giải mã token để lấy userId, role
-    let userEmail = null;
+    let userId = null;
     try {
       const payload = jwtDecode<JwtPayload>(token);
-      userEmail = payload.userId;
+      userId = payload.userId;
     } catch {}
 
     const response = NextResponse.json({
       message: 'Login successful',
-      email: userEmail,
+      email: userId,
     });
 
     response.headers.set(

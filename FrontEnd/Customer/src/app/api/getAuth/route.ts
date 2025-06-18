@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      userEmail: payload.userId,
+      userId: payload.userId,
       token,
     });
   } catch {
     return NextResponse.json({
-      userEmail: null,
+      userId: null,
       token: null,
     });
   }
