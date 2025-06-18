@@ -36,15 +36,18 @@ export default function Profile() {
 
   // 🔄 Lấy dữ liệu người dùng từ API
   useEffect(() => {
-    api.get(`/users/customer/${authData.userId}`).then((res) => {
-      const data = res.data;
-      setProfile({
-        fullName: data.KH_hoTen ?? '',
-        email: data.KH_email ?? '',
-        gender: data.KH_gioiTinh ?? '',
-        dob: data.KH_ngaySinh ? new Date(data.KH_ngaySinh) : null,
-      });
-    });
+    api
+      .get(`/users/customer/${authData.userId}`)
+      .then((res) => {
+        const data = res.data;
+        setProfile({
+          fullName: data.KH_hoTen ?? '',
+          email: data.KH_email ?? '',
+          gender: data.KH_gioiTinh ?? '',
+          dob: data.KH_ngaySinh ? new Date(data.KH_ngaySinh) : null,
+        });
+      })
+      .catch((error) => console.log(error));
   }, []);
 
   // ✅ Gửi cập nhật
@@ -77,7 +80,7 @@ export default function Profile() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 w-full  p-6 border shadow rounded-md bg-white"
+      className="space-y-6 w-full border p-6  shadow rounded-md bg-white"
     >
       {/* Họ tên */}
       <div className="space-y-2">

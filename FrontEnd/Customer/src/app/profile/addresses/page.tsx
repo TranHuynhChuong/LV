@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 export default function AddressPage() {
   return (
-    <div className="w-full p-6 bg-white shadow rounded-md space-y-6">
+    <div className="w-full p-6 border bg-white shadow rounded-md space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-bold">Thông tin nhận hàng</h1>
         <Link href={'/profile/addresses/new'} className="h-fit">

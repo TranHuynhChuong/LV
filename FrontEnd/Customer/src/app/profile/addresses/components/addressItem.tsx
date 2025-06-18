@@ -18,7 +18,7 @@ export default function AddressItem({ address }: Readonly<Props>) {
 
           <p className="font-normal  whitespace-nowrap text-muted-foreground">{address.phone} </p>
         </span>
-        <Link href={`/profile/addresses/${address.createAt}`} className="h-fit ">
+        <Link href={`/profile/addresses/${address.id}`} className="h-fit ">
           <Button variant="outline" size="sm" className="cursor-pointer">
             Chỉnh sửa
           </Button>

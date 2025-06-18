@@ -12,7 +12,7 @@ export default function AddressList() {
 
   useEffect(() => {
     if (!authData.userId) return;
-    api.get(`addresses/user/${authData.userId}`).then((res) => {
+    api.get(`addresses/${authData.userId}`).then((res) => {
       mapApiListToAddressList(res.data).then((mapped) => {
         setAddresses(mapped);
       });
@@ -23,7 +23,7 @@ export default function AddressList() {
     <div className="w-full  bg-white ">
       <div className="space-y-2">
         {addresses.map((a) => (
-          <AddressItem key={a.createAt?.toString()} address={a} />
+          <AddressItem key={a.id} address={a} />
         ))}
       </div>
     </div>
