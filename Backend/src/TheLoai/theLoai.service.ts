@@ -73,11 +73,9 @@ export class TheLoaiService {
         result = created;
       });
 
-      await session.endSession();
       return result!;
-    } catch (error) {
-      await session.endSession();
-      throw error;
+    } finally {
+      await session.endSession(); // ✅ Gọi trong finally để đảm bảo luôn end
     }
   }
 

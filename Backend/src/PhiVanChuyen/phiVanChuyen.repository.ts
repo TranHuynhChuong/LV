@@ -31,18 +31,22 @@ export class PhiVanChuyenRepository {
   async findAll(): Promise<Partial<PhiVanChuyen>[]> {
     return this.model
       .find({ PVC_daXoa: false })
-      .select('PVC_phi PVC_ntl PVC_phuPhi PVC_dvpp T_id')
+      .select('PVC_phi PVC_ntl PVC_phuPhi PVC_dvpp T_id PVC_id')
       .lean()
       .exec();
   }
 
+  async findByProvinceId(id: number): Promise<PhiVanChuyen | null> {
+    return this.model.findOne({ T_id: id, PVC_daXoa: false }).lean().exec();
+  }
+
   async findById(id: number): Promise<PhiVanChuyen | null> {
-    return this.model.findOne({ T_id: id }).lean().exec();
+    return this.model.findOne({ PVC_id: id, PVC_daXoa: false }).lean().exec();
   }
 
   async update(id: number, data: any): Promise<PhiVanChuyen | null> {
     return this.model
-      .findOneAndUpdate({ T_id: id }, data, {
+      .findOneAndUpdate({ PVC_id: id }, data, {
         new: true,
       })
 
@@ -51,7 +55,7 @@ export class PhiVanChuyenRepository {
 
   async delete(id: number): Promise<PhiVanChuyen | null> {
     return this.model
-      .findOneAndUpdate({ T_id: id }, { PVC_daXoa: true }, { new: true })
+      .findOneAndUpdate({ PVC_id: id }, { PVC_daXoa: true }, { new: true })
 
       .exec();
   }

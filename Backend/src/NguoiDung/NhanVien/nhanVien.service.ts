@@ -129,11 +129,9 @@ export class NhanVienService {
         result = created;
       });
 
-      await session.endSession();
       return result!;
-    } catch (error) {
+    } finally {
       await session.endSession();
-      throw error;
     }
   }
 
