@@ -159,7 +159,7 @@ export class XacThucService {
       throw new UnauthorizedException();
     }
 
-    const token = await this.generateToken(customer.KH_email, 0);
+    const token = await this.generateToken(customer.KH_id, 0);
     return { token };
   }
 }
