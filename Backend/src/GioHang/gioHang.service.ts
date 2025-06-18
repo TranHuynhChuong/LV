@@ -11,18 +11,18 @@ export class GioHangService {
   ) {}
 
   async create(dto: {
-    KH_email: string;
+    KH_id: string;
     SP_id: number;
     GH_soLuong: number;
   }): Promise<GioHang> {
-    const { KH_email, SP_id, GH_soLuong } = dto;
+    const { KH_id, SP_id, GH_soLuong } = dto;
 
-    const existing = await this.GioHang.findOne(KH_email, SP_id);
+    const existing = await this.GioHang.findOne(KH_id, SP_id);
 
     if (existing) {
       const newQuantity = existing.GH_soLuong + GH_soLuong;
       const updated = await this.GioHang.update({
-        KH_email,
+        KH_id,
         SP_id,
         GH_soLuong: newQuantity,
       });
@@ -36,14 +36,14 @@ export class GioHangService {
   }
 
   async update(dto: {
-    KH_email: string;
+    KH_id: string;
     SP_id: number;
     GH_soLuong: number;
   }): Promise<any[]> {
     const item = await this.getCarts([dto]);
     console.log(item);
     if (item.length === 0) {
-      await this.delete(dto.KH_email, dto.SP_id);
+      await this.delete(dto.KH_id, dto.SP_id);
     } else {
       const updated = await this.GioHang.update(item[0]);
       if (!updated) {
@@ -53,16 +53,16 @@ export class GioHangService {
     return item;
   }
 
-  async delete(KH_email: string, SP_id: number): Promise<GioHang> {
-    const deleted = await this.GioHang.delete(KH_email, SP_id);
+  async delete(KH_id: string, SP_id: number): Promise<GioHang> {
+    const deleted = await this.GioHang.delete(KH_id, SP_id);
     if (!deleted) {
       throw new BadRequestException();
     }
     return deleted;
   }
 
-  async findUserCarts(KH_email: string): Promise<any[]> {
-    const carts = await this.GioHang.findAllByEmail(KH_email);
+  async findUserCarts(KH_id: string): Promise<any[]> {
+    const carts = await this.GioHang.findAllByEmail(KH_id);
     return this.getCarts(carts);
   }
 

@@ -25,11 +25,12 @@ export class KhachHang {
 
   @Prop({ type: String, required: true, minlength: 6, maxlength: 72 })
   KH_matKhau: string;
+
+  @Prop({ type: String, unique: true })
+  KH_id: string;
 }
 
 export const KhachHangSchema = SchemaFactory.createForClass(KhachHang);
-
-KhachHangSchema.index({ KH_trangThai: 1 });
 
 KhachHangSchema.pre('save', async function (next) {
   const user = this as KhachHangDocument;

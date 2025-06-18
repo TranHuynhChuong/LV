@@ -6,7 +6,7 @@ export type GioHangDocument = GioHang & Document;
 @Schema()
 export class GioHang {
   @Prop({ type: String, required: true })
-  KH_email: string;
+  KH_id: string;
 
   @Prop({ type: Number, required: true })
   SP_id: number;

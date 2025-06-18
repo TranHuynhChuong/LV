@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage, UpdateQuery } from 'mongoose';
+import { ClientSession, Model, PipelineStage, UpdateQuery } from 'mongoose';
 import { KhachHang, KhachHangDocument } from './khachHang.schema';
 import {
   PaginateResult,
@@ -16,9 +16,21 @@ export class KhachHangRepository {
     private readonly model: Model<KhachHangDocument>
   ) {}
 
-  async create(data: any): Promise<KhachHang> {
-    const created = new this.model(data);
-    return created.save();
+  async create(createDto: any, session?: ClientSession): Promise<KhachHang> {
+    const created = new this.model(createDto);
+    return created.save({ session });
+  }
+
+  async findLastId(session?: ClientSession): Promise<string> {
+    const result = await this.model
+      .find({})
+      .sort({ KH_id: -1 })
+      .limit(1)
+      .select('KH_id')
+      .session(session ?? null)
+      .lean();
+
+    return result.length > 0 ? result[0].KH_id : '0';
   }
 
   async findAll(page: number, limit = 24): Promise<CustomerListResults> {
@@ -48,24 +60,25 @@ export class KhachHangRepository {
     return this.model.findOne({ KH_email: email }).exec();
   }
 
-  async update(email: string, data: any): Promise<KhachHang | null> {
+  async findById(id: string): Promise<KhachHang | null> {
+    return this.model.findOne({ KH_id: id }).exec();
+  }
+
+  async update(id: string, data: any): Promise<KhachHang | null> {
     const update: UpdateQuery<KhachHang> = { $set: data };
 
     return this.model
-      .findOneAndUpdate({ KH_email: email }, update, {
+      .findOneAndUpdate({ KH_id: id }, update, {
         new: true,
         runValidators: true,
       })
       .exec();
   }
 
-  async updateEmail(
-    email: string,
-    newEmail: string
-  ): Promise<KhachHang | null> {
+  async updateEmail(id: string, newEmail: string): Promise<KhachHang | null> {
     return this.model
       .findOneAndUpdate(
-        { KH_email: email },
+        { KH_id: id },
         { KH_email: newEmail },
         {
           new: true,
@@ -74,8 +87,8 @@ export class KhachHangRepository {
       .exec();
   }
 
-  async delete(email: string): Promise<KhachHang | null> {
-    return this.model.findOneAndUpdate({ KH_email: email }).exec();
+  async delete(id: string): Promise<KhachHang | null> {
+    return this.model.findOneAndUpdate({ KH_id: id }).exec();
   }
 
   async countAll(): Promise<number> {

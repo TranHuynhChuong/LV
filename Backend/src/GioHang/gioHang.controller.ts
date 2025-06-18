@@ -18,7 +18,7 @@ export class GioHangController {
   // Thêm sản phẩm vào giỏ hàng
   @Post()
   async create(
-    @Body() dto: { KH_email: string; SP_id: number; GH_soLuong: number }
+    @Body() dto: { KH_id: string; SP_id: number; GH_soLuong: number }
   ): Promise<GioHang> {
     return this.gioHangService.create(dto);
   }
@@ -26,7 +26,7 @@ export class GioHangController {
   // Cập nhật số lượng sản phẩm trong giỏ
   @Put()
   async update(
-    @Body() dto: { KH_email: string; SP_id: number; GH_soLuong: number }
+    @Body() dto: { KH_id: string; SP_id: number; GH_soLuong: number }
   ): Promise<any[]> {
     return this.gioHangService.update(dto);
   }
@@ -34,16 +34,16 @@ export class GioHangController {
   // Xoá sản phẩm khỏi giỏ hàng
   @Delete()
   async delete(
-    @Query('KH_email') KH_email: string,
+    @Query('KH_id') KH_id: string,
     @Query('SP_id') SP_id: number
   ): Promise<GioHang> {
-    return this.gioHangService.delete(KH_email, Number(SP_id));
+    return this.gioHangService.delete(KH_id, Number(SP_id));
   }
 
   // Lấy danh sách giỏ hàng theo email
-  @Get('/:email')
-  async findUserCarts(@Param('email') email: string): Promise<any[]> {
-    return this.gioHangService.findUserCarts(email);
+  @Get('/:id')
+  async findUserCarts(@Param('id') id: string): Promise<any[]> {
+    return this.gioHangService.findUserCarts(id);
   }
 
   @Post('/get-carts')

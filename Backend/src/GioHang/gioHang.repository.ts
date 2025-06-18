@@ -11,7 +11,7 @@ export class GioHangRepository {
   ) {}
 
   async create(data: {
-    KH_email: string;
+    KH_id: string;
     SP_id: number;
     GH_soLuong: number;
   }): Promise<GioHang> {
@@ -23,14 +23,14 @@ export class GioHangRepository {
   }
 
   async update(data: {
-    KH_email: string;
+    KH_id: string;
     SP_id: number;
     GH_soLuong: number;
   }): Promise<GioHang | null> {
     const now = new Date();
 
     return this.model.findOneAndUpdate(
-      { KH_email: data.KH_email, SP_id: data.SP_id },
+      { KH_id: data.KH_id, SP_id: data.SP_id },
       {
         GH_soLuong: data.GH_soLuong,
         GH_thoiGian: now,
@@ -39,15 +39,15 @@ export class GioHangRepository {
     );
   }
 
-  async delete(KH_email: string, SP_id: number): Promise<GioHang | null> {
-    return this.model.findOneAndDelete({ KH_email, SP_id });
+  async delete(KH_id: string, SP_id: number): Promise<GioHang | null> {
+    return this.model.findOneAndDelete({ KH_id, SP_id });
   }
 
-  async findAllByEmail(KH_email: string): Promise<GioHang[]> {
-    return this.model.find({ KH_email }).sort({ GH_thoiGian: -1 });
+  async findAllByEmail(KH_id: string): Promise<GioHang[]> {
+    return this.model.find({ KH_id }).sort({ GH_thoiGian: -1 });
   }
 
-  async findOne(KH_email: string, SP_id: number): Promise<GioHang | null> {
-    return this.model.findOne({ KH_email, SP_id });
+  async findOne(KH_id: string, SP_id: number): Promise<GioHang | null> {
+    return this.model.findOne({ KH_id, SP_id });
   }
 }
