@@ -94,7 +94,7 @@ export class KhachHangService {
     return result;
   }
 
-  async findByid(id: string): Promise<KhachHang> {
+  async findById(id: string): Promise<KhachHang> {
     const result = await this.KhachHang.findById(id);
     if (!result) {
       throw new NotFoundException();
