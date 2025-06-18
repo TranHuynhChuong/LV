@@ -19,54 +19,70 @@ const typeOfChange: Record<string, string> = {
   T_id: 'Khu vực',
 };
 
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
+
 @Injectable()
 export class PhiVanChuyenService {
   private readonly dataDir = path.join(__dirname, '../../data');
 
   constructor(
     private readonly PhiVanChuyen: PhiVanChuyenRepository,
-    private readonly NhanVien: NhanVienUtilService
+    private readonly NhanVien: NhanVienUtilService,
+    @InjectConnection() private readonly connection: Connection
   ) {}
 
   async createShippingFee(newData: CreateDto): Promise<PhiVanChuyen> {
-    const exists = await this.PhiVanChuyen.findById(newData.T_id);
-    if (exists) {
-      if (!exists.PVC_daXoa) {
-        throw new ConflictException();
+    const session = await this.connection.startSession();
+    try {
+      const exists = await this.PhiVanChuyen.findById(newData.T_id);
+      if (exists) {
+        if (!exists.PVC_daXoa) {
+          throw new ConflictException();
+        }
+
+        const thaoTac = {
+          thaoTac: 'Khôi phục & cập nhật',
+          NV_id: newData.NV_id,
+          thoiGian: new Date(),
+        };
+
+        const updated = await this.PhiVanChuyen.update(newData.T_id, {
+          ...newData,
+          PVC_daXoa: false,
+          lichSuThaoTac: [...(exists.lichSuThaoTac || []), thaoTac],
+        });
+
+        if (!updated) {
+          throw new BadRequestException();
+        }
+
+        return updated;
       }
 
+      const lastId = await this.PhiVanChuyen.findLastId(session);
+      const newId = lastId + 1;
+
       const thaoTac = {
-        thaoTac: 'Khôi phục & cập nhật',
+        thaoTac: 'Tạo mới',
         NV_id: newData.NV_id,
         thoiGian: new Date(),
       };
 
-      const updated = await this.PhiVanChuyen.update(newData.T_id, {
+      const created = await this.PhiVanChuyen.create({
         ...newData,
-        PVC_daXoa: false,
-        lichSuThaoTac: [...(exists.lichSuThaoTac || []), thaoTac],
+        PVC_id: newId,
+        lichSuThaoTac: [thaoTac],
       });
-
-      if (!updated) {
+      if (!created) {
         throw new BadRequestException();
       }
-
-      return updated;
+      await session.endSession();
+      return created;
+    } catch (error) {
+      await session.endSession();
+      throw error;
     }
-    const thaoTac = {
-      thaoTac: 'Tạo mới',
-      NV_id: newData.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const created = await this.PhiVanChuyen.create({
-      ...newData,
-      lichSuThaoTac: [thaoTac],
-    });
-    if (!created) {
-      throw new BadRequestException();
-    }
-    return created;
   }
 
   async getAllShippingFee(): Promise<Partial<PhiVanChuyen>[]> {

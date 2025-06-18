@@ -23,6 +23,9 @@ export const LichSuThaoTacPVCSchema =
 
 @Schema()
 export class PhiVanChuyen {
+  @Prop({ type: Number, unique: true })
+  PVC_id: number;
+
   @Prop({ type: Number, required: true })
   PVC_phi: number;
 

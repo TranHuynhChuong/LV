@@ -50,6 +50,7 @@ import {
 import { ApiShipping } from '@/type/Shipping';
 
 export type Shipping = {
+  id: number;
   fee: number;
   level: string;
   surcharge?: number;
@@ -93,6 +94,7 @@ export default function Shipments() {
             item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
 
           return {
+            id: item.PVC_id,
             fee: item.PVC_phi,
             level: item.PVC_ntl,
             surcharge: item.PVC_phuPhi,
@@ -122,7 +124,7 @@ export default function Shipments() {
     api
       .delete(`/shipping/${id}`)
       .then(() => {
-        setData((prev) => prev.filter((item) => item.locationId !== id));
+        setData((prev) => prev.filter((item) => item.id !== id));
         setDeleteDialogOpen({
           open: false,
           id: null,
@@ -141,6 +143,13 @@ export default function Shipments() {
   };
 
   const columns: ColumnDef<Shipping>[] = [
+    {
+      accessorKey: 'id',
+      header: 'ID',
+      enableColumnFilter: true,
+      cell: ({ row }) => <div className="pl-2">{row.getValue('id')}</div>,
+      enableHiding: false,
+    },
     {
       accessorKey: 'location',
       header: 'Khu vực',
@@ -246,7 +255,7 @@ export default function Shipments() {
         const item = row.original;
         return (
           <div className="flex flex-col space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/shipping/${item.locationId}`}>
+            <Link className="cursor-pointer hover:underline" href={`/shipping/${item.id}`}>
               Cập nhật
             </Link>
 
@@ -256,7 +265,7 @@ export default function Shipments() {
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
-                  id: item.locationId,
+                  id: item.id,
                 });
               }}
             >
@@ -285,7 +294,7 @@ export default function Shipments() {
     },
     initialState: {
       pagination: {
-        pageSize: 24,
+        pageSize: 12,
       },
     },
   });
