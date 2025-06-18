@@ -1,5 +1,5 @@
 export type AddressType = {
-  createAt?: Date;
+  id?: number;
   orderId?: string;
   name: string;
   phone: string;
@@ -17,7 +17,7 @@ export type AddressType = {
 };
 
 export type AddressApiType = {
-  NH_ngayTao?: Date;
+  NH_id?: number;
   DH_id?: string;
   NH_hoTen: string;
   NH_soDienThoai: string;
@@ -53,7 +53,7 @@ export async function mapApiListToAddressList(apiList: AddressApiType[]): Promis
     const ward = wardList.find((w) => w.X_id === item.X_id);
 
     return {
-      createAt: item?.NH_ngayTao,
+      id: item?.NH_id,
       orderId: item?.DH_id,
       name: item.NH_hoTen,
       phone: item.NH_soDienThoai,
@@ -72,14 +72,14 @@ export async function mapApiListToAddressList(apiList: AddressApiType[]): Promis
   });
 }
 
-export function mapAddressToApi(address: AddressType): AddressApiType {
+export function mapAddressToApi(address: AddressType, userId?: number): AddressApiType {
   return {
     NH_hoTen: address.name,
     NH_soDienThoai: address.phone,
     NH_ghiChu: address.note,
     T_id: address.province.id,
     X_id: address.ward.id,
-    NH_macDinh: address.default,
-    KH_id: address.userId,
+    NH_macDinh: address?.default,
+    KH_id: userId,
   };
 }
