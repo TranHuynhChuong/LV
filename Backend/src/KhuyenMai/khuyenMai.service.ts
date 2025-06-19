@@ -33,7 +33,7 @@ export class KhuyenMaiService {
 
   //=========================== Tạo khuyến mãi mới=======================================
   async createKhuyenMai(data: CreateDto) {
-    const existing = await this.KhuyenMai.findKhuyenMaiById(data.KM_id);
+    const existing = await this.KhuyenMai.findExisting(data.KM_id);
     if (existing) {
       throw new ConflictException('Mã khuyến mãi đã tồn tại');
     }
@@ -72,14 +72,17 @@ export class KhuyenMaiService {
   async getAllKhuyenMai(params: {
     page: number;
     limit: number;
-    filterType?: 0 | 1;
+    filterType?: number;
   }) {
     return this.KhuyenMai.findAllKhuyenMai(params);
   }
 
   // =======================Lấy chi tiết khuyến mãi theo id==========================
-  async getKhuyenMaiById(KM_id: string): Promise<any> {
-    const result: any = await this.KhuyenMai.findKhuyenMaiById(KM_id);
+  async getKhuyenMaiById(KM_id: string, filterType?: number): Promise<any> {
+    const result: any = await this.KhuyenMai.findKhuyenMaiById(
+      KM_id,
+      filterType
+    );
     if (!result) {
       throw new NotFoundException();
     }
@@ -133,20 +136,26 @@ export class KhuyenMaiService {
     const fieldsChange: string[] = [];
 
     for (const key of Object.keys(newData)) {
-      if (
-        newData[key] !== undefined &&
-        newData[key] !== oldData[key] &&
-        key !== 'NV_id' &&
-        key !== 'KM_id'
-      ) {
+      if (key === 'NV_id' || key === 'KM_id') continue;
+
+      const newValue = newData[key];
+      const oldValue = oldData[key];
+
+      const isChanged =
+        oldValue instanceof Date && newValue instanceof Date
+          ? oldValue.getTime() !== newValue.getTime()
+          : newValue !== undefined && newValue !== oldValue;
+
+      if (isChanged) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
-        updatePayload[key] = newData[key];
+        updatePayload[key] = newValue;
       }
     }
 
     return { updatePayload, fieldsChange };
   }
+
   // Kiểm tra cập nhật các chi tiết khuyến mãi
   private async processChiTietKhuyenMai(
     KM_id: string,
@@ -209,11 +218,6 @@ export class KhuyenMaiService {
 
   async countValid(): Promise<number> {
     return this.KhuyenMai.countValid();
-  }
-
-  // ============= Xóa mềm khuyến mãi và các chi tiết khuyến mãi liên quan ============
-  async deleteKhuyenMai(KM_id: string) {
-    return this.KhuyenMai.deleteKhuyenMai(KM_id);
   }
 
   // ========== Chi tiết Khuyến Mãi ==========
