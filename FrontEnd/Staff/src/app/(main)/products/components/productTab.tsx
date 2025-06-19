@@ -9,6 +9,8 @@ import { ApiProductSimple, ProductSimple } from '@/type/Product';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ProductSearchBar from './productSearchBar';
+import Loader from '@/components/Loader';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProductTabProp {
   status: string;
@@ -22,12 +24,12 @@ interface ProductTabProp {
   onPageChange?: (page: number) => void;
   onClose?: () => void;
   selectedData?: ProductSimple[];
+  products?: ProductSimple[];
   onConfirmSelect?: (selecData: ProductSimple[]) => void;
 }
 
 function buildFilterType(status: string, type: string): number {
   const typeMap: Record<string, number> = {
-    noPromotion: 0,
     all: 3,
     live: 1,
     hidden: 2,
@@ -42,7 +44,7 @@ function buildFilterType(status: string, type: string): number {
   const statusValue = statusMap[status];
   const typeValue = typeMap[type];
 
-  if (statusValue === 0) return 0;
+  if (status === 'noPromotion') return 0;
 
   return parseInt(`${typeValue}${statusValue}`);
 }
@@ -59,6 +61,7 @@ export default function ProductTab({
   onPageChange,
   onClose,
   selectedData,
+  products,
   onConfirmSelect,
 }: Readonly<ProductTabProp>) {
   const [data, setData] = useState<ProductSimple[]>([]);
@@ -66,12 +69,12 @@ export default function ProductTab({
   const [totalPage, setTotalPage] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [keyword, setKeyword] = useState<string | undefined>(initialKeyword);
   const [categoryId, setCategoryId] = useState<string | undefined>(initialcategoryId);
   const [productId, setProductId] = useState<string | undefined>(initialProductId);
   const searchType = productId ? 'id' : keyword || categoryId ? 'keyword' : undefined;
-
+  const { authData } = useAuth();
   const [isComponent, setIscomponent] = useState<boolean>(false);
   const sortType = undefined;
   const filterType = buildFilterType(status, type);
@@ -233,8 +236,9 @@ export default function ProductTab({
 
   const handleDelete = (id: number) => {
     if (!id) return;
+    setIsSubmitting(true);
     api
-      .delete(`/products/${id}`)
+      .delete(`/products/${id}?staffId=${authData.userId}`)
       .then(() => {
         toast.success('Xóa thành công!');
         fetchData(page, sortType, filterType, keyword, categoryId, productId);
@@ -242,11 +246,15 @@ export default function ProductTab({
       .catch((error) => {
         toast.error(error.response?.status === 400 ? 'Xóa thất bại!' : 'Đã xảy ra lỗi!');
         console.error('Xóa thất bại:', error);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
       });
   };
 
   return (
     <div className="space-y-4 bg-white min-w-fit">
+      {isSubmitting && <Loader />}
       <div className="flex items-center  justify-between">
         <h1 className="text-lg font-semibold pl-4">{totalItems} Sản phẩm</h1>
         {!isComponent && (
@@ -279,6 +287,7 @@ export default function ProductTab({
         onClose={onClose}
         onConfirmSelect={onConfirmSelect}
         selectedData={selectedData}
+        products={products}
       />
     </div>
   );
