@@ -101,7 +101,7 @@ export default function CategoryDetailPage() {
   const handleDelete = () => {
     setIsSubmitting(true);
     api
-      .delete(`/categories/${id}`)
+      .delete(`/categories/${id}?staffId=${authData.userId}`)
       .then((res) => {
         toast.success(res.data.message ?? 'Xóa thành công');
         router.back();
@@ -109,6 +109,8 @@ export default function CategoryDetailPage() {
       .catch((error) => {
         if (error.status === 400) {
           toast.error('Xóa thất bại!');
+        } else if (error.status === 409) {
+          toast.error('Không thể xóa do ràng buộc dữ liệu!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }

@@ -43,12 +43,14 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { CategoryFormData } from './components/categoryForm';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/Loader';
 
 export default function Categories() {
   const { setBreadcrumbs } = useBreadcrumb();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<CategoryFormData[]>([]);
-
+  const { authData } = useAuth();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -108,10 +110,12 @@ export default function Categories() {
   }, []);
 
   const handleConfirmDelete = (id: number) => {
+    setDeleteDialogOpen({ open: false, id: null });
     if (!id) return;
     setLoading(true);
+    setIsSubmitting(true);
     api
-      .delete(`/categories/${id}`)
+      .delete(`/categories/${id}?staffId=${authData.userId}`)
       .then(() => {
         setData((prev) => prev.filter((item) => item.id !== id));
         setDeleteDialogOpen({
@@ -123,12 +127,17 @@ export default function Categories() {
       .catch((error) => {
         if (error.status === 400) {
           toast.error('Xóa thất bại!');
+        } else if (error.status === 409) {
+          toast.error('Không thể xóa do ràng buộc dữ liệu!');
         } else {
           toast.error('Đã xảy ra lỗi!');
         }
         console.error('Xóa thất bại:', error);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setIsSubmitting(false);
+      });
   };
 
   const columns: ColumnDef<CategoryFormData>[] = [
@@ -206,6 +215,7 @@ export default function Categories() {
 
   return (
     <div className="p-4">
+      {isSubmitting && <Loader />}
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit min-w-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center pl-4 space-x-2">
