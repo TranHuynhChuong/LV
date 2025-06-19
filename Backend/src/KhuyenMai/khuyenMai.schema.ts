@@ -35,9 +35,6 @@ export class KhuyenMai {
   @Prop({ type: Date, required: true })
   KM_ketThuc: Date;
 
-  @Prop({ type: Boolean, required: true, default: false })
-  KM_daXoa: boolean;
-
   @Prop({ type: [LichSuThaoTacKMSchema] })
   lichSuThaoTac: LichSuThaoTacKM[];
 }
