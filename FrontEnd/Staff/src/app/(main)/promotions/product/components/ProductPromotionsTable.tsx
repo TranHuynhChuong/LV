@@ -79,6 +79,13 @@ export default function ProductPromotionsTable({
         );
       },
     },
+    {
+      accessorKey: 'totalProducts',
+      header: 'Tổng sản phẩm',
+      cell: ({ row }) => {
+        return <div>{row.original.totalProducts}</div>;
+      },
+    },
 
     {
       accessorKey: 'startAt',
@@ -102,25 +109,15 @@ export default function ProductPromotionsTable({
       header: 'Thao tác',
       cell: ({ row }) => {
         const item = row.original;
-        const date = new Date();
+
         return (
           <div className="flex flex-col space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/promotions/${item.id}`}>
-              {new Date(item.endAt) > date && new Date(item.startAt) < date
-                ? 'Chi tiết'
-                : 'Cập nhật'}
+            <Link
+              className="cursor-pointer hover:underline"
+              href={`/promotions/product/${item.id}`}
+            >
+              Cập nhật
             </Link>
-
-            {!(new Date(item.endAt) > date && new Date(item.startAt) < date) && (
-              <button
-                className="cursor-pointer hover:underline w-fit"
-                onClick={() => {
-                  setDeleteDialogOpen(item.id ?? null);
-                }}
-              >
-                Xóa
-              </button>
-            )}
           </div>
         );
       },

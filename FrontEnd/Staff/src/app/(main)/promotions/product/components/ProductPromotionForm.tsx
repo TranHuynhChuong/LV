@@ -19,7 +19,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import FormFooterActions from '@/components/FormFooterActions';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ProductTab from '../../products/components/productTab';
+import ProductTab from '../../../products/components/productTab';
 import { ProductSimple } from '@/type/Product';
 
 import ProductDiscountTable from './ProductDiscountTable';
@@ -59,8 +59,6 @@ type ProductPromotionFormProps = {
   defaultValues?: ProductPromotionFormType;
   products?: ProductSimple[];
   onSubmit?: (data: ProductPromotionFormType) => void;
-  onDelete?: () => void;
-  isViewing?: boolean;
 };
 
 type Detail = {
@@ -74,8 +72,6 @@ export default function ProductPromotionForm({
   defaultValues,
   products,
   onSubmit,
-  onDelete,
-  isViewing,
 }: Readonly<ProductPromotionFormProps>) {
   const form = useForm<ProductPromotionFormType>({
     resolver: zodResolver(productPromotionSchema),
@@ -86,7 +82,6 @@ export default function ProductPromotionForm({
 
   const { control, register, watch, setValue } = form;
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<ProductPromotionFormType | null>(null);
 
@@ -104,11 +99,6 @@ export default function ProductPromotionForm({
       onSubmit?.(formDataToSubmit);
       setConfirmDialogOpen(false);
     }
-  };
-
-  const handleConfirmDelete = () => {
-    setDeleteDialogOpen(false);
-    onDelete?.();
   };
 
   const handleSelect = (selecData: ProductSimple[]) => {
@@ -161,7 +151,6 @@ export default function ProductPromotionForm({
                           maxLength={128}
                           onChange={field.onChange}
                           className="pr-18"
-                          disabled={isViewing}
                         />
                         <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                           {field.value?.length || 0} / 48
@@ -191,7 +180,7 @@ export default function ProductPromotionForm({
                           onChange={field.onChange}
                           maxLength={7}
                           className="pr-12"
-                          disabled={isViewing || isEditing}
+                          disabled={isEditing}
                         />
                         <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                           {field.value?.length || 0} / 7
@@ -220,7 +209,6 @@ export default function ProductPromotionForm({
                               : ''
                           }
                           onChange={(e) => field.onChange(new Date(e.target.value))}
-                          disabled={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -244,7 +232,6 @@ export default function ProductPromotionForm({
                               : ''
                           }
                           onChange={(e) => field.onChange(new Date(e.target.value))}
-                          disabled={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -269,14 +256,12 @@ export default function ProductPromotionForm({
                 variant="outline"
                 type="button"
                 onClick={() => setOpenProductTable(true)}
-                disabled={isViewing}
               >
                 <Plus className="w-4 h-4 mr-2" /> Thêm sản phẩm
               </Button>
             </div>
 
             <ProductDiscountTable
-              isViewing={isViewing}
               products={selectedData}
               detail={detail}
               register={register}
@@ -286,11 +271,7 @@ export default function ProductPromotionForm({
             />
           </section>
 
-          <FormFooterActions
-            isViewing={isViewing}
-            isEditing={isEditing}
-            onDelete={() => setDeleteDialogOpen(true)}
-          />
+          <FormFooterActions isEditing={isEditing} />
         </form>
       </Form>
       {openProductTable && (
@@ -301,6 +282,7 @@ export default function ProductPromotionForm({
                 status="noPromotion"
                 page={1}
                 selectedData={selectedData}
+                products={products}
                 onClose={() => setOpenProductTable(false)}
                 onConfirmSelect={handleSelect}
               />
@@ -308,13 +290,6 @@ export default function ProductPromotionForm({
           </div>
         </div>
       )}
-      {/* Dialog xác nhận xóa */}
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleConfirmDelete}
-        mode="delete"
-      />
 
       {/* Dialog xác nhận thêm/cập nhật */}
       <ConfirmDialog

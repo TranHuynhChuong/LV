@@ -37,7 +37,6 @@ interface Props {
   register: UseFormRegister<ProductPromotionFormType>;
   setValue: UseFormSetValue<ProductPromotionFormType>;
   onRemove?: (id: number) => void;
-  isViewing?: boolean;
 }
 
 export default function ProductDiscountTable({
@@ -47,8 +46,7 @@ export default function ProductDiscountTable({
   register,
   setValue,
   onRemove,
-  isViewing,
-}: Props) {
+}: Readonly<Props>) {
   function calcFinalPrice(price: number, value: number, isPercent: boolean): number {
     if (isPercent) {
       return Math.max(0, price - (value / 100) * price);
@@ -130,7 +128,7 @@ export default function ProductDiscountTable({
                   <TableCell>
                     <Input
                       type="number"
-                      disabled={isBlocked || isViewing}
+                      disabled={isBlocked}
                       min={0}
                       value={rawValue ?? 0}
                       onChange={(e) => setValue(valuePath, Number(e.target.value))}
@@ -140,16 +138,20 @@ export default function ProductDiscountTable({
 
                   <TableCell>
                     <Select
-                      disabled={isBlocked || isViewing}
+                      disabled={isBlocked}
                       onValueChange={(val) => setValue(percentPath, val === 'percent')}
                       value={isPercent ? 'percent' : 'amount'}
                     >
-                      <SelectTrigger className="w-16">
+                      <SelectTrigger className="w-16 cursor-pointer">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="w-16">
-                        <SelectItem value="percent">%</SelectItem>
-                        <SelectItem value="amount">₫</SelectItem>
+                      <SelectContent className="w-16 ">
+                        <SelectItem value="percent" className="cursor-pointer">
+                          %
+                        </SelectItem>
+                        <SelectItem value="amount" className="cursor-pointer">
+                          ₫
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -174,6 +176,7 @@ export default function ProductDiscountTable({
                   <TableCell>
                     <div className="flex items-center ">
                       <Switch
+                        className="cursor-pointer"
                         checked={isBlocked}
                         onCheckedChange={(val) => setValue(blockedPath, val)}
                       />
@@ -185,7 +188,7 @@ export default function ProductDiscountTable({
                       variant="outline"
                       onClick={() => onRemove?.(product.id)}
                       size="icon"
-                      disabled={isViewing}
+                      className="cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

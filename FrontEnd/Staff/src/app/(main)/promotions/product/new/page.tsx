@@ -12,7 +12,7 @@ import ProductPromotionForm, { ProductPromotionFormType } from '../components/Pr
 
 export function mapDataPushPut(formData: ProductPromotionFormType, NV_id: string | null) {
   return {
-    KM_ten: formData.name || '', // nếu optional thì check default ''
+    KM_ten: formData.name ?? '', // nếu optional thì check default ''
     KM_id: formData.code,
     KM_batDau: formData.from,
     KM_ketThuc: formData.to,
@@ -38,13 +38,14 @@ export default function ProductPromotionNew() {
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
-      { label: 'Giảm giá sản phẩm', href: '/promotions' },
+      { label: 'Giảm giá sản phẩm', href: '/promotions/product' },
       { label: 'Thêm mới' },
     ]);
   }, [setBreadcrumbs]);
 
   const onSubmit = (data: ProductPromotionFormType) => {
     const apiData = mapDataPushPut(data, authData.userId);
+    setIsSubmitting(true);
     api
       .post('/promotions', apiData)
       .then(() => {

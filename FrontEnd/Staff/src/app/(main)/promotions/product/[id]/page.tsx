@@ -96,16 +96,16 @@ export default function ProductPromotionDetail() {
   const params = useParams();
   const id = params?.id as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isViewing, setIsViewing] = useState<boolean>(true);
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
-      { label: 'Giảm giá sản phẩm', href: '/promotions' },
+      { label: 'Giảm giá sản phẩm', href: '/promotions/product' },
       { label: 'Chi tiết' },
     ]);
   }, [setBreadcrumbs]);
 
   const onSubmit = (data: ProductPromotionFormType) => {
+    setIsSubmitting(true);
     const updateData = mapDataPushPut(data, authData.userId);
     api
       .put(`/promotions/${id}`, updateData)
@@ -138,8 +138,6 @@ export default function ProductPromotionDetail() {
       .then((res) => {
         const { data, products, metadata } = mapDataGet(res.data);
         setData(data);
-        const date = new Date();
-        setIsViewing(new Date(data.to) > date && new Date(data.from) < date);
         setProducts(products);
         setMetadata(metadata);
       })
@@ -156,25 +154,6 @@ export default function ProductPromotionDetail() {
     fetchData();
   }, [id]);
 
-  const handleOnDelete = () => {
-    setIsSubmitting(true);
-    api
-      .delete(`/promotions/${id}`)
-      .then(() => {
-        toast.success('Xóa thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        setIsSubmitting(false);
-        if (error.status === 400) {
-          toast.error('Xóa thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error('Lỗi khi xóa:', error);
-      });
-  };
-
   if (loading)
     return (
       <div className="p-4">
@@ -188,13 +167,7 @@ export default function ProductPromotionDetail() {
     <div className="p-4">
       <div className="w-full max-w-6xl  mx-auto ">
         <div className="relative ">
-          <ProductPromotionForm
-            isViewing={isViewing}
-            onSubmit={onSubmit}
-            defaultValues={data}
-            products={products}
-            onDelete={handleOnDelete}
-          />
+          <ProductPromotionForm onSubmit={onSubmit} defaultValues={data} products={products} />
           <ActionHistorySheet metadata={metadata} />
         </div>
 
