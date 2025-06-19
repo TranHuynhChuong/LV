@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TheLoaiController } from './theLoai.controller';
 import { TheLoaiService, TheLoaiUtilService } from './theLoai.service';
@@ -6,10 +6,14 @@ import { TheLoaiRepository } from './theLoai.repository';
 import { TheLoai, TheLoaiSchema } from './theLoai.schema';
 import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
 
+import { SanPhamModule } from 'src/SanPham/sanPham.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: TheLoai.name, schema: TheLoaiSchema }]),
     NguoiDungModule,
+
+    forwardRef(() => SanPhamModule),
   ],
   controllers: [TheLoaiController],
   providers: [TheLoaiService, TheLoaiUtilService, TheLoaiRepository],
