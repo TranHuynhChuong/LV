@@ -41,8 +41,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: '/promotions',
       icon: Percent,
       items: [
-        { title: 'Giảm giá sản phẩm', url: '/promotions' },
-        { title: 'Mã giảm giá', url: '/voucher' },
+        { title: 'Giảm giá sản phẩm', url: '/promotions/product' },
+        { title: 'Mã giảm giá', url: '/promotions/voucher' },
       ],
     },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
