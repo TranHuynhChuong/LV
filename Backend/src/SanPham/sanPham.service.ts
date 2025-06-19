@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -45,6 +47,10 @@ export class SanPhamUtilService {
 
     return result;
   }
+
+  async findInCategories(ids: number[]) {
+    return this.SanPham.findInCategories(ids);
+  }
 }
 
 import { InjectConnection } from '@nestjs/mongoose';
@@ -57,6 +63,8 @@ export class SanPhamService {
     private readonly Transform: TransformService,
     private readonly Cloudinary: CloudinaryService,
     private readonly NhanVien: NhanVienUtilService,
+
+    @Inject(forwardRef(() => TheLoaiUtilService))
     private readonly TheLoai: TheLoaiUtilService,
     @InjectConnection() private readonly connection: Connection
   ) {}
@@ -375,8 +383,22 @@ export class SanPhamService {
     } else return result;
   }
 
-  async delete(id: number): Promise<SanPham> {
-    const deleted = await this.SanPham.delete(id);
+  async delete(id: number, NV_id: string): Promise<SanPham> {
+    const existing = await this.SanPham.findById(id);
+    if (!existing) throw new BadRequestException();
+
+    const thaoTac = {
+      thaoTac: 'Xóa dữ liệu',
+      NV_id: NV_id,
+      thoiGian: new Date(),
+    };
+
+    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+
+    const deleted = await this.SanPham.update(id, {
+      SP_trangThai: 0,
+      lichSuThaoTac: lichSuThaoTac,
+    });
     if (!deleted) {
       throw new NotFoundException();
     }
