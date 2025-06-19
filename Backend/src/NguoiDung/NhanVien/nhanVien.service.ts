@@ -196,10 +196,32 @@ export class NhanVienService {
     return updated;
   }
 
-  async delete(id: string) {
-    const deleted = await this.NhanVien.delete(id);
+  // async delete(id: string) {
+  //   const deleted = await this.NhanVien.delete(id);
+  //   if (!deleted) {
+  //     throw new BadRequestException();
+  //   }
+  //   return deleted;
+  // }
+
+  async delete(id: string, NV_id: string): Promise<NhanVien> {
+    const existing = await this.NhanVien.findById(id);
+    if (!existing) throw new BadRequestException();
+
+    const thaoTac = {
+      thaoTac: 'Xóa dữ liệu',
+      NV_id: NV_id,
+      thoiGian: new Date(),
+    };
+
+    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+
+    const deleted = await this.NhanVien.update(id, {
+      NV_daXoa: true,
+      lichSuThaoTac: lichSuThaoTac,
+    });
     if (!deleted) {
-      throw new BadRequestException();
+      throw new NotFoundException();
     }
     return deleted;
   }

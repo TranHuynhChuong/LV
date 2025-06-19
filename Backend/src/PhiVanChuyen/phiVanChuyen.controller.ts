@@ -8,6 +8,7 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PhiVanChuyenService } from './phiVanChuyen.service';
 import { CreateDto, UpdateDto } from './phiVanChuyen.dto';
@@ -55,7 +56,10 @@ export class PhiVanChuyenController {
   }
   @UseGuards(XacThucGuard)
   @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    return await this.PhiVanChuyen.deleteShippingFee(id);
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('staffId') staffId: string
+  ) {
+    return await this.PhiVanChuyen.deleteShippingFee(id, staffId);
   }
 }

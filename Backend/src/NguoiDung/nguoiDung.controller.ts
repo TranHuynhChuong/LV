@@ -102,7 +102,10 @@ export class NguoiDungController {
 
   @Roles(1)
   @Delete('staff/:id')
-  async deleteStaff(@Param('id') id: string) {
-    return await this.NhanVienService.delete(id);
+  async deleteStaff(
+    @Param('id') id: string,
+    @Query('staffId') staffId: string
+  ) {
+    return await this.NhanVienService.delete(id, staffId);
   }
 }

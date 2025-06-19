@@ -159,10 +159,32 @@ export class PhiVanChuyenService {
     return updated;
   }
 
-  async deleteShippingFee(id: number): Promise<PhiVanChuyen> {
-    const deleted = await this.PhiVanChuyen.delete(id);
+  // async deleteShippingFee(id: number): Promise<PhiVanChuyen> {
+  //   const deleted = await this.PhiVanChuyen.delete(id);
+  //   if (!deleted) {
+  //     throw new BadRequestException();
+  //   }
+  //   return deleted;
+  // }
+
+  async deleteShippingFee(id: number, NV_id: string): Promise<PhiVanChuyen> {
+    const existing = await this.PhiVanChuyen.findById(id);
+    if (!existing) throw new BadRequestException();
+
+    const thaoTac = {
+      thaoTac: 'Xóa dữ liệu',
+      NV_id: NV_id,
+      thoiGian: new Date(),
+    };
+
+    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+
+    const deleted = await this.PhiVanChuyen.update(id, {
+      PVC_daXoa: true,
+      lichSuThaoTac: lichSuThaoTac,
+    });
     if (!deleted) {
-      throw new BadRequestException();
+      throw new NotFoundException();
     }
     return deleted;
   }
