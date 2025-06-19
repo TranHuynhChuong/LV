@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
@@ -39,12 +39,14 @@ interface ProductTableProps {
   onPageChange: (page: number) => void;
   onClose?: () => void;
   selectedData?: ProductSimple[];
+  products?: ProductSimple[];
   onConfirmSelect?: (selecData: ProductSimple[]) => void;
 }
 
 export default function ProductTable({
   data,
   selectedData,
+  products,
   loading = false,
   onDelete,
   isComponent = false,
@@ -58,8 +60,11 @@ export default function ProductTable({
 }: Readonly<ProductTableProps>) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   const [rowSelection, setRowSelection] = useState({});
-
   const [selectData, setSelectData] = useState<ProductSimple[]>([]);
+
+  const mergedData: ProductSimple[] = useMemo(() => {
+    return [...(products?.filter((p) => !data.some((d) => d.id === p.id)) ?? []), ...data];
+  }, [products, data]);
 
   let columns: ColumnDef<ProductSimple>[] = [
     {
@@ -97,6 +102,11 @@ export default function ProductTable({
       accessorKey: 'stock',
       header: 'Số lượng',
       cell: ({ row }) => <div>{row.getValue('stock')}</div>,
+    },
+    {
+      accessorKey: 'sold',
+      header: 'Đã bán',
+      cell: ({ row }) => <div>{row.getValue('sold')}</div>,
     },
     {
       accessorKey: 'price',
@@ -169,12 +179,10 @@ export default function ProductTable({
 
           return (
             <Checkbox
-              checked={row.getIsSelected() || isPreSelected}
+              checked={row.getIsSelected()}
               disabled={isPreSelected}
               onCheckedChange={(value) => {
-                if (!isPreSelected) {
-                  row.toggleSelected(!!value);
-                }
+                row.toggleSelected(!!value);
               }}
               aria-label="Ô chọn"
             />
@@ -188,17 +196,18 @@ export default function ProductTable({
   }
 
   const table = useReactTable({
-    data,
+    data: mergedData,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getRowId: (row) => row.id.toString(), // <<< THÊM DÒNG NÀY
+    enableRowSelection: true,
+    getRowId: (row) => row.id.toString(),
     onRowSelectionChange: (updater) => {
       const newRowSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
 
       setRowSelection(newRowSelection);
 
-      const selected = Object.keys(newRowSelection).map(
-        (rowId) => table.getRowModel().rowsById[rowId]?.original
+      const selected = Object.keys(newRowSelection).map((rowId) =>
+        mergedData.find((item) => item.id.toString() === rowId)
       );
 
       setSelectData(selected.filter(Boolean) as ProductSimple[]);
@@ -211,12 +220,12 @@ export default function ProductTable({
   useEffect(() => {
     const defaultRowSelection: Record<string, boolean> = {};
 
-    [...(selectedData || []), ...selectData].forEach((item) => {
+    [...(selectedData || [])].forEach((item) => {
       defaultRowSelection[item.id.toString()] = true;
     });
 
     setRowSelection(defaultRowSelection);
-  }, [data, selectedData]);
+  }, [selectedData]);
 
   return (
     <div>
