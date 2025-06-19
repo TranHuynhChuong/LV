@@ -11,6 +11,7 @@ import { SanPhamModule } from './SanPham/sanPham.module';
 import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
 import { GioHangModule } from './GioHang/gioHang.module';
 import { TTNhanHangModule } from './TTNhanHang/ttNhanHang.module';
+import { MaGiamModule } from './MaGiam/maGiam.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { TTNhanHangModule } from './TTNhanHang/ttNhanHang.module';
     KhuyenMaiModule,
     GioHangModule,
     TTNhanHangModule,
+    MaGiamModule,
   ],
 })
 export class AppModule {}
