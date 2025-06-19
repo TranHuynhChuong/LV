@@ -18,9 +18,9 @@ export class KhuyenMaiRepository {
     @InjectModel(ChiTietKhuyenMai.name)
     private readonly chiTietModel: Model<ChiTietKhuyenMaiDocument>
   ) {}
-  // ===============================
-  // ========== KhuyenMai ==========
-  // ===============================
+  // =============================== //
+  // ========== KhuyenMai ========== //
+  // =============================== //
 
   async findAllKhuyenMai({
     page,
@@ -29,10 +29,10 @@ export class KhuyenMaiRepository {
   }: {
     page: number;
     limit: number;
-    filterType?: 0 | 1;
+    filterType?: number;
   }) {
     const now = new Date();
-    const filter: Record<string, any> = { KM_daXoa: false };
+    const filter: Record<string, any> = {};
 
     if (filterType === 1) {
       filter.KM_ketThuc = { $gte: now }; // Chưa kết thúc
@@ -46,6 +46,33 @@ export class KhuyenMaiRepository {
 
     const dataPipeline: PipelineStage[] = [
       { $match: filter },
+      {
+        $lookup: {
+          from: 'chitietkhuyenmais',
+          localField: 'KM_id',
+          foreignField: 'KM_id',
+          as: 'chiTietList',
+        },
+      },
+      {
+        $addFields: {
+          KM_slspTong: {
+            $size: {
+              $filter: {
+                input: '$chiTietList',
+                as: 'ct',
+                cond: { $eq: ['$$ct.CTKM_daXoa', false] },
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          lichSuThaoTac: 0,
+          chiTietList: 0, // nếu không cần giữ lại danh sách chi tiết
+        },
+      },
       { $sort: { KM_batDau: -1 } },
       { $skip: (page - 1) * limit },
       { $limit: limit },
@@ -65,12 +92,31 @@ export class KhuyenMaiRepository {
     });
   }
 
-  async findKhuyenMaiById(KM_id: string): Promise<KhuyenMaiDocument | null> {
+  async findExisting(KM_id: string) {
+    return this.khuyenMaiModel.findOne({ KM_id: KM_id }).exec();
+  }
+
+  async findKhuyenMaiById(
+    KM_id: string,
+    filterType?: number
+  ): Promise<KhuyenMaiDocument | null> {
+    const now = new Date();
+    const filter: Record<string, any> = {};
+
+    if (filterType === 1) {
+      filter.KM_ketThuc = { $gte: now }; // Chưa kết thúc
+    } else if (filterType === 0) {
+      filter.KM_ketThuc = { $lt: now }; // Đã hết hạn
+    } else if (filterType === 2) {
+      // Đang hiệu lực
+      filter.KM_batDau = { $lte: now };
+      filter.KM_ketThuc = { $gte: now };
+    }
     const pipeline: PipelineStage[] = [
       {
         $match: {
           KM_id,
-          KM_daXoa: false,
+          ...filter,
         },
       },
       {
@@ -178,18 +224,9 @@ export class KhuyenMaiRepository {
   }
 
   async updateKhuyenMai(KM_id: string, update: Partial<KhuyenMai>) {
-    return this.khuyenMaiModel.findOneAndUpdate(
-      { KM_id, KM_daXoa: false },
-      update,
-      { new: true }
-    );
-  }
-
-  async deleteKhuyenMai(KM_id: string) {
-    await Promise.all([
-      this.deleteManyChiTietKMByKM(KM_id),
-      this.khuyenMaiModel.updateOne({ KM_id }, { KM_daXoa: true }),
-    ]);
+    return this.khuyenMaiModel.findOneAndUpdate({ KM_id }, update, {
+      new: true,
+    });
   }
 
   async countValid(): Promise<number> {
@@ -225,7 +262,6 @@ export class KhuyenMaiRepository {
       { $unwind: '$khuyenMai' },
       {
         $match: {
-          'khuyenMai.KM_daXoa': false,
           'khuyenMai.KM_batDau': { $lte: now },
           'khuyenMai.KM_ketThuc': { $gte: now },
         },
@@ -267,9 +303,5 @@ export class KhuyenMaiRepository {
       { KM_id, SP_id: SP_id },
       { CTKM_daXoa: true }
     );
-  }
-
-  async deleteManyChiTietKMByKM(KM_id: string) {
-    return this.chiTietModel.updateMany({ KM_id }, { CTKM_daXoa: true });
   }
 }
