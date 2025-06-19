@@ -3,7 +3,6 @@ import {
   Post,
   Get,
   Put,
-  Delete,
   Param,
   Query,
   Body,
@@ -12,6 +11,7 @@ import {
 import { KhuyenMaiService } from './khuyenMai.service';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
+import { parsePositiveInt } from 'src/Util/convert';
 
 @Controller('api/promotions')
 export class KhuyenMaiController {
@@ -27,15 +27,14 @@ export class KhuyenMaiController {
   // ======= [GET] /khuyen-mai - Lấy danh sách khuyến mãi (phân trang, status) =======
   @Get()
   findAll(
-    @Query('page') page: '1',
+    @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType?: '0' | '1'
+    @Query('filterType') filterType?: string
   ) {
     return this.khuyenMaiService.getAllKhuyenMai({
-      page: Number(page),
-      limit: Number(limit),
-      filterType:
-        filterType !== undefined ? (Number(filterType) as 0 | 1) : undefined,
+      page: parsePositiveInt(page) ?? 1,
+      limit: parsePositiveInt(limit) ?? 10,
+      filterType: parsePositiveInt(filterType),
     });
   }
 
@@ -49,9 +48,13 @@ export class KhuyenMaiController {
   // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
   @Get(':id')
   async findById(
-    @Param('id') id: string
+    @Param('id') id: string,
+    @Query('filterType') filterType?: string
   ): Promise<ReturnType<typeof this.khuyenMaiService.getKhuyenMaiById>> {
-    return this.khuyenMaiService.getKhuyenMaiById(id);
+    return this.khuyenMaiService.getKhuyenMaiById(
+      id,
+      parsePositiveInt(filterType)
+    );
   }
 
   // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======
@@ -59,12 +62,5 @@ export class KhuyenMaiController {
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateDto) {
     return this.khuyenMaiService.updateKhuyenMai(id, data);
-  }
-
-  // ======= [DELETE] /khuyen-mai/:id - Xóa mềm khuyến mãi =======
-  @UseGuards(XacThucGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.khuyenMaiService.deleteKhuyenMai(id);
   }
 }
