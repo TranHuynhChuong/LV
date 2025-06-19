@@ -3,6 +3,8 @@ import {
   ConflictException,
   BadRequestException,
   NotFoundException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { TheLoaiRepository } from './theLoai.repository';
 import { CreateDto, UpdateDto } from './theLoai.dto';
@@ -26,12 +28,15 @@ export class TheLoaiUtilService {
 
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
+import { SanPhamUtilService } from 'src/SanPham/sanPham.service';
 @Injectable()
 export class TheLoaiService {
   constructor(
     private readonly TheLoai: TheLoaiRepository,
     private readonly NhanVien: NhanVienUtilService,
-    @InjectConnection() private readonly connection: Connection
+    @InjectConnection() private readonly connection: Connection,
+    @Inject(forwardRef(() => SanPhamUtilService))
+    private readonly SanPham: SanPhamUtilService
   ) {}
 
   // Tạo thể loại mới
@@ -42,12 +47,6 @@ export class TheLoaiService {
       let result: TheLoai;
 
       await session.withTransaction(async () => {
-        // Kiểm tra tên trùng trong transaction
-        const exists = await this.TheLoai.findByName(newData.TL_ten, session);
-        if (exists) {
-          throw new ConflictException();
-        }
-
         const thaoTac = {
           thaoTac: 'Tạo mới',
           NV_id: newData.NV_id,
@@ -75,25 +74,15 @@ export class TheLoaiService {
 
       return result!;
     } finally {
-      await session.endSession(); // ✅ Gọi trong finally để đảm bảo luôn end
+      await session.endSession(); // Gọi trong finally để đảm bảo luôn end
     }
   }
 
   async update(id: number, newData: UpdateDto): Promise<TheLoai> {
-    if (!newData.TL_ten) {
-      throw new BadRequestException('Tên thể loại không được để trống');
-    }
-
     // Tìm bản ghi hiện tại theo id
     const current = await this.TheLoai.findById(id);
     if (!current) {
       throw new NotFoundException('Không tìm thấy thể loại');
-    }
-
-    // Kiểm tra tên trùng (nếu có)
-    const sameName = await this.TheLoai.findByName(newData.TL_ten);
-    if (sameName && sameName.TL_id !== id) {
-      throw new ConflictException('Tên thể loại đã tồn tại');
     }
 
     // Xác định trường thay đổi
@@ -153,10 +142,38 @@ export class TheLoaiService {
     return result;
   }
   // Xóa thể loại (cập nhật TL_daXoa = true)
-  async delete(id: number): Promise<TheLoai> {
-    const deleted = await this.TheLoai.delete(id);
+  // async delete(id: number): Promise<TheLoai> {
+  //   const deleted = await this.TheLoai.delete(id);
+  //   if (!deleted) {
+  //     throw new BadRequestException();
+  //   }
+  //   return deleted;
+  // }
+
+  async delete(id: number, NV_id: string): Promise<TheLoai> {
+    const existing = await this.TheLoai.findById(id);
+    if (!existing) throw new BadRequestException();
+
+    const hasChild = await this.TheLoai.findAllChildren(id);
+    if (hasChild && hasChild.length > 0) throw new ConflictException();
+
+    const hasProduct = await this.SanPham.findInCategories([...hasChild, id]);
+    if (hasProduct && hasProduct.length > 0) throw new ConflictException();
+    console.log(hasProduct);
+    const thaoTac = {
+      thaoTac: 'Xóa dữ liệu',
+      NV_id: NV_id,
+      thoiGian: new Date(),
+    };
+
+    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+
+    const deleted = await this.TheLoai.update(id, {
+      TL_daXoa: true,
+      lichSuThaoTac: lichSuThaoTac,
+    });
     if (!deleted) {
-      throw new BadRequestException();
+      throw new NotFoundException();
     }
     return deleted;
   }
