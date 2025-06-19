@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SanPhamController } from './sanPham.controller';
 import { SanPhamService, SanPhamUtilService } from './sanPham.service';
@@ -12,7 +12,7 @@ import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
   imports: [
     MongooseModule.forFeature([{ name: SanPham.name, schema: SanPhamSchema }]),
     KhuyenMaiModule,
-    TheLoaiModule,
+    forwardRef(() => TheLoaiModule),
     NguoiDungModule,
   ],
   controllers: [SanPhamController],

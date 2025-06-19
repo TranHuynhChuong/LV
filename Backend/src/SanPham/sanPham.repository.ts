@@ -41,16 +41,6 @@ export class SanPhamRepository {
       .lean();
   }
 
-  async delete(id: number): Promise<SanPham | null> {
-    return this.model
-      .findOneAndUpdate(
-        { SP_id: id },
-        { $set: { SP_trangThai: 0 } },
-        { new: true }
-      )
-      .lean();
-  }
-
   async remove(id: number): Promise<SanPham | null> {
     return this.model.findOneAndDelete({ SP_id: id }).lean();
   }
@@ -92,16 +82,20 @@ export class SanPhamRepository {
       dataPipeline.push(...this.getDiscountLookupStage(filterType === 0));
     }
 
-    const countPipeline = [...dataPipeline, { $count: 'count' }];
-
     if (sort && Object.keys(sort).length > 0) {
       dataPipeline.push({ $sort: sort });
     }
 
+    const countPipeline = [
+      ...preStages,
+      ...this.getDiscountLookupStage(filterType === 0),
+      { $count: 'count' },
+    ];
+
     dataPipeline.push({ $skip: skip }, { $limit: limit });
 
     if (!needDiscountEarly) {
-      dataPipeline.push(...this.getDiscountLookupStage(false));
+      dataPipeline.push(...this.getDiscountLookupStage(filterType === 0));
     }
 
     dataPipeline.push({ $project: project });
@@ -109,8 +103,20 @@ export class SanPhamRepository {
     return { dataPipeline, countPipeline };
   }
 
-  protected getDiscountLookupStage(onlyDiscounted: boolean): PipelineStage[] {
+  protected getDiscountLookupStage(
+    noDiscount: boolean = false
+  ): PipelineStage[] {
     const now = new Date();
+
+    const matchCTKM: any[] = [
+      { $eq: ['$SP_id', '$$sp_id'] },
+      { $eq: ['$CTKM_daXoa', false] },
+    ];
+
+    if (!noDiscount) {
+      matchCTKM.push({ $eq: ['$CTKM_tamNgung', false] });
+    }
+
     const stages: PipelineStage[] = [
       {
         $lookup: {
@@ -119,13 +125,7 @@ export class SanPhamRepository {
           pipeline: [
             {
               $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$SP_id', '$$sp_id'] },
-                    { $eq: ['$CTKM_daXoa', false] },
-                    { $eq: ['$CTKM_tamNgung', false] },
-                  ],
-                },
+                $expr: { $and: matchCTKM },
               },
             },
             {
@@ -150,16 +150,30 @@ export class SanPhamRepository {
               },
             },
             { $unwind: '$km' },
-            {
-              $addFields: {
-                CTKM_mucGiam: '$km.KM_mucGiam',
-              },
-            },
+            ...(noDiscount
+              ? []
+              : [
+                  {
+                    $addFields: {
+                      CTKM_mucGiam: '$km.KM_mucGiam',
+                    },
+                  },
+                ]),
           ],
           as: 'khuyenMai',
         },
       },
-      {
+    ];
+
+    // Nếu KHÔNG lấy sản phẩm khuyến mãi → loại bỏ các sản phẩm có khuyến mãi hiệu lực
+    if (noDiscount) {
+      stages.push({
+        $match: {
+          $expr: { $eq: [{ $size: '$khuyenMai' }, 0] },
+        },
+      });
+    } else {
+      stages.push({
         $addFields: {
           SP_giaGiam: {
             $cond: {
@@ -196,14 +210,6 @@ export class SanPhamRepository {
             },
           },
         },
-      },
-    ];
-
-    if (onlyDiscounted) {
-      stages.push({
-        $match: {
-          $expr: { $eq: ['$giaGiam', '$SP_giaBan'] },
-        },
       });
     }
 
@@ -217,9 +223,9 @@ export class SanPhamRepository {
       case 2:
         return { SP_daBan: -1, SP_id: -1 }; // doanh số
       case 3:
-        return { giaGiam: 1, SP_id: -1 }; // giá tăng
+        return { SP_giaGiam: 1, SP_id: -1 }; // giá tăng
       case 4:
-        return { giaGiam: -1, SP_id: -1 }; // giá giảm
+        return { SP_giaGiam: -1, SP_id: -1 }; // giá giảm
       default:
         return undefined;
     }
@@ -566,5 +572,11 @@ export class SanPhamRepository {
     else filter.SP_trangThai = { $in: [1, 2] };
 
     return this.model.countDocuments(filter);
+  }
+
+  async findInCategories(ids: number[]) {
+    return this.model.find({
+      TL_id: { $in: ids },
+    });
   }
 }

@@ -136,7 +136,10 @@ export class SanPhamController {
 
   // Xóa sản phẩm (ẩn - soft delete)
   @Delete('/:id')
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.service.delete(id);
+  delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('staffId') staffId: string
+  ) {
+    return this.service.delete(id, staffId);
   }
 }
