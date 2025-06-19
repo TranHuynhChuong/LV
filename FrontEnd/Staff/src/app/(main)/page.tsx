@@ -15,6 +15,7 @@ import {
   Clock,
   TruckIcon,
   XCircle,
+  TicketPercent,
 } from 'lucide-react';
 
 export default function Home() {
@@ -26,6 +27,7 @@ export default function Home() {
   });
   const [totalCategories, setTotalCategories] = useState(0);
   const [totalValidPromotions, setTotalValidPromotions] = useState(0);
+  const [totalValidVouchers, setTotalValidVouchers] = useState(0);
   const [totalShipping, setTotalShipping] = useState(0);
   const [totalOrders, setTotalOrders] = useState({
     pending: 0,
@@ -39,10 +41,11 @@ export default function Home() {
 
   const fetchTotal = async () => {
     try {
-      const [products, categories, promotions, shipping] = await Promise.all([
+      const [products, categories, promotions, vouchers, shipping] = await Promise.all([
         api.get('products/total'),
         api.get('categories/count'),
         api.get('promotions/count'),
+        api.get('vouchers/count'),
         api.get('shipping/count'),
       ]);
 
@@ -50,6 +53,7 @@ export default function Home() {
       setTotalCategories(categories.data);
       setTotalValidPromotions(promotions.data);
       setTotalShipping(shipping.data);
+      setTotalValidVouchers(vouchers.data);
     } catch (err) {
       console.error('Lỗi khi tải tổng quan:', err);
     }
@@ -61,18 +65,25 @@ export default function Home() {
 
   const overviewItems = [
     {
-      icon: <Tag />,
-      label: 'Thể loại',
-      value: totalCategories,
-      href: '/categories',
-      description: 'Đã thiết lập',
-    },
-    {
       icon: <Percent />,
       label: 'Khuyến mãi',
       value: totalValidPromotions,
       href: '/promotions',
       description: 'Đang có hiệu lực',
+    },
+    {
+      icon: <TicketPercent />,
+      label: 'Mã giảm giá',
+      value: totalValidVouchers,
+      href: '/vouchers',
+      description: 'Đang có hiệu lực',
+    },
+    {
+      icon: <Tag />,
+      label: 'Thể loại',
+      value: totalCategories,
+      href: '/categories',
+      description: 'Đã thiết lập',
     },
     {
       icon: <Truck />,
@@ -151,10 +162,10 @@ export default function Home() {
                   <p className="text-xs text-muted-foreground">Tổng</p>
                   <p className="text-base font-semibold">{totalProducts.live.total}</p>
                 </Link>
-                <Link className="p-4 border flex-1 rounded-lg" href="/products/list/live?status=in">
-                  <p className="text-xs text-muted-foreground">Còn hàng</p>
+                {/* <Link className="p-4 border flex-1 rounded-lg" href="/products/list/live?status=in">
+                  <p className="text-xs text-muted-foreground">Còn</p>
                   <p className="text-base font-semibold">{totalProducts.live.in}</p>
-                </Link>
+                </Link> */}
                 <Link
                   className="p-4 border flex-1 rounded-lg"
                   href="/products/list/live?status=out"
@@ -176,13 +187,13 @@ export default function Home() {
                   <p className="text-xs text-muted-foreground">Tổng</p>
                   <p className="text-base font-semibold">{totalProducts.hidden.total}</p>
                 </Link>
-                <Link
+                {/* <Link
                   className="p-4 border flex-1 rounded-lg"
                   href="/products/list/hidden?status=in"
                 >
-                  <p className="text-xs text-muted-foreground">Còn hàng</p>
+                  <p className="text-xs text-muted-foreground">Còn</p>
                   <p className="text-base font-semibold">{totalProducts.hidden.in}</p>
-                </Link>
+                </Link> */}
                 <Link
                   className="p-4 border flex-1 rounded-lg"
                   href="/products/list/hidden?status=out"
