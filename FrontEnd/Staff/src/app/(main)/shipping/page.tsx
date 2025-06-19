@@ -48,6 +48,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ApiShipping } from '@/type/Shipping';
+import Loader from '@/components/Loader';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type Shipping = {
   id: number;
@@ -61,9 +63,9 @@ export type Shipping = {
 
 export default function Shipments() {
   const { setBreadcrumbs } = useBreadcrumb();
-
+  const { authData } = useAuth();
   const [data, setData] = useState<Shipping[]>([]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -121,8 +123,9 @@ export default function Shipments() {
   const handleConfirmDelete = (id: number) => {
     if (!id) return;
     setLoading(true);
+    setIsSubmitting(true);
     api
-      .delete(`/shipping/${id}`)
+      .delete(`/shipping/${id}?staffId=${authData.userId}`)
       .then(() => {
         setData((prev) => prev.filter((item) => item.id !== id));
         setDeleteDialogOpen({
@@ -139,7 +142,10 @@ export default function Shipments() {
         }
         console.error('Xóa thất bại:', error);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setIsSubmitting(true);
+      });
   };
 
   const columns: ColumnDef<Shipping>[] = [
@@ -305,6 +311,7 @@ export default function Shipments() {
 
   return (
     <div className="p-4 min-w-fit">
+      {isSubmitting && <Loader />}
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2 pl-4">

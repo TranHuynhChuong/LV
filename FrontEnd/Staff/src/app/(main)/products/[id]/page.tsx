@@ -168,7 +168,7 @@ export default function ProductDetail() {
   const handleOnDelete = () => {
     setIsSubmitting(true);
     api
-      .delete(`/products/${id}`)
+      .delete(`/products/${id}?staffId=${authData.userId}`)
       .then(() => {
         toast.success('Xóa thành công!');
         router.back();
@@ -197,7 +197,11 @@ export default function ProductDetail() {
     <div className="p-4">
       <div className="relative w-full max-w-4xl  mx-auto  h-fit">
         {isSubmitting && <Loader />}
-        <ProductForm onSubmit={onSubmit} defaultValue={data} onDelete={handleOnDelete} />
+        <ProductForm
+          onSubmit={onSubmit}
+          defaultValue={data}
+          onDelete={data?.status === 2 ? handleOnDelete : undefined}
+        />
         <ActionHistorySheet metadata={metadata} />
       </div>
     </div>

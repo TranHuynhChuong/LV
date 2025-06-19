@@ -101,7 +101,7 @@ export default function ShippingDetailPage() {
     if (!id) return;
     setIsSubmitting(true);
     api
-      .delete(`/shipping/${id}`)
+      .delete(`/shipping/${id}?staffId=${authData.userId}`)
       .then((res) => {
         toast.success(res.data.message ?? 'Xoá thành công');
         router.back();
