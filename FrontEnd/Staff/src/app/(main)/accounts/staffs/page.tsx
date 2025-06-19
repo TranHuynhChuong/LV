@@ -9,11 +9,13 @@ import { StaffFormData } from './staffForm';
 import StaffTable from './staffTable';
 import SwitchTab from '../switchTab';
 import Loader from '@/components/Loader';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Staffs() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<StaffFormData[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { authData } = useAuth();
   const getData = () => {
     setIsLoading(true);
 
@@ -62,7 +64,7 @@ export default function Staffs() {
     if (!id) return;
     setIsSubmitting(true);
     api
-      .delete(`/users/staff/${id}`)
+      .delete(`/users/staff/${id}?staffId=${authData.userId}`)
       .then(() => {
         setData((prev) => prev.filter((item) => item.id !== id));
         toast.success('Xóa thành công!');

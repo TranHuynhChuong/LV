@@ -100,7 +100,7 @@ export default function StaffDetailPage() {
   const handleOnDelete = () => {
     setIsSubmitting(true);
     api
-      .delete(`/users/staff/${id}`)
+      .delete(`/users/staff/${id}?staffId=${authData.userId}`)
       .then(() => {
         toast.success('Xóa thành công!');
         router.back();
