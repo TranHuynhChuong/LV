@@ -101,9 +101,9 @@ export default function ProductsListType() {
                     type === 'all' ? total.live.total + total.hidden.total : total[type].total
                   })`}
                 {tab === 'in' &&
-                  `Tất cả (${type === 'all' ? total.live.in + total.hidden.in : total[type].in})`}
+                  `Còn hàng (${type === 'all' ? total.live.in + total.hidden.in : total[type].in})`}
                 {tab === 'out' &&
-                  `Tất cả (${
+                  `Hết hàng (${
                     type === 'all' ? total.live.out + total.hidden.out : total[type].out
                   })`}
               </Button>
