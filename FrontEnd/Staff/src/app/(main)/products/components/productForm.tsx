@@ -734,7 +734,10 @@ export default function ProductForm({
             </div>
           </section>
 
-          <FormFooterActions isEditing={IS_EDITING} onDelete={() => setDeleteDialogOpen(true)} />
+          <FormFooterActions
+            isEditing={IS_EDITING}
+            onDelete={onDelete ? () => setDeleteDialogOpen(true) : undefined}
+          />
         </form>
       </Form>
       {/* Dialog xác nhận xóa */}
