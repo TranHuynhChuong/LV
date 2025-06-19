@@ -8,6 +8,7 @@ import {
   Body,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { TheLoaiService } from './theLoai.service';
 import { CreateDto, UpdateDto } from './theLoai.dto';
@@ -46,7 +47,10 @@ export class TheLoaiController {
   }
 
   @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    return await this.TheLoai.delete(id);
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('staffId') staffId: string
+  ) {
+    return await this.TheLoai.delete(id, staffId);
   }
 }
