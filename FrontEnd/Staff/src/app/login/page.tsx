@@ -52,14 +52,6 @@ export default function LoginPage() {
         return;
       }
 
-      const resData = await res.json();
-
-      // Lưu userId và role vào localStorage
-      if (resData.userId && resData.role) {
-        localStorage.setItem('userId', resData.userId);
-        localStorage.setItem('role', resData.role);
-      }
-
       router.push('/');
     } catch (error) {
       console.error('Login error:', error);

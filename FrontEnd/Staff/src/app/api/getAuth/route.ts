@@ -9,7 +9,7 @@ interface JwtPayload {
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get('token')?.value;
+    const token = req.cookies.get('staff-token')?.value;
 
     if (!token) {
       return NextResponse.json({ message: 'Unauthorized: No token' }, { status: 401 });
