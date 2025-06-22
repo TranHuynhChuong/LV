@@ -14,6 +14,14 @@ import { KhachHang } from './khachHang.schema';
 @Injectable()
 export class KhachHangUtilService {
   constructor(private readonly KhachHang: KhachHangRepository) {}
+
+  async getEmail(id: number) {
+    const result = await this.KhachHang.findById(id);
+    if (!result) {
+      throw new BadRequestException();
+    }
+    return result.KH_email;
+  }
 }
 
 import { InjectConnection } from '@nestjs/mongoose';
@@ -61,7 +69,7 @@ export class KhachHangService {
     return this.KhachHang.findAll(page, limit);
   }
 
-  async update(id: string, data: UpdateDto): Promise<KhachHang> {
+  async update(id: number, data: UpdateDto): Promise<KhachHang> {
     const updated = await this.KhachHang.update(id, data);
     if (!updated) {
       throw new BadRequestException();
@@ -69,7 +77,7 @@ export class KhachHangService {
     return updated;
   }
 
-  async updateEmail(id: string, newEmail: string): Promise<KhachHang> {
+  async updateEmail(id: number, newEmail: string): Promise<KhachHang> {
     const existing = await this.KhachHang.findByEmail(newEmail);
     if (existing) {
       throw new ConflictException();
@@ -94,7 +102,7 @@ export class KhachHangService {
     return result;
   }
 
-  async findById(id: string): Promise<KhachHang> {
+  async findById(id: number): Promise<KhachHang> {
     const result = await this.KhachHang.findById(id);
     if (!result) {
       throw new NotFoundException();
