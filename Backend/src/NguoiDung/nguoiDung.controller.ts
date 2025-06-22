@@ -9,6 +9,7 @@ import {
   Body,
   Query,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { KhachHangService } from './KhachHang/khachHang.service';
 import { NhanVienService } from './NhanVien/nhanVien.service';
@@ -65,12 +66,15 @@ export class NguoiDungController {
   }
 
   @Get('customer/:id')
-  async getCustomerByEmail(@Param('id') id: string) {
+  async getCustomerByEmail(@Param('id', ParseIntPipe) id: number) {
     return await this.KhachHangService.findById(id);
   }
 
   @Put('customer/:id')
-  async updateCustomer(@Param('id') id: string, @Body() data: UpdateDto_KH) {
+  async updateCustomer(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateDto_KH
+  ) {
     return await this.KhachHangService.update(id, data);
   }
 
