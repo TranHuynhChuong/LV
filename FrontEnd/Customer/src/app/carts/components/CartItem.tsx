@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { CartItemType } from '@/stores/cart.store';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+
 export interface ProductInCart extends CartItemType {
-  SP_ten: string;
-  SP_giaBan: number;
-  SP_giaGiam: number;
-  SP_anh: string;
-  SP_tonKho: number;
+  name: string;
+  price: number;
+  salePrice: number;
+  cost: number;
+  cover: string;
+  stock: number;
+  weight: number;
 }
 
 interface CartItemProps {
@@ -28,14 +31,14 @@ export default function CartItem({
   onQuantityChange,
   onRemove,
 }: Readonly<CartItemProps>) {
-  const quantity = product.GH_soLuong;
+  const quantity = product.quantity;
 
   const handleMinus = () => {
-    onQuantityChange(product.SP_id, String(quantity - 1));
+    onQuantityChange(product.productId, String(quantity - 1));
   };
 
   const handleAdd = () => {
-    onQuantityChange(product.SP_id, String(quantity + 1));
+    onQuantityChange(product.productId, String(quantity + 1));
   };
 
   return (
@@ -44,27 +47,28 @@ export default function CartItem({
         <Checkbox checked={isSelected} onCheckedChange={onToggle} />
         <div className=" relative w-16 h-16">
           <Image
-            src={product.SP_anh}
-            alt={product.SP_ten}
+            src={product.cover}
+            alt={product.name}
             fill
             sizes="64px"
+            priority
             className=" object-contain"
           />
         </div>
         <div className="flex-1">
-          <p className="line-clamp-2 h-[3em] text-sm font-light">{product.SP_ten}</p>
+          <p className="line-clamp-2 h-[3em] text-sm font-light">{product.name}</p>
           <div className="flex items-center gap-2 h-fit">
-            {product.SP_giaBan !== product.SP_giaGiam ? (
+            {product.price !== product.salePrice ? (
               <div className="flex items-center gap-2 h-fit">
                 <span className="text-red-500 font-medium">
-                  {product.SP_giaGiam.toLocaleString()}₫
+                  {product.salePrice.toLocaleString()}₫
                 </span>
                 <span className="text-zinc-400 text-xs line-through h-fit">
-                  {product.SP_giaBan.toLocaleString()}₫
+                  {product.price.toLocaleString()}₫
                 </span>
               </div>
             ) : (
-              <span className="font-medium">{product.SP_giaBan.toLocaleString()}₫</span>
+              <span className="font-medium">{product.price.toLocaleString()}₫</span>
             )}
           </div>
         </div>
@@ -91,9 +95,9 @@ export default function CartItem({
           </div>
         </div>
         <span className="w-24 items-center flex-1 text-right">
-          {(product.SP_giaGiam * quantity).toLocaleString()}₫
+          {(product.salePrice * quantity).toLocaleString()}₫
         </span>
-        <Button size="sm" onClick={() => onRemove(product.SP_id)}>
+        <Button size="sm" onClick={() => onRemove(product.productId)}>
           <Trash2 />
         </Button>
       </div>
