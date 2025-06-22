@@ -15,9 +15,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
-import AddressSelect from '@/components/fullAddressSelect';
+import AddressSelect from '@/components/FullAddressSelect';
 import { Textarea } from '@/components/ui/textarea';
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { AddressType } from '@/types/address';
 
 // Schema và types
@@ -37,126 +37,152 @@ export type AddressFormHandle = {
 
 type Props = {
   defaultValue?: AddressType;
+  isComponent?: boolean;
+  onProvinceChange?: (provinceId: number) => void;
 };
 
-const AddressForm = forwardRef<AddressFormHandle, Props>(({ defaultValue }, ref) => {
-  const form = useForm<AddressFormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: defaultValue?.name ?? '',
-      phone: defaultValue?.phone ?? '',
-      provinceId: defaultValue?.province.id ?? undefined,
-      wardId: defaultValue?.ward.id ?? undefined,
-      note: defaultValue?.note ?? '',
-      default: defaultValue?.default ?? false,
-    },
-  });
+const AddressForm = forwardRef<AddressFormHandle, Props>(
+  ({ defaultValue, isComponent = false, onProvinceChange }, ref) => {
+    const form = useForm<AddressFormData>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        name: defaultValue?.name ?? '',
+        phone: defaultValue?.phone ?? '',
+        provinceId: defaultValue?.province.id ?? undefined,
+        wardId: defaultValue?.ward.id ?? undefined,
+        note: defaultValue?.note ?? '',
+        default: defaultValue?.default ?? false,
+      },
+    });
 
-  // Cho cha gọi submit và nhận data valid
-  useImperativeHandle(ref, () => ({
-    submit: async () => {
-      let data: AddressFormData | null = null;
-      await form.handleSubmit((validData) => {
-        data = validData;
-      })(); // cần gọi hàm trả về từ handleSubmit
+    useEffect(() => {
+      if (!defaultValue) return;
 
-      return data;
-    },
-  }));
+      form.reset({
+        name: defaultValue.name ?? '',
+        phone: defaultValue.phone ?? '',
+        provinceId: defaultValue.province.id ?? undefined,
+        wardId: defaultValue.ward.id ?? undefined,
+        note: defaultValue.note ?? '',
+        default: defaultValue.default ?? false,
+      });
 
-  return (
-    <Form {...form}>
-      <form className="space-y-4 bg-white">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Họ tên</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Nhập họ tên" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      if (defaultValue.province?.id) {
+        onProvinceChange?.(defaultValue.province.id);
+      }
+    }, [defaultValue, form]);
 
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Số điện thoại</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Nhập số điện thoại" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    // Cho cha gọi submit và nhận data valid
+    useImperativeHandle(ref, () => ({
+      submit: async () => {
+        let data: AddressFormData | null = null;
+        await form.handleSubmit((validData) => {
+          data = validData;
+        })(); // cần gọi hàm trả về từ handleSubmit
 
-        {/* Địa chỉ chọn từ dropdown */}
-        <FormField
-          control={form.control}
-          name="wardId"
-          render={() => (
-            <FormItem>
-              <FormControl>
-                <AddressSelect
-                  valueProvinceId={form.getValues('provinceId')}
-                  valueWardId={form.getValues('wardId')}
-                  onChange={(provinceId, wardId) => {
-                    form.setValue('provinceId', provinceId, { shouldValidate: true });
-                    form.setValue('wardId', wardId, { shouldValidate: true });
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        return data;
+      },
+    }));
 
-        <FormField
-          control={form.control}
-          name="note"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ghi chú</FormLabel>
-              <FormControl>
-                <Textarea
-                  value={field.value ?? ''}
-                  maxLength={250}
-                  onChange={field.onChange}
-                  className="h-24 resize-none"
-                />
-              </FormControl>
-              <div className="flex justify-between mx-1">
+    return (
+      <Form {...form}>
+        <form className="space-y-4 bg-white">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Họ tên</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập họ tên" />
+                </FormControl>
                 <FormMessage />
-                <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
-                  {field.value?.length ?? 0} / 250
-                </div>
-              </div>
-            </FormItem>
-          )}
-        />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="default"
-          render={({ field }) => (
-            <FormItem className="flex items-center gap-2 space-y-0">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormLabel className="text-sm font-normal">Đặt làm địa chỉ mặc định</FormLabel>
-              <FormMessage />
-            </FormItem>
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số điện thoại</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nhập số điện thoại" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Địa chỉ chọn từ dropdown */}
+          <FormField
+            control={form.control}
+            name="wardId"
+            render={() => (
+              <FormItem>
+                <FormControl>
+                  <AddressSelect
+                    valueProvinceId={form.getValues('provinceId')}
+                    valueWardId={form.getValues('wardId')}
+                    onSelectProvince={(provinceId) => {
+                      form.setValue('provinceId', provinceId, { shouldValidate: true });
+                      onProvinceChange?.(provinceId);
+                    }}
+                    onSelectWard={(wardId) => {
+                      form.setValue('wardId', wardId, { shouldValidate: true });
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="note"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ghi chú</FormLabel>
+                <FormControl>
+                  <Textarea
+                    value={field.value ?? ''}
+                    maxLength={250}
+                    onChange={field.onChange}
+                    className="h-24 resize-none"
+                  />
+                </FormControl>
+                <div className="flex justify-between mx-1">
+                  <FormMessage />
+                  <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                    {field.value?.length ?? 0} / 250
+                  </div>
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {!isComponent && (
+            <FormField
+              control={form.control}
+              name="default"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2 space-y-0">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="text-sm font-normal">Đặt làm địa chỉ mặc định</FormLabel>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           )}
-        />
-      </form>
-    </Form>
-  );
-});
+        </form>
+      </Form>
+    );
+  }
+);
 
 AddressForm.displayName = 'AddressForm';
 export default AddressForm;

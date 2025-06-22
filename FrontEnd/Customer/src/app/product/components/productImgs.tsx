@@ -6,7 +6,7 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/button';
 import styles from './product.component.module.css';
-import Overlay from '@/components/overLay';
+import Overlay from '@/components/OverLay';
 
 type Props = {
   coverImage: string;
