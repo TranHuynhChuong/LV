@@ -104,10 +104,11 @@ export class PhiVanChuyenService {
     return result;
   }
 
-  async getShippingFee(id: number): Promise<any> {
-    const result: any = await this.PhiVanChuyen.findByProvinceId(id);
+  async getShippingFee(id: number): Promise<PhiVanChuyen> {
+    let result = await this.PhiVanChuyen.findByProvinceId(id);
+    result ??= await this.PhiVanChuyen.findByProvinceId(0);
     if (!result) {
-      throw new NotFoundException();
+      throw new BadRequestException();
     }
     return result;
   }
@@ -158,14 +159,6 @@ export class PhiVanChuyenService {
 
     return updated;
   }
-
-  // async deleteShippingFee(id: number): Promise<PhiVanChuyen> {
-  //   const deleted = await this.PhiVanChuyen.delete(id);
-  //   if (!deleted) {
-  //     throw new BadRequestException();
-  //   }
-  //   return deleted;
-  // }
 
   async deleteShippingFee(id: number, NV_id: string): Promise<PhiVanChuyen> {
     const existing = await this.PhiVanChuyen.findById(id);
