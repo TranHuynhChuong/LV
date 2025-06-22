@@ -6,7 +6,7 @@ export async function POST() {
 
   response.headers.set(
     'Set-Cookie',
-    serialize('token', '', {
+    serialize('customer-token', '', {
       httpOnly: true,
       sameSite: 'strict',
       maxAge: 0,

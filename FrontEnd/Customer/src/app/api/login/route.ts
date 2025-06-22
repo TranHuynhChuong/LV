@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     response.headers.set(
       'Set-Cookie',
-      serialize('token', token, {
+      serialize('customer-token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
