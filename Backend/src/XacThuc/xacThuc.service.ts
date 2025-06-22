@@ -47,33 +47,33 @@ export class XacThucService {
     return createdCustomer;
   }
 
-  async changeEmail(email: string, newEmail: string, otp: string) {
-    const verifyOtp = await this.verifyOtp(email, otp);
+  async changeEmail(id: number, newEmail: string, otp: string) {
+    const verifyOtp = await this.verifyOtp(newEmail, otp);
     if (!verifyOtp) {
       throw new BadRequestException();
     }
 
-    const updatedCustomer = await this.KhachHang.updateEmail(email, newEmail);
+    const updatedCustomer = await this.KhachHang.updateEmail(id, newEmail);
     if (!updatedCustomer) {
       throw new BadRequestException();
     }
-    await this.otp.deleteOne({ email });
+    await this.otp.deleteOne({ id });
     return updatedCustomer;
   }
 
-  async changePassword(email: string, newPass: string, otp: string) {
-    const verifyOtp = await this.verifyOtp(email, otp);
+  async changePassword(id: number, newPass: string, otp: string) {
+    const verifyOtp = await this.verifyOtp(id.toString(), otp);
     if (!verifyOtp) {
       throw new ConflictException();
     }
 
-    const updatedCustomer = await this.KhachHang.update(email, {
+    const updatedCustomer = await this.KhachHang.update(id, {
       KH_matKhau: newPass,
     });
     if (!updatedCustomer) {
       throw new BadRequestException();
     }
-    await this.otp.deleteOne({ email });
+    await this.otp.deleteOne({ email: id.toString() });
     return updatedCustomer;
   }
 
@@ -105,7 +105,7 @@ export class XacThucService {
       { upsert: true, new: true }
     );
 
-    await this.EmailService.sendOtpEmail(email, code);
+    this.EmailService.sendOtpEmail(email, code);
 
     return code;
   }

@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Put, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Put,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { XacThucService } from './xacThuc.service';
 
 @Controller('api/auth')
@@ -10,20 +17,20 @@ export class XacThucController {
     return await this.authService.register(newCustomer);
   }
 
-  @Put('change-email/:email')
+  @Put('change-email/:id')
   async updateEmailCustomer(
-    @Param('email') email: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() { newEmail, otp }: { newEmail: string; otp: string }
   ) {
-    return this.authService.changeEmail(email, newEmail, otp);
+    return this.authService.changeEmail(id, newEmail, otp);
   }
 
-  @Put('change-password/:email')
+  @Put('change-password/:id')
   async updatePasswordCustomer(
-    @Param('email') email: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() { newPassword, otp }: { newPassword: string; otp: string }
   ) {
-    return this.authService.changePassword(email, newPassword, otp);
+    return this.authService.changePassword(id, newPassword, otp);
   }
 
   @Post('send-otp')
