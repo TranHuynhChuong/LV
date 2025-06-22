@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import Combobox from '@/components/Combobox';
 
 interface AddressSelectProps {
-  readonly onChange: (provinceId: number, wardId: number) => void;
+  readonly onSelectProvince: (provinceId: number) => void;
+  readonly onSelectWard: (wardId: number) => void;
   readonly valueProvinceId?: number;
   readonly valueWardId?: number;
 }
 
 export default function AddressSelect({
-  onChange,
+  onSelectProvince,
+  onSelectWard,
   valueProvinceId,
   valueWardId,
 }: AddressSelectProps) {
@@ -61,7 +63,7 @@ export default function AddressSelect({
   const handleSelectProvince = async (provinceId: number) => {
     setSelectedProvinceId(provinceId);
     setWardsData([]);
-
+    onSelectProvince(provinceId);
     try {
       const res = await fetch(`/data/${provinceId}.json`);
       const data = await res.json();
@@ -80,7 +82,7 @@ export default function AddressSelect({
   const handleSelectWard = (wardId: number) => {
     const provinceId = selectedProvinceId ?? valueProvinceId;
     if (provinceId != null) {
-      onChange(provinceId, wardId);
+      onSelectWard(wardId);
     }
   };
 
