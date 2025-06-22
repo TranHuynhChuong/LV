@@ -5,9 +5,30 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { ClientSession, Connection } from 'mongoose';
 import { TTNhanHangRepository } from './ttNhanHang.repository';
-import { TTNhanHangKH } from './ttNhanhang.schema';
+import { TTNhanHangDH, TTNhanHangKH } from './ttNhanhang.schema';
+
+@Injectable()
+export class TTNhanHangDHService {
+  constructor(private readonly NhanHang: TTNhanHangRepository) {}
+
+  async create(data: Partial<TTNhanHangDH>, session?: ClientSession) {
+    const result = await this.NhanHang.createDH(data, session);
+    if (!result) {
+      throw new BadRequestException();
+    }
+    return result;
+  }
+
+  async getByDHId(DH_id: string) {
+    return this.NhanHang.getByDHId(DH_id);
+  }
+
+  async getByTinhId(T_id: number) {
+    return this.NhanHang.getByTId(T_id);
+  }
+}
 
 @Injectable()
 export class TTNhanHangKHService {

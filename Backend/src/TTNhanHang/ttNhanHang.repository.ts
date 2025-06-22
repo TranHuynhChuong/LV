@@ -12,10 +12,10 @@ import {
 export class TTNhanHangRepository {
   constructor(
     @InjectModel(TTNhanHangKH.name)
-    private readonly NHkhachHangModel: Model<TTNhanHangKHDocument>
+    private readonly NHkhachHangModel: Model<TTNhanHangKHDocument>,
 
-    // @InjectModel(TTNhanHangDH.name)
-    // private readonly NHdonHangModel: Model<TTNhanHangDHDocument>
+    @InjectModel(TTNhanHangDH.name)
+    private readonly NHdonHangModel: Model<TTNhanHangDHDocument>
   ) {}
 
   // ========== TTNhanHangKH ==========
@@ -82,5 +82,17 @@ export class TTNhanHangRepository {
 
   // ========== TTNhanHangDH ==========
 
-  // Tạm thời chưa thực hiện
+  async createDH(data: Partial<TTNhanHangDH>, session?: ClientSession) {
+    return this.NHdonHangModel.create([{ ...data }], { session }).then(
+      (res) => res[0]
+    );
+  }
+
+  async getByDHId(DH_id: string) {
+    return this.NHdonHangModel.findOne({ DH_id }).exec();
+  }
+
+  async getByTId(T_id: number) {
+    return this.NHdonHangModel.find({ T_id }).exec();
+  }
 }

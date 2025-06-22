@@ -37,7 +37,7 @@ export type TTNhanHangDHDocument = TTNhanHangDH & Document;
 
 @Schema()
 export class TTNhanHangDH {
-  @Prop({ type: String, unique: true })
+  @Prop({ type: String, unique: true, required: true })
   DH_id: string;
 
   @Prop({ type: String, required: true })
@@ -57,3 +57,4 @@ export class TTNhanHangDH {
 }
 
 export const TTNhanHangDHSchema = SchemaFactory.createForClass(TTNhanHangDH);
+TTNhanHangDHSchema.index({ T_id: 1 });
