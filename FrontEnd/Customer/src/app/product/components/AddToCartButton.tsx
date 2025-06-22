@@ -33,13 +33,13 @@ export default function AddToCartButton({ stock, id }: Props) {
   const handleAddToCart = () => {
     if (!authData.userId) {
       addToCart({
-        SP_id: id,
-        GH_soLuong: quantity,
-        GH_thoiGian: new Date().toISOString(),
+        productId: id,
+        quantity: quantity,
+        dateTime: new Date().toISOString(),
       });
     } else {
       api
-        .post('/carts', { KH_email: authData.userId, SP_id: id, GH_soLuong: quantity })
+        .post('/carts', { KH_id: authData.userId, SP_id: id, GH_soLuong: quantity })
         .then(() => emitCartChange())
         .catch((error) => console.log(error));
     }
