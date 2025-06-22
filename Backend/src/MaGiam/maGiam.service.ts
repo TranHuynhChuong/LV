@@ -10,7 +10,6 @@ import { CreateDto, UpdateDto } from './maGiam.dto';
 import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 
 const typeOfChange: Record<string, string> = {
-  MG_ten: 'Tên mã giảm',
   MG_batDau: 'Thời gian bắt đầu',
   MG_ketThuc: 'Thời gian kết thúc',
   MG_theoTyLe: 'Kiểu giảm giá',
@@ -23,8 +22,8 @@ const typeOfChange: Record<string, string> = {
 @Injectable()
 export class MaGiamUtilService {
   constructor(private readonly MaGiam: MaGiamRepository) {}
-  // Tìm các mã giảm hợp lệ
-  async checkValidMaGiam(ids: string[]) {
+
+  async findValidByIds(ids: string[]) {
     return this.MaGiam.checkValid(ids);
   }
 }
@@ -70,6 +69,10 @@ export class MaGiamService {
     type?: number;
   }) {
     return this.MaGiam.findAll(params);
+  }
+
+  async getAllValid() {
+    return this.MaGiam.findAllValid();
   }
 
   // =======================Lấy chi tiết mã giảm theo id==========================

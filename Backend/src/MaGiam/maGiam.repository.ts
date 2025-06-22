@@ -73,6 +73,15 @@ export class MaGiamRepository {
     });
   }
 
+  async findAllValid() {
+    const filter = this.getFilter(2);
+
+    return this.MaGiamModel.find(filter)
+      .select('-lichSuThaoTac')
+      .sort({ MG_batDau: -1 })
+      .lean();
+  }
+
   async findExisting(id: string) {
     return this.MaGiamModel.findOne({ MG_id: id }).exec();
   }

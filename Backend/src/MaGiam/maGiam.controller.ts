@@ -40,6 +40,11 @@ export class MaGiamController {
     });
   }
 
+  @Get('/allValid')
+  findAllvalid() {
+    return this.MaGiamService.getAllValid();
+  }
+
   // ======= [GET] /ma-giam - Lấy số lượng mã giảm hợp lệ =======
 
   @Get('/count')

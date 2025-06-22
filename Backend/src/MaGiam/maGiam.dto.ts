@@ -12,10 +12,6 @@ import { Transform } from 'class-transformer';
 
 export class CreateDto {
   @IsString()
-  @MaxLength(128)
-  MG_ten: string;
-
-  @IsString()
   @MaxLength(7)
   MG_id: string;
 

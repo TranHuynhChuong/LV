@@ -26,9 +26,6 @@ export class MaGiam {
   @Prop({ type: String, required: true, unique: true })
   MG_id: string;
 
-  @Prop({ type: String, required: true })
-  MG_ten: string;
-
   @Prop({ type: Date, required: true })
   MG_batDau: Date;
 
