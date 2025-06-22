@@ -12,6 +12,7 @@ import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
 import { GioHangModule } from './GioHang/gioHang.module';
 import { TTNhanHangModule } from './TTNhanHang/ttNhanHang.module';
 import { MaGiamModule } from './MaGiam/maGiam.module';
+import { DonHangModule } from './DonHang/donHang.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MaGiamModule } from './MaGiam/maGiam.module';
     GioHangModule,
     TTNhanHangModule,
     MaGiamModule,
+    DonHangModule,
   ],
 })
 export class AppModule {}
