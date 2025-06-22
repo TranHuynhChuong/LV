@@ -60,11 +60,11 @@ export class KhachHangRepository {
     return this.model.findOne({ KH_email: email }).exec();
   }
 
-  async findById(id: string): Promise<KhachHang | null> {
+  async findById(id: number): Promise<KhachHang | null> {
     return this.model.findOne({ KH_id: id }).exec();
   }
 
-  async update(id: string, data: any): Promise<KhachHang | null> {
+  async update(id: number, data: any): Promise<KhachHang | null> {
     const update: UpdateQuery<KhachHang> = { $set: data };
 
     return this.model
@@ -75,7 +75,7 @@ export class KhachHangRepository {
       .exec();
   }
 
-  async updateEmail(id: string, newEmail: string): Promise<KhachHang | null> {
+  async updateEmail(id: number, newEmail: string): Promise<KhachHang | null> {
     return this.model
       .findOneAndUpdate(
         { KH_id: id },
@@ -87,7 +87,7 @@ export class KhachHangRepository {
       .exec();
   }
 
-  async delete(id: string): Promise<KhachHang | null> {
+  async delete(id: number): Promise<KhachHang | null> {
     return this.model.findOneAndUpdate({ KH_id: id }).exec();
   }
 
