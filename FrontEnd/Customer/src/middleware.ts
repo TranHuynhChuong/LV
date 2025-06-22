@@ -7,7 +7,7 @@ interface JwtPayload {
 }
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get('token')?.value;
+  const token = req.cookies.get('customer-token')?.value;
 
   // Nếu không có token => redirect đến /login
   if (!token) {
