@@ -24,7 +24,7 @@ export class EmailService {
   ): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: `"ShopNest" <${this.configService.get<string>('email.user')}>`,
+        from: `"Dật Lạc" <${this.configService.get<string>('email.user')}>`,
         to,
         subject,
         html,
@@ -35,7 +35,7 @@ export class EmailService {
     }
   }
 
-  async sendOtpEmail(to: string, otpCode: string): Promise<void> {
+  sendOtpEmail(to: string, otpCode: string) {
     const subject = 'Mã xác thực OTP của bạn';
     const html = `
       <h3>Xác thực tài khoản</h3>
@@ -43,38 +43,46 @@ export class EmailService {
       <p>Mã có hiệu lực trong 15 phút.</p>
     `;
     const text = `Mã OTP của bạn là: ${otpCode}`;
-    await this.sendEmail(to, subject, html, text);
+    this.sendEmail(to, subject, html, text).catch((err) => {
+      console.error(`Gửi email thất bại: ${err.message}`);
+    });
   }
 
-  async sendOrderConfirmation(
-    to: string,
-    orderId: string,
-    total: number
-  ): Promise<void> {
-    const subject = 'Xác nhận đơn hàng';
+  sendOrderCreatetion(to: string, orderId: string) {
+    const subject = 'Đơn hàng được tạo thành công';
     const html = `
-      <h3>Đơn hàng của bạn đã được xác nhận</h3>
+      <h3>Đơn hàng của bạn đã được tạo thành công</h3>
       <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-      <p>Tổng tiền: <strong>${total.toLocaleString()}đ</strong></p>
       <p>Chúng tôi sẽ xử lý và giao hàng trong thời gian sớm nhất.</p>
     `;
-    const text = `Đơn hàng ${orderId} đã được xác nhận. Tổng tiền: ${total}đ`;
-    await this.sendEmail(to, subject, html, text);
+    const text = `Đơn hàng ${orderId} đã được tạo`;
+    this.sendEmail(to, subject, html, text).catch((err) => {
+      console.error(`Gửi email thất bại: ${err.message}`);
+    });
   }
 
-  async sendShippingNotification(
-    to: string,
-    orderId: string,
-    trackingNumber: string
-  ): Promise<void> {
+  sendOrderConfirmCancel(to: string, orderId: string) {
+    const subject = 'Yêu cầu hủy đơn đã được xác nhận';
+    const html = `
+      <h3>Đơn hàng của bạn đã được xác nhận hủy</h3>
+      <p>Mã đơn hàng: <strong>${orderId}</strong></p>
+    `;
+    const text = `Đơn hàng ${orderId} đã được hủy`;
+    this.sendEmail(to, subject, html, text).catch((err) => {
+      console.error(`Gửi email thất bại: ${err.message}`);
+    });
+  }
+
+  sendShippingNotification(to: string, orderId: string) {
     const subject = 'Đơn hàng đã được giao';
     const html = `
       <h3>Đơn hàng đang trên đường đến bạn</h3>
       <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-      <p>Mã vận đơn: <strong>${trackingNumber}</strong></p>
       <p>Vui lòng kiểm tra trạng thái giao hàng trên hệ thống của đơn vị vận chuyển.</p>
     `;
-    const text = `Đơn hàng ${orderId} đã được gửi. Mã vận đơn: ${trackingNumber}`;
-    await this.sendEmail(to, subject, html, text);
+    const text = `Đơn hàng ${orderId} đã được giao thành công`;
+    this.sendEmail(to, subject, html, text).catch((err) => {
+      console.error(`Gửi email thất bại: ${err.message}`);
+    });
   }
 }
