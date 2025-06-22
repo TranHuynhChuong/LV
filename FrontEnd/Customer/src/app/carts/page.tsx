@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useCartStore } from '@/stores/cart.store';
+import { useCartStore, CartItemType, GioHangItem } from '@/stores/cart.store';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/axiosClient';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,6 +9,46 @@ import CartItem, { ProductInCart } from './components/cartItem';
 import { emitCartChange } from '@/lib/cartEvents';
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
+import { useOrderStore } from '@/stores/orderStore';
+import { motion } from 'framer-motion';
+import { ShoppingCart, Loader2 } from 'lucide-react';
+
+export interface ApiCartRes {
+  SP_id: number;
+  SP_ten: string;
+  SP_anh: string;
+  SP_giaBan: number;
+  SP_giaGiam: number;
+  SP_giaNhap: number;
+  SP_tonKho: number;
+  SP_trongLuong: number;
+  GH_soLuong: number;
+  GH_thoiGian: string;
+}
+
+export function mapCartToGioHang(cartItems: CartItemType[]): GioHangItem[] {
+  return cartItems.map((item) => ({
+    SP_id: item.productId,
+    GH_soLuong: item.quantity,
+    GH_thoiGian: item.dateTime,
+  }));
+}
+
+export function mapGioHangToCart(gioHangItems: ApiCartRes[]): ProductInCart[] {
+  return gioHangItems.map((item) => ({
+    productId: item.SP_id,
+    quantity: item.GH_soLuong,
+    dateTime: item.GH_thoiGian,
+    cover: item.SP_anh,
+    name: item.SP_ten,
+    cost: item.SP_giaNhap,
+    price: item.SP_giaBan,
+    salePrice: item.SP_giaGiam,
+    stock: item.SP_tonKho,
+    weight: item.SP_trongLuong,
+  }));
+}
 
 export default function CartPage() {
   const { authData } = useAuth();
@@ -23,6 +63,10 @@ export default function CartPage() {
 
   const [hydrated, setHydrated] = useState(false);
 
+  const router = useRouter();
+  const addProduct = useOrderStore((state) => state.addProduct);
+  const clearOrder = useOrderStore((state) => state.clearOrder);
+
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -34,21 +78,27 @@ export default function CartPage() {
       setLoading(true);
       try {
         if (!authData.userId) {
-          const res = await api.post<ProductInCart[]>('/carts/get-carts', localCarts);
-          const validProducts = res.data.filter(Boolean);
-          setProducts(validProducts);
+          const cartsToSend = mapCartToGioHang(localCarts);
+          if (cartsToSend.length > 0) {
+            const res = await api.post('/carts/get-carts', cartsToSend);
 
-          replaceCart(
-            validProducts.map((p) => ({
-              SP_id: p.SP_id,
-              GH_soLuong: p.GH_soLuong,
-              GH_thoiGian: new Date(p.GH_thoiGian).toISOString(),
-            }))
-          );
+            const validProducts = res.data.filter(Boolean);
+            const cartsRecive = mapGioHangToCart(validProducts);
+            setProducts(cartsRecive);
+
+            replaceCart(
+              cartsRecive.map((p) => ({
+                productId: p.productId,
+                quantity: p.quantity,
+                dateTime: new Date(p.dateTime).toISOString(),
+              }))
+            );
+          }
         } else {
           const res = await api.get(`/carts/${authData.userId}`);
           const validProducts = res.data.filter(Boolean);
-          setProducts(validProducts);
+          const cartsRecive = mapGioHangToCart(validProducts);
+          setProducts(cartsRecive);
         }
       } catch (error) {
         console.error('Lỗi lấy giỏ hàng:', error);
@@ -66,45 +116,45 @@ export default function CartPage() {
 
   const handleQuantityChange = async (id: number, value: string) => {
     const quantity = Math.max(1, Number(value) || 1);
-    const product = products.find((p) => p.SP_id === id);
+    const product = products.find((p) => p.productId === id);
     if (!product) return;
 
     if (!authData?.userId) {
       try {
-        const response = await api.post<ProductInCart[]>('/carts/get-carts', [
-          { SP_id: id, GH_soLuong: quantity },
-        ]);
-        const updated = response.data[0] ?? null;
+        const response = await api.post('/carts/get-carts', [{ SP_id: id, GH_soLuong: quantity }]);
+        const updated = response.data ?? null;
 
         if (!updated) {
           removeFromCart(id);
-          setProducts((prev) => prev.filter((p) => p.SP_id !== id));
+          setProducts((prev) => prev.filter((p) => p.productId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          updateQuantity(id, updated.GH_soLuong);
-          setProducts((prev) => prev.map((p) => (p.SP_id === id ? updated : p)));
+          const newCart = mapGioHangToCart(updated);
+          updateQuantity(id, newCart[0].quantity);
+          setProducts((prev) => prev.map((p) => (p.productId === id ? newCart[0] : p)));
         }
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
       }
     } else {
       try {
-        const response = await api.put<ProductInCart[]>('/carts', {
-          KH_email: authData.userId,
+        const response = await api.put('/carts', {
+          KH_id: authData.userId,
           SP_id: id,
           GH_soLuong: quantity,
         });
 
         emitCartChange();
 
-        const updated = response.data[0] ?? null;
+        const updated = response.data ?? null;
 
         if (!updated) {
-          setProducts((prev) => prev.filter((p) => p.SP_id !== id));
+          setProducts((prev) => prev.filter((p) => p.productId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          updateQuantity(id, updated.GH_soLuong);
-          setProducts((prev) => prev.map((p) => (p.SP_id === id ? updated : p)));
+          const newCart = mapGioHangToCart(updated);
+          updateQuantity(id, newCart[0].quantity);
+          setProducts((prev) => prev.map((p) => (p.productId === id ? newCart[0] : p)));
         }
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
@@ -115,17 +165,17 @@ export default function CartPage() {
   const handleRemove = async (id: number) => {
     if (!authData?.userId) {
       removeFromCart(id);
-      setProducts((prev) => prev.filter((p) => p.SP_id !== id));
+      setProducts((prev) => prev.filter((p) => p.productId !== id));
       setSelected((prev) => prev.filter((spid) => spid !== id));
     } else {
       try {
         await api.delete<ProductInCart[]>('/carts', {
-          params: { KH_email: authData.userId, SP_id: id },
+          params: { KH_id: authData.userId, SP_id: id },
         });
 
         emitCartChange();
 
-        setProducts((prev) => prev.filter((p) => p.SP_id !== id));
+        setProducts((prev) => prev.filter((p) => p.productId !== id));
         setSelected((prev) => prev.filter((spid) => spid !== id));
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
@@ -134,12 +184,60 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    //const selectedItems = products.filter((p) => selected.includes(p.SP_id));
-    // Gửi selectedItems đến trang thanh toán
+    const selectedItems = products.filter((p) => selected.includes(p.productId));
+
+    clearOrder();
+
+    selectedItems.forEach((item) => {
+      addProduct({
+        productId: item.productId,
+        salePrice: item.salePrice,
+        price: item.price,
+        cost: item.cost,
+        quantity: item.quantity,
+        cover: item.cover,
+        name: item.name,
+        weight: item.weight,
+      });
+    });
+
+    router.push('/order');
   };
 
-  if (loading) return <div>Đang tải...</div>;
-  if (!products.length) return <div>Giỏ hàng trống.</div>;
+  if (loading)
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col items-center justify-center py-10 text-gray-600"
+      >
+        <Loader2 className="w-6 h-6 animate-spin mb-2" />
+        <p className="text-gray-600">Đang tải dữ liệu giỏ hàng...</p>
+      </motion.div>
+    );
+
+  // Khi giỏ hàng trống
+  if (!products.length)
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col items-center justify-center py-10 text-gray-600"
+      >
+        <ShoppingCart className="w-10 h-10 mb-3 text-gray-400" />
+        <motion.p
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-lg font-medium"
+        >
+          Giỏ hàng của bạn đang trống
+        </motion.p>
+        <p className="text-sm text-gray-500 mt-1">Hãy thêm sản phẩm để bắt đầu mua sắm nhé!</p>
+      </motion.div>
+    );
 
   return (
     <div>
@@ -156,7 +254,7 @@ export default function CartPage() {
                   if (selected.length === products.length) {
                     setSelected([]);
                   } else {
-                    setSelected(products.map((p) => p.SP_id));
+                    setSelected(products.map((p) => p.productId));
                   }
                 }}
               />
@@ -168,10 +266,10 @@ export default function CartPage() {
 
           {products.map((p) => (
             <CartItem
-              key={p.SP_id}
+              key={p.productId}
               product={p}
-              isSelected={selected.includes(p.SP_id)}
-              onToggle={() => toggleSelect(p.SP_id)}
+              isSelected={selected.includes(p.productId)}
+              onToggle={() => toggleSelect(p.productId)}
               onQuantityChange={handleQuantityChange}
               onRemove={handleRemove}
             />
@@ -180,18 +278,18 @@ export default function CartPage() {
 
         <div
           className={clsx(
-            'flex justify-between items-center bg-white shadow px-4 py-3 border-t',
+            'flex justify-end items-center bg-white shadow px-4 py-3 gap-4 border-t',
             'lg:static lg:border-none  lg:p-4 lg:rounded-md lg:flex-col lg:items-start lg:h-fit lg:gap-4 lg:w-fit',
             'fixed bottom-0 left-0 right-0 z-30'
           )}
         >
-          <div className="text-sm flex flex-col lg:flex-row lg:w-full justify-between items-center text-zinc-600">
+          <div className="text-sm flex   lg:w-full justify-end items-center text-zinc-600">
             <span>Tổng tiền :</span>
             <span className="font-semibold text-lg text-red-500">
               {selected
                 .reduce((sum, id) => {
-                  const product = products.find((p) => p.SP_id === id);
-                  return sum + (product?.SP_giaGiam || 0) * (product?.GH_soLuong || 1);
+                  const product = products.find((p) => p.productId === id);
+                  return sum + (product?.salePrice ?? 0) * (product?.quantity ?? 1);
                 }, 0)
                 .toLocaleString()}
               ₫
