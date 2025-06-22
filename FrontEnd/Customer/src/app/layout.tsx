@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 import { Roboto, Geist } from 'next/font/google';
+import RouteWatcher from '@/components/RouteWatcher';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function RootLayout({
           bg-zinc-100 text-zinc-900
           w-full min-h-screen h-full flex flex-col relative overflow-y-auto isolate`}
         >
+          <RouteWatcher />
           <Header />
           <main className="container mx-auto flex-1 flex flex-col w-full p-4">{children}</main>
           <Footer />
