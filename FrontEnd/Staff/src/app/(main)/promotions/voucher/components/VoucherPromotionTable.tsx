@@ -20,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import PaginationControls from '@/components/PaginationControls';
 import { VoucherPromotionSimple } from '../page';
@@ -50,31 +49,14 @@ export default function VoucherPromotionsTable({
 
   const columns: ColumnDef<VoucherPromotionSimple>[] = [
     {
-      accessorKey: 'name',
-      header: 'Khuyến mãi',
+      accessorKey: 'id',
+      header: 'Mã giảm',
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className=" rounded-md flex gap-4">
-            <div className="w-10 h-10 rounded-sm bg-muted flex items-center justify-center">
-              <TicketPercent />
-            </div>
-            <div className="text-sm">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-sm leading-5 truncate max-w-36 lg:max-w-none">
-                      {item.name}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p> {item.name}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <div className="text-xs text-muted-foreground">#{item.id}</div>
-            </div>
+          <div className=" rounded-md flex gap-2 items-center">
+            <TicketPercent />
+            <div className="text-sm">#{item.id}</div>
           </div>
         );
       },

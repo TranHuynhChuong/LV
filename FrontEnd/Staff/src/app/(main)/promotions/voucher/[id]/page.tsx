@@ -17,7 +17,6 @@ import { mapDataPushPut } from '../new/page';
 
 export type MaGiamChiTiet = {
   MG_id: string;
-  MG_ten: string;
   MG_batDau: Date;
   MG_ketThuc: Date;
   MG_theoTyLe: boolean;
@@ -34,7 +33,6 @@ function mapDataGet(apiData: MaGiamChiTiet): {
 } {
   const data: VoucherPromotionFormType = {
     code: apiData.MG_id,
-    name: apiData.MG_ten,
     from: new Date(apiData.MG_batDau),
     to: new Date(apiData.MG_ketThuc),
     type: apiData.MG_loai.toString() as '1' | '2',

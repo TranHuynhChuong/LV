@@ -30,7 +30,6 @@ import { Switch } from '@/components/ui/switch';
 
 const VoucherPromotionSchema = z
   .object({
-    name: z.string().max(128).optional(),
     code: z.string({ required_error: 'Không được để trống' }).max(7),
     from: z.date({ required_error: 'Không được để trống' }),
     to: z.date({ required_error: 'Không được để trống' }),
@@ -92,36 +91,6 @@ export default function VoucherPromotionForm({
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 " noValidate>
           <section className="p-6 space-y-4 bg-white rounded-sm shadow">
             <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
-
-            <FormField
-              control={control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-32 mt-2 sm:justify-end">
-                    Tên khuyến mãi
-                  </FormLabel>
-                  <div className="flex flex-col flex-1 space-y-1">
-                    <FormControl>
-                      <div className="relative w-full ">
-                        <Input
-                          value={field.value ?? ''}
-                          maxLength={128}
-                          onChange={field.onChange}
-                          className="pr-18"
-                        />
-                        <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
-                          {field.value?.length ?? 0} / 48
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="flex justify-between">
-                      <FormMessage />
-                    </div>
-                  </div>
-                </FormItem>
-              )}
-            />
             <FormField
               control={control}
               name="code"

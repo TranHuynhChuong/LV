@@ -12,7 +12,6 @@ import { VoucherPromotionSearchBar } from './components/VoucherPromotionSearchBa
 
 export type ApiVoucherPromotionSimple = {
   MG_id: number;
-  MG_ten: string;
   MG_batDau: Date;
   MG_ketThuc: Date;
   MG_theoTyLe: boolean;
@@ -24,7 +23,6 @@ export type ApiVoucherPromotionSimple = {
 
 export type VoucherPromotionSimple = {
   id: number;
-  name: string;
   startAt: Date;
   endAt: Date;
   type: string;
@@ -74,7 +72,6 @@ export default function VoucherPromotion() {
   const mapVouchers = (data: ApiVoucherPromotionSimple[]): VoucherPromotionSimple[] =>
     data.map((item) => ({
       id: item.MG_id,
-      name: item.MG_ten,
       startAt: item.MG_batDau,
       endAt: item.MG_ketThuc,
       type: typeMap[item.MG_loai],
@@ -91,7 +88,6 @@ export default function VoucherPromotion() {
             const item = res.data;
             const mapped: VoucherPromotionSimple = {
               id: item.MG_id,
-              name: item.MG_ten,
               startAt: item.MG_batDau,
               endAt: item.MG_ketThuc,
               type: typeMap[item.MG_loai],

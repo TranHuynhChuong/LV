@@ -12,7 +12,6 @@ import VoucherPromotionForm, { VoucherPromotionFormType } from '../components/Vo
 
 export function mapDataPushPut(formData: VoucherPromotionFormType, NV_id: string | null) {
   return {
-    MG_ten: formData.name ?? '',
     MG_id: formData.code,
     MG_batDau: formData.from,
     MG_ketThuc: formData.to,
