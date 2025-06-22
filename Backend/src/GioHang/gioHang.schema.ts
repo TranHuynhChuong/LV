@@ -5,8 +5,8 @@ export type GioHangDocument = GioHang & Document;
 
 @Schema()
 export class GioHang {
-  @Prop({ type: String, required: true })
-  KH_id: string;
+  @Prop({ type: Number, required: true })
+  KH_id: number;
 
   @Prop({ type: Number, required: true })
   SP_id: number;
@@ -19,4 +19,4 @@ export class GioHang {
 }
 
 export const GioHangSchema = SchemaFactory.createForClass(GioHang);
-GioHangSchema.index({ KH_email: 1, SP_id: 1 }, { unique: true });
+GioHangSchema.index({ KH_id: 1, SP_id: 1 }, { unique: true });
