@@ -12,6 +12,8 @@ import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
 import { TheLoaiUtilService } from 'src/TheLoai/theLoai.service';
+import { InjectConnection } from '@nestjs/mongoose';
+import { ClientSession, Connection } from 'mongoose';
 
 const folderPrefix = 'Products';
 
@@ -41,20 +43,26 @@ export class SanPhamUtilService {
 
   async findByIds(ids: number[]): Promise<any[]> {
     const result = await this.SanPham.findByIds(ids);
-    if (!result || result.length === 0) {
-      throw new NotFoundException();
-    }
-
     return result;
   }
 
   async findInCategories(ids: number[]) {
     return this.SanPham.findInCategories(ids);
   }
-}
 
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+  async updateSold(
+    updates: { id: string; sold: number }[],
+    session: ClientSession
+  ) {
+    const result = await this.SanPham.updateSold(updates, session);
+
+    if (result.modifiedCount < updates.length) {
+      throw new NotFoundException();
+    }
+
+    return result;
+  }
+}
 
 @Injectable()
 export class SanPhamService {
@@ -127,6 +135,8 @@ export class SanPhamService {
         await this.Cloudinary.deleteFolder(`${folderPrefix}/${nextId}`);
       }
       throw error;
+    } finally {
+      await session.endSession();
     }
   }
 

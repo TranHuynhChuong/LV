@@ -24,6 +24,27 @@ export class SanPhamRepository {
     return created[0];
   }
 
+  async updateSold(
+    updates: { id: string; sold: number }[],
+    session?: ClientSession
+  ) {
+    const operations = updates.map(({ id, sold }) => ({
+      updateOne: {
+        filter: { SP_id: id },
+        update: {
+          $inc: {
+            SP_tonKho: -sold,
+            SP_daBan: sold,
+          },
+        },
+      },
+    }));
+
+    const result = await this.model.bulkWrite(operations, { session });
+
+    return result;
+  }
+
   async update(
     id: number,
     data: Partial<SanPham>,
@@ -288,6 +309,7 @@ export class SanPhamRepository {
       SP_daBan: 1,
       SP_giaNhap: 1,
       SP_trangThai: 1,
+      SP_trongLuong: 1,
       TL_id: 1,
       SP_anh: {
         $arrayElemAt: [
@@ -358,17 +380,22 @@ export class SanPhamRepository {
     });
   }
 
-  async findByIds(ids: number[]): Promise<any[]> {
-    return this.model.aggregate([
-      {
-        $match: {
-          SP_id: { $in: ids },
-          ...this.getFilter(10),
+  async findByIds(ids: number[]): Promise<SanPham[]> {
+    const project = this.getProject();
+    const filter = this.getFilter(11);
+    const discountLookupStage = this.getDiscountLookupStage(false);
+    return this.model
+      .aggregate([
+        {
+          $match: {
+            SP_id: { $in: ids },
+            ...filter,
+          },
         },
-      },
-      ...this.getDiscountLookupStage(false),
-      { $project: this.getProject() },
-    ]);
+        ...discountLookupStage,
+        { $project: project },
+      ])
+      .exec() as Promise<SanPham[]>;
   }
 
   async findLastId(session?: ClientSession): Promise<number> {
