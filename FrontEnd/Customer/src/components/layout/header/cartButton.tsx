@@ -18,11 +18,11 @@ export default function CartButton() {
 
   // Function dùng chung để cập nhật số lượng
   const updateQuantity = () => {
-    if (!authData.userEmail) {
+    if (!authData.userId) {
       setQuantity(guestCartLength);
     } else {
       api
-        .get(`/carts/${authData.userEmail}`)
+        .get(`/carts/${authData.userId}`)
         .then((res) => setQuantity(res.data.length))
         .catch(() => setQuantity(0));
     }
@@ -35,7 +35,7 @@ export default function CartButton() {
     return () => {
       unsubscribe();
     }; // Cleanup khi unmount
-  }, [authData.userEmail, guestCartLength]);
+  }, [authData.userId, guestCartLength]);
 
   return (
     <Button
