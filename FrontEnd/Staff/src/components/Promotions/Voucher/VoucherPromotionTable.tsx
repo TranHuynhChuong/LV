@@ -21,11 +21,11 @@ import {
 } from '@/components/ui/dialog';
 import Link from 'next/link';
 
-import { VoucherPromotionSimple } from '../page';
 import { TicketPercent } from 'lucide-react';
+import { VoucherPromotionOverview } from '@/models/promotionVoucher';
 
 interface VoucherPromotionsTableProps {
-  data: VoucherPromotionSimple[];
+  data: VoucherPromotionOverview[];
   onDelete?: (code: number) => void;
 }
 
@@ -35,7 +35,7 @@ export default function VoucherPromotionsTable({
 }: Readonly<VoucherPromotionsTableProps>) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
 
-  const columns: ColumnDef<VoucherPromotionSimple>[] = [
+  const columns: ColumnDef<VoucherPromotionOverview>[] = [
     {
       accessorKey: 'id',
       header: 'Mã giảm',
@@ -53,7 +53,10 @@ export default function VoucherPromotionsTable({
       accessorKey: 'type',
       header: 'Loại',
       cell: ({ row }) => {
-        return <div>{row.original.type}</div>;
+        const type = row.original.type;
+        const display =
+          type === 'shipping' ? 'Vận chuyển' : type === 'order' ? 'Tiền hàng' : 'Không xác định';
+        return <div>{display}</div>;
       },
     },
 

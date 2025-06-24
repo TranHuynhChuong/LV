@@ -187,8 +187,8 @@ export default function VoucherPromotionForm({
                           <SelectValue placeholder="Chọn loại mã" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1"> Giảm hóa đơn</SelectItem>
-                          <SelectItem value="2">Giảm vận chuyển</SelectItem>
+                          <SelectItem value="order"> Giảm hóa đơn</SelectItem>
+                          <SelectItem value="shipping">Giảm vận chuyển</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
