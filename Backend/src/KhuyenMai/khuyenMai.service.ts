@@ -4,7 +4,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { KhuyenMaiRepository } from './khuyenMai.repository';
+import {
+  KhuyenMaiRepository,
+  PromotionFilterType,
+} from './khuyenMai.repository';
 import { KhuyenMai } from './khuyenMai.schema';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
 import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
@@ -72,13 +75,16 @@ export class KhuyenMaiService {
   async getAllKhuyenMai(params: {
     page: number;
     limit: number;
-    filterType?: number;
+    filterType?: PromotionFilterType;
   }) {
     return this.KhuyenMai.findAllKhuyenMai(params);
   }
 
   // =======================Lấy chi tiết khuyến mãi theo id==========================
-  async getKhuyenMaiById(KM_id: string, filterType?: number): Promise<any> {
+  async getKhuyenMaiById(
+    KM_id: string,
+    filterType?: PromotionFilterType
+  ): Promise<any> {
     const result: any = await this.KhuyenMai.findKhuyenMaiById(
       KM_id,
       filterType
@@ -161,7 +167,7 @@ export class KhuyenMaiService {
     KM_id: string,
     newList: any[]
   ): Promise<boolean> {
-    const oldList = await this.KhuyenMai.findChiTietKMByKM(KM_id);
+    const oldList = await this.KhuyenMai.findChiTietKMByKMid(KM_id);
     const oldMap = new Map(oldList.map((item) => [item.SP_id, item]));
     const newMap = new Map(newList.map((item) => [item.SP_id, item]));
 
@@ -223,7 +229,7 @@ export class KhuyenMaiService {
   // ========== Chi tiết Khuyến Mãi ==========
 
   // Lấy danh sách chi tiết khuyến mãi theo id khuyến mãi
-  async getChiTietKMByKM(KM_id: string) {
-    return this.KhuyenMai.findChiTietKMByKM(KM_id);
+  async getChiTietKMByKMid(KM_id: string) {
+    return this.KhuyenMai.findChiTietKMByKMid(KM_id);
   }
 }

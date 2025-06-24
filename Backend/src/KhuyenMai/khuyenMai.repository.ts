@@ -9,6 +9,12 @@ import {
 import { Injectable } from '@nestjs/common';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
+export enum PromotionFilterType {
+  Expired = 'expired',
+  NotEnded = 'notEnded',
+  Active = 'active',
+}
+
 @Injectable()
 export class KhuyenMaiRepository {
   constructor(
@@ -22,6 +28,23 @@ export class KhuyenMaiRepository {
   // ========== KhuyenMai ========== //
   // =============================== //
 
+  protected getFilter(filterType?: PromotionFilterType): Record<string, any> {
+    const now = new Date();
+    switch (filterType) {
+      case PromotionFilterType.Expired:
+        return { KM_ketThuc: { $lt: now } };
+      case PromotionFilterType.NotEnded:
+        return { KM_ketThuc: { $gte: now } };
+      case PromotionFilterType.Active:
+        return {
+          KM_batDau: { $lte: now },
+          KM_ketThuc: { $gte: now },
+        };
+      default:
+        return {};
+    }
+  }
+
   async findAllKhuyenMai({
     page,
     limit,
@@ -29,21 +52,9 @@ export class KhuyenMaiRepository {
   }: {
     page: number;
     limit: number;
-    filterType?: number;
+    filterType?: PromotionFilterType;
   }) {
-    const now = new Date();
-    const filter: Record<string, any> = {};
-
-    if (filterType === 1) {
-      filter.KM_ketThuc = { $gte: now }; // Chưa kết thúc
-    } else if (filterType === 0) {
-      filter.KM_ketThuc = { $lt: now }; // Đã hết hạn
-    } else if (filterType === 2) {
-      // Đang hiệu lực
-      filter.KM_batDau = { $lte: now };
-      filter.KM_ketThuc = { $gte: now };
-    }
-
+    const filter = this.getFilter(filterType);
     const dataPipeline: PipelineStage[] = [
       { $match: filter },
       {
@@ -70,7 +81,7 @@ export class KhuyenMaiRepository {
       {
         $project: {
           lichSuThaoTac: 0,
-          chiTietList: 0, // nếu không cần giữ lại danh sách chi tiết
+          chiTietList: 0,
         },
       },
       { $sort: { KM_batDau: -1 } },
@@ -92,26 +103,16 @@ export class KhuyenMaiRepository {
     });
   }
 
-  async findExisting(KM_id: string) {
-    return this.khuyenMaiModel.findOne({ KM_id: KM_id }).exec();
+  async findExisting(id: string) {
+    return this.khuyenMaiModel.findOne({ KM_id: id }).exec();
   }
 
   async findKhuyenMaiById(
     KM_id: string,
-    filterType?: number
+    filterType?: PromotionFilterType
   ): Promise<KhuyenMaiDocument | null> {
-    const now = new Date();
-    const filter: Record<string, any> = {};
+    const filter = this.getFilter(filterType);
 
-    if (filterType === 1) {
-      filter.KM_ketThuc = { $gte: now }; // Chưa kết thúc
-    } else if (filterType === 0) {
-      filter.KM_ketThuc = { $lt: now }; // Đã hết hạn
-    } else if (filterType === 2) {
-      // Đang hiệu lực
-      filter.KM_batDau = { $lte: now };
-      filter.KM_ketThuc = { $gte: now };
-    }
     const pipeline: PipelineStage[] = [
       {
         $match: {
@@ -156,7 +157,12 @@ export class KhuyenMaiRepository {
           pipeline: [
             {
               $match: {
-                $expr: { $in: ['$SP_id', '$$sp_ids'] },
+                $expr: {
+                  $and: [
+                    { $in: ['$SP_id', '$$sp_ids'] },
+                    { $ne: ['$SP_trangThai', 0] },
+                  ],
+                },
               },
             },
             {
@@ -166,9 +172,7 @@ export class KhuyenMaiRepository {
                 SP_ten: 1,
                 SP_giaBan: 1,
                 SP_tonKho: 1,
-                SP_daBan: 1,
                 SP_giaNhap: 1,
-                SP_diemDG: 1,
                 SP_anh: {
                   $arrayElemAt: [
                     {
@@ -202,14 +206,7 @@ export class KhuyenMaiRepository {
           KM_batDau: 1,
           KM_ketThuc: 1,
           lichSuThaoTac: 1,
-          chiTietKhuyenMai: {
-            CTKM_theoTyLe: 1,
-            CTKM_giaTri: 1,
-            CTKM_tamNgung: 1,
-            CTKM_daXoa: 1,
-            SP_id: 1,
-            KM_id: 1,
-          },
+          chiTietKhuyenMai: 1,
           sanPham: 1,
         },
       },
@@ -278,7 +275,7 @@ export class KhuyenMaiRepository {
     ]);
   }
 
-  async findChiTietKMByKM(KM_id: string): Promise<ChiTietKhuyenMai[]> {
+  async findChiTietKMByKMid(KM_id: string): Promise<ChiTietKhuyenMai[]> {
     return this.chiTietModel.find({ KM_id, CTKM_daXoa: false }).lean().exec();
   }
 

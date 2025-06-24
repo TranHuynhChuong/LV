@@ -12,6 +12,7 @@ import { KhuyenMaiService } from './khuyenMai.service';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 import { parsePositiveInt } from 'src/Util/convert';
+import { PromotionFilterType } from './khuyenMai.repository';
 
 @Controller('api/promotions')
 export class KhuyenMaiController {
@@ -29,18 +30,19 @@ export class KhuyenMaiController {
   findAll(
     @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType?: string
+    @Query('filterType') filterType?: PromotionFilterType
   ) {
+    // Convert filterType to PromotionFilterType if defined
     return this.khuyenMaiService.getAllKhuyenMai({
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 10,
-      filterType: parsePositiveInt(filterType),
+      filterType: filterType,
     });
   }
 
   // ======= [GET] /khuyen-mai - Lấy số lượng khuyến mãi hợp lệ =======
 
-  @Get('/count')
+  @Get('/total')
   async count(): Promise<any> {
     return await this.khuyenMaiService.countValid();
   }
@@ -49,12 +51,9 @@ export class KhuyenMaiController {
   @Get(':id')
   async findById(
     @Param('id') id: string,
-    @Query('filterType') filterType?: string
+    @Query('filterType') filterType?: PromotionFilterType
   ): Promise<ReturnType<typeof this.khuyenMaiService.getKhuyenMaiById>> {
-    return this.khuyenMaiService.getKhuyenMaiById(
-      id,
-      parsePositiveInt(filterType)
-    );
+    return this.khuyenMaiService.getKhuyenMaiById(id, filterType);
   }
 
   // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======

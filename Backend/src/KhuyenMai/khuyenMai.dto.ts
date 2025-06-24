@@ -19,7 +19,7 @@ export class ChiTietKmDto {
   KM_id: string;
 
   @IsBoolean()
-  CTKM_tyLe: boolean;
+  CTKM_theoTyLe: boolean;
 
   @IsBoolean()
   CTKM_tamNgung: boolean;
