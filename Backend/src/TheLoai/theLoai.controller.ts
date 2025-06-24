@@ -30,7 +30,7 @@ export class TheLoaiController {
     return await this.TheLoai.findAll();
   }
 
-  @Get('/count')
+  @Get('/total')
   async count(): Promise<any> {
     return await this.TheLoai.countAll();
   }

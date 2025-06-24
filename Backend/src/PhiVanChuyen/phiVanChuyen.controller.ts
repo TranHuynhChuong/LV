@@ -34,7 +34,7 @@ export class PhiVanChuyenController {
     return await this.PhiVanChuyen.getAllShippingFee();
   }
 
-  @Get('/count')
+  @Get('/total')
   async count(): Promise<any> {
     return await this.PhiVanChuyen.countAll();
   }
