@@ -7,32 +7,14 @@ import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import Loader from '@/components/Loader';
-import ProductPromotionForm, { ProductPromotionFormType } from '../components/ProductPromotionForm';
-
-export function mapDataPushPut(formData: ProductPromotionFormType, NV_id: string | null) {
-  return {
-    KM_ten: formData.name ?? '', // nếu optional thì check default ''
-    KM_id: formData.code,
-    KM_batDau: formData.from,
-    KM_ketThuc: formData.to,
-    NV_id: NV_id, // lấy từ người dùng hiện tại hoặc context
-    KM_chiTiet:
-      formData.detail?.map((item) => ({
-        KM_id: formData.code,
-        SP_id: item.productId,
-        CTKM_theoTyLe: item.isPercent,
-        CTKM_giaTri: item.value,
-        CTKM_tamNgung: item.isBlocked,
-      })) || [],
-  };
-}
+import Loader from '@/components/utils/Loader';
+import { mapProductPromotionDetailToDto, ProductPromotionDetail } from '@/models/promotionProduct';
+import ProductPromotionForm from '@/components/Promotions/Product/ProductPromotionForm';
 
 export default function ProductPromotionNew() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
   const router = useRouter();
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -43,27 +25,21 @@ export default function ProductPromotionNew() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = (data: ProductPromotionFormType) => {
-    const apiData = mapDataPushPut(data, authData.userId);
-    setIsSubmitting(true);
-    api
-      .post('/promotions', apiData)
-      .then(() => {
-        toast.success('Thêm mới thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        if (error?.status === 400) {
-          toast.error('Thêm mới thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error(error);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  };
+  async function onSubmit(data: ProductPromotionDetail) {
+    try {
+      if (!authData.userId) return;
+      setIsSubmitting(true);
+      const apiData = mapProductPromotionDetailToDto(data, authData.userId);
+      await api.post('/promotions', apiData);
+      toast.success('Thêm mới thành công!');
+      router.back();
+    } catch (error) {
+      console.error(error);
+      toast.error('Thêm mới thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="relative w-full h-fit ">

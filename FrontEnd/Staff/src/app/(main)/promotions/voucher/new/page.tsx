@@ -7,22 +7,9 @@ import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import Loader from '@/components/Loader';
-import VoucherPromotionForm, { VoucherPromotionFormType } from '../components/VoucherPromotionForm';
-
-export function mapDataPushPut(formData: VoucherPromotionFormType, NV_id: string | null) {
-  return {
-    MG_id: formData.code,
-    MG_batDau: formData.from,
-    MG_ketThuc: formData.to,
-    NV_id: NV_id,
-    MG_theoTyLe: formData.isPercentage,
-    MG_giaTri: formData.discountValue,
-    MG_loai: parseInt(formData.type),
-    MG_toiThieu: formData.minOrderValue,
-    MG_toiDa: formData.maxDiscount,
-  };
-}
+import Loader from '@/components/utils/Loader';
+import { mapVoucherPromotionDetailToDto, VoucherPromotionDetail } from '@/models/promotionVoucher';
+import VoucherPromotionForm from '@/components/Promotions/Voucher/VoucherPromotionForm';
 
 export default function VoucherPromotionNew() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -39,8 +26,9 @@ export default function VoucherPromotionNew() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = (data: VoucherPromotionFormType) => {
-    const apiData = mapDataPushPut(data, authData.userId);
+  const onSubmit = (data: VoucherPromotionDetail) => {
+    if (!authData.userId) return;
+    const apiData = mapVoucherPromotionDetailToDto(data, authData.userId);
     setIsSubmitting(true);
     api
       .post('/vouchers', apiData)

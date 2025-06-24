@@ -6,9 +6,10 @@ import { Plus } from 'lucide-react';
 import api from '@/lib/axiosClient';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import VoucherPromotionsTable from './components/VoucherPromotionTable';
+import VoucherPromotionsTable from '@/components/Promotions/Voucher/VoucherPromotionTable';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { VoucherPromotionSearchBar } from './components/VoucherPromotionSearchBar';
+import { VoucherPromotionSearchBar } from '@/components/Promotions/Voucher/VoucherPromotionSearchBar';
+import PaginationControls from '@/components/utils/PaginationControls';
 
 export type ApiVoucherPromotionSimple = {
   MG_id: number;
@@ -16,7 +17,7 @@ export type ApiVoucherPromotionSimple = {
   MG_ketThuc: Date;
   MG_theoTyLe: boolean;
   MG_giaTri: number;
-  MG_loai: number;
+  MG_loai: string;
   MG_toiThieu: number;
   MG_toiDa?: number;
 };
@@ -28,22 +29,25 @@ export type VoucherPromotionSimple = {
   type: string;
 };
 
-const filterMap: Record<string, number> = {
-  ended: 0,
-  open: 1,
-  active: 2,
-};
+export enum VoucherFilterType {
+  Expired = 'expired',
+  NotEnded = 'notEnded',
+  Active = 'active',
+}
 
-const typeMap: Record<number, string> = {
-  1: 'Hóa đơn',
-  2: 'Vận chuyển',
-};
+export enum VoucherType {
+  Shipping = 'shipping',
+  Order = 'order',
+  All = 'all',
+}
 
-const typeMapCode: Record<string, number> = {
-  all: 0,
-  order: 1,
-  shipping: 2,
-};
+const mapVouchers = (data: ApiVoucherPromotionSimple[]): VoucherPromotionSimple[] =>
+  data.map((item) => ({
+    id: item.MG_id,
+    startAt: item.MG_batDau,
+    endAt: item.MG_ketThuc,
+    type: item.MG_loai,
+  }));
 
 export default function VoucherPromotion() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -52,35 +56,23 @@ export default function VoucherPromotion() {
   }, [setBreadcrumbs]);
 
   const [data, setData] = useState<VoucherPromotionSimple[]>([]);
-  const [pagination, setPagination] = useState<number[]>([1]);
-  const [totalPage, setTotalPage] = useState<number>(1);
+  const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState(false);
-
   const searchParams = useSearchParams();
 
   const router = useRouter();
   const status = searchParams.get('status') ?? 'open';
-  const type = typeMapCode[searchParams.get('type') ?? 'all'];
+  const type = (searchParams.get('type') ?? 'all') as VoucherType;
   const page = parseInt(searchParams.get('page') ?? '1');
 
   const promotionId = searchParams.get('id') ?? undefined;
 
-  const filterType = filterMap[status];
+  const filterType = status as VoucherFilterType;
   const limit = 24;
 
-  const mapVouchers = (data: ApiVoucherPromotionSimple[]): VoucherPromotionSimple[] =>
-    data.map((item) => ({
-      id: item.MG_id,
-      startAt: item.MG_batDau,
-      endAt: item.MG_ketThuc,
-      type: typeMap[item.MG_loai],
-    }));
-
   const fetchData = useCallback(
-    (page: number, filterType: number, type: number, promotionId?: string) => {
-      setIsLoading(true);
-
+    (page: number, filterType: string, type: string, promotionId?: string) => {
       if (promotionId) {
         api
           .get(`vouchers/${promotionId}?filterType=${filterType}&type=${type}`)
@@ -90,20 +82,19 @@ export default function VoucherPromotion() {
               id: item.MG_id,
               startAt: item.MG_batDau,
               endAt: item.MG_ketThuc,
-              type: typeMap[item.MG_loai],
+              type: item.MG_loai,
             };
             setData([mapped]);
-            setPagination([]);
-            setTotalPage(1);
+            setPageNumbers([]);
+            setTotalPages(1);
             setTotalItems(1);
           })
           .catch(() => {
             setData([]);
-            setPagination([1]);
-            setTotalPage(1);
+            setPageNumbers([1]);
+            setTotalPages(1);
             setTotalItems(0);
-          })
-          .finally(() => setIsLoading(false));
+          });
 
         return;
       }
@@ -121,17 +112,16 @@ export default function VoucherPromotion() {
           const { data, metadata } = res.data;
 
           setData(mapVouchers(data));
-          setPagination(metadata.pagination);
-          setTotalPage(metadata.totalPage);
+          setPageNumbers(metadata.pagination);
+          setTotalPages(metadata.totalPage);
           setTotalItems(metadata.totalItems);
         })
         .catch(() => {
           setData([]);
-          setPagination([1]);
-          setTotalPage(1);
+          setPageNumbers([1]);
+          setTotalPages(1);
           setTotalItems(0);
-        })
-        .finally(() => setIsLoading(false));
+        });
     },
     []
   );
@@ -190,16 +180,21 @@ export default function VoucherPromotion() {
             </Button>
           </Link>
         </div>
-        <VoucherPromotionSearchBar onApply={handleSearch} onReset={handleClearSearch} />
-        <VoucherPromotionsTable
-          data={data}
-          loading={isLoading}
-          pagination={pagination}
-          totalPage={totalPage}
-          page={page}
-          onPageChange={handlePageChange}
-          total={0}
+        <VoucherPromotionSearchBar
+          initalcode={promotionId ?? ''}
+          onApply={handleSearch}
+          onReset={handleClearSearch}
         />
+        <VoucherPromotionsTable data={data} />
+
+        <div className="my-4">
+          <PaginationControls
+            pageNumbers={pageNumbers}
+            totalPages={totalPages}
+            currentPage={page}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     </div>
   );
