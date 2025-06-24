@@ -31,10 +31,10 @@ export function calculatePaginate(
 
 export interface PaginateResult<T> {
   data: T[];
-  metadata: {
+  paginationInfo: {
     totalItems: number;
-    totalPage: number;
-    pagination: number[];
+    totalPages: number;
+    pageNumbers: number[];
   };
 }
 
@@ -59,15 +59,15 @@ export async function paginateRawAggregate<T>({
   ]);
 
   const totalItems = countResult?.[0]?.count ?? 0;
-  const totalPage = Math.ceil(totalItems / limit);
-  const pagination = calculatePaginate(page, totalItems, limit);
+  const totalPages = Math.ceil(totalItems / limit);
+  const pageNumbers = calculatePaginate(page, totalItems, limit);
 
   return {
     data,
-    metadata: {
+    paginationInfo: {
       totalItems,
-      totalPage,
-      pagination,
+      totalPages,
+      pageNumbers,
     },
   };
 }
