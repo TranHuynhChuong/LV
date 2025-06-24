@@ -1,14 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-export default function RedirectToFirstPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace('/accounts/staffs');
-  }, []);
-
-  return null;
+export default function Page() {
+  redirect('/accounts/staffs');
 }
