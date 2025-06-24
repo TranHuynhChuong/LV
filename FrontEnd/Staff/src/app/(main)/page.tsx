@@ -1,231 +1,28 @@
-'use client';
+import HomePage from './_components/HomePage';
+import api from '@/lib/axiosServer';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import api from '@/lib/axiosClient';
+async function fetchHomeData() {
+  const [products, categories, promotions, vouchers, shipping, orders] = await Promise.all([
+    api.get('products/total'),
+    api.get('categories/total'),
+    api.get('promotions/total'),
+    api.get('vouchers/total'),
+    api.get('shipping/total'),
+    api.get('orders/total'),
+  ]);
 
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Package,
-  Tag,
-  Truck,
-  Percent,
-  ShoppingCart,
-  Clock,
-  TruckIcon,
-  XCircle,
-  TicketPercent,
-} from 'lucide-react';
-
-export default function Home() {
-  const { setBreadcrumbs } = useBreadcrumb();
-
-  const [totalProducts, setTotalProducts] = useState({
-    live: { total: 0, in: 0, out: 0 },
-    hidden: { total: 0, in: 0, out: 0 },
-  });
-  const [totalCategories, setTotalCategories] = useState(0);
-  const [totalValidPromotions, setTotalValidPromotions] = useState(0);
-  const [totalValidVouchers, setTotalValidVouchers] = useState(0);
-  const [totalShipping, setTotalShipping] = useState(0);
-  const [totalOrders, setTotalOrders] = useState({
-    pending: 0,
-    shipping: 0,
-    cancelRequest: 0,
-  });
-
-  useEffect(() => {
-    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }]);
-  }, [setBreadcrumbs]);
-
-  const fetchTotal = async () => {
-    try {
-      const [products, categories, promotions, vouchers, shipping] = await Promise.all([
-        api.get('products/total'),
-        api.get('categories/count'),
-        api.get('promotions/count'),
-        api.get('vouchers/count'),
-        api.get('shipping/count'),
-      ]);
-
-      setTotalProducts(products.data);
-      setTotalCategories(categories.data);
-      setTotalValidPromotions(promotions.data);
-      setTotalShipping(shipping.data);
-      setTotalValidVouchers(vouchers.data);
-    } catch (err) {
-      console.error('Lỗi khi tải tổng quan:', err);
-    }
+  return {
+    products: products.data,
+    categories: categories.data,
+    promotions: promotions.data,
+    vouchers: vouchers.data,
+    shipping: shipping.data,
+    orders: orders.data,
   };
+}
 
-  useEffect(() => {
-    fetchTotal();
-  }, []);
+export default async function Home() {
+  const data = await fetchHomeData();
 
-  const overviewItems = [
-    {
-      icon: <Percent />,
-      label: 'Khuyến mãi',
-      value: totalValidPromotions,
-      href: '/promotions',
-      description: 'Đang có hiệu lực',
-    },
-    {
-      icon: <TicketPercent />,
-      label: 'Mã giảm giá',
-      value: totalValidVouchers,
-      href: '/vouchers',
-      description: 'Đang có hiệu lực',
-    },
-    {
-      icon: <Tag />,
-      label: 'Thể loại',
-      value: totalCategories,
-      href: '/categories',
-      description: 'Đã thiết lập',
-    },
-    {
-      icon: <Truck />,
-      label: 'Phí vận chuyển',
-      value: totalShipping,
-      href: '/shipping',
-      description: 'Khu vực đã thiết lập',
-    },
-  ];
-
-  return (
-    <div className="p-4 space-y-3">
-      {/* Đơn hàng */}
-      <Card className=" transition-shadow">
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-muted rounded-full">
-              <ShoppingCart className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Đơn hàng</h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Link href="/orders?status=pending">
-              <div className="p-4 border rounded-lg transition cursor-pointer">
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-4 h-4" /> Chờ xác nhận
-                </p>
-                <p className="text-lg font-semibold ">{totalOrders.pending}</p>
-              </div>
-            </Link>
-
-            <Link href="/orders?status=shipping">
-              <div className="p-4 border rounded-lg  transition cursor-pointer">
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <TruckIcon className="w-4 h-4" /> Đang vận chuyển
-                </p>
-                <p className="text-lg font-semibold">{totalOrders.shipping}</p>
-              </div>
-            </Link>
-
-            <Link href="/orders?status=cancelRequest">
-              <div className="p-4 border rounded-lg transition cursor-pointer">
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <XCircle className="w-4 h-4" /> Yêu cầu hủy
-                </p>
-                <p className="text-lg font-semibold ">{totalOrders.cancelRequest}</p>
-              </div>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className=" transition-shadow">
-        <CardContent className=" space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-muted rounded-full">
-              <Package className=" w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Sản phẩm</h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2  gap-4">
-            {/* Sản phẩm đang hiển thị */}
-            <div className="p-4 border rounded-lg ">
-              <h3 className="text-base font-semibold  mb-2">Đang hoạt động</h3>
-              <div className="flex gap-2">
-                <Link
-                  className="p-4 border flex-1 rounded-lg"
-                  href="/products/list/live?status=all"
-                >
-                  <p className="text-xs text-muted-foreground">Tổng</p>
-                  <p className="text-base font-semibold">{totalProducts.live.total}</p>
-                </Link>
-                {/* <Link className="p-4 border flex-1 rounded-lg" href="/products/list/live?status=in">
-                  <p className="text-xs text-muted-foreground">Còn</p>
-                  <p className="text-base font-semibold">{totalProducts.live.in}</p>
-                </Link> */}
-                <Link
-                  className="p-4 border flex-1 rounded-lg"
-                  href="/products/list/live?status=out"
-                >
-                  <p className="text-xs text-muted-foreground">Hết hàng</p>
-                  <p className="text-base font-semibold">{totalProducts.live.out}</p>
-                </Link>
-              </div>
-            </div>
-
-            {/* Sản phẩm đã ẩn */}
-            <div className="p-4 border rounded-lg ">
-              <h3 className="text-base font-semibold  mb-2">Đã ẩn</h3>
-              <div className="flex gap-2">
-                <Link
-                  className="p-4 border flex-1 rounded-lg"
-                  href="/products/list/hidden?status=all"
-                >
-                  <p className="text-xs text-muted-foreground">Tổng</p>
-                  <p className="text-base font-semibold">{totalProducts.hidden.total}</p>
-                </Link>
-                {/* <Link
-                  className="p-4 border flex-1 rounded-lg"
-                  href="/products/list/hidden?status=in"
-                >
-                  <p className="text-xs text-muted-foreground">Còn</p>
-                  <p className="text-base font-semibold">{totalProducts.hidden.in}</p>
-                </Link> */}
-                <Link
-                  className="p-4 border flex-1 rounded-lg"
-                  href="/products/list/hidden?status=out"
-                >
-                  <p className="text-xs text-muted-foreground">Hết hàng</p>
-                  <p className="text-base font-semibold">{totalProducts.hidden.out}</p>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Các mục còn lại */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {overviewItems.map((item) => (
-          <Link key={item.label} href={item.href}>
-            <Card className="cursor-pointer  hover:bg-zinc-50 transition-shadow">
-              <CardContent className=" flex items-center gap-4">
-                <div className="p-2 bg-muted rounded-full">{item.icon}</div>
-                <div>
-                  <div>{item.label}</div>
-                  <div className="text-xl font-semibold">{item.value}</div>
-                  {item.description && (
-                    <div className="text-xs text-gray-500">{item.description}</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  return <HomePage data={data} />;
 }
