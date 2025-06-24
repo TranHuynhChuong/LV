@@ -1,13 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SanPham, SanPhamDocument } from './sanPham.schema';
+import { SanPham, SanPhamDocument, ProductStatus } from './sanPham.schema';
 import {
   paginateRawAggregate,
   PaginateResult,
 } from 'src/Util/paginateWithFacet';
 import type { ClientSession, PipelineStage } from 'mongoose';
 export type ProductListResults = PaginateResult<SanPhamDocument>;
+
+export enum ProductFilterType {
+  ShowAll = 'show-all',
+  ShowInStock = 'show-in-stock',
+  ShowOutOfStock = 'show-out-of-stock',
+
+  HiddenAll = 'hidden-all',
+  HiddenInStock = 'hidden-in-stock',
+  HiddenOutOfStock = 'hidden-out-of-stock',
+
+  AllAll = 'all-all',
+  AllInStock = 'all-in-stock',
+  AllOutOfStock = 'all-out-of-stock',
+
+  ExcludeActivePromotion = 'excludeActivePromotion',
+}
+
+export enum ProductSortType {
+  Latest = 'latest',
+  BestSelling = 'best-selling',
+  PriceAsc = 'price-asc',
+  PriceDesc = 'price-desc',
+}
 
 @Injectable()
 export class SanPhamRepository {
@@ -52,7 +75,7 @@ export class SanPhamRepository {
   ): Promise<SanPham | null> {
     return this.model
       .findOneAndUpdate(
-        { SP_id: id, SP_trangThai: { $ne: 0 } },
+        { SP_id: id, SP_trangThai: { $ne: ProductStatus.Deleted } },
         { $set: data },
         {
           new: true,
@@ -76,22 +99,23 @@ export class SanPhamRepository {
   }: {
     page: number;
     limit?: number;
-    sortType?: number;
-    filterType?: number;
+    sortType?: ProductSortType;
+    filterType?: ProductFilterType;
     categoryIds?: number[];
     keyword?: string;
   }): { dataPipeline: PipelineStage[]; countPipeline: PipelineStage[] } {
+    const excludeActivePromotion =
+      filterType === ProductFilterType.ExcludeActivePromotion;
     const search = this.getSearch(keyword);
-    const filter =
-      filterType === 0
-        ? this.getFilter(11, categoryIds)
-        : this.getFilter(filterType, categoryIds);
+    const filter = this.getFilter(filterType, categoryIds);
 
     const sort = this.getSort(sortType);
     const skip = (page - 1) * limit;
     const project = this.getProject();
 
-    const needDiscountEarly = sortType === 3 || sortType === 4;
+    const needDiscountEarly =
+      sortType === ProductSortType.PriceAsc ||
+      sortType === ProductSortType.PriceDesc;
 
     const preStages: PipelineStage[] = [];
     if (search) preStages.push({ $search: search });
@@ -100,7 +124,7 @@ export class SanPhamRepository {
     const dataPipeline: PipelineStage[] = [...preStages];
 
     if (needDiscountEarly) {
-      dataPipeline.push(...this.getDiscountLookupStage(filterType === 0));
+      dataPipeline.push(...this.buildPromotionStages(excludeActivePromotion));
     }
 
     if (sort && Object.keys(sort).length > 0) {
@@ -109,14 +133,14 @@ export class SanPhamRepository {
 
     const countPipeline = [
       ...preStages,
-      ...this.getDiscountLookupStage(filterType === 0),
+      ...this.buildPromotionStages(excludeActivePromotion),
       { $count: 'count' },
     ];
 
     dataPipeline.push({ $skip: skip }, { $limit: limit });
 
     if (!needDiscountEarly) {
-      dataPipeline.push(...this.getDiscountLookupStage(filterType === 0));
+      dataPipeline.push(...this.buildPromotionStages(excludeActivePromotion));
     }
 
     dataPipeline.push({ $project: project });
@@ -124,8 +148,8 @@ export class SanPhamRepository {
     return { dataPipeline, countPipeline };
   }
 
-  protected getDiscountLookupStage(
-    noDiscount: boolean = false
+  protected buildPromotionStages(
+    excludeActive: boolean = false
   ): PipelineStage[] {
     const now = new Date();
 
@@ -134,7 +158,7 @@ export class SanPhamRepository {
       { $eq: ['$CTKM_daXoa', false] },
     ];
 
-    if (!noDiscount) {
+    if (excludeActive) {
       matchCTKM.push({ $eq: ['$CTKM_tamNgung', false] });
     }
 
@@ -171,7 +195,7 @@ export class SanPhamRepository {
               },
             },
             { $unwind: '$km' },
-            ...(noDiscount
+            ...(excludeActive
               ? []
               : [
                   {
@@ -187,7 +211,7 @@ export class SanPhamRepository {
     ];
 
     // Nếu KHÔNG lấy sản phẩm khuyến mãi → loại bỏ các sản phẩm có khuyến mãi hiệu lực
-    if (noDiscount) {
+    if (excludeActive) {
       stages.push({
         $match: {
           $expr: { $eq: [{ $size: '$khuyenMai' }, 0] },
@@ -237,15 +261,17 @@ export class SanPhamRepository {
     return stages;
   }
 
-  protected getSort(sortType?: number): Record<string, any> | undefined {
+  protected getSort(
+    sortType?: ProductSortType
+  ): Record<string, any> | undefined {
     switch (sortType) {
-      case 1:
+      case ProductSortType.Latest:
         return { SP_id: -1 }; // mới nhất
-      case 2:
+      case ProductSortType.BestSelling:
         return { SP_daBan: -1, SP_id: -1 }; // doanh số
-      case 3:
+      case ProductSortType.PriceAsc:
         return { SP_giaGiam: 1, SP_id: -1 }; // giá tăng
-      case 4:
+      case ProductSortType.PriceDesc:
         return { SP_giaGiam: -1, SP_id: -1 }; // giá giảm
       default:
         return undefined;
@@ -253,29 +279,31 @@ export class SanPhamRepository {
   }
 
   protected getFilter(
-    filterType: number = 11,
+    filterType: ProductFilterType = ProductFilterType.AllAll,
     categoryIds?: number[]
   ): Record<string, any> {
     const filter: Record<string, any> = {};
-    // Tách trạng thái từ filterType
-    const statusType = Math.floor(filterType / 10); // 1: live, 2: hidden, 3: all
-    const stockType = filterType % 10; // 1: all, 2: in stock, 3: out of stock
 
-    // Trạng thái sản phẩm
-    if (statusType === 1 || statusType === 2) {
-      filter.SP_trangThai = statusType;
-    } else if (statusType === 3) {
-      filter.SP_trangThai = { $in: [1, 2] };
+    // Trạng thái
+    if (filterType.startsWith('show')) {
+      filter.SP_trangThai = ProductStatus.Show;
+    } else if (filterType.startsWith('hidden')) {
+      filter.SP_trangThai = ProductStatus.Hidden;
+    } else if (filterType.startsWith('all')) {
+      filter.SP_trangThai = { $in: [ProductStatus.Show, ProductStatus.Hidden] };
     }
 
     // Tồn kho
-    if (stockType === 2) {
+    if (filterType.endsWith('in-stock')) {
       filter.SP_tonKho = { $gt: 0 };
-    } else if (stockType === 3) {
+    } else if (filterType.endsWith('out-of-stock')) {
       filter.SP_tonKho = 0;
     }
 
-    // Lọc theo thể loại (nếu có)
+    if (filterType === ProductFilterType.ExcludeActivePromotion) {
+      filter.SP_trangThai = ProductStatus.Show;
+    }
+    // Thể loại
     if (Array.isArray(categoryIds) && categoryIds.length > 0) {
       filter.TL_id = { $in: categoryIds };
     }
@@ -334,8 +362,8 @@ export class SanPhamRepository {
 
   async findAll(
     page: number,
-    sortType?: number,
-    filterType?: number,
+    sortType?: ProductSortType,
+    filterType?: ProductFilterType,
     limit = 24
   ): Promise<ProductListResults> {
     const { dataPipeline, countPipeline } = this.buildSplitPipelines({
@@ -356,8 +384,8 @@ export class SanPhamRepository {
 
   async search(
     page: number,
-    sortType?: number,
-    filterType?: number,
+    sortType?: ProductSortType,
+    filterType?: ProductFilterType,
     limit = 24,
     keyword?: string,
     categoryIds?: number[]
@@ -380,10 +408,10 @@ export class SanPhamRepository {
     });
   }
 
-  async findByIds(ids: number[]): Promise<SanPham[]> {
+  async findAllShowByIds(ids: number[]): Promise<SanPham[]> {
     const project = this.getProject();
-    const filter = this.getFilter(11);
-    const discountLookupStage = this.getDiscountLookupStage(false);
+    const filter = this.getFilter(ProductFilterType.ShowAll);
+    const discountLookupStage = this.buildPromotionStages();
     return this.model
       .aggregate([
         {
@@ -411,19 +439,19 @@ export class SanPhamRepository {
   async findById(
     id: number,
     mode: 'default' | 'full' | 'search' = 'default',
-    filterType?: number
+    filterType?: ProductFilterType
   ): Promise<any> {
-    const discountStages = this.getDiscountLookupStage(false);
-
+    const filter = this.getFilter(filterType);
+    const discountStages = this.buildPromotionStages();
     if (mode === 'search') {
-      const filter = {
+      const searchFilter = {
         SP_id: id,
         ...this.getFilter(filterType),
       };
       const project = this.getProject();
       return this.model
         .aggregate([
-          { $match: filter },
+          { $match: searchFilter },
           ...discountStages,
           { $project: project },
         ])
@@ -433,7 +461,12 @@ export class SanPhamRepository {
     if (mode === 'full') {
       return this.model
         .aggregate([
-          { $match: { SP_id: id, SP_trangThai: { $ne: 0 } } },
+          {
+            $match: {
+              SP_id: id,
+              ...filter,
+            },
+          },
           {
             $lookup: {
               from: 'theloais',
@@ -470,7 +503,7 @@ export class SanPhamRepository {
 
     // mode === 'default'
     return this.model
-      .findOne({ SP_id: id, SP_trangThai: { $ne: 0 } })
+      .findOne({ SP_id: id, SP_trangThai: { $ne: ProductStatus.Deleted } })
       .select('-SP_eTomTat')
       .lean()
       .exec();
@@ -541,7 +574,7 @@ export class SanPhamRepository {
 
   async findByVector(queryVector: number[], limit = 5): Promise<any[]> {
     const project = this.getProject();
-    const discountStages = this.getDiscountLookupStage(false);
+    const discountStages = this.buildPromotionStages();
     return this.model
       .aggregate([
         {
@@ -555,7 +588,7 @@ export class SanPhamRepository {
         },
         {
           $match: {
-            SP_trangThai: 1,
+            SP_trangThai: ProductStatus.Show,
           },
         },
         { $limit: limit },
@@ -576,13 +609,25 @@ export class SanPhamRepository {
   }> {
     const [liveTotal, liveIn, liveOut, hiddenTotal, hiddenIn, hiddenOut] =
       await Promise.all([
-        this.model.countDocuments({ SP_trangThai: 1 }),
-        this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: { $gt: 0 } }),
-        this.model.countDocuments({ SP_trangThai: 1, SP_tonKho: 0 }),
+        this.model.countDocuments({ SP_trangThai: ProductStatus.Show }),
+        this.model.countDocuments({
+          SP_trangThai: ProductStatus.Show,
+          SP_tonKho: { $gt: 0 },
+        }),
+        this.model.countDocuments({
+          SP_trangThai: ProductStatus.Show,
+          SP_tonKho: 0,
+        }),
 
-        this.model.countDocuments({ SP_trangThai: 2 }),
-        this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: { $gt: 0 } }),
-        this.model.countDocuments({ SP_trangThai: 2, SP_tonKho: 0 }),
+        this.model.countDocuments({ SP_trangThai: ProductStatus.Hidden }),
+        this.model.countDocuments({
+          SP_trangThai: ProductStatus.Hidden,
+          SP_tonKho: { $gt: 0 },
+        }),
+        this.model.countDocuments({
+          SP_trangThai: ProductStatus.Hidden,
+          SP_tonKho: 0,
+        }),
       ]);
 
     return {
@@ -591,12 +636,16 @@ export class SanPhamRepository {
     };
   }
 
-  async count(filterType?: number): Promise<number> {
+  async count(filterType?: ProductStatus | 'all'): Promise<number> {
     const filter: any = {};
 
-    if (filterType === 1) filter.SP_trangThai = 1;
-    else if (filterType === 2) filter.SP_trangThai = 2;
-    else filter.SP_trangThai = { $in: [1, 2] };
+    if (filterType === ProductStatus.Show) {
+      filter.SP_trangThai = ProductStatus.Show;
+    } else if (filterType === ProductStatus.Hidden) {
+      filter.SP_trangThai = ProductStatus.Hidden;
+    } else {
+      filter.SP_trangThai = { $in: [ProductStatus.Show, ProductStatus.Hidden] };
+    }
 
     return this.model.countDocuments(filter);
   }

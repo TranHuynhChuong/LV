@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -8,6 +9,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
+import { ProductStatus } from './sanPham.schema';
 
 export class CreateDto {
   @Transform(({ value }) => {
@@ -27,10 +29,9 @@ export class CreateDto {
   @IsArray()
   TL_id: number[];
 
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
+  @IsEnum(ProductStatus)
   @IsOptional()
-  SP_trangThai?: number;
+  SP_trangThai?: ProductStatus;
 
   @IsString()
   @MaxLength(120)

@@ -33,6 +33,12 @@ export class LichSuThaoTacSP {
 export const LichSuThaoTacSPSchema =
   SchemaFactory.createForClass(LichSuThaoTacSP);
 
+export enum ProductStatus {
+  Show = 'Hien',
+  Hidden = 'An',
+  Deleted = 'daXoa',
+}
+
 @Schema()
 export class SanPham {
   @Prop({ type: Number, required: true, unique: true })
@@ -41,8 +47,8 @@ export class SanPham {
   @Prop({ type: [Number], required: true })
   TL_id: number[];
 
-  @Prop({ type: Number, default: 1 })
-  SP_trangThai: number;
+  @Prop({ type: String, enum: ProductStatus, default: ProductStatus.Show })
+  SP_trangThai: ProductStatus;
 
   @Prop({ type: String, required: true, maxlength: 120 })
   SP_ten: string;

@@ -3,8 +3,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type DonHangDocument = DonHang & Document;
-export type ChiTietDonHangDocument = ChiTietDonHang & Document;
-export type MaGiamDonHangDocument = MaGiamDonHang & Document;
 
 @Schema()
 export class LichSuThaoTacDH {
@@ -40,6 +38,16 @@ export class HoaDon {
 
 export const HoaDonSchema = SchemaFactory.createForClass(HoaDon);
 
+export enum OrderStatus {
+  Pendding = 'ChoXacNhan', // Chờ xác nhận
+  ToShip = 'ChoVanChuyen', // Chờ vận chuyển (Đã xác nhận)
+  Shipping = 'DangVanChuyen', // Đang vận chuyển (Đã xác nhận vận chuyển)
+  Complete = 'GiaoThanhCong', // Đã giao hàng thành công
+  InComplete = 'GiaoThatBai', // Đã giao hàng không thành công
+  CancelRequest = 'YeuCauHuy', // Yêu cầu hủy hàng
+  Canceled = 'DaHuy', // Đã xác nhận hủy
+}
+
 @Schema()
 export class DonHang {
   @Prop({ type: String, required: true, unique: true, maxlength: 12 })
@@ -57,24 +65,20 @@ export class DonHang {
   @Prop({ type: Number, required: true })
   DH_phiVC: number;
 
-  // 1: Chờ xác nhận
-  // 2: Chờ vận chuyển (Đã xác nhận)
-  // 3: Đang vận chuyển (Đã xác nhận vận chuyển)
-  // 4: Đã giao hàng thành công (Đã giao hàng)
-  // 5: Đã giao hàng không thành công (Đã giao hàng)
-  // 6: Yêu cầu hủy hàng (Chờ xác nhận hủy)
-  // 7: Đã xác nhận hủy
-  @Prop({ type: Number, required: true, default: 0 })
-  DH_trangThai: number;
+  @Prop({
+    type: String,
+    enum: OrderStatus,
+    required: true,
+    default: OrderStatus.Pendding,
+  })
+  DH_trangThai: OrderStatus;
 
   @Prop({ type: [LichSuThaoTacDHSchema] })
   lichSuThaoTac: LichSuThaoTacDH[];
 
-  //Có thể có hoặc không
   @Prop({ type: Number, required: false })
   KH_id?: number;
 
-  //Có thể có hoặc không
   @Prop({ type: String, required: false })
   KH_email?: string;
 
@@ -97,39 +101,3 @@ DonHangSchema.pre('save', function (next) {
   }
   next();
 });
-
-@Schema()
-export class ChiTietDonHang {
-  @Prop({ type: String, required: true })
-  DH_id: string;
-
-  @Prop({ type: Number, required: true })
-  SP_id: number;
-
-  @Prop({ type: Number, required: true })
-  CTDH_soLuong: number;
-
-  @Prop({ type: Number, required: true })
-  CTDH_giaNhap: number;
-
-  @Prop({ type: Number, required: true })
-  CTDH_giaBan: number;
-
-  @Prop({ type: Number, required: true })
-  CTDH_giaMua: number;
-}
-
-export const ChiTietDonHangSchema =
-  SchemaFactory.createForClass(ChiTietDonHang);
-ChiTietDonHangSchema.index({ DH_id: 1, SP_id: 1 }, { unique: true });
-
-@Schema()
-export class MaGiamDonHang {
-  @Prop({ type: String, required: true })
-  DH_id: string;
-
-  @Prop({ type: String, required: true })
-  MG_id: string;
-}
-export const MaGiamDonHangSchema = SchemaFactory.createForClass(MaGiamDonHang);
-MaGiamDonHangSchema.index({ DH_id: 1, MG_id: 1 }, { unique: true });

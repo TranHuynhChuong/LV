@@ -4,6 +4,18 @@ import { MaGiam, MaGiamDocument } from './maGiam.schema';
 import { Injectable } from '@nestjs/common';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
+export enum VoucherFilterType {
+  Expired = 'expired',
+  NotEnded = 'notEnded',
+  Active = 'active',
+}
+
+export enum VoucherType {
+  Shipping = 'shipping',
+  Order = 'order',
+  All = 'all',
+}
+
 @Injectable()
 export class MaGiamRepository {
   constructor(
@@ -12,23 +24,28 @@ export class MaGiamRepository {
   ) {}
 
   protected getFilter(
-    filterType: number = 1,
-    type: number = 0
+    filterType?: VoucherFilterType,
+    type?: VoucherType
   ): Record<string, any> {
     const filter: Record<string, any> = {};
     const now = new Date();
 
-    if (filterType === 1) {
-      filter.MG_ketThuc = { $gte: now }; // Chưa kết thúc
-    } else if (filterType === 0) {
-      filter.MG_ketThuc = { $lt: now }; // Đã hết hạn
-    } else if (filterType === 2) {
-      // Đang hiệu lực
-      filter.MG_batDau = { $lte: now };
-      filter.MG_ketThuc = { $gte: now };
+    switch (filterType) {
+      case VoucherFilterType.NotEnded:
+        filter.MG_ketThuc = { $gte: now };
+        break;
+
+      case VoucherFilterType.Expired:
+        filter.MG_ketThuc = { $lt: now };
+        break;
+
+      case VoucherFilterType.Active:
+        filter.MG_batDau = { $lte: now };
+        filter.MG_ketThuc = { $gte: now };
+        break;
     }
 
-    if (type !== 0) {
+    if (type !== VoucherType.All) {
       filter.MG_loai = type;
     }
 
@@ -43,8 +60,8 @@ export class MaGiamRepository {
   }: {
     page: number;
     limit: number;
-    filterType?: number;
-    type?: number;
+    filterType?: VoucherFilterType;
+    type?: VoucherType;
   }) {
     const filter = this.getFilter(filterType, type);
     const dataPipeline: PipelineStage[] = [
@@ -74,7 +91,7 @@ export class MaGiamRepository {
   }
 
   async findAllValid() {
-    const filter = this.getFilter(2);
+    const filter = this.getFilter(VoucherFilterType.Active);
 
     return this.MaGiamModel.find(filter)
       .select('-lichSuThaoTac')
@@ -88,8 +105,8 @@ export class MaGiamRepository {
 
   async findById(
     id: string,
-    filterType?: number,
-    type?: number
+    filterType?: VoucherFilterType,
+    type?: VoucherType
   ): Promise<MaGiam | null> {
     const filter = this.getFilter(filterType, type);
 

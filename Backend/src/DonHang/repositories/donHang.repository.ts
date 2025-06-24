@@ -5,61 +5,38 @@ import { Model, ClientSession, PipelineStage } from 'mongoose';
 import {
   DonHang,
   DonHangDocument,
-  ChiTietDonHang,
-  ChiTietDonHangDocument,
-  MaGiamDonHang,
-  MaGiamDonHangDocument,
-} from './donHang.schema';
+  OrderStatus,
+} from '../schemas/donHang.schema';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
+
+export enum OrderFilterType {
+  All = 'All',
+  Pendding = 'Pendding', // Chờ xác nhận
+  Toship = 'Toship', // Chờ vận chuyển (Đã xác nhận)
+  Shipping = 'Shipping', // Đang vận chuyển (Đã xác nhận vận chuyển)
+  Complete = 'Complete', // Đã giao hàng thành công
+  InComplete = 'InComplete', // Đã giao hàng không thành công
+  CancelRequest = 'CancelRequest', // Yêu cầu hủy hàng
+  Canceled = 'Canceled', // Đã xác nhận hủy
+}
 
 @Injectable()
 export class DonHangRepository {
   constructor(
     @InjectModel(DonHang.name)
-    private readonly donHangModel: Model<DonHangDocument>,
-    @InjectModel(ChiTietDonHang.name)
-    private readonly chiTietModel: Model<ChiTietDonHangDocument>,
-    @InjectModel(MaGiamDonHang.name)
-    private readonly maGiamModel: Model<MaGiamDonHangDocument>
+    private readonly DonHangModel: Model<DonHangDocument>
   ) {}
 
   // ======================== Tạo đơn hàng ==================== //
   // Tạo đơn hàng
-  async createDonHang(data: Partial<DonHang>, session?: ClientSession) {
-    return this.donHangModel
-      .create([{ ...data }], { session })
-      .then((res) => res[0]);
-  }
-
-  // Tạo chi tiết đơn hàng
-  async createChiTietDonHang(
-    dhId: string,
-    chiTiet: Partial<ChiTietDonHang>[],
-    session?: ClientSession
-  ) {
-    const data = chiTiet.map((ct) => ({
-      DH_id: dhId,
-      ...ct,
-    }));
-    return this.chiTietModel.insertMany(data, { session });
-  }
-
-  // Tạo mã giảm giá đơn hàng
-  async createMaGiamDonHang(
-    dhId: string,
-    mgIds: string[],
-    session?: ClientSession
-  ) {
-    const data = mgIds.map((mgId) => ({
-      DH_id: dhId,
-      MG_id: mgId,
-    }));
-    return this.maGiamModel.insertMany(data, { session });
+  async create(data: Partial<DonHang>, session?: ClientSession) {
+    return this.DonHangModel.create([{ ...data }], { session }).then(
+      (res) => res[0]
+    );
   }
 
   async findLastId(session: ClientSession): Promise<string | null> {
-    const lastDonHang = await this.donHangModel
-      .findOne({}, {}, { session }) // truyền session ở đây
+    const lastDonHang = await this.DonHangModel.findOne({}, {}, { session }) // truyền session ở đây
       .sort({ DH_id: -1 })
       .select('DH_id')
       .lean();
@@ -224,12 +201,12 @@ export class DonHangRepository {
   }
 
   protected getFilter(
-    filterType: number = 0,
+    filterType?: OrderFilterType,
     userId?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
 
-    if (filterType !== 0) {
+    if (filterType !== OrderFilterType.All) {
       filter.DH_trangThai = filterType;
     }
 
@@ -240,10 +217,10 @@ export class DonHangRepository {
     return filter;
   }
 
-  async getAllDonhang(
+  async findAll(
     page: number,
     limit: number = 24,
-    filterType: number = 0,
+    filterType?: OrderFilterType,
     userId?: number
   ) {
     const filter = this.getFilter(filterType, userId);
@@ -255,7 +232,7 @@ export class DonHangRepository {
     dataPipeline.push({ $skip: skip }, { $limit: limit });
 
     return paginateRawAggregate({
-      model: this.donHangModel,
+      model: this.DonHangModel,
       page,
       limit,
       dataPipeline,
@@ -263,29 +240,26 @@ export class DonHangRepository {
     });
   }
 
-  async getDetailDonhang(
-    orderId: string,
-    filterType: number = 0
-  ): Promise<any> {
+  async findById(orderId: string, filterType?: OrderFilterType): Promise<any> {
     const filter = this.getFilter(filterType);
     const pipeline: PipelineStage[] = [
       { $match: { DH_id: orderId } },
       ...this.getOrderPipeline(filter),
     ];
 
-    const result = await this.donHangModel.aggregate(pipeline).exec();
+    const result = await this.DonHangModel.aggregate(pipeline).exec();
     return result && result.length > 0 ? result[0] : null;
   }
 
   async getById(id: string): Promise<DonHang | null> {
-    return this.donHangModel.findOne({ DH_id: id }).exec();
+    return this.DonHangModel.findOne({ DH_id: id }).exec();
   }
   // ================================================================= //
   // ============================Cập nhật============================= //
 
-  async updateTrangThai(
+  async update(
     DH_id: string,
-    status: number,
+    status: OrderStatus,
     activityLog?: any
   ): Promise<DonHang | null> {
     const updateQuery: any = {
@@ -302,8 +276,46 @@ export class DonHangRepository {
       };
     }
 
-    return this.donHangModel.findOneAndUpdate({ DH_id }, updateOps, {
+    return this.DonHangModel.findOneAndUpdate({ DH_id }, updateOps, {
       new: true,
     });
+  }
+
+  async countAll(): Promise<{
+    total: number;
+    pending: number;
+    toship: number;
+    shipping: number;
+    complete: number;
+    cancelrequest: number;
+  }> {
+    const [total, pending, toship, shipping, complete, cancelrequest] =
+      await Promise.all([
+        this.DonHangModel.countDocuments(),
+        this.DonHangModel.countDocuments({
+          DH_trangThai: OrderStatus.Pendding,
+        }),
+        this.DonHangModel.countDocuments({
+          DH_trangThai: OrderStatus.ToShip,
+        }),
+        this.DonHangModel.countDocuments({
+          DH_trangThai: OrderStatus.Shipping,
+        }),
+        this.DonHangModel.countDocuments({
+          DH_trangThai: { $in: [OrderStatus.Complete, OrderStatus.InComplete] },
+        }),
+        this.DonHangModel.countDocuments({
+          DH_trangThai: OrderStatus.CancelRequest,
+        }),
+      ]);
+
+    return {
+      total,
+      pending,
+      toship,
+      shipping,
+      complete,
+      cancelrequest,
+    };
   }
 }

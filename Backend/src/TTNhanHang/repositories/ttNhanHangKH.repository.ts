@@ -4,41 +4,36 @@ import { Model, ClientSession } from 'mongoose';
 import {
   TTNhanHangKH,
   TTNhanHangKHDocument,
-  TTNhanHangDH,
-  TTNhanHangDHDocument,
-} from './ttNhanhang.schema';
+} from '../schemas/ttNhanhangKH.schema';
 
 @Injectable()
-export class TTNhanHangRepository {
+export class TTNhanHangKHRepository {
   constructor(
     @InjectModel(TTNhanHangKH.name)
-    private readonly NHkhachHangModel: Model<TTNhanHangKHDocument>,
-
-    @InjectModel(TTNhanHangDH.name)
-    private readonly NHdonHangModel: Model<TTNhanHangDHDocument>
+    private readonly NHkhachHangModel: Model<TTNhanHangKHDocument>
   ) {}
 
   // ========== TTNhanHangKH ==========
 
-  async createKH(data: Partial<TTNhanHangKH>, session?: ClientSession) {
+  async create(data: Partial<TTNhanHangKH>, session?: ClientSession) {
     return this.NHkhachHangModel.create([{ ...data }], { session }).then(
       (res) => res[0]
     );
   }
 
-  async findAllKHByKHId(KH_id: number, session?: ClientSession) {
+  async findAll(KH_id: number, session?: ClientSession) {
     return this.NHkhachHangModel.find({ KH_id })
       .session(session ?? null)
       .lean();
   }
 
-  async findKHById(NH_id: number, KH_id: number, session?: ClientSession) {
+  async findById(NH_id: number, KH_id: number, session?: ClientSession) {
     return this.NHkhachHangModel.findOne({ NH_id, KH_id })
       .session(session ?? null)
       .lean();
   }
 
-  async updateKH(
+  async update(
     NH_id: number,
     KH_id: number,
     data: Partial<TTNhanHangKH>,
@@ -67,32 +62,16 @@ export class TTNhanHangRepository {
     );
   }
 
-  async deleteKH(NH_id: number, KH_id: number, session?: ClientSession) {
+  async delete(NH_id: number, KH_id: number, session?: ClientSession) {
     return this.NHkhachHangModel.deleteOne({ NH_id, KH_id }, { session });
   }
 
-  async findLastIdNH(KH_id: number, session?: ClientSession) {
+  async findLastId(KH_id: number, session?: ClientSession) {
     const last = await this.NHkhachHangModel.findOne({ KH_id: KH_id })
       .sort({ NH_id: -1 })
       .select('NH_id')
       .session(session ?? null)
       .lean();
     return last?.NH_id ?? 0;
-  }
-
-  // ========== TTNhanHangDH ==========
-
-  async createDH(data: Partial<TTNhanHangDH>, session?: ClientSession) {
-    return this.NHdonHangModel.create([{ ...data }], { session }).then(
-      (res) => res[0]
-    );
-  }
-
-  async getByDHId(DH_id: string) {
-    return this.NHdonHangModel.findOne({ DH_id }).exec();
-  }
-
-  async getByTId(T_id: number) {
-    return this.NHdonHangModel.find({ T_id }).exec();
   }
 }

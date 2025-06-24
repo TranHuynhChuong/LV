@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TTNhanHangController } from './ttNhanHang.controller';
 import { TTNhanHangDHService, TTNhanHangKHService } from './ttNhanHang.service';
-import { TTNhanHangRepository } from './ttNhanHang.repository';
+import { TTNhanHangRepository } from './repositories/ttNhanHangDH.repository';
 import {
   TTNhanHangDH,
   TTNhanHangDHSchema,
   TTNhanHangKH,
   TTNhanHangKHSchema,
-} from './ttNhanhang.schema';
+} from './schemas/ttNhanhangKH.schema';
 
 @Module({
   imports: [

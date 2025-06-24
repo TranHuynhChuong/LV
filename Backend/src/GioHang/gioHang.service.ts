@@ -93,7 +93,7 @@ export class GioHangService {
   }
 
   async findUserCarts(KH_id: number): Promise<CartReturn[]> {
-    const carts = await this.GioHang.findAllUser(KH_id);
+    const carts = await this.GioHang.findAll(KH_id);
     return this.getCarts(carts);
   }
 

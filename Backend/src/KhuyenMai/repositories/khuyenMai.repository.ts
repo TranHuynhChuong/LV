@@ -1,11 +1,6 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
-import {
-  KhuyenMai,
-  KhuyenMaiDocument,
-  ChiTietKhuyenMai,
-  ChiTietKhuyenMaiDocument,
-} from './khuyenMai.schema';
+import { KhuyenMai, KhuyenMaiDocument } from '../schemas/khuyenMai.schema';
 import { Injectable } from '@nestjs/common';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
@@ -19,14 +14,8 @@ export enum PromotionFilterType {
 export class KhuyenMaiRepository {
   constructor(
     @InjectModel(KhuyenMai.name)
-    private readonly khuyenMaiModel: Model<KhuyenMaiDocument>,
-
-    @InjectModel(ChiTietKhuyenMai.name)
-    private readonly chiTietModel: Model<ChiTietKhuyenMaiDocument>
+    private readonly KhuyenMaiModel: Model<KhuyenMaiDocument>
   ) {}
-  // =============================== //
-  // ========== KhuyenMai ========== //
-  // =============================== //
 
   protected getFilter(filterType?: PromotionFilterType): Record<string, any> {
     const now = new Date();
@@ -45,7 +34,7 @@ export class KhuyenMaiRepository {
     }
   }
 
-  async findAllKhuyenMai({
+  async findAll({
     page,
     limit,
     filterType,
@@ -95,7 +84,7 @@ export class KhuyenMaiRepository {
     ];
 
     return paginateRawAggregate<KhuyenMaiDocument>({
-      model: this.khuyenMaiModel,
+      model: this.KhuyenMaiModel,
       page,
       limit,
       dataPipeline,
@@ -103,11 +92,11 @@ export class KhuyenMaiRepository {
     });
   }
 
-  async findExisting(id: string) {
-    return this.khuyenMaiModel.findOne({ KM_id: id }).exec();
+  async findById(id: string) {
+    return this.KhuyenMaiModel.findOne({ KM_id: id }).exec();
   }
 
-  async findKhuyenMaiById(
+  async findAndGetDetailById(
     KM_id: string,
     filterType?: PromotionFilterType
   ): Promise<KhuyenMaiDocument | null> {
@@ -212,16 +201,16 @@ export class KhuyenMaiRepository {
       },
     ];
 
-    const result = await this.khuyenMaiModel.aggregate(pipeline);
+    const result = await this.KhuyenMaiModel.aggregate(pipeline);
     return (result[0] ?? null) as KhuyenMaiDocument | null;
   }
 
-  async createKhuyenMai(data: Partial<KhuyenMai>) {
-    return this.khuyenMaiModel.create(data);
+  async create(data: Partial<KhuyenMai>) {
+    return this.KhuyenMaiModel.create(data);
   }
 
-  async updateKhuyenMai(KM_id: string, update: Partial<KhuyenMai>) {
-    return this.khuyenMaiModel.findOneAndUpdate({ KM_id }, update, {
+  async update(KM_id: string, update: Partial<KhuyenMai>) {
+    return this.KhuyenMaiModel.findOneAndUpdate({ KM_id }, update, {
       new: true,
     });
   }
@@ -229,76 +218,9 @@ export class KhuyenMaiRepository {
   async countValid(): Promise<number> {
     const now = new Date();
     // Assuming you are using Mongoose or similar ODM
-    return this.khuyenMaiModel.countDocuments({
+    return this.KhuyenMaiModel.countDocuments({
       KM_batDau: { $lte: now },
       KM_ketThuc: { $gte: now },
     });
-  }
-
-  // ========== ChiTietKhuyenMai ==========
-
-  async findValidChiTietKhuyenMai(SPIds: number[]) {
-    const now = new Date();
-
-    return this.chiTietModel.aggregate([
-      {
-        $match: {
-          SP_id: { $in: SPIds },
-          CTKM_daXoa: false,
-          CTKM_tamNgung: false,
-        },
-      },
-      {
-        $lookup: {
-          from: 'khuyenmais',
-          localField: 'KM_id',
-          foreignField: 'KM_id',
-          as: 'khuyenMai',
-        },
-      },
-      { $unwind: '$khuyenMai' },
-      {
-        $match: {
-          'khuyenMai.KM_batDau': { $lte: now },
-          'khuyenMai.KM_ketThuc': { $gte: now },
-        },
-      },
-      {
-        $project: {
-          KM_id: 1,
-          SP_id: 1,
-          CTKM_theoTyLe: 1,
-          CTKM_giaTri: 1,
-          CTKM_tamNgung: 1,
-        },
-      },
-    ]);
-  }
-
-  async findChiTietKMByKMid(KM_id: string): Promise<ChiTietKhuyenMai[]> {
-    return this.chiTietModel.find({ KM_id, CTKM_daXoa: false }).lean().exec();
-  }
-
-  async createChiTietKM(data: Partial<ChiTietKhuyenMai>[]) {
-    return this.chiTietModel.insertMany(data);
-  }
-
-  async updateChiTietKM(
-    SP_id: number,
-    KM_id: string,
-    update: Partial<ChiTietKhuyenMai>
-  ) {
-    return this.chiTietModel.findOneAndUpdate(
-      { SP_id: SP_id, KM_id, CTKM_daXoa: false },
-      update,
-      { new: true }
-    );
-  }
-
-  async deleteOneChiTietKM(KM_id: string, SP_id: number) {
-    return this.chiTietModel.updateOne(
-      { KM_id, SP_id: SP_id },
-      { CTKM_daXoa: true }
-    );
   }
 }

@@ -4,7 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MaGiamRepository } from './maGiam.repository';
+import {
+  MaGiamRepository,
+  VoucherFilterType,
+  VoucherType,
+} from './maGiam.repository';
 import { MaGiam } from './maGiam.schema';
 import { CreateDto, UpdateDto } from './maGiam.dto';
 import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
@@ -65,8 +69,8 @@ export class MaGiamService {
   async getAll(params: {
     page: number;
     limit: number;
-    filterType?: number;
-    type?: number;
+    filterType?: VoucherFilterType;
+    type?: VoucherType;
   }) {
     return this.MaGiam.findAll(params);
   }
@@ -76,7 +80,11 @@ export class MaGiamService {
   }
 
   // =======================Lấy chi tiết mã giảm theo id==========================
-  async getById(id: string, filterType?: number, type?: number): Promise<any> {
+  async getById(
+    id: string,
+    filterType?: VoucherFilterType,
+    type?: VoucherType
+  ): Promise<any> {
     const result: any = await this.MaGiam.findById(id, filterType, type);
     if (!result) {
       throw new NotFoundException();
@@ -89,13 +97,9 @@ export class MaGiamService {
   }
 
   // ==================== Cập nhật mã giảm =======================================
-  async update(
-    id: string,
-    newData: UpdateDto,
-    filterType?: number
-  ): Promise<MaGiam> {
+  async update(id: string, newData: UpdateDto): Promise<MaGiam> {
     // Tìm bản ghi hiện tại theo id
-    const current = await this.MaGiam.findById(id, filterType);
+    const current = await this.MaGiam.findById(id);
     if (!current) {
       throw new NotFoundException();
     }

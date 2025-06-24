@@ -1,15 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import {
-  KhuyenMai,
-  KhuyenMaiSchema,
-  ChiTietKhuyenMai,
-  ChiTietKhuyenMaiSchema,
-} from './khuyenMai.schema';
-import { KhuyenMaiRepository } from './khuyenMai.repository';
+import { KhuyenMai, KhuyenMaiSchema } from './schemas/khuyenMai.schema';
+import { KhuyenMaiRepository } from './repositories/khuyenMai.repository';
 import { KhuyenMaiService, KhuyenMaiUtilService } from './khuyenMai.service';
 import { KhuyenMaiController } from './khuyenMai.controller';
 import { NguoiDungModule } from 'src/NguoiDung/nguoiDung.module';
+import {
+  ChiTietKhuyenMai,
+  ChiTietKhuyenMaiSchema,
+} from './schemas/chiTietKhuyenMai.schema';
 
 @Module({
   imports: [

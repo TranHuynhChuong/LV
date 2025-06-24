@@ -5,9 +5,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { SanPhamRepository } from './sanPham.repository';
+import {
+  ProductFilterType,
+  ProductSortType,
+  SanPhamRepository,
+} from './sanPham.repository';
 import { TransformService } from '../Util/transform.service';
-import { SanPham, AnhSP } from './sanPham.schema';
+import { SanPham, AnhSP, ProductStatus } from './sanPham.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
 import { CreateDto, UpdateDto } from './sanPham.dto';
 import { NhanVienUtilService } from 'src/NguoiDung/NhanVien/nhanVien.service';
@@ -42,7 +46,7 @@ export class SanPhamUtilService {
   constructor(private readonly SanPham: SanPhamRepository) {}
 
   async findByIds(ids: number[]): Promise<any[]> {
-    const result = await this.SanPham.findByIds(ids);
+    const result = await this.SanPham.findAllShowByIds(ids);
     return result;
   }
 
@@ -293,14 +297,16 @@ export class SanPhamService {
 
   async findAll(options: {
     page?: number;
-    sortType?: number;
-    filterType?: number;
+    sortType?: ProductSortType;
+    filterType?: ProductFilterType;
     limit?: number;
-  }): Promise<{
-    data: any[];
-    metadata: any;
-  }> {
-    const { page = 1, sortType = 1, filterType, limit = 24 } = options;
+  }) {
+    const {
+      page = 1,
+      sortType = ProductSortType.Latest,
+      filterType,
+      limit = 24,
+    } = options;
 
     const result = await this.SanPham.findAll(
       page,
@@ -309,26 +315,20 @@ export class SanPhamService {
       limit
     );
 
-    return {
-      data: result.data,
-      metadata: result.metadata,
-    };
+    return result;
   }
 
   async search(options: {
     page?: number;
-    sortType?: number;
-    filterType?: number;
+    sortType?: ProductSortType;
+    filterType?: ProductFilterType;
     limit?: number;
     keyword?: string;
     categoryId?: number;
-  }): Promise<{
-    data: any[];
-    metadata: any;
-  }> {
+  }) {
     const {
       page = 1,
-      sortType = 1,
+      sortType = ProductSortType.Latest,
       filterType,
       limit = 24,
       keyword,
@@ -348,10 +348,7 @@ export class SanPhamService {
       categoryIds
     );
 
-    return {
-      data: result.data,
-      metadata: result.metadata,
-    };
+    return result;
   }
 
   async searchAutocomplete(keyword: string): Promise<string[]> {
@@ -367,7 +364,7 @@ export class SanPhamService {
   async findById(
     id: number,
     mode: 'default' | 'full' | 'search' = 'default',
-    filterType?: number
+    filterType?: ProductFilterType
   ): Promise<any> {
     const result: any = await this.SanPham.findById(id, mode, filterType);
     if (!result) {
@@ -406,7 +403,7 @@ export class SanPhamService {
     const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
 
     const deleted = await this.SanPham.update(id, {
-      SP_trangThai: 0,
+      SP_trangThai: ProductStatus.Deleted,
       lichSuThaoTac: lichSuThaoTac,
     });
     if (!deleted) {

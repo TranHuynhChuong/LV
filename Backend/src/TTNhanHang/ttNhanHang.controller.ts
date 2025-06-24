@@ -9,7 +9,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { TTNhanHangKHService } from './ttNhanHang.service';
-import { TTNhanHangKH } from './ttNhanhang.schema';
+import { TTNhanHangKH } from './schemas/ttNhanhangKH.schema';
 
 @Controller('api/addresses')
 export class TTNhanHangController {
@@ -32,10 +32,10 @@ export class TTNhanHangController {
 
   // GET /addresses/customer/:KH_ids
   @Get('/:KH_id')
-  async findAllByKHId(
+  async findAll(
     @Param('KH_id', ParseIntPipe) KH_id: number
   ): Promise<TTNhanHangKH[]> {
-    return this.service.findAllByKHId(KH_id);
+    return this.service.findAll(KH_id);
   }
 
   // PUT/addresses/:KH_id/:NH_id

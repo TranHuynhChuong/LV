@@ -17,6 +17,7 @@ import { CreateDto, UpdateDto } from './sanPham.dto';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 import { parsePositiveInt } from 'src/Util/convert';
+import { ProductFilterType, ProductSortType } from './sanPham.repository';
 
 @Controller('api/products')
 export class SanPhamController {
@@ -78,8 +79,8 @@ export class SanPhamController {
     @Query()
     query: {
       page?: string;
-      sortType?: string;
-      filterType?: string;
+      sortType?: ProductSortType;
+      filterType?: ProductFilterType;
       limit?: string;
       keyword?: string;
       categoryId?: string;
@@ -87,7 +88,7 @@ export class SanPhamController {
   ) {
     const {
       page = '1',
-      sortType = '1',
+      sortType,
       filterType,
       limit = '24',
       keyword,
@@ -95,8 +96,8 @@ export class SanPhamController {
     } = query;
     const params = {
       page: parsePositiveInt(page),
-      sortType: parsePositiveInt(sortType),
-      filterType: parsePositiveInt(filterType),
+      sortType: sortType,
+      filterType: filterType,
       limit: parsePositiveInt(limit),
       keyword: keyword,
       categoryId: parsePositiveInt(categoryId),
@@ -109,16 +110,16 @@ export class SanPhamController {
     @Query()
     query: {
       page?: string;
-      sortType?: string;
-      filterType?: string;
+      sortType?: ProductSortType;
+      filterType?: ProductFilterType;
       limit?: string;
     }
   ) {
-    const { page = '1', sortType = '1', filterType, limit = '24' } = query;
+    const { page = '1', sortType, filterType, limit = '24' } = query;
     const params = {
       page: parsePositiveInt(page),
-      sortType: parsePositiveInt(sortType),
-      filterType: parsePositiveInt(filterType),
+      sortType: sortType,
+      filterType: filterType,
       limit: parsePositiveInt(limit),
     };
     return this.service.findAll(params);
@@ -128,10 +129,10 @@ export class SanPhamController {
   @Get('/:id')
   findById(
     @Param('id', ParseIntPipe) id: number,
-    @Query('filterType') filterType: string,
+    @Query('filterType') filterType: ProductFilterType,
     @Query('mode') mode: 'default' | 'full' | 'search'
   ) {
-    return this.service.findById(id, mode, parsePositiveInt(filterType));
+    return this.service.findById(id, mode, filterType);
   }
 
   // Xóa sản phẩm (ẩn - soft delete)

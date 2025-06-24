@@ -12,17 +12,17 @@ import { KhuyenMaiService } from './khuyenMai.service';
 import { CreateDto, UpdateDto } from './khuyenMai.dto';
 import { XacThucGuard } from 'src/XacThuc/xacThuc.guard';
 import { parsePositiveInt } from 'src/Util/convert';
-import { PromotionFilterType } from './khuyenMai.repository';
+import { PromotionFilterType } from './repositories/khuyenMai.repository';
 
 @Controller('api/promotions')
 export class KhuyenMaiController {
-  constructor(private readonly khuyenMaiService: KhuyenMaiService) {}
+  constructor(private readonly KhuyenMaiService: KhuyenMaiService) {}
 
   // ======= [POST] /khuyen-mai - Tạo mới khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateDto) {
-    return this.khuyenMaiService.createKhuyenMai(data);
+    return this.KhuyenMaiService.createKhuyenMai(data);
   }
 
   // ======= [GET] /khuyen-mai - Lấy danh sách khuyến mãi (phân trang, status) =======
@@ -33,7 +33,7 @@ export class KhuyenMaiController {
     @Query('filterType') filterType?: PromotionFilterType
   ) {
     // Convert filterType to PromotionFilterType if defined
-    return this.khuyenMaiService.getAllKhuyenMai({
+    return this.KhuyenMaiService.findAll({
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 10,
       filterType: filterType,
@@ -44,7 +44,7 @@ export class KhuyenMaiController {
 
   @Get('/total')
   async count(): Promise<any> {
-    return await this.khuyenMaiService.countValid();
+    return await this.KhuyenMaiService.countValid();
   }
 
   // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
@@ -52,14 +52,14 @@ export class KhuyenMaiController {
   async findById(
     @Param('id') id: string,
     @Query('filterType') filterType?: PromotionFilterType
-  ): Promise<ReturnType<typeof this.khuyenMaiService.getKhuyenMaiById>> {
-    return this.khuyenMaiService.getKhuyenMaiById(id, filterType);
+  ): Promise<ReturnType<typeof this.KhuyenMaiService.findById>> {
+    return this.KhuyenMaiService.findById(id, filterType);
   }
 
   // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateDto) {
-    return this.khuyenMaiService.updateKhuyenMai(id, data);
+    return this.KhuyenMaiService.update(id, data);
   }
 }

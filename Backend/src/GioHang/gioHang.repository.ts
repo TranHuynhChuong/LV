@@ -7,7 +7,7 @@ import { GioHang, GioHangDocument } from './gioHang.schema';
 export class GioHangRepository {
   constructor(
     @InjectModel(GioHang.name)
-    private readonly model: Model<GioHangDocument>
+    private readonly GioHangModel: Model<GioHangDocument>
   ) {}
 
   async create(data: {
@@ -16,7 +16,7 @@ export class GioHangRepository {
     GH_soLuong: number;
   }): Promise<GioHang> {
     const now = new Date();
-    return this.model.create({
+    return this.GioHangModel.create({
       ...data,
       GH_thoiGian: now,
     });
@@ -28,7 +28,7 @@ export class GioHangRepository {
     GH_soLuong: number
   ): Promise<GioHang | null> {
     const now = new Date();
-    return this.model.findOneAndUpdate(
+    return this.GioHangModel.findOneAndUpdate(
       { KH_id: KH_id, SP_id: SP_id },
       {
         GH_soLuong: GH_soLuong,
@@ -39,14 +39,14 @@ export class GioHangRepository {
   }
 
   async delete(KH_id: number, SP_id: number): Promise<GioHang | null> {
-    return this.model.findOneAndDelete({ KH_id, SP_id });
+    return this.GioHangModel.findOneAndDelete({ KH_id, SP_id });
   }
 
   async deleteMany(
     KH_id: number,
     SP_ids: number[]
   ): Promise<{ deletedCount: number }> {
-    const result = await this.model.deleteMany({
+    const result = await this.GioHangModel.deleteMany({
       KH_id,
       SP_id: { $in: SP_ids },
     });
@@ -54,11 +54,11 @@ export class GioHangRepository {
     return { deletedCount: result.deletedCount };
   }
 
-  async findAllUser(KH_id: number): Promise<GioHang[]> {
-    return this.model.find({ KH_id }).sort({ GH_thoiGian: -1 });
+  async findAll(KH_id: number): Promise<GioHang[]> {
+    return this.GioHangModel.find({ KH_id }).sort({ GH_thoiGian: -1 });
   }
 
   async findOne(KH_id: number, SP_id: number): Promise<GioHang | null> {
-    return this.model.findOne({ KH_id, SP_id });
+    return this.GioHangModel.findOne({ KH_id, SP_id });
   }
 }

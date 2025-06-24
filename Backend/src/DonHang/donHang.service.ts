@@ -13,31 +13,32 @@ import { SanPhamUtilService } from 'src/SanPham/sanPham.service';
 import { TTNhanHangDHService } from './../TTNhanHang/ttNhanHang.service';
 import { ConfigService } from '@nestjs/config';
 import { CheckDto, CreateDto } from './donHang.dto';
-import { DonHangRepository } from './donHang.repository';
+import {
+  DonHangRepository,
+  OrderFilterType,
+} from './repositories/donHang.repository';
 import { EmailService } from 'src/Util/email.service';
 import { KhachHangUtilService } from 'src/NguoiDung/KhachHang/khachHang.service';
-
-export enum TrangThaiDonHang {
-  NhanDon = 2,
-  VanChuyen = 3,
-  GiaoThanhCong = 4,
-  GiaoThatBai = 5,
-  YeuCauHuy = 6,
-  DaHuy = 7,
-}
+import { OrderStatus } from './schemas/donHang.schema';
+import { ChiTietDonHangRepository } from './repositories/chiTietDonHang.repository';
+import { MaGiamDonHangRepository } from './repositories/maGiamDonHang.repository';
 
 @Injectable()
 export class DonHangService {
   constructor(
+    private readonly configService: ConfigService,
+    private readonly EmailService: EmailService,
+    private readonly KhachHang: KhachHangUtilService,
+    @InjectConnection() private readonly connection: Connection,
+
     private readonly SanPham: SanPhamUtilService,
     private readonly NhanVien: NhanVienUtilService,
     private readonly MaGiam: MaGiamUtilService,
     private readonly NhanHang: TTNhanHangDHService,
-    private readonly configService: ConfigService,
+
     private readonly DonHang: DonHangRepository,
-    private readonly EmailService: EmailService,
-    private readonly KhachHang: KhachHangUtilService,
-    @InjectConnection() private readonly connection: Connection
+    private readonly ChiTietDonHang: ChiTietDonHangRepository,
+    private readonly MaGiamDonHang: MaGiamDonHangRepository
   ) {}
 
   async checkValid(data: CheckDto): Promise<{
@@ -177,14 +178,14 @@ export class DonHangService {
       session: ClientSession;
     }
   ) {
-    return await this.DonHang.createDonHang(
+    return await this.DonHang.create(
       {
         DH_id: context.DH_id,
         DH_ngayTao: context.now,
         DH_giamHD: context.DH_giamHD,
         DH_giamVC: context.DH_giamVC,
         DH_phiVC: data.DH.DH_phiVC,
-        DH_trangThai: 0,
+        DH_trangThai: OrderStatus.Pendding,
         KH_id: data.DH.KH_id,
         KH_email: data.DH.KH_email,
         DH_HD: data.HD
@@ -237,12 +238,12 @@ export class DonHangService {
         await this.NhanHang.create({ DH_id, ...data.NH }, session);
 
         // B7. Tạo chi tiết đơn hàng
-        await this.DonHang.createChiTietDonHang(DH_id, data.DH.CTDH, session);
+        await this.ChiTietDonHang.create(DH_id, data.DH.CTDH, session);
 
         // B8. Tạo mã giảm đơn hàng nếu có
         const magiamIds = data.MG?.map((m) => m.MG_id) ?? [];
         if (magiamIds.length > 0) {
-          await this.DonHang.createMaGiamDonHang(DH_id, magiamIds, session);
+          await this.MaGiamDonHang.create(DH_id, magiamIds, session);
         }
 
         // B9.  Cập nhật đã bán và tồn kho
@@ -274,30 +275,30 @@ export class DonHangService {
   }
 
   private notifyEmailStatus(
-    status: TrangThaiDonHang,
+    status: OrderStatus,
     email: string,
     orderId: string
   ) {
     switch (status) {
-      case TrangThaiDonHang.GiaoThanhCong:
+      case OrderStatus.Complete:
         this.EmailService.sendShippingNotification(email, orderId);
         break;
-      case TrangThaiDonHang.DaHuy:
+      case OrderStatus.Canceled:
         this.EmailService.sendOrderConfirmCancel(email, orderId);
         break;
     }
   }
 
-  async update(id: string, status: number, staffId?: string) {
-    const statusActionMap: Record<number, string> = {
-      [TrangThaiDonHang.NhanDon]: 'Chờ vận chuyển',
-      [TrangThaiDonHang.VanChuyen]: 'Đang vận chuyển',
-      [TrangThaiDonHang.GiaoThanhCong]: 'Giao hàng thành công',
-      [TrangThaiDonHang.GiaoThatBai]: 'Giao hàng thất bại',
-      [TrangThaiDonHang.YeuCauHuy]: 'Yêu cầu hủy đơn hàng',
-      [TrangThaiDonHang.DaHuy]: 'Yêu cầu hủy được xác nhận',
+  async update(id: string, newStatus: OrderStatus, staffId?: string) {
+    const statusActionMap: Record<string, string> = {
+      [OrderStatus.ToShip]: 'Xác nhận đơn hàng',
+      [OrderStatus.Shipping]: 'Vận chuyển đơn hàng',
+      [OrderStatus.Complete]: 'Giao hàng thành công',
+      [OrderStatus.InComplete]: 'Giao hàng thất bại',
+      [OrderStatus.CancelRequest]: 'Yêu cầu hủy đơn hàng',
+      [OrderStatus.Canceled]: 'Yêu cầu hủy được xác nhận',
     };
-    const thaoTac = statusActionMap[status];
+    const thaoTac = statusActionMap[newStatus];
 
     if (!thaoTac) return null;
 
@@ -310,17 +311,17 @@ export class DonHangService {
     }
     if (!email) throw new BadRequestException();
 
-    this.notifyEmailStatus(status, email, order.DH_id);
+    this.notifyEmailStatus(newStatus, email, order.DH_id);
 
-    return this.DonHang.updateTrangThai(id, status, {
+    return this.DonHang.update(id, newStatus, {
       thaoTac,
       NV_id: staffId,
       thoiGian: new Date(),
     });
   }
 
-  async getDetail(id: string): Promise<any> {
-    const result: any = await this.DonHang.getDetailDonhang(id);
+  async findById(id: string, filterType?: OrderFilterType): Promise<any> {
+    const result: any = await this.DonHang.findById(id, filterType);
     if (!result) {
       throw new NotFoundException();
     }
@@ -329,25 +330,31 @@ export class DonHangService {
     result.lichSuThaoTac =
       lichSu.length > 0 ? await this.NhanVien.mapActivityLog(lichSu) : [];
 
+    if ((!result.KH_email || result.KH_email === '') && result.KH_id) {
+      result.KH_email = await this.KhachHang.getEmail(result.KH_id);
+    }
     return result;
   }
 
-  async getAll(
+  async findAll(
     page: number,
     limit: number = 24,
-    filterType: number = 0,
+    filterType?: OrderFilterType,
     userId?: number
   ) {
-    const result = await this.DonHang.getAllDonhang(
-      page,
-      limit,
-      filterType,
-      userId
-    );
+    const result = await this.DonHang.findAll(page, limit, filterType, userId);
 
-    return {
-      data: result.data,
-      metadata: result.metadata,
-    };
+    return result;
+  }
+
+  async countAll(): Promise<{
+    total: number;
+    pending: number;
+    toship: number;
+    shipping: number;
+    complete: number;
+    cancelrequest: number;
+  }> {
+    return this.DonHang.countAll();
   }
 }

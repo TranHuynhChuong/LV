@@ -10,6 +10,8 @@ import {
 import { DonHangService } from './donHang.service';
 import { CheckDto, CreateDto } from './donHang.dto';
 import { parsePositiveInt } from 'src/Util/convert';
+import { OrderFilterType } from './repositories/donHang.repository';
+import { OrderStatus } from './schemas/donHang.schema';
 
 @Controller('api/orders')
 export class DonHangController {
@@ -26,41 +28,53 @@ export class DonHangController {
     return this.DonHangService.checkValid(data);
   }
 
-  @Patch(':id')
-  async updateStatus(
+  @Patch('/:status/:id')
+  async updateStatusByPath(
     @Param('id') id: string,
-    @Query('status') status: number,
+    @Param('status') status: OrderStatus,
     @Query('staffId') staffId: string
   ) {
     return this.DonHangService.update(id, status, staffId);
   }
 
   @Get()
-  async getAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 24,
-    @Query('filterType') filterType: number = 0
+  async findAll(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('filterType') filterType: OrderFilterType
   ) {
-    return this.DonHangService.getAll(page, limit, filterType);
+    return this.DonHangService.findAll(
+      parsePositiveInt(page) ?? 1,
+      parsePositiveInt(limit) ?? 24,
+      filterType
+    );
   }
 
   @Get('/user/:userId')
-  async getAllUser(
+  async findAllUser(
     @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType: string,
+    @Query('filterType') filterType: OrderFilterType,
     @Param('userId') userId: number
   ) {
-    return this.DonHangService.getAll(
+    return this.DonHangService.findAll(
       parsePositiveInt(page) ?? 1,
       parsePositiveInt(limit) ?? 24,
-      parsePositiveInt(filterType) ?? 0,
+      filterType,
       userId
     );
   }
 
+  @Get('/total')
+  async count(): Promise<any> {
+    return await this.DonHangService.countAll();
+  }
+
   @Get(':id')
-  async getDetail(@Param('id') id: string): Promise<any> {
-    return this.DonHangService.getDetail(id);
+  async findById(
+    @Param('id') id: string,
+    @Query('filterType') filterType: OrderFilterType
+  ): Promise<any> {
+    return this.DonHangService.findById(id, filterType);
   }
 }
