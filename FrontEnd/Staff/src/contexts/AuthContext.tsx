@@ -1,12 +1,13 @@
 // contexts/AuthContext.tsx
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 type AuthData = {
   userId: string | null;
   role: number | null;
+  token: string | null;
 };
 
 type AuthContextType = {
@@ -16,7 +17,7 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType>({
-  authData: { userId: null, role: null },
+  authData: { userId: null, role: null, token: null },
   setAuthData: () => {},
   isLoading: true,
 });
@@ -28,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authData, setAuthData] = useState<AuthData>({
     userId: null,
     role: null,
+    token: null,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const data = await res.json();
-        setAuthData({ userId: data.userId, role: data.role });
+        setAuthData({ userId: data.userId, role: data.role, token: data.token });
       })
       .catch(() => {
         router.replace('/login');
@@ -55,13 +57,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [pathname]);
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ authData, setAuthData, isLoading }}>
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({ authData, setAuthData, isLoading }),
+    [authData, setAuthData, isLoading]
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);
