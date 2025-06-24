@@ -6,8 +6,10 @@ import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import CategoryForm, { CategoryFormData } from '../components/categoryForm';
-import Loader from '@/components/Loader';
+
+import Loader from '@/components/utils/Loader';
+import { Category, mapCategoryToDto } from '@/models/categories';
+import CategoryForm from '@/components/categories/categoryForm';
 
 export default function NewCategory() {
   const router = useRouter();
@@ -23,31 +25,23 @@ export default function NewCategory() {
       { label: 'Thêm mới thể loại' },
     ]);
   }, [setBreadcrumbs]);
-  const handleSubmit = (data: CategoryFormData) => {
-    const apiData = {
-      TL_ten: data.name ?? '',
-      TL_idTL: data.parentId ?? null,
-      NV_id: authData.userId,
-    };
+  async function handleSubmit(data: Category) {
+    if (!authData.userId) return;
+
+    const apiData = mapCategoryToDto(data, authData.userId);
     setIsSubmitting(true);
-    api
-      .post('/categories', apiData)
-      .then(() => {
-        toast.success('Thêm mới thành công');
-        router.back();
-      })
-      .catch((error) => {
-        console.error(error);
-        if (error.status === 400) {
-          toast.error('Thêm mới thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  };
+
+    try {
+      await api.post('/categories', apiData);
+      toast.success('Thêm mới thành công');
+      router.back();
+    } catch (error) {
+      console.error('Lỗi khi thêm thể loại:', error);
+      toast.error('Thêm mới thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="w-full max-w-2xl h-fit min-w-fit xl:max-w-4xl mx-auto p-4">

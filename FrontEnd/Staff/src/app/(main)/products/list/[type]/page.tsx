@@ -4,10 +4,15 @@ import Link from 'next/link';
 import api from '@/lib/axiosClient';
 import { useEffect, useState } from 'react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import ProductTab from '../../components/productTab';
+import ProductTab from '@/components/products/productTab';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 export default function ProductsListType() {
+  const { setBreadcrumbs } = useBreadcrumb();
+  useEffect(() => {
+    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sản phẩm' }]);
+  }, [setBreadcrumbs]);
+
   const params = useParams();
   const type = params.type as 'all' | 'live' | 'hidden';
 
@@ -16,27 +21,24 @@ export default function ProductsListType() {
     hidden: { total: 0, in: 0, out: 0 },
   });
 
-  const fetchTotal = () => {
-    api
-      .get('products/total')
-      .then((res) => setTotal(res.data))
-      .catch((error) => console.log(error));
-  };
+  async function fetchTotal() {
+    try {
+      const res = await api.get('products/total');
+      setTotal(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   useEffect(() => {
     fetchTotal();
   }, []);
 
-  const { setBreadcrumbs } = useBreadcrumb();
-  useEffect(() => {
-    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sản phẩm' }]);
-  }, [setBreadcrumbs]);
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const status = searchParams.get('status') ?? 'all';
-  const page = parseInt(searchParams.get('page') ?? '1');
+  const currentPage = parseInt(searchParams.get('page') ?? '1');
   const keyword = searchParams.get('keyword') ?? undefined;
   const productId = searchParams.get('productId') ?? undefined;
   const categoryId = searchParams.get('categoryId') ?? undefined;
@@ -112,7 +114,7 @@ export default function ProductsListType() {
         </div>
         <ProductTab
           status={status}
-          page={page}
+          currentPage={currentPage}
           type={type}
           keyword={keyword}
           productId={productId}

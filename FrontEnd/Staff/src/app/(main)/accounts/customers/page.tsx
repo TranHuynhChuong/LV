@@ -5,17 +5,17 @@ import api from '@/lib/axiosClient';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import PagiantionControls from '@/components/PaginationControls';
+import PagiantionControls from '@/components/utils/PaginationControls';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ApiCustomer, Customer } from '@/type/Account';
 import CustomerTable from './customerTable';
 import SwitchTab from '../switchTab';
+import { Customer, mapCustomersFromDto } from '@/models/accounts';
 
 export default function Customers() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputEmail, setInputEmail] = useState('');
   const [data, setData] = useState<Customer[]>([]);
-  const [pagination, setPagination] = useState<number[]>([1]);
+  const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPage, setTotalPage] = useState<number>(1);
   const limit = 24;
 
@@ -25,64 +25,51 @@ export default function Customers() {
   const currentPage = Number(searchParams.get('p')) || 1;
   const search = searchParams.get('search') ?? '';
 
-  const fetchData = (targetPage?: number) => {
+  async function fetchData(targetPage?: number) {
     setIsLoading(true);
     const params = {
       page: targetPage,
       limit,
     };
 
-    api
-      .get('/users/customers', { params })
-      .then((res) => {
-        const { data, metadata } = res.data;
+    try {
+      const res = await api.get('/users/customers', { params });
+      const { data, paginationInfo } = res.data;
 
-        const mapped: Customer[] = data.map((item: ApiCustomer) => ({
-          name: item.KH_hoTen,
-          email: item.KH_email,
-          createAt: new Date(item.KH_ngayTao).toLocaleString('vi-VN'),
-          status: item.KH_trangThai,
-        }));
+      setData(mapCustomersFromDto([data]));
+      setPageNumbers(paginationInfo.pageNumbers);
+      setTotalPage(paginationInfo.totalPages);
+    } catch (error) {
+      console.error(error);
+      setData([]);
+      setPageNumbers([1]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-        setData(mapped);
-        setPagination(metadata.pagination);
-        setTotalPage(metadata.totalPage);
-      })
-      .catch(() => {
-        setData([]);
-        setPagination([1]);
-      })
-      .finally(() => setIsLoading(false));
-  };
-
-  const getByEmail = (email: string) => {
+  async function getByEmail(email: string) {
     setIsLoading(true);
-    api
-      .get(`/users/customer/${email}`)
-      .then((res) => {
-        const result = res.data;
-        if (!result) {
-          setData([]);
-          setPagination([1]);
-          return;
-        }
-        const mapped: Customer[] = [
-          {
-            name: result.KH_hoTen,
-            email: result.KH_email,
-            createAt: new Date(result.KH_ngayTao).toLocaleString('vi-VN'),
-            status: result.KH_trangThai,
-          },
-        ];
-        setData(mapped);
-        setPagination([1]);
-      })
-      .catch(() => {
+    try {
+      const res = await api.get(`/users/customer/${email}`);
+      const result = res.data;
+
+      if (!result) {
         setData([]);
-        setPagination([1]);
-      })
-      .finally(() => setIsLoading(false));
-  };
+        setPageNumbers([1]);
+        return;
+      }
+
+      setData(mapCustomersFromDto([result]));
+      setPageNumbers([1]);
+    } catch (error) {
+      console.error(error);
+      setData([]);
+      setPageNumbers([1]);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const handleApplySearch = () => {
     if (inputEmail.trim()) {
@@ -133,8 +120,8 @@ export default function Customers() {
 
         <div className="flex justify-start py-4">
           <PagiantionControls
-            pagination={pagination}
-            totalPage={totalPage}
+            pageNumbers={pageNumbers}
+            totalPages={totalPage}
             currentPage={currentPage}
             onPageChange={(page) => {
               if (page === currentPage) return;

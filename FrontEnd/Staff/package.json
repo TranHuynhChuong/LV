@@ -37,6 +37,7 @@
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
+    "framer-motion": "^12.18.1",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.510.0",

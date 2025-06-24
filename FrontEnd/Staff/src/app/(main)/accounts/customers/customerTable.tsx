@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Customer } from '@/type/Account'; // hoặc bạn tách type ra file chung
+import { Customer } from '@/models/accounts';
 
 interface CustomerTableProps {
   data: Customer[];

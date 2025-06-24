@@ -5,9 +5,10 @@ import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 import { toast } from 'sonner';
-import { StaffForm, StaffFormData } from '../staffForm';
+import { StaffForm } from '@/components/accounts/staffForm';
 import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
+import { mapStaffToDto, Staff } from '@/models/accounts';
 
 export default function New() {
   const router = useRouter();
@@ -21,35 +22,21 @@ export default function New() {
       { label: 'Thêm mới nhân viên' },
     ]);
   }, [setBreadcrumbs]);
-
-  const handleOnsubmit = (data: StaffFormData) => {
-    const payload = {
-      NV_hoTen: data.fullName,
-      NV_soDienThoai: data.phone,
-      NV_email: data.email,
-      NV_vaiTro: Number(data.role),
-      NV_matKhau: data.password,
-      NV_idNV: authData.userId,
-    };
+  async function handleOnsubmit(data: Staff) {
+    if (!authData.userId) return;
+    const payload = mapStaffToDto(data, authData.userId);
     setIsSubmitting(true);
-    api
-      .post('/users/staff', payload)
-      .then(() => {
-        toast.success('Thêm mới thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        if (error.status === 400) {
-          toast.error('Thêm mới thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error('Lỗi khi thêm nhân viên:', error);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  };
+    try {
+      await api.post('/users/staff', payload);
+      toast.success('Thêm mới thành công!');
+      router.back();
+    } catch (error) {
+      console.error('Lỗi khi thêm nhân viên:', error);
+      toast.error('Thêm mới thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="w-full max-w-xl h-fit min-w-md mx-auto p-4">

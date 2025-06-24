@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ShippingFeeForm, { ShippingFormData } from '../components/ShippingForm';
+
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/ActivityLogSheet';
-import { Metadata } from '@/type/Metadata';
-import { ActivityLog } from '@/type/ActivityLog';
-import Loader from '@/components/Loader';
+import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+
+import Loader from '@/components/utils/Loader';
+import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
+import type { ShippingFee } from '@/models/shipping';
+import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
+import ShippingFeeForm from '@/components/shipping/ShippingForm';
 
 export default function ShippingDetailPage() {
   const router = useRouter();
@@ -22,9 +25,9 @@ export default function ShippingDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [loading, setLoading] = useState(true);
-  const [initialData, setInitialData] = useState<ShippingFormData>();
+  const [initialData, setInitialData] = useState<ShippingFee>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [metadata, setMetadata] = useState<Metadata[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -34,85 +37,60 @@ export default function ShippingDetailPage() {
     ]);
   }, [setBreadcrumbs]);
 
+  const fetchShippingData = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/shipping/${id}`);
+      const data = res.data;
+      setInitialData(mapShippingFeeFromDto(data));
+      setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu phí vận chuyển:', error);
+      toast.error('Đã xảy ra lỗi!');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
-
-    api
-      .get(`/shipping/${id}`)
-      .then((res) => {
-        const data = res.data;
-        setInitialData({
-          fee: data.PVC_phi,
-          weight: data.PVC_ntl,
-          surcharge: data.PVC_phuPhi,
-          surchargeUnit: data.PVC_dvpp,
-          provinceId: data.T_id,
-        });
-
-        const metadataFormatted =
-          data.lichSuThaoTac?.map((item: ActivityLog) => ({
-            time: item.thoiGian,
-            action: item.thaoTac,
-            user: {
-              id: item.nhanVien?.NV_id,
-              name: item.nhanVien?.NV_hoTen,
-              phone: item.nhanVien?.NV_soDienThoai,
-              email: item.nhanVien?.NV_email,
-            },
-          })) ?? [];
-        setMetadata(metadataFormatted);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error('Đã xảy ra lỗi!');
-        router.back();
-      })
-      .finally(() => setLoading(false));
+    fetchShippingData();
   }, [id]);
 
-  const handleSubmit = (data: ShippingFormData) => {
-    const apiData = {
-      PVC_phi: data.fee ?? 0,
-      PVC_ntl: data.weight ?? 0,
-      PVC_phuPhi: data.surcharge ?? 0,
-      PVC_dvpp: data.surchargeUnit ?? 0,
-      T_id: data.provinceId ?? 0,
-      NV_id: authData.userId,
-    };
-    setIsSubmitting(true);
-    api
-      .put(`/shipping/${id}`, apiData)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Cập nhật thành công');
-        router.back();
-      })
-      .catch((error) => {
-        if (error.status === 400) {
-          toast.error('Cập nhật thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error(error);
-      })
-      .finally(() => setIsSubmitting(false));
-  };
+  async function handleSubmit(data: ShippingFee) {
+    if (!authData.userId) return;
 
-  const handleDelete = () => {
-    if (!id) return;
+    const apiData = mapShippingFeeToDto(data, authData.userId);
     setIsSubmitting(true);
-    api
-      .delete(`/shipping/${id}?staffId=${authData.userId}`)
-      .then((res) => {
-        toast.success(res.data.message ?? 'Xoá thành công');
-        router.back();
-      })
-      .catch((error) => {
-        console.error(error);
-        const msg = error?.response?.data?.message ?? 'Đã xảy ra lỗi!';
-        toast.error(msg);
-      })
-      .finally(() => setIsSubmitting(false));
-  };
+
+    try {
+      const res = await api.put(`/shipping/${id}`, apiData);
+      toast.success(res.data.message ?? 'Cập nhật thành công');
+      router.back();
+    } catch (error) {
+      console.error('Lỗi khi cập nhật phí vận chuyển:', error);
+
+      toast.error('Cập nhật thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+  async function handleDelete() {
+    if (!id) return;
+    if (!authData.userId) return;
+    setIsSubmitting(true);
+    try {
+      const res = await api.delete(`/shipping/${id}?staffId=${authData.userId}`);
+      toast.success(res.data.message ?? 'Xoá thành công');
+      router.back();
+    } catch (error) {
+      console.error('Lỗi khi xoá phí vận chuyển:', error);
+      toast.error('Xóa thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (loading)
     return (
@@ -132,7 +110,7 @@ export default function ShippingDetailPage() {
           onDelete={handleDelete}
           defaultValues={initialData}
         />
-        <ActionHistorySheet metadata={metadata} />
+        <ActionHistorySheet activityLogs={activityLogs} />
       </div>
     </div>
   );

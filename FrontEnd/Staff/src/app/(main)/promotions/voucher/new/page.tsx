@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/utils/Loader';
 import { mapVoucherPromotionDetailToDto, VoucherPromotionDetail } from '@/models/promotionVoucher';
-import VoucherPromotionForm from '@/components/Promotions/Voucher/VoucherPromotionForm';
+import VoucherPromotionForm from '@/components/promotions/voucher/VoucherPromotionForm';
 
 export default function VoucherPromotionNew() {
   const { setBreadcrumbs } = useBreadcrumb();

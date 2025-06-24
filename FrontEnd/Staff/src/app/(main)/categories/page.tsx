@@ -41,21 +41,24 @@ import {
 } from '@/components/ui/dialog';
 
 import { Skeleton } from '@/components/ui/skeleton';
-import { CategoryFormData } from './components/categoryForm';
+
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
+import { Category } from '@/models/categories';
+import { useRouter } from 'next/navigation';
 
 export default function Categories() {
+  const router = useRouter();
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [data, setData] = useState<CategoryFormData[]>([]);
+  const [data, setData] = useState<Category[]>([]);
   const { authData } = useAuth();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [isLoading, setLoading] = useState<boolean>(true);
-  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<{
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<{
     open: boolean;
     id: number | null;
   }>({
@@ -66,7 +69,7 @@ export default function Categories() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const getData = () => {
-    setLoading(true);
+    setIsLoading(true);
     api
       .get('/categories')
       .then((res) => {
@@ -79,8 +82,7 @@ export default function Categories() {
         const categoriesRaw: RawCategory[] = res.data;
 
         setTotal(categoriesRaw.length);
-        // Map sang Category với parent là tên thể loại cha
-        const categoriesMapped: CategoryFormData[] = categoriesRaw
+        const categoriesMapped: Category[] = categoriesRaw
           .map((cat) => {
             const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
             return {
@@ -102,7 +104,7 @@ export default function Categories() {
         setErrorMessage('Đã xảy ra lỗi khi tải danh sách thể loại!');
         console.error('Lỗi tải dữ liệu thể loại:', error);
       })
-      .finally(() => setLoading(false));
+      .finally(() => setIsLoading(false));
   };
 
   useEffect(() => {
@@ -110,19 +112,19 @@ export default function Categories() {
   }, []);
 
   const handleConfirmDelete = (id: number) => {
-    setDeleteDialogOpen({ open: false, id: null });
+    setIsDeleteDialogOpen({ open: false, id: null });
     if (!id) return;
-    setLoading(true);
+    setIsLoading(true);
     setIsSubmitting(true);
     api
       .delete(`/categories/${id}?staffId=${authData.userId}`)
       .then(() => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        setDeleteDialogOpen({
+        setIsDeleteDialogOpen({
           open: false,
           id: null,
         });
         toast.success('Xóa thành công!');
+        router.refresh();
       })
       .catch((error) => {
         if (error.status === 400) {
@@ -135,12 +137,12 @@ export default function Categories() {
         console.error('Xóa thất bại:', error);
       })
       .finally(() => {
-        setLoading(false);
+        setIsLoading(false);
         setIsSubmitting(false);
       });
   };
 
-  const columns: ColumnDef<CategoryFormData>[] = [
+  const columns: ColumnDef<Category>[] = [
     {
       accessorKey: 'id',
       header: 'Mã',
@@ -173,7 +175,7 @@ export default function Categories() {
             <button
               className="cursor-pointer hover:underline w-fit"
               onClick={() => {
-                setDeleteDialogOpen({
+                setIsDeleteDialogOpen({
                   open: true,
                   id: item.id ?? null,
                 });
@@ -315,7 +317,7 @@ export default function Categories() {
       <Dialog
         open={isDeleteDialogOpen.open}
         onOpenChange={(open) =>
-          setDeleteDialogOpen((prev) => ({
+          setIsDeleteDialogOpen((prev) => ({
             ...prev,
             open,
             id: open ? prev.id : null,
@@ -333,7 +335,7 @@ export default function Categories() {
           <DialogFooter className="flex justify-end gap-2">
             <Button
               variant="outline"
-              onClick={() => setDeleteDialogOpen({ open: false, id: null })}
+              onClick={() => setIsDeleteDialogOpen({ open: false, id: null })}
               className="cursor-pointer"
             >
               Hủy

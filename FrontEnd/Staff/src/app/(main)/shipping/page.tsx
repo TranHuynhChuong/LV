@@ -47,9 +47,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ApiShipping } from '@/type/Shipping';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
 import { useAuth } from '@/contexts/AuthContext';
+import { ShippingFee, ShippingFeeDto } from '@/models/shipping';
 
 export type Shipping = {
   id: number;
@@ -64,7 +64,7 @@ export type Shipping = {
 export default function Shipments() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
-  const [data, setData] = useState<Shipping[]>([]);
+  const [data, setData] = useState<ShippingFee[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -86,9 +86,9 @@ export default function Shipments() {
       .then(([shippingRes, locationRes]) => {
         setProvinces(locationRes);
 
-        const shippingRaw: ApiShipping[] = shippingRes.data;
+        const shippingRaw: ShippingFeeDto[] = shippingRes.data;
         setTotal(shippingRaw.length);
-        const mapped: Shipping[] = shippingRaw.map((item) => {
+        const mapped: ShippingFee[] = shippingRaw.map((item) => {
           const province = locationRes.find(
             (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
           ); // Dùng trực tiếp locationRes
@@ -148,7 +148,7 @@ export default function Shipments() {
       });
   };
 
-  const columns: ColumnDef<Shipping>[] = [
+  const columns: ColumnDef<ShippingFee>[] = [
     {
       accessorKey: 'id',
       header: 'ID',
@@ -271,7 +271,7 @@ export default function Shipments() {
               onClick={() => {
                 setDeleteDialogOpen({
                   open: true,
-                  id: item.id,
+                  id: item.id ?? null,
                 });
               }}
             >

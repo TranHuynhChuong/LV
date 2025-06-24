@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       userId: payload.userId,
       role: payload.role,
-      token,
+      token: token,
     });
   } catch (error) {
     console.error('Token decode error:', error);

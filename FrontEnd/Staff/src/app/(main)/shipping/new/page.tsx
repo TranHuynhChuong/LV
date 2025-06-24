@@ -2,12 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ShippingFeeForm, { ShippingFormData } from '../components/ShippingForm';
+
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
+import { mapShippingFeeToDto, ShippingFee } from '@/models/shipping';
+import ShippingFeeForm from '@/components/shipping/ShippingForm';
 
 export default function CreateShippingPage() {
   const router = useRouter();
@@ -23,15 +25,9 @@ export default function CreateShippingPage() {
       { label: 'Thêm mới phí vận chuyển' },
     ]);
   }, [setBreadcrumbs]);
-  const handleSubmit = (data: ShippingFormData) => {
-    const apiData = {
-      PVC_phi: data.fee ?? 0,
-      PVC_ntl: data.weight ?? 0,
-      PVC_phuPhi: data.surcharge ?? 0,
-      PVC_dvpp: data.surchargeUnit ?? 0,
-      T_id: data.provinceId ?? 0,
-      NV_id: authData.userId,
-    };
+  const handleSubmit = (data: ShippingFee) => {
+    if (!authData.userId) return;
+    const apiData = mapShippingFeeToDto(data, authData.userId);
     setIsSubmitting(true);
     api
       .post('/shipping', apiData)
@@ -41,11 +37,7 @@ export default function CreateShippingPage() {
       })
       .catch((error) => {
         console.error(error);
-        if (error.status === 400) {
-          toast.error('Thêm mới thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
+        toast.error('Thêm mới thất bại!');
       })
       .finally(() => setIsSubmitting(false));
   };

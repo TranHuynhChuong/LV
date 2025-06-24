@@ -6,28 +6,15 @@ import { Plus } from 'lucide-react';
 import api from '@/lib/axiosClient';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import VoucherPromotionsTable from '@/components/Promotions/Voucher/VoucherPromotionTable';
+import VoucherPromotionsTable from '@/components/promotions/voucher/VoucherPromotionTable';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { VoucherPromotionSearchBar } from '@/components/Promotions/Voucher/VoucherPromotionSearchBar';
+import { VoucherPromotionSearchBar } from '@/components/promotions/voucher/VoucherPromotionSearchBar';
 import PaginationControls from '@/components/utils/PaginationControls';
-
-export type ApiVoucherPromotionSimple = {
-  MG_id: number;
-  MG_batDau: Date;
-  MG_ketThuc: Date;
-  MG_theoTyLe: boolean;
-  MG_giaTri: number;
-  MG_loai: string;
-  MG_toiThieu: number;
-  MG_toiDa?: number;
-};
-
-export type VoucherPromotionSimple = {
-  id: number;
-  startAt: Date;
-  endAt: Date;
-  type: string;
-};
+import {
+  mapVoucherPromotionOverviewFromDto,
+  VoucherPromotionOverview,
+  VoucherPromotionOverviewDto,
+} from '@/models/promotionVoucher';
 
 export enum VoucherFilterType {
   Expired = 'expired',
@@ -41,7 +28,7 @@ export enum VoucherType {
   All = 'all',
 }
 
-const mapVouchers = (data: ApiVoucherPromotionSimple[]): VoucherPromotionSimple[] =>
+const mapVouchers = (data: VoucherPromotionOverviewDto[]): VoucherPromotionOverview[] =>
   data.map((item) => ({
     id: item.MG_id,
     startAt: item.MG_batDau,
@@ -55,7 +42,7 @@ export default function VoucherPromotion() {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Mã giảm giá' }]);
   }, [setBreadcrumbs]);
 
-  const [data, setData] = useState<VoucherPromotionSimple[]>([]);
+  const [data, setData] = useState<VoucherPromotionOverview[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -78,13 +65,7 @@ export default function VoucherPromotion() {
           .get(`vouchers/${promotionId}?filterType=${filterType}&type=${type}`)
           .then((res) => {
             const item = res.data;
-            const mapped: VoucherPromotionSimple = {
-              id: item.MG_id,
-              startAt: item.MG_batDau,
-              endAt: item.MG_ketThuc,
-              type: item.MG_loai,
-            };
-            setData([mapped]);
+            setData(mapVoucherPromotionOverviewFromDto([item]));
             setPageNumbers([]);
             setTotalPages(1);
             setTotalItems(1);

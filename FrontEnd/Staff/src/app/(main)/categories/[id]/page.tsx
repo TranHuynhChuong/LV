@@ -3,15 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import CategoryForm, { CategoryFormData } from '../components/categoryForm';
 import api from '@/lib/axiosClient';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/ActivityLogSheet';
-import { ActivityLog } from '@/type/ActivityLog';
-import { Metadata } from '@/type/Metadata';
-import Loader from '@/components/Loader';
+import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+
+import Loader from '@/components/utils/Loader';
+import { Category, mapCategoryToDto } from '@/models/categories';
+import CategoryForm from '@/components/categories/categoryForm';
+import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 
 export default function CategoryDetailPage() {
   const router = useRouter();
@@ -22,9 +23,9 @@ export default function CategoryDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [initialData, setInitialData] = useState<CategoryFormData>();
+  const [initialData, setInitialData] = useState<Category>();
 
-  const [metadata, setMetadata] = useState<Metadata[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -34,72 +35,54 @@ export default function CategoryDetailPage() {
     ]);
   }, [setBreadcrumbs]);
 
+  async function fetchCategory() {
+    setLoading(true);
+    try {
+      const res = await api.get(`/categories/${id}`);
+      const data = res.data;
+
+      setInitialData({
+        id: data.TL_id,
+        name: data.TL_ten,
+        parentId: data.TL_idTL ?? null,
+      });
+      setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
+    } catch (error) {
+      console.error(error);
+      toast.error('Không tìm thấy thể loại!');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (!id) return;
 
-    api
-      .get(`/categories/${id}`)
-      .then((res) => {
-        const data = res.data;
+    fetchCategory();
+  }, []);
 
-        setInitialData({
-          id: data.TL_id,
-          name: data.TL_ten,
-          parentId: data.TL_idTL ?? null,
-        });
+  async function handleSubmit(data: Category) {
+    if (!authData.userId) return;
+    const apiData = mapCategoryToDto(data, authData.userId);
 
-        const metadataFormatted =
-          data.lichSuThaoTac?.map((item: ActivityLog) => ({
-            time: item.thoiGian,
-            action: item.thaoTac,
-            user: {
-              id: item.nhanVien?.NV_id,
-              name: item.nhanVien?.NV_hoTen,
-              phone: item.nhanVien?.NV_soDienThoai,
-              email: item.nhanVien?.NV_email,
-            },
-          })) ?? [];
-        setMetadata(metadataFormatted);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error('Không tìm thấy thể loại!');
-        router.back();
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
-
-  const handleSubmit = (data: { name: string; id?: number | null; parentId?: number | null }) => {
-    const apiData = {
-      TL_ten: data.name,
-      TL_idTL: data.parentId ?? null,
-      NV_id: authData.userId,
-    };
-
-    // Use data.id if available, otherwise fallback to the id from params
-    const categoryId = data.id ?? id;
     setIsSubmitting(true);
-    api
-      .put(`/categories/${categoryId}`, apiData)
-      .then(() => {
-        toast.success('Cập nhật thành công');
-        router.back();
-      })
-      .catch((error) => {
-        if (error.status === 400) {
-          toast.error('Cập nhật thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error(error);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
-      });
-  };
+
+    try {
+      await api.put(`/categories/${id}`, apiData);
+      toast.success('Cập nhật thành công');
+      router.back();
+    } catch (error) {
+      toast.error('Cập nhật thất bại!');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const handleDelete = () => {
     setIsSubmitting(true);
+    if (!authData.userId) return;
     api
       .delete(`/categories/${id}?staffId=${authData.userId}`)
       .then((res) => {
@@ -135,7 +118,7 @@ export default function CategoryDetailPage() {
       <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
         {isSubmitting && <Loader />}
         <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={initialData} />
-        <ActionHistorySheet metadata={metadata} />
+        <ActionHistorySheet activityLogs={activityLogs} />
       </div>
     </div>
   );

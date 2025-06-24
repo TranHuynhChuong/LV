@@ -6,9 +6,9 @@ import { Plus } from 'lucide-react';
 import api from '@/lib/axiosClient';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import ProductPromotionsTable from '@/components/Promotions/Product/ProductPromotionsTable';
+import ProductPromotionsTable from '@/components/promotions/product/ProductPromotionsTable';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { ProductPromotionSearchBar } from '@/components/Promotions/Product/ProductPromotionSearchBar';
+import { ProductPromotionSearchBar } from '@/components/promotions/product/ProductPromotionSearchBar';
 import PaginationControls from '@/components/utils/PaginationControls';
 import { mapProductPromotionsFromDto, ProductPromotionOverview } from '@/models/promotionProduct';
 

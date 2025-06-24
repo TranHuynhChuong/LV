@@ -16,7 +16,7 @@ import {
 } from '@/models/promotionVoucher';
 import type { VoucherPromotionDetail } from '@/models/promotionVoucher';
 import { ActivityLogs } from '@/models/activityLogs';
-import VoucherPromotionForm from '@/components/Promotions/Voucher/VoucherPromotionForm';
+import VoucherPromotionForm from '@/components/promotions/voucher/VoucherPromotionForm';
 
 export default function VoucherPromotionDetail() {
   const { setBreadcrumbs } = useBreadcrumb();

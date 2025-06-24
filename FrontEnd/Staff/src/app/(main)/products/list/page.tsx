@@ -1,14 +1,5 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-export default function ProductsList() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace('/products/list/all?status=all');
-  }, [router]);
-
-  return null;
+export default function Products() {
+  redirect('/products/list/all?status=all');
 }

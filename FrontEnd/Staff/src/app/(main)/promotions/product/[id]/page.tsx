@@ -16,7 +16,7 @@ import {
 import type { ProductPromotionDetail } from '@/models/promotionProduct';
 import { ProductOverView } from '@/models/products';
 import { ActivityLogs } from '@/models/activityLogs';
-import ProductPromotionForm from '@/components/Promotions/Product/ProductPromotionForm';
+import ProductPromotionForm from '@/components/promotions/product/ProductPromotionForm';
 import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
 
 export default function ProductPromotionDetail() {

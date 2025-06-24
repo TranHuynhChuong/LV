@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import ProductForm, { ProductFormValues } from '../components/productForm';
+import ProductForm, { ProductFormValues } from '@/components/products/productForm';
 import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
 
 export default function Products() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -24,9 +24,8 @@ export default function Products() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = (values: ProductFormValues) => {
+  async function onSubmit(values: ProductFormValues) {
     const formData = new FormData();
-    setIsSubmitting(true);
 
     if (values.name) formData.append('SP_ten', values.name);
     if (values.status !== undefined && values.status !== null)
@@ -63,26 +62,20 @@ export default function Products() {
       });
     }
 
-    api
-      .post('/products', formData, {
+    try {
+      setIsSubmitting(true);
+      await api.post('/products', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then(() => {
-        toast.success('Thêm mới thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        if (error?.status === 400) {
-          toast.error('Thêm mới thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error(error);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
       });
-  };
+      toast.success('Thêm mới thành công!');
+      router.back();
+    } catch (error) {
+      toast.error('Thêm mới thất bại!');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="relative p-4 max-w-4xl  w-full mx-auto">

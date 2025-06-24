@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
 import api from '@/lib/axiosClient';
-import { StaffForm, StaffFormData } from '@/app/(main)/accounts/staffs/staffForm';
+
 import { toast } from 'sonner';
 import Loading from './loading';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { StaffForm } from '@/components/accounts/staffForm';
+import { mapStaffFormDto, Staff } from '@/models/accounts';
 
 export default function StaffDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [staffData, setStaffData] = useState<StaffFormData>();
+  const [staffData, setStaffData] = useState<Staff>();
   const router = useRouter();
   useEffect(() => {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Hồ sơ' }]);
@@ -23,14 +25,7 @@ export default function StaffDetailPage() {
       .get(`/users/staff/${authData.userId}`)
       .then((res) => {
         const staff = res.data;
-        setStaffData({
-          fullName: staff.NV_hoTen,
-          phone: staff.NV_soDienThoai,
-          email: staff.NV_email,
-          role: String(staff.NV_vaiTro),
-          id: staff.NV_id,
-          password: staff.NV_matKhau,
-        });
+        setStaffData(mapStaffFormDto(staff)[0]);
       })
       .catch((error) => {
         console.error('Lỗi khi lấy thông tin nhân viên:', error);

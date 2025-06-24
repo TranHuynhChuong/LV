@@ -9,3 +9,9 @@ export type ProductOverViewDto = {
   SP_trangThai: number;
   SP_diemDG?: number;
 };
+
+export type ImageDto = {
+  A_publicId: string;
+  A_url: string;
+  A_anhBia: boolean;
+};

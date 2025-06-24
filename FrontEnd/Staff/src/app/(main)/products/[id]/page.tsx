@@ -3,16 +3,16 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import ProductForm, { ProductFormValues, ProductFormType } from '../components/productForm';
+import ProductForm, { ProductFormValues, ProductFormType } from '@/components/products/productForm';
 import api from '@/lib/axiosClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { ActionHistorySheet } from '@/components/ActivityLogSheet';
-import { ActivityLog } from '@/type/ActivityLog';
-import { Metadata } from '@/type/Metadata';
-import { Image } from '@/type/Image';
-import Loader from '@/components/Loader';
-import Loading from '../components/productFormLoading';
+import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+
+import Loader from '@/components/utils/Loader';
+import Loading from '@/components/products/productFormLoading';
+import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
+import { ImageDto } from '@/models/products';
 
 export default function ProductDetail() {
   const params = useParams();
@@ -31,10 +31,8 @@ export default function ProductDetail() {
     ]);
   }, [setBreadcrumbs]);
 
-  const onSubmit = (values: ProductFormValues, productImages?: string[]) => {
+  async function onSubmit(values: ProductFormValues, productImages?: string[]) {
     const formData = new FormData();
-    setIsSubmitting(true);
-
     if (values.name) formData.append('SP_ten', values.name);
     if (values.status !== undefined && values.status !== null)
       formData.append('SP_trangThai', values.status.toString());
@@ -77,42 +75,37 @@ export default function ProductDetail() {
       formData.append('imagesToDelete', JSON.stringify(imagesToDelete));
     }
 
-    api
-      .put(`/products/${id}`, formData, {
+    try {
+      setIsSubmitting(true);
+      await api.put(`/products/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      .then(() => {
-        toast.success('Cập nhật thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        if (error?.status === 400) {
-          toast.error('Cập nhật thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error(error);
-      })
-      .finally(() => {
-        setIsSubmitting(false);
       });
-  };
+
+      toast.success('Cập nhật thành công!');
+      router.back();
+    } catch (error) {
+      toast.error('Cập nhật thất bại!');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const [data, setData] = useState<ProductFormType>();
   const [loading, setLoading] = useState<boolean>(false);
 
-  const getCoverImageUrl = (images: Image[]): string => {
+  const getCoverImageUrl = (images: ImageDto[]): string => {
     const cover = images.find((img) => img.A_anhBia);
     return cover ? cover.A_url : '';
   };
 
-  const getProductImageUrls = (images: Image[]): string[] => {
+  const getProductImageUrls = (images: ImageDto[]): string[] => {
     return images.filter((img) => !img.A_anhBia).map((img) => img.A_url);
   };
 
-  const [metadata, setMetadata] = useState<Metadata[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
-  const fetchData = async (id: string) => {
+  async function fetchData(id: string) {
     setLoading(true);
     try {
       const res = await api.get(`/products/${id}`);
@@ -139,18 +132,8 @@ export default function ProductDetail() {
       };
       setData(mapped);
 
-      const metadataFormatted =
-        product.lichSuThaoTac?.map((item: ActivityLog) => ({
-          time: item.thoiGian,
-          action: item.thaoTac,
-          user: {
-            id: item.nhanVien?.NV_id,
-            name: item.nhanVien?.NV_hoTen,
-            phone: item.nhanVien?.NV_soDienThoai,
-            email: item.nhanVien?.NV_email,
-          },
-        })) ?? [];
-      setMetadata(metadataFormatted);
+      const metadataFormatted = mapActivityLogsFromDto(product.lichSuThaoTac);
+      setActivityLogs(metadataFormatted);
     } catch (error) {
       console.error(error);
       toast.error('Không tìm thấy sản phẩm!');
@@ -158,31 +141,27 @@ export default function ProductDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     if (!id) return;
     fetchData(id);
   }, [id]);
 
-  const handleOnDelete = () => {
+  async function handleOnDelete() {
+    if (!authData.userId) return;
     setIsSubmitting(true);
-    api
-      .delete(`/products/${id}?staffId=${authData.userId}`)
-      .then(() => {
-        toast.success('Xóa thành công!');
-        router.back();
-      })
-      .catch((error) => {
-        if (error.status === 400) {
-          toast.error('Xóa thất bại!');
-        } else {
-          toast.error('Đã xảy ra lỗi!');
-        }
-        console.error('Lỗi khi xóa:', error);
-      })
-      .finally(() => setLoading(false));
-  };
+    try {
+      await api.delete(`/products/${id}?staffId=${authData.userId}`);
+      toast.success('Xóa thành công!');
+      router.back();
+    } catch (error) {
+      toast.error('Xóa thất bại!');
+      console.error('Lỗi khi xóa:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (loading)
     return (
@@ -202,7 +181,7 @@ export default function ProductDetail() {
           defaultValue={data}
           onDelete={data?.status === 2 ? handleOnDelete : undefined}
         />
-        <ActionHistorySheet metadata={metadata} />
+        <ActionHistorySheet activityLogs={activityLogs} />
       </div>
     </div>
   );
