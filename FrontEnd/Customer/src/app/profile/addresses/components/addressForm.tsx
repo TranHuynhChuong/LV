@@ -15,7 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
-import AddressSelect from '@/components/FullAddressSelect';
+import AddressSelect from '@/components/utils/FullAddressSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import { AddressType } from '@/types/address';

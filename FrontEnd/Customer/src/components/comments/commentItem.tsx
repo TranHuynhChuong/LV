@@ -3,44 +3,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Star } from 'lucide-react';
 import api from '@/lib/axiosClient';
-import { ApiMetadate } from '@/types/metadata';
-import PaginationControls from '@/components/PaginationControls';
-import { ProductList } from '@/components/product/productList';
-
-type CommentItemType = {
-  content?: string;
-  email: string;
-  core: number;
-  createdAt: string;
-};
+import PaginationControls from '@/components/utils/PaginationControls';
+import {
+  CommentOverview,
+  CommentOverviewDto,
+  mappedCommentOverviewFromDto,
+} from '@/models/comments';
 
 type CommentProps = {
-  id: number;
+  productId: number;
   score: number;
 };
 
-type ApiResponse = {
-  data: {
-    KH_email: string;
-    DG_diem: string;
-    DG_ngayTao: Date;
-    DH_noiDung?: string;
-  }[];
-  metadata: ApiMetadate;
-  subData: {
-    s1: number;
-    s2: number;
-    s3: number;
-    s4: number;
-    s5: number;
-  };
-};
-
-export default function Comment({ id, score }: Readonly<CommentProps>) {
-  const [pagination, setPagination] = useState<number[]>([1]);
-  const [totalPage, setTotalPage] = useState<number>(1);
+export default function Comments({ productId, score }: Readonly<CommentProps>) {
+  const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [comments, setcomments] = useState<CommentItemType[] | []>([]);
+  const [comments, setcomments] = useState<CommentOverview[] | []>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [stars, setStars] = useState<{
     s1: number;
@@ -58,73 +37,34 @@ export default function Comment({ id, score }: Readonly<CommentProps>) {
 
   const pageSize = 6;
 
-  // const fetchData = useCallback(async () => {
-  //   try {
-  //     const params = {
-  //       page: currentPage,
-  //       limit: pageSize,
-  //     };
-
-  //     const res = await api.get(`/commnents/${id}`, { params });
-  //     const ApiResponse: ApiResponse = res.data;
-  //     const mapped: CommentItemType[] = ApiResponse.data.map((item) => ({
-  //       email: item.KH_email,
-  //       core: parseInt(item.DG_diem),
-  //       createdAt: item.DG_ngayTao.toString(),
-  //       content: item.DH_noiDung,
-  //     }));
-  //     setcomments(mapped);
-  //     setPagination(ApiResponse.metadata.pagination);
-  //     setTotalItems(ApiResponse.metadata.totalItems);
-  //     setTotalPage(ApiResponse.metadata.totalPage);
-  // setStars(ApiResponse.subData);
-  //   } catch {
-  //     setcomments([]);
-  //     setPagination([]);
-  //     setTotalItems(0);
-  //     setTotalPage(0);
-  // setStars({
-  //   s1: 0,
-  //   s2: 0,
-  //   s3: 0,
-  //   s4: 0,
-  //   s5: 0,
-  // });
-  //   }
-  // }, [currentPage]);
-
   const fetchData = useCallback(async () => {
     try {
-      // === Giả lập dữ liệu đánh giá ===
-      const fakeComments = Array.from({ length: 12 }).map((_, i) => ({
-        email: `user${i + 1}@example.com`,
-        core: Math.floor(Math.random() * 5) + 1, // 1-5 sao
-        createdAt: new Date(Date.now() - i * 86400000).toISOString(), // cách mỗi ngày
-        content: `Đây là bình luận số ${i + 1}. Sản phẩm rất ${
-          i % 2 === 0 ? 'tốt' : 'bình thường'
-        }.`,
-      }));
+      const params = {
+        page: currentPage,
+        limit: pageSize,
+      };
 
-      const totalFake = 57;
-      const paginated = [3, 4, 5, 6, 7];
-
-      // Gán dữ liệu cho state
-      setcomments(fakeComments);
-      setPagination(paginated);
-      setTotalItems(totalFake);
-      setTotalPage(Math.ceil(totalFake / pageSize));
-      setStars({
-        s1: 33,
-        s2: 15,
-        s3: 37,
-        s4: 12,
-        s5: 13,
-      });
+      const res = await api.get(`/commnents/${productId}`, { params });
+      const data = res.data;
+      // Ensure data.data is always an array and map properties to correct types
+      const commentDtos: CommentOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
+      setcomments(mappedCommentOverviewFromDto(commentDtos));
+      setPageNumbers(data.paginationInfo.pageNumbers);
+      setTotalItems(data.paginationInfo.totalItems);
+      setTotalPages(data.paginationInfo.totalPages);
+      setStars(data.rating);
     } catch {
       setcomments([]);
-      setPagination([]);
+      setPageNumbers([]);
       setTotalItems(0);
-      setTotalPage(0);
+      setTotalPages(0);
+      setStars({
+        s1: 0,
+        s2: 0,
+        s3: 0,
+        s4: 0,
+        s5: 0,
+      });
     }
   }, [currentPage]);
 
@@ -136,7 +76,7 @@ export default function Comment({ id, score }: Readonly<CommentProps>) {
     setCurrentPage(targetPage);
   };
 
-  const CommentItem = ({ content, email, core, createdAt }: CommentItemType) => {
+  const CommentItem = ({ content, email, core, createdAt }: CommentOverview) => {
     const shortEmail = email.split('@')[0];
     const ref = useRef<HTMLDivElement>(null);
     const [showExpand, setShowExpand] = useState(false);
@@ -263,9 +203,9 @@ export default function Comment({ id, score }: Readonly<CommentProps>) {
           </div>
         ))}
         <PaginationControls
-          pagination={pagination}
+          pageNumbers={pageNumbers}
           currentPage={currentPage}
-          totalPage={totalPage}
+          totalPages={totalPages}
           onPageChange={handlePageChange}
         />
       </div>

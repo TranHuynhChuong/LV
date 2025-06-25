@@ -8,8 +8,8 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/axiosClient';
 
 import AddressForm, { AddressFormHandle } from '../profile/addresses/components/addressForm';
-import AddressList from '@/components/AddressList';
-import OverLay from '@/components/OverLay';
+import AddressList from '@/components/utils/AddressList';
+import OverLay from '@/components/utils/OverLay';
 import ProductsOrderSection from './components/productsOrderSection';
 import VoucherSection from './components/voucherSection';
 
@@ -28,7 +28,7 @@ import clsx from 'clsx';
 import { Voucher } from './components/selectVoucher';
 import InvoiceForm, { InvoiceFormHandle } from './components/invoiceForm';
 import { Checkbox } from '@/components/ui/checkbox';
-import Loader from '@/components/Loader';
+import Loader from '@/components/utils/Loader';
 import { useCartStore } from '@/stores/cart.store';
 import { emitCartChange } from '@/lib/cartEvents';
 

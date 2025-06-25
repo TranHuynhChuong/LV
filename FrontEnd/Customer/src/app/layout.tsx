@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 import { Roboto, Geist } from 'next/font/google';
-import RouteWatcher from '@/components/RouteWatcher';
+import RouteWatcher from '@/components/utils/RouteWatcher';
 
 const geistSans = Geist({
   subsets: ['latin'],

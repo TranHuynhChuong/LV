@@ -77,7 +77,7 @@ export default function ProductTab({
   const [productId, setProductId] = useState<string | undefined>(initialProductId);
   const searchType = productId ? 'id' : keyword || categoryId ? 'keyword' : undefined;
   const { authData } = useAuth();
-  const [isComponent, setIscomponent] = useState<boolean>(false);
+  const [isComponent, setIsComponent] = useState<boolean>(false);
   const sortType = undefined;
   const filterType = buildFilterType(status, type);
   const limit = 24;
@@ -158,9 +158,9 @@ export default function ProductTab({
 
   useEffect(() => {
     if (onPageChange && onSearch && onClearSearch) {
-      setIscomponent(false);
+      setIsComponent(false);
     } else {
-      setIscomponent(true);
+      setIsComponent(true);
     }
     fetchData(currentPage, sortType, filterType, keyword, categoryId, productId);
   }, [status, currentPage, keyword, categoryId, productId, fetchData]);
