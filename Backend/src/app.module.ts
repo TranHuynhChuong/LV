@@ -1,18 +1,19 @@
-import { PhiVanChuyenModule } from './PhiVanChuyen/phiVanChuyen.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import configuration from './config/configuration';
-import { NguoiDungModule } from './NguoiDung/nguoiDung.module';
+import { NguoiDungModule } from './nguoi-dung/nguoi-dung.module';
 import { UtilModule } from './Util/util.module';
-import { XacThucModule } from './XacThuc/xacThuc.module';
-import { TheLoaiModule } from './TheLoai/theLoai.module';
-import { SanPhamModule } from './SanPham/sanPham.module';
-import { KhuyenMaiModule } from './KhuyenMai/khuyenMai.module';
-import { GioHangModule } from './GioHang/gioHang.module';
-import { TTNhanHangModule } from './TTNhanHang/ttNhanHang.module';
-import { MaGiamModule } from './MaGiam/maGiam.module';
-import { DonHangModule } from './DonHang/donHang.module';
+import { XacThucModule } from './xac-thuc/xac-thuc.module';
+import { TheLoaiModule } from './the-loai/the-loai.module';
+import { SanPhamModule } from './san-pham/san-pham.module';
+import { KhuyenMaiModule } from './khuyen-mai/khuyen-mai.module';
+import { GioHangModule } from './gio-hang/gio-hang.module';
+import { TTNhanHangModule } from './tt-nhan-hang/tt-nhan-hang.module';
+import { MaGiamModule } from './ma-giam/ma-giam.module';
+import { DonHangModule } from './don-hang/don-hang.module';
+import { DanhGiaModule } from './danh-gia/danh-gia.module';
+import { PhiVanChuyenModule } from './phi-van-chuyen/phi-van-chuyen.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { DonHangModule } from './DonHang/donHang.module';
     TTNhanHangModule,
     MaGiamModule,
     DonHangModule,
+    DanhGiaModule,
   ],
 })
 export class AppModule {}
