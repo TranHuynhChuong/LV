@@ -17,6 +17,8 @@ import {
   MaGiamDonHang,
   MaGiamDonHangSchema,
 } from './schemas/ma-giam-don-hang.schema';
+import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
+import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
 
 @Module({
   imports: [
@@ -34,7 +36,12 @@ import {
     UtilModule,
   ],
   controllers: [DonHangController],
-  providers: [DonHangService, DonHangRepository],
+  providers: [
+    DonHangService,
+    DonHangRepository,
+    ChiTietDonHangRepository,
+    MaGiamDonHangRepository,
+  ],
   exports: [DonHangService],
 })
 export class DonHangModule {}

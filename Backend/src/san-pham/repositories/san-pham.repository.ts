@@ -75,6 +75,16 @@ export class SanPhamRepository {
     return result;
   }
 
+  async updateScore(spId: number, diem: number, session?: ClientSession) {
+    return this.SanPhamModel.updateOne(
+      { SP_id: spId },
+      {
+        $set: { SP_diemDG: diem },
+      },
+      { session }
+    );
+  }
+
   async update(
     id: number,
     data: Partial<SanPham>,

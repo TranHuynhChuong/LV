@@ -70,6 +70,10 @@ export class SanPhamUtilService {
 
     return result;
   }
+
+  async updateScore(id: number, score: number, session: ClientSession) {
+    return this.SanPhamRepo.updateScore(id, score, session);
+  }
 }
 
 @Injectable()

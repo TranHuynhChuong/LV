@@ -5,13 +5,16 @@ import {
   TTNhanHangDHService,
   TTNhanHangKHService,
 } from './tt-nhan-hang.service';
-import { TTNhanHangRepository } from './repositories/tt-nhan-hang-dh.repository';
 import {
   TTNhanHangDH,
   TTNhanHangDHSchema,
+} from './schemas/tt-nhan-hang-dh.schema';
+import {
   TTNhanHangKH,
   TTNhanHangKHSchema,
 } from './schemas/tt-nhan-hang-kh.schema';
+import { TTNhanHangKHRepository } from './repositories/tt-nhan-hang-kh.repository';
+import { TTNhanHangDHRepository } from './repositories/tt-nhan-hang-dh.repository';
 
 @Module({
   imports: [
@@ -23,7 +26,12 @@ import {
     ]),
   ],
   controllers: [TTNhanHangController],
-  providers: [TTNhanHangKHService, TTNhanHangRepository, TTNhanHangDHService],
+  providers: [
+    TTNhanHangKHService,
+    TTNhanHangKHRepository,
+    TTNhanHangDHService,
+    TTNhanHangDHRepository,
+  ],
   exports: [TTNhanHangDHService],
 })
 export class TTNhanHangModule {}

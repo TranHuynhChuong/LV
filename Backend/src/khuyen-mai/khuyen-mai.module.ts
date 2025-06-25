@@ -9,6 +9,7 @@ import {
   ChiTietKhuyenMai,
   ChiTietKhuyenMaiSchema,
 } from './schemas/chi-tiet-khuyen-mai.schema';
+import { ChiTietKhuyenMaiRepository } from './repositories/chi-tiet-khuyen-mai.repository';
 
 @Module({
   imports: [
@@ -18,7 +19,12 @@ import {
     ]),
     NguoiDungModule,
   ],
-  providers: [KhuyenMaiRepository, KhuyenMaiService, KhuyenMaiUtilService],
+  providers: [
+    KhuyenMaiRepository,
+    KhuyenMaiService,
+    KhuyenMaiUtilService,
+    ChiTietKhuyenMaiRepository,
+  ],
   controllers: [KhuyenMaiController],
   exports: [KhuyenMaiUtilService],
 })
