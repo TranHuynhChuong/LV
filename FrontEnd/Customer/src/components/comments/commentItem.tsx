@@ -40,11 +40,12 @@ export default function Comments({ productId, score }: Readonly<CommentProps>) {
   const fetchData = useCallback(async () => {
     try {
       const params = {
+        productId: productId,
         page: currentPage,
         limit: pageSize,
       };
 
-      const res = await api.get(`/comments/${productId}`, { params });
+      const res = await api.get(`/comments`, { params });
       const data = res.data;
       // Ensure data.data is always an array and map properties to correct types
       const commentDtos: CommentOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
