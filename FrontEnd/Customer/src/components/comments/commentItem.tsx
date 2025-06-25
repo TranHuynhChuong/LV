@@ -44,7 +44,7 @@ export default function Comments({ productId, score }: Readonly<CommentProps>) {
         limit: pageSize,
       };
 
-      const res = await api.get(`/commnents/${productId}`, { params });
+      const res = await api.get(`/comments/${productId}`, { params });
       const data = res.data;
       // Ensure data.data is always an array and map properties to correct types
       const commentDtos: CommentOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
