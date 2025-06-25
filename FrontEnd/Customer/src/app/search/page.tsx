@@ -4,8 +4,8 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/axiosClient';
-import PaginationControls from '@/components/PaginationControls';
-import { ProductSimple, ApiResponse } from '@/types/products';
+import PaginationControls from '@/components/utils/PaginationControls';
+
 import { ProductList } from '@/components/product/productList';
 import {
   Select,
@@ -16,45 +16,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-function mapProductList(apiRes: ApiResponse): ProductSimple[] {
-  const { data } = apiRes;
-
-  return data.map((item) => {
-    const selePrice = item.SP_giaGiam === item.SP_giaBan ? undefined : item.SP_giaGiam;
-    const discountPercent = selePrice
-      ? Math.round(((item.SP_giaBan - item.SP_giaGiam) / item.SP_giaBan) * 100)
-      : undefined;
-
-    return {
-      id: item.SP_id,
-      name: item.SP_ten,
-      price: item.SP_giaBan,
-      cost: item.SP_giaNhap,
-      sold: item.SP_daBan,
-      stock: item.SP_tonKho,
-      image: item.SP_anh,
-      status: item.SP_trangThai,
-      score: item.SP_diemDG,
-      categories: item.TL_id,
-      selePrice: selePrice,
-      discountPercent: discountPercent,
-    };
-  });
-}
+import { mapProductOverviewListFromDto, ProductOverview, ProductSortType } from '@/models/products';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
 
-  const keyword = searchParams.get('k') || '';
-  const category = searchParams.get('c') || '';
-  const page = parseInt(searchParams.get('p') || '1', 10);
-  const sort = searchParams.get('s') || '0'; // 0 | 1 | 2 | 3 | -3
+  const keyword = searchParams.get('k') ?? '';
+  const category = searchParams.get('c') ?? '';
+  const page = parseInt(searchParams.get('p') ?? '1', 10);
 
-  const [pagination, setPagination] = useState<number[]>([1]);
-  const [totalPage, setTotalPage] = useState<number>(1);
+  const rawSort = searchParams.get('s') ?? '';
+  const sort = Object.values(ProductSortType).includes(rawSort as ProductSortType)
+    ? (rawSort as ProductSortType)
+    : undefined;
+
+  const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [products, setProducts] = useState<ProductSimple[] | []>([]);
+  const [products, setProducts] = useState<ProductOverview[] | []>([]);
 
   const pageSize = 24;
 
@@ -70,17 +49,17 @@ export default function SearchPage() {
 
     try {
       const res = await api.get('/products/search', { params });
-      const ApiResponse: ApiResponse = res.data;
-      const products: ProductSimple[] = mapProductList(ApiResponse);
-      setProducts(products);
-      setPagination(ApiResponse.metadata.pagination);
-      setTotalItems(ApiResponse.metadata.totalItems);
-      setTotalPage(ApiResponse.metadata.totalPage);
+      const data = res.data;
+
+      setProducts(mapProductOverviewListFromDto(data.data));
+      setPageNumbers(data.paginationInfo.pageNumbers);
+      setTotalItems(data.paginationInfo.totalItems);
+      setTotalPages(data.paginationInfo.totalPages);
     } catch {
       setProducts([]);
-      setPagination([]);
+      setPageNumbers([]);
       setTotalItems(0);
-      setTotalPage(0);
+      setTotalPages(0);
     }
   }, [keyword, category, page, sort, pageSize]);
 
@@ -100,8 +79,13 @@ export default function SearchPage() {
   const handleSortChange = (sortType: string) => {
     const params = new URLSearchParams(searchParams.toString());
 
-    params.set('s', sortType); // cập nhật sortType vào query `s`
-    params.set('p', '1'); // reset về trang đầu nếu cần
+    if (sortType === ProductSortType.MostRelevant) {
+      params.delete('s');
+    } else {
+      params.set('s', sortType);
+    }
+
+    params.set('p', '1');
 
     // push tới URL mới
     router.push(`/search?${params.toString()}`);
@@ -118,11 +102,11 @@ export default function SearchPage() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Tiêu chí</SelectLabel>
-                <SelectItem value="0">Liên quan</SelectItem>
-                <SelectItem value="1">Mới nhất</SelectItem>
-                <SelectItem value="2">Bán chạy</SelectItem>
-                <SelectItem value="3">Giá thấp - cao</SelectItem>
-                <SelectItem value="4">Giá cao - thấp</SelectItem>
+                <SelectItem value={ProductSortType.MostRelevant}>Liên quan</SelectItem>
+                <SelectItem value={ProductSortType.Latest}>Mới nhất</SelectItem>
+                <SelectItem value={ProductSortType.BestSelling}>Bán chạy</SelectItem>
+                <SelectItem value={ProductSortType.PriceAsc}>Giá thấp - cao</SelectItem>
+                <SelectItem value={ProductSortType.PriceDesc}>Giá cao - thấp</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -131,9 +115,9 @@ export default function SearchPage() {
       <div className="space-y-6 mt-4">
         <ProductList products={products} />
         <PaginationControls
-          pagination={pagination}
+          pageNumbers={pageNumbers}
           currentPage={page}
-          totalPage={totalPage}
+          totalPages={totalPages}
           onPageChange={handlePageChange}
         />
       </div>
