@@ -1,11 +1,11 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { DanhGiaService } from './danh-gia.service';
 import { CreateDanhGiaDto } from './dto/create-danh-gia.dto';
@@ -13,30 +13,38 @@ import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
 
 @Controller('danh-gia')
 export class DanhGiaController {
-  constructor(private readonly danhGiaService: DanhGiaService) {}
+  constructor(private readonly DanhGiaService: DanhGiaService) {}
 
   @Post()
-  create(@Body() createDanhGiaDto: CreateDanhGiaDto) {
-    return this.danhGiaService.create(createDanhGiaDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.danhGiaService.findAll();
+  create(@Body() dto: CreateDanhGiaDto) {
+    return this.DanhGiaService.create(dto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.danhGiaService.findOne(+id);
+  getById(@Param('id') id: string) {
+    return this.DanhGiaService.getById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDanhGiaDto: UpdateDanhGiaDto) {
-    return this.danhGiaService.update(+id, updateDanhGiaDto);
+  @Get()
+  getAllByProduct(
+    @Query('productId') spId: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '24'
+  ) {
+    return this.DanhGiaService.getAllByProduct(
+      +spId,
+      parseInt(page),
+      parseInt(limit)
+    );
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.danhGiaService.remove(+id);
+  @Patch(':id/hide')
+  hide(@Param('id') id: string, @Body() dto: UpdateDanhGiaDto) {
+    return this.DanhGiaService.hide(id, dto);
+  }
+
+  @Patch(':id/show')
+  show(@Param('id') id: string, @Body() dto: UpdateDanhGiaDto) {
+    return this.DanhGiaService.show(id, dto);
   }
 }
