@@ -1,26 +1,33 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { ProductSimple } from '@/types/products'; // đường dẫn đúng với dự án của bạn
+import { ProductOverview } from '@/models/products';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 interface ProductItemProps {
-  product: ProductSimple;
+  product: ProductOverview;
 }
 
 export default function ProductItem({ product }: Readonly<ProductItemProps>) {
-  const { name, price, selePrice, image, sold, score, discountPercent, id } = product;
+  const { name, salePrice, isOnSale, discountPrice, image, sold, score, discountPercent, id } =
+    product;
 
   return (
     <Link href={`/product/${id}`}>
       <Card className="hover:shadow-[0_0_10px_rgba(0,0,0,0.2)] hover:z-10 transition-shadow duration-300 relative shadow-none rounded-sm overflow-hidden py-4 gap-2 h-full w-full flex flex-col cursor-pointer">
         <div className="">
           <div className=" relative h-42 inset-0 flex justify-center items-center">
-            <Image src={image} alt={name} fill className="object-contain  w-auto h-full " />
+            <Image
+              src={image}
+              alt={name}
+              fill
+              priority
+              className="object-contain  w-auto h-full "
+            />
           </div>
         </div>
 
-        {discountPercent && (
+        {isOnSale && (
           <span className="absolute top-0 right-0 bg-red-500 p-1 text-white text-xs rounded-bl-md">
             -{discountPercent}%
           </span>
@@ -30,24 +37,19 @@ export default function ProductItem({ product }: Readonly<ProductItemProps>) {
           <div>
             <h3 className="text-sm  line-clamp-2 h-[3em]">{name}</h3>
             <div className="mt-1 flex flex-wrap items-center space-x-2">
-              {selePrice !== undefined ? (
+              {isOnSale ? (
                 <>
                   <span className="text-base font-bold text-red-600">
-                    {selePrice.toLocaleString()}₫
+                    {discountPrice.toLocaleString()}₫
                   </span>
                   <span className="text-xs text-gray-400 line-through">
-                    {price.toLocaleString()}₫
+                    {salePrice.toLocaleString()}₫
                   </span>
                 </>
               ) : (
-                <>
-                  <span className="text-base font-bold text-gray-800">
-                    {price.toLocaleString()}₫
-                  </span>
-                  <span className="text-xs text-transparent line-through">
-                    {price.toLocaleString()}₫
-                  </span>
-                </>
+                <span className="text-base font-bold text-gray-800">
+                  {salePrice.toLocaleString()}₫
+                </span>
               )}
             </div>
           </div>

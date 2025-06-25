@@ -1,6 +1,5 @@
 'use client';
 
-import { ProductSimple } from '@/types/products';
 import ProductItem from './productItem';
 
 import clsx from 'clsx';
@@ -12,9 +11,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '../ui/carousel';
+import { ProductOverview } from '@/models/products';
 
 type ProductListProps = {
-  products: ProductSimple[];
+  products: ProductOverview[];
   displayType?: 'grid' | 'carousel';
   isLoading?: boolean;
   pageSize?: number;
