@@ -13,17 +13,16 @@ export type CustomerListResults = PaginateResult<KhachHangDocument>;
 export class KhachHangRepository {
   constructor(
     @InjectModel(KhachHang.name)
-    private readonly model: Model<KhachHangDocument>
+    private readonly KhachHangModel: Model<KhachHangDocument>
   ) {}
 
   async create(createDto: any, session?: ClientSession): Promise<KhachHang> {
-    const created = new this.model(createDto);
+    const created = new this.KhachHangModel(createDto);
     return created.save({ session });
   }
 
   async findLastId(session?: ClientSession): Promise<number> {
-    const result = await this.model
-      .find({})
+    const result = await this.KhachHangModel.find({})
       .sort({ KH_id: -1 })
       .limit(1)
       .select('KH_id')
@@ -42,13 +41,10 @@ export class KhachHangRepository {
       { $limit: limit },
     ];
 
-    const countPipeline: PipelineStage[] = [
-      ...dataPipeline,
-      { $count: 'count' },
-    ];
+    const countPipeline: PipelineStage[] = [{ $count: 'count' }];
 
     return paginateRawAggregate({
-      model: this.model,
+      model: this.KhachHangModel,
       page,
       limit,
       dataPipeline,
@@ -57,49 +53,45 @@ export class KhachHangRepository {
   }
 
   async findByEmail(email: string): Promise<KhachHang | null> {
-    return this.model.findOne({ KH_email: email }).exec();
+    return this.KhachHangModel.findOne({ KH_email: email }).exec();
   }
 
   async findById(id: number): Promise<KhachHang | null> {
-    return this.model.findOne({ KH_id: id }).exec();
+    return this.KhachHangModel.findOne({ KH_id: id }).exec();
   }
 
   async update(id: number, data: any): Promise<KhachHang | null> {
     const update: UpdateQuery<KhachHang> = { $set: data };
 
-    return this.model
-      .findOneAndUpdate({ KH_id: id }, update, {
-        new: true,
-        runValidators: true,
-      })
-      .exec();
+    return this.KhachHangModel.findOneAndUpdate({ KH_id: id }, update, {
+      new: true,
+      runValidators: true,
+    }).exec();
   }
 
   async updateEmail(id: number, newEmail: string): Promise<KhachHang | null> {
-    return this.model
-      .findOneAndUpdate(
-        { KH_id: id },
-        { KH_email: newEmail },
-        {
-          new: true,
-        }
-      )
-      .exec();
+    return this.KhachHangModel.findOneAndUpdate(
+      { KH_id: id },
+      { KH_email: newEmail },
+      {
+        new: true,
+      }
+    ).exec();
   }
 
   async delete(id: number): Promise<KhachHang | null> {
-    return this.model.findOneAndUpdate({ KH_id: id }).exec();
+    return this.KhachHangModel.findOneAndUpdate({ KH_id: id }).exec();
   }
 
   async countAll(): Promise<number> {
-    return this.model.countDocuments().exec();
+    return this.KhachHangModel.countDocuments().exec();
   }
 
   async countByMonthInCurrentYear(
     year: number,
     countsByMonth: number[]
   ): Promise<number[]> {
-    const result = await this.model.aggregate([
+    const result = await this.KhachHangModel.aggregate([
       {
         $match: {
           KH_ngayTao: {
