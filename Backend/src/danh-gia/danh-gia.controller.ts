@@ -11,7 +11,7 @@ import { DanhGiaService } from './danh-gia.service';
 import { CreateDanhGiaDto } from './dto/create-danh-gia.dto';
 import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
 
-@Controller('danh-gia')
+@Controller('comments')
 export class DanhGiaController {
   constructor(private readonly DanhGiaService: DanhGiaService) {}
 
