@@ -6,17 +6,44 @@ import {
 import { CreateDanhGiaDto } from './dto/create-danh-gia.dto';
 import { DanhGiaRepository } from './repositories/danh-gia.repository';
 import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
+import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 
 @Injectable()
 export class DanhGiaService {
-  constructor(private readonly DanhGiaRepo: DanhGiaRepository) {}
+  constructor(
+    @InjectConnection() private readonly connection: Connection,
+
+    private readonly DanhGiaRepo: DanhGiaRepository,
+    private readonly SanPhamService: SanPhamUtilService
+  ) {}
 
   async create(dto: CreateDanhGiaDto) {
-    const created = await this.DanhGiaRepo.create(dto);
-    if (!created) {
-      throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
+    const session = await this.connection.startSession();
+    try {
+      const created = await session.withTransaction(async () => {
+        const created = await this.DanhGiaRepo.create(dto, session);
+        if (!created) {
+          throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
+        }
+        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
+          dto.SP_id,
+          session
+        );
+        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+        return created;
+      });
+
+      if (!created) {
+        throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
+      }
+      return created;
+    } catch (error) {
+      throw new error(error);
+    } finally {
+      await session.endSession();
     }
-    return created;
   }
 
   async getById(id: string) {
