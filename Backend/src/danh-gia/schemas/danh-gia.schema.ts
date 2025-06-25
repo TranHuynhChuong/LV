@@ -22,10 +22,10 @@ export const LichSuThaoTacDGSchema =
 @Schema()
 export class DanhGia {
   @Prop({ type: Number, required: true })
-  DH_diem: number;
+  DG_diem: number;
 
   @Prop({ type: String, required: false })
-  DH_noiDung?: string;
+  DG_noiDung?: string;
 
   @Prop({ type: Date, required: true, default: () => new Date() })
   DG_ngayTao: Date;
