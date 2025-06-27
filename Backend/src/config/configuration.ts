@@ -22,4 +22,11 @@ export default () => ({
     code: process.env.CODE,
     pass: process.env.PASS,
   },
+
+  frontend: {
+    urls: (process.env.FE_URL ?? '')
+      .split(',')
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0),
+  },
 });
