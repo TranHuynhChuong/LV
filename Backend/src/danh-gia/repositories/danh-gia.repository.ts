@@ -59,7 +59,7 @@ export class DanhGiaRepository {
         },
       },
       { $unwind: { path: '$khachHang', preserveNullAndEmptyArrays: true } },
-      { $addFields: { KH_email: '$khachHang.KH_email' } },
+      { $addFields: { KH_hoTen: '$khachHang.KH_hoTen' } },
       { $project: { khachHang: 0 } },
       { $sort: { DG_ngayTao: -1 } },
       { $skip: skip },
@@ -96,7 +96,7 @@ export class DanhGiaRepository {
       {
         $group: {
           _id: null,
-          avgRating: { $avg: '$DH_diem' },
+          avgRating: { $avg: '$DG_diem' },
         },
       },
     ]).session(session ?? null);
@@ -129,27 +129,27 @@ export class DanhGiaRepository {
           _id: null,
           s1: {
             $sum: {
-              $cond: [{ $eq: ['$DH_diem', 1] }, 1, 0],
+              $cond: [{ $eq: ['$DG_diem', 1] }, 1, 0],
             },
           },
           s2: {
             $sum: {
-              $cond: [{ $eq: ['$DH_diem', 2] }, 1, 0],
+              $cond: [{ $eq: ['$DG_diem', 2] }, 1, 0],
             },
           },
           s3: {
             $sum: {
-              $cond: [{ $eq: ['$DH_diem', 3] }, 1, 0],
+              $cond: [{ $eq: ['$DG_diem', 3] }, 1, 0],
             },
           },
           s4: {
             $sum: {
-              $cond: [{ $eq: ['$DH_diem', 4] }, 1, 0],
+              $cond: [{ $eq: ['$DG_diem', 4] }, 1, 0],
             },
           },
           s5: {
             $sum: {
-              $cond: [{ $eq: ['$DH_diem', 5] }, 1, 0],
+              $cond: [{ $eq: ['$DG_diem', 5] }, 1, 0],
             },
           },
         },
