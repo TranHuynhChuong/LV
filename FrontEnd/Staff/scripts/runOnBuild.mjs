@@ -20,7 +20,7 @@ async function main() {
   const response = await fetch(`${apiUrl}/shipping/addressFiles`);
   const result = await response.json();
 
-  const outputDir = path.resolve(__dirname, '../public/data');
+  const outputDir = path.resolve(__dirname, '../public/addresses');
   await mkdir(outputDir, { recursive: true });
 
   for (const item of result) {

@@ -1,9 +1,20 @@
 import { ActivityLogs } from '../activityLogs';
 
+export enum OrderStatus {
+  All = 'all',
+  Pending = 'pending',
+  ToShip = 'toShip',
+  Shipping = 'shipping',
+  Complete = 'complete',
+  InComplete = 'inComplete',
+  CancelRequest = 'cancelRequest',
+  Canceled = 'canceled',
+}
+
 export interface Order {
   orderId: string;
   createdAt: string;
-  status: number;
+  status: string;
   discountInvoice: number;
   discountShipping: number;
   shippingFee: number;
@@ -13,7 +24,7 @@ export interface Order {
     address: string;
     email: string;
   };
-  customerId: number;
+  customerId: number | null;
   customerEmail: string | null;
   activityLogs: ActivityLogs[];
   shippingInfo: {
@@ -41,5 +52,26 @@ export interface Order {
     productImage: string;
     productStatus: number;
     reviewed: boolean;
+  }[];
+}
+
+export interface OrderOverview {
+  orderId: string;
+  createdAt: string;
+  status: string;
+  discountInvoice: number;
+  discountShipping: number;
+  shippingFee: number;
+  customerId: number | null;
+  customerEmail: string | null;
+  orderDetails: {
+    productId: number;
+    quantity: number;
+    priceBuy: number;
+    priceSell: number;
+    priceImport: number;
+    productName: string;
+    productImage: string;
+    productStatus: number;
   }[];
 }

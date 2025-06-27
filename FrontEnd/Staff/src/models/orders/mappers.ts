@@ -1,9 +1,8 @@
-import { Order } from '.';
+import { Order, OrderDto, OrderOverviewDto } from '.';
 import { mapActivityLogsFromDto } from '../activityLogs';
-import { OrderDto } from './dto';
 
 export async function getProvinceName(provinceId: number) {
-  const provinces = await fetch('/data/0.json').then((res) => res.json());
+  const provinces = await fetch('/addresses/0.json').then((res) => res.json());
   return (
     provinces.find((p: { T_id: number; T_ten: string }) => p.T_id === provinceId)?.T_ten ??
     'Không xác định'
@@ -11,7 +10,7 @@ export async function getProvinceName(provinceId: number) {
 }
 
 export async function getWardName(provinceId: number, wardId: number) {
-  const wards = await fetch(`/data/${provinceId}.json`).then((res) => res.json());
+  const wards = await fetch(`/addresses/${provinceId}.json`).then((res) => res.json());
   return (
     wards.find((w: { X_id: number; X_ten: string }) => w.X_id === wardId)?.X_ten ?? 'Không xác định'
   );
@@ -29,7 +28,7 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
   return {
     orderId: dto.DH_id ?? '',
     createdAt: dto.DH_ngayTao ?? '',
-    status: dto.DH_trangThai ?? 0,
+    status: dto.DH_trangThai ?? '',
     discountInvoice: dto.DH_giamHD ?? 0,
     discountShipping: dto.DH_giamVC ?? 0,
     shippingFee: dto.DH_phiVC ?? 0,
@@ -77,6 +76,27 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
   };
 }
 
-export async function mapOrderListFromDto(donHangs: OrderDto[]): Promise<Order[]> {
-  return await Promise.all(donHangs.map(mapOrderFromDto));
+export function mapOrderOverviewListFromDto(dtos: OrderOverviewDto[]) {
+  return dtos.map((dto) => ({
+    orderId: dto.DH_id ?? '',
+    createdAt: dto.DH_ngayTao ?? '',
+    status: dto.DH_trangThai ?? 0,
+    discountInvoice: dto.DH_giamHD ?? 0,
+    discountShipping: dto.DH_giamVC ?? 0,
+    shippingFee: dto.DH_phiVC ?? 0,
+
+    customerId: dto.KH_id ?? null,
+    customerEmail: dto.KH_email ?? null,
+
+    orderDetails: (dto.chiTietDonHang ?? []).map((item) => ({
+      productId: item.SP_id ?? 0,
+      quantity: item.CTDH_soLuong ?? 0,
+      priceBuy: item.CTDH_giaMua ?? 0,
+      priceSell: item.CTDH_giaBan ?? 0,
+      priceImport: item.CTDH_giaNhap ?? 0,
+      productName: item.SP_ten ?? '',
+      productImage: item.SP_anh ?? '',
+      productStatus: item.SP_trangThai ?? 0,
+    })),
+  }));
 }

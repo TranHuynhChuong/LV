@@ -13,7 +13,7 @@ export default function AddressSelect({ onChange, value }: AddressSelectProps) {
 
   useEffect(() => {
     async function fetchProvinces() {
-      const res = await fetch('/data/0.json');
+      const res = await fetch('/addresses/0.json');
       const data = await res.json();
       const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
         code: item.T_id,

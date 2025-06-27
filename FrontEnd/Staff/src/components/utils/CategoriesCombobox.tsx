@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 type BackendCategory = {
   TL_id: number;

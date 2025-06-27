@@ -2,23 +2,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 import PaginationControls from '@/components/utils/PaginationControls';
-import { mapOrderListFromDto, Order, OrderDto } from '@/models/orders';
+import {
+  mapOrderOverviewListFromDto,
+  OrderOverview,
+  OrderOverviewDto,
+  OrderStatus,
+} from '@/models/orders';
 import { OrderSearchBar } from '@/components/orders/orderSearchBar';
 import OrderList from '@/components/orders/orderList';
-
-const typeMap: Record<string, number> = {
-  all: 0,
-  pending: 1,
-  toship: 2,
-  shipping: 3,
-  complete: 4,
-  cancelrequest: 6,
-};
+import eventBus from '@/lib/eventBus';
 
 export default function Orders() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -29,53 +26,45 @@ export default function Orders() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [data, setData] = useState<Order[]>([]);
+  const [data, setData] = useState<OrderOverview[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const type = searchParams.get('type') ?? 'pending';
+  const type = (searchParams.get('type') ?? 'pending') as OrderStatus;
   const orderId = searchParams.get('orderId') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1');
-  const filterType = typeMap[type];
+
   const limit = 24;
   const [total, setTotal] = useState<{
     total: number;
     pending: number;
-    toship: number;
+    toShip: number;
     shipping: number;
     complete: number;
-    cancelrequest: number;
-  }>();
-
-  useEffect(() => {
-    api
-      .get('orders/total')
-      .then((res) => {
-        const data = res.data;
-        setTotal(data);
-      })
-      .catch((error) => {
-        console.error(error);
-        setTotal({
-          total: 0,
-          pending: 0,
-          toship: 0,
-          shipping: 0,
-          complete: 0,
-          cancelrequest: 0,
-        });
-      });
-  }, []);
+    inComplete: number;
+    cancelRequest: number;
+    canceled: number;
+  }>({
+    total: 0,
+    pending: 0,
+    toShip: 0,
+    shipping: 0,
+    complete: 0,
+    inComplete: 0,
+    cancelRequest: 0,
+    canceled: 0,
+  });
 
   const fetchData = useCallback(
-    async (page: number, filterType?: number, orderId?: string) => {
+    async (page: number, filterType?: OrderStatus, orderId?: string) => {
       try {
         if (orderId) {
-          const res = await api.get(`orders/${orderId}`, { params: { filterType } });
+          const res = await api.get(`orders/${orderId}`, {
+            params: { filterType },
+          });
           const item = res.data;
-          const mapped = await mapOrderListFromDto([item]);
-
+          const mapped = mapOrderOverviewListFromDto([item as OrderOverviewDto]);
           setData(mapped);
           setPageNumbers([]);
           setTotalPages(1);
@@ -85,27 +74,65 @@ export default function Orders() {
 
         const params = { page, filterType, limit };
         const res = await api.get('orders', { params });
-        const { data, metadata } = res.data;
-        const mapped = await mapOrderListFromDto(data as OrderDto[]);
+        const { data, paginationInfo } = res.data;
+        const mapped = mapOrderOverviewListFromDto(data);
 
         setData(mapped);
-        setPageNumbers(metadata.pagination);
-        setTotalPages(metadata.totalPage);
-        setTotalItems(metadata.totalItems);
+        setPageNumbers(paginationInfo.pageNumbers);
+        setTotalPages(paginationInfo.totalPage);
+        setTotalItems(paginationInfo.totalItems);
       } catch (error) {
-        console.error(error); // Optional: log ra cho dễ debug
+        console.error(error);
         setData([]);
-        setPageNumbers([1]);
-        setTotalPages(1);
+        setPageNumbers([]);
+        setTotalPages(0);
         setTotalItems(0);
       }
     },
-    [orderId, filterType, limit]
+    []
   );
 
+  async function fetchOrderTotal() {
+    try {
+      const res = await api.get('orders/total');
+      const data = res.data;
+      setTotal(data);
+    } catch (error) {
+      console.error(error);
+      setTotal({
+        total: 0,
+        pending: 0,
+        toShip: 0,
+        shipping: 0,
+        complete: 0,
+        inComplete: 0,
+        cancelRequest: 0,
+        canceled: 0,
+      });
+    }
+  }
+
   useEffect(() => {
-    fetchData(page, filterType, orderId);
-  }, [page, orderId, fetchData]);
+    fetchOrderTotal();
+
+    const handler = () => fetchOrderTotal();
+    eventBus.on('order:refetch', handler);
+
+    return () => {
+      eventBus.off('order:refetch', handler);
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchData(page, type, orderId);
+
+    const handler = () => fetchData(page, type, orderId);
+    eventBus.on('order:refetch', handler);
+
+    return () => {
+      eventBus.off('order:refetch', handler);
+    };
+  }, [page, orderId, fetchData, type]);
 
   const handleSearch = (orderId: string) => {
     const search = new URLSearchParams();
@@ -131,9 +158,9 @@ export default function Orders() {
 
   return (
     <div className="p-4 space-y-2">
-      <div className="space-y-4 p-4 bg-white  border rounded-md ">
-        <div className="flex pb-4 gap-2 overflow-x-auto whitespace-nowrap">
-          {['all', 'pending', 'toship', 'shipping', 'complete', 'cancelrequest'].map((tab) => (
+      <div className="p-4 space-y-4 bg-white border rounded-md ">
+        <div className="flex gap-2 pb-4 overflow-x-auto whitespace-nowrap">
+          {['all', 'pending', 'toShip', 'shipping', 'complete', 'cancelRequest'].map((tab) => (
             <Link key={tab} href={`/orders?type=${tab}`}>
               <Button
                 variant={type === tab ? 'default' : 'outline'}
@@ -141,10 +168,10 @@ export default function Orders() {
               >
                 {tab === 'all' && `Tất cả ${total?.total}`}
                 {tab === 'pending' && `Chờ xác nhận ${total?.pending}`}
-                {tab === 'toship' && `Chờ vận chuyển ${total?.toship}`}
+                {tab === 'toShip' && `Chờ vận chuyển ${total?.toShip}`}
                 {tab === 'shipping' && `Đang vận chuyển ${total?.shipping}`}
-                {tab === 'complete' && `Đã giao hàng ${total?.complete}`}
-                {tab === 'cancelrequest' && `Yêu cầu hủy ${total?.cancelrequest}`}
+                {tab === 'complete' && `Đã giao hàng ${total?.complete + total?.inComplete}`}
+                {tab === 'cancelRequest' && `Yêu cầu hủy ${total?.cancelRequest}`}
               </Button>
             </Link>
           ))}

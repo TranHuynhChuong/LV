@@ -4,7 +4,7 @@ import ProductTable from './productTable';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';

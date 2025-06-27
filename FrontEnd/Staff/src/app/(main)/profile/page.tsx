@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 import { toast } from 'sonner';
 import Loading from './loading';

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 

@@ -24,7 +24,7 @@ export default function AddressSelect({
   // Load danh sách tỉnh
   useEffect(() => {
     async function fetchProvinces() {
-      const res = await fetch('/data/0.json');
+      const res = await fetch('/addresses/0.json');
       const data = await res.json();
       const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
         code: item.T_id,
@@ -41,7 +41,7 @@ export default function AddressSelect({
 
     async function fetchWards() {
       try {
-        const res = await fetch(`/data/${valueProvinceId}.json`);
+        const res = await fetch(`/addresses/${valueProvinceId}.json`);
         const data = await res.json();
         const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
           code: item.X_id,
@@ -63,7 +63,7 @@ export default function AddressSelect({
     setWardsData([]);
 
     try {
-      const res = await fetch(`/data/${provinceId}.json`);
+      const res = await fetch(`/addresses/${provinceId}.json`);
       const data = await res.json();
       const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
         code: item.X_id,

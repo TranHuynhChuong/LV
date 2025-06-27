@@ -1,25 +1,23 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Order } from '@/types/Order';
+import { OrderOverview } from '@/models/orders';
+import OrderActions from './orderActions';
+import eventBus from '@/lib/eventBus';
 
-export const statusMap: Record<number, string> = {
-  0: 'Tất cả',
-  1: 'Chờ xác nhận',
-  2: 'Chờ vận chuyển',
-  3: 'Đang vận chuyển',
-  4: 'Giao thành công',
-  5: 'Giao thất bại',
-  6: 'Yêu cầu hủy',
-  7: 'Đã hủy',
+export const statusMap: Record<string, string> = {
+  ChoXacNhan: 'Chờ xác nhận',
+  ChoVanChuyen: 'Chờ vận chuyển',
+  DangVanChuyen: 'Đang vận chuyển',
+  GiaoThanhCong: 'Giao thành công',
+  GiaoThatBai: 'Giao thất bại',
+  YeuCauHuy: 'Yêu cầu hủy',
+  DaHuy: 'Đã hủy',
 };
 
-export default function OrderItem({ order }: { order: Order }) {
+export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>) {
   const [expanded, setExpanded] = useState(false);
-
   const displayedProducts = expanded ? order.orderDetails : order.orderDetails.slice(0, 1);
 
   const total =
@@ -29,11 +27,11 @@ export default function OrderItem({ order }: { order: Order }) {
     order.shippingFee;
 
   return (
-    <div className=" rounded-md bg-white border">
+    <div className="bg-white border rounded-md ">
       <div className="px-4">
         {/* Tiêu đề */}
-        <div className="flex justify-between items-center py-4 gap-4">
-          <div className="font-medium text-sm whitespace-nowrap">Mã đơn: {order.orderId}</div>
+        <div className="flex items-center justify-between gap-4 py-4">
+          <div className="text-sm font-medium whitespace-nowrap">Mã đơn: {order.orderId}</div>
           <span className="text-sm whitespace-nowrap">
             {statusMap[order.status] || 'Không xác định'}
           </span>
@@ -51,23 +49,23 @@ export default function OrderItem({ order }: { order: Order }) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="flex gap-2 items-center py-2">
+                <div className="flex items-center gap-2 py-2">
                   <Image
                     src={item.productImage}
                     alt={item.productName}
                     width={56}
                     height={56}
                     priority
-                    className="rounded-md object-cover border"
+                    className="object-cover border rounded-md"
                   />
-                  <div className="flex-1 flex flex-col justify-between h-14">
+                  <div className="flex flex-col justify-between flex-1 h-14">
                     <div className="flex justify-between ">
                       <div className="line-clamp-2 ">{item.productName}</div>
-                      <div className="text-sm text-muted-foreground flex-shrink-0">
+                      <div className="flex-shrink-0 text-sm text-muted-foreground">
                         x {item.quantity}
                       </div>
                     </div>
-                    <div className="flex justify-end gap-1 items-end">
+                    <div className="flex items-end justify-end gap-1">
                       {item.priceSell !== item.priceBuy ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
@@ -93,7 +91,7 @@ export default function OrderItem({ order }: { order: Order }) {
         {/* Nút xem thêm/ẩn bớt */}
         {order.orderDetails.length > 1 && (
           <button
-            className="text-xs w-full flex items-center gap-1 justify-center text-muted-foreground hover:underline cursor-pointer"
+            className="flex items-center justify-center w-full gap-1 text-xs cursor-pointer text-muted-foreground hover:underline"
             onClick={() => setExpanded(!expanded)}
           >
             {expanded ? 'Ẩn bớt' : `Xem thêm`}
@@ -108,32 +106,15 @@ export default function OrderItem({ order }: { order: Order }) {
 
         {/* Tổng tiền và hành động */}
         <div className="py-4 space-y-6 ">
-          <div className="text-xs text-muted-foreground flex justify-end gap-1 items-end">
+          <div className="flex items-end justify-end gap-1 text-xs text-muted-foreground">
             Tổng tiền số tiền ({order.orderDetails.length} sản phẩm):
             <span className="text-sm font-semibold text-primary"> {total.toLocaleString()} đ</span>
           </div>
-          <div className="flex gap-2 flex-wrap w-full justify-end ">
-            {[1, 2, 6].includes(order.status) && (
-              <Button
-                variant="outline"
-                className="font-normal text-sm border-red-600/30 text-red-600/80 hover:text-red-600/90 cursor-pointer"
-              >
-                Hủy đơn
-              </Button>
-            )}
-
-            {[1, 2, 3].includes(order.status) && (
-              <Button variant="outline" className="font-normal text-sm cursor-pointer">
-                Xác nhận
-              </Button>
-            )}
-
-            <Link href={`/orders/${order.orderId}`}>
-              <Button variant="outline" className="font-normal text-sm cursor-pointer">
-                Xem chi tiết
-              </Button>
-            </Link>
-          </div>
+          <OrderActions
+            id={order.orderId}
+            status={order.status}
+            onSuccess={() => eventBus.emit('order:refetch')}
+          />
         </div>
       </div>
     </div>

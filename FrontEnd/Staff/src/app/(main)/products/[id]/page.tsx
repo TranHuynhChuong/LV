@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import ProductForm, { ProductFormValues, ProductFormType } from '@/components/products/productForm';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';

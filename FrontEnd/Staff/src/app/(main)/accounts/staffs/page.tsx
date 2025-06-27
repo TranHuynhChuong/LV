@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 import StaffTable from '@/components/accounts/staffTable';
 import SwitchTab from '../switchTab';

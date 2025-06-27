@@ -1,15 +1,15 @@
 'use client';
 
-import { Order } from '@/types/Order';
+import { OrderOverview } from '@/models/orders';
 import OrderItem from './orderItem';
 
 type Props = {
-  orders: Order[];
+  orders: OrderOverview[];
 };
 
-export default function OrderList({ orders }: Props) {
-  if (!orders.length) {
-    return <p className="text-sm text-muted-foreground">Không có đơn hàng nào.</p>;
+export default function OrderList({ orders }: Readonly<Props>) {
+  if (orders.length === 0) {
+    return null;
   }
 
   return (

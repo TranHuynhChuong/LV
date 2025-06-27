@@ -3,11 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
-import Loader from '@/components/utils/Loader';
 
 import { mapOrderFromDto, Order } from '@/models/orders';
 import OrderDetail from '@/components/orders/orderDetail';
@@ -17,11 +16,9 @@ export default function OrderDetailPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [data, setData] = useState<Order>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -37,6 +34,7 @@ export default function OrderDetailPage() {
         const res = await api.get(`orders/${id}`);
         const item = res.data;
         const mapped = await mapOrderFromDto(item);
+
         setData(mapped);
       } catch (error) {
         console.error(error);
@@ -55,14 +53,13 @@ export default function OrderDetailPage() {
   if (!data)
     return (
       <div className="p-4">
-        <div className="relative w-full max-w-xl min-w-fit  mx-auto"></div>
+        <div className="relative w-full max-w-xl mx-auto min-w-fit"></div>
       </div>
     );
 
   return (
     <div className="p-4">
-      <div className="relative w-full  mx-auto">
-        {isSubmitting && <Loader />}
+      <div className="relative w-full mx-auto">
         {data && <OrderDetail data={data} />}
         <ActionHistorySheet activityLogs={data.activityLogs} />
       </div>

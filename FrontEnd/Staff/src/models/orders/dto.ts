@@ -3,7 +3,7 @@ import { ActivityLogsDto } from '../activityLogs';
 export interface OrderDto {
   DH_id: string;
   DH_ngayTao: string;
-  DH_trangThai: number;
+  DH_trangThai: string;
   DH_giamHD: number;
   DH_giamVC: number;
   DH_phiVC: number;
@@ -14,7 +14,7 @@ export interface OrderDto {
     HD_email: string;
     _id: string;
   };
-  KH_id: number;
+  KH_id: number | null;
   KH_email: string | null;
   lichSuThaoTac: ActivityLogsDto[];
   thongTinNhanHang: {
@@ -36,5 +36,26 @@ export interface OrderDto {
     SP_anh: string;
     SP_trangThai: number;
     daDanhGia: boolean;
+  }[];
+}
+
+export interface OrderOverviewDto {
+  DH_id: string;
+  DH_ngayTao: string;
+  DH_trangThai: string;
+  DH_giamHD: number;
+  DH_giamVC: number;
+  DH_phiVC: number;
+  KH_id: number | null;
+  KH_email: string | null;
+  chiTietDonHang: {
+    SP_id: number;
+    CTDH_soLuong: number;
+    CTDH_giaMua: number;
+    CTDH_giaBan: number;
+    CTDH_giaNhap: number;
+    SP_ten: string;
+    SP_anh: string;
+    SP_trangThai: number;
   }[];
 }

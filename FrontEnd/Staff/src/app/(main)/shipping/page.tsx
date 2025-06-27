@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import { toast } from 'sonner';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import {
   ColumnDef,
   SortingState,
@@ -82,7 +82,7 @@ export default function Shipments() {
   const [provinces, setProvinces] = useState<{ T_id: number; T_ten: string }[]>([]);
   const getData = () => {
     setLoading(true);
-    Promise.all([api.get('/shipping'), fetch('/data/0.json').then((res) => res.json())])
+    Promise.all([api.get('/shipping'), fetch('/addresses/0.json').then((res) => res.json())])
       .then(([shippingRes, locationRes]) => {
         setProvinces(locationRes);
 
@@ -314,8 +314,8 @@ export default function Shipments() {
       {isSubmitting && <Loader />}
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2 pl-4">
-            <span className="font-semibold text-xl">{total}</span>
+          <div className="flex items-center pl-4 space-x-2">
+            <span className="text-xl font-semibold">{total}</span>
             <span>Phí vận chuyển</span>
           </div>
           <Link href="shipping/new">

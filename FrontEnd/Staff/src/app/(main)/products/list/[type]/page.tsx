@@ -1,7 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useEffect, useState } from 'react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ProductTab from '@/components/products/productTab';

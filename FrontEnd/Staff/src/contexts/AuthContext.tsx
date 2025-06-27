@@ -7,7 +7,6 @@ import { useRouter, usePathname } from 'next/navigation';
 type AuthData = {
   userId: string | null;
   role: number | null;
-  token: string | null;
 };
 
 type AuthContextType = {
@@ -17,7 +16,7 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType>({
-  authData: { userId: null, role: null, token: null },
+  authData: { userId: null, role: null },
   setAuthData: () => {},
   isLoading: true,
 });
@@ -29,7 +28,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authData, setAuthData] = useState<AuthData>({
     userId: null,
     role: null,
-    token: null,
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const data = await res.json();
-        setAuthData({ userId: data.userId, role: data.role, token: data.token });
+        setAuthData({ userId: data.userId, role: data.role });
       })
       .catch(() => {
         router.replace('/login');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
