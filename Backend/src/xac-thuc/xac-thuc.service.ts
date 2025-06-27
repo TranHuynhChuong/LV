@@ -3,6 +3,8 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { KhachHangService } from '../nguoi-dung/khach-hang/khach-hang.service';
 import { NhanVienUtilService } from '../nguoi-dung/nhan-vien/nhan-vien.service';
@@ -28,9 +30,14 @@ export class XacThucService {
   async register(data: any): Promise<any> {
     const { otp, name, email, password } = data;
 
+    const user = await this.KhachHangService.findByEmail(email);
+    if (user) {
+      throw new ConflictException('Email đã được đăng ký');
+    }
+
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
-      throw new BadRequestException();
+      throw new UnprocessableEntityException('Mã OTP không chính xác');
     }
 
     const newCustomer = {
@@ -50,7 +57,7 @@ export class XacThucService {
   async changeEmail(id: number, newEmail: string, otp: string) {
     const verifyOtp = await this.verifyOtp(newEmail, otp);
     if (!verifyOtp) {
-      throw new BadRequestException();
+      throw new UnprocessableEntityException();
     }
 
     const updatedCustomer = await this.KhachHangService.updateEmail(
@@ -65,9 +72,39 @@ export class XacThucService {
   }
 
   async changePassword(id: number, newPass: string, otp: string) {
-    const verifyOtp = await this.verifyOtp(id.toString(), otp);
+    const user = await this.KhachHangService.findById(id);
+    if (!user) {
+      throw new NotFoundException('Email chưa đăng ký');
+    }
+
+    const email = user.KH_email;
+
+    const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
-      throw new ConflictException();
+      throw new UnprocessableEntityException('Mã OTP không chính xác');
+    }
+
+    const updatedCustomer = await this.KhachHangService.update(id, {
+      KH_matKhau: newPass,
+    });
+    if (!updatedCustomer) {
+      throw new BadRequestException();
+    }
+    await this.otp.deleteOne({ email: id.toString() });
+    return updatedCustomer;
+  }
+
+  async forgotPassword(email: string, newPass: string, otp: string) {
+    const user = await this.KhachHangService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Email chưa đăng ký');
+    }
+
+    const id = user.KH_id;
+
+    const verifyOtp = await this.verifyOtp(email, otp);
+    if (!verifyOtp) {
+      throw new UnprocessableEntityException('Mã OTP không chính xác');
     }
 
     const updatedCustomer = await this.KhachHangService.update(id, {
@@ -83,6 +120,7 @@ export class XacThucService {
   async verifyOtp(email: string, code: string): Promise<boolean> {
     try {
       const record = await this.otp.findOne({ email });
+      console.log(email, record);
       return !!(
         record &&
         record.code === code &&
@@ -96,12 +134,33 @@ export class XacThucService {
   async sendOtp(email: string, isNew: boolean) {
     const isExit = await this.KhachHangService.findByEmail(email);
     if (isExit && isNew) {
-      throw new ConflictException();
+      throw new NotFoundException('Email chưa đăng ký');
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
+    await this.otp.findOneAndUpdate(
+      { email },
+      { code, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    this.EmailService.sendOtpEmail(email, code);
+
+    return code;
+  }
+
+  async sendOtpToUser(id: number) {
+    const user = await this.KhachHangService.findById(id);
+    if (!user) {
+      throw new NotFoundException('Email chưa đăng ký');
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    const email = user.KH_email;
     await this.otp.findOneAndUpdate(
       { email },
       { code, expiresAt },

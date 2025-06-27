@@ -26,11 +26,32 @@ export class XacThucController {
   }
 
   @Put('change-password/:id')
-  async updatePasswordCustomer(
+  async changePassword(
     @Param('id', ParseIntPipe) id: number,
     @Body() { newPassword, otp }: { newPassword: string; otp: string }
   ) {
     return this.XacThucService.changePassword(id, newPassword, otp);
+  }
+
+  @Put('forgot-password')
+  async forgotPassword(
+    @Body()
+    {
+      email,
+      newPassword,
+      otp,
+    }: {
+      email: string;
+      newPassword: string;
+      otp: string;
+    }
+  ) {
+    return this.XacThucService.forgotPassword(email, newPassword, otp);
+  }
+
+  @Post(':id/send-otp')
+  async checkEmailUser(@Param('id', ParseIntPipe) id: number) {
+    return await this.XacThucService.sendOtpToUser(id);
   }
 
   @Post('send-otp')
