@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ export default function ChangeEmail() {
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(0);
   const { authData } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -26,23 +27,18 @@ export default function ChangeEmail() {
     return () => clearInterval(timer);
   }, [countdown]);
 
-  const handleSendOtp = () => {
-    if (!newEmail) {
-      setError('Vui lòng nhập email mới');
-      return;
-    }
+  const handleSendOtp = async () => {
+    if (!authData.userId) return;
 
-    api
-      .post('/auth/send-otp', { email: newEmail })
-      .then(() => {
-        toast.success('Mã OTP đã được gửi đến email mới');
-        setCountdown(30);
-        setError('');
-      })
-      .catch((err) => {
-        const message = err.response?.data?.message || 'Gửi OTP thất bại';
-        setError(message);
-      });
+    try {
+      await api.post(`/auth/${authData.userId}/send-otp`);
+      toast.success('Mã OTP đã được gửi đến email');
+
+      setCountdown(30);
+    } catch (error) {
+      console.error(error);
+      setError('Không thể gửi OTP');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +47,7 @@ export default function ChangeEmail() {
       setError('Vui lòng nhập đầy đủ thông tin');
       return;
     }
-
+    setLoading(true);
     api
       .put(`/auth/change-email/${authData.userId}`, {
         newEmail: newEmail,
@@ -60,14 +56,19 @@ export default function ChangeEmail() {
       .then(() => {
         toast.success('Email đã được cập nhật thành công');
       })
-      .catch((err) => {
-        const message = err.response?.data?.message || 'Cập nhật email thất bại';
-        setError(message);
-      });
+      .catch((error) => {
+        console.error(error);
+        if (error?.response?.status === 422) {
+          setError('Mã OTP không đúng hoặc hết hạn');
+        } else {
+          setError('Cập nhật email thất bại');
+        }
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
-    <Card className="w-full  rounded-md bg-white">
+    <Card className="max-w-lg w-full  bg-white rounded-md border">
       <CardHeader className="mb-4">
         <CardTitle className="text-xl flex items-center">Thay đổi email</CardTitle>
       </CardHeader>
@@ -81,6 +82,7 @@ export default function ChangeEmail() {
               placeholder="you@example.com"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
+              disabled={loading}
             />
             <Button
               type="button"
@@ -103,12 +105,13 @@ export default function ChangeEmail() {
             placeholder="Nhập mã xác thực"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
+            disabled={loading}
           />
         </div>
         <p className="text-sm text-red-500 text-center">{error}</p>
       </CardContent>
       <CardFooter className="flex justify-end items-center w-full space-x-4">
-        <Button type="submit" onClick={handleSubmit}>
+        <Button type="submit" onClick={handleSubmit} disabled={loading}>
           Xác nhận thay đổi
         </Button>
         <Button
