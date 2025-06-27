@@ -78,7 +78,7 @@ export class EmailService {
     const html = `
       <h3>Đơn hàng đang trên đường đến bạn</h3>
       <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-      <p>Vui lòng kiểm tra trạng thái giao hàng trên hệ thống của đơn vị vận chuyển.</p>
+      <p>Vui lòng kiểm tra trạng thái giao hàng trên hệ thống.</p>
     `;
     const text = `Đơn hàng ${orderId} đã được giao thành công`;
     this.sendEmail(to, subject, html, text).catch((err) => {
