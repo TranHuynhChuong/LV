@@ -38,14 +38,14 @@ export class HoaDon {
 
 export const HoaDonSchema = SchemaFactory.createForClass(HoaDon);
 
-export enum OrderStatus {
-  Pendding = 'ChoXacNhan', // Chờ xác nhận
-  ToShip = 'ChoVanChuyen', // Chờ vận chuyển (Đã xác nhận)
-  Shipping = 'DangVanChuyen', // Đang vận chuyển (Đã xác nhận vận chuyển)
-  Complete = 'GiaoThanhCong', // Đã giao hàng thành công
-  InComplete = 'GiaoThatBai', // Đã giao hàng không thành công
-  CancelRequest = 'YeuCauHuy', // Yêu cầu hủy hàng
-  Canceled = 'DaHuy', // Đã xác nhận hủy
+export enum TrangThaiDonHang {
+  ChoXacNhan = 'ChoXacNhan', // Chờ xác nhận
+  ChoVanChuyen = 'ChoVanChuyen', // Chờ vận chuyển (Đã xác nhận)
+  DangVanChuyen = 'DangVanChuyen', // Đang vận chuyển (Đã xác nhận vận chuyển)
+  GiaoThanhCong = 'GiaoThanhCong', // Đã giao hàng thành công
+  GiaoThatBai = 'GiaoThatBai', // Đã giao hàng không thành công
+  YeuCauHuy = 'YeuCauHuy', // Yêu cầu hủy hàng
+  DaHuy = 'DaHuy', // Đã xác nhận hủy
 }
 
 @Schema()
@@ -67,11 +67,11 @@ export class DonHang {
 
   @Prop({
     type: String,
-    enum: OrderStatus,
+    enum: TrangThaiDonHang,
     required: true,
-    default: OrderStatus.Pendding,
+    default: TrangThaiDonHang.ChoVanChuyen,
   })
-  DH_trangThai: OrderStatus;
+  DH_trangThai: TrangThaiDonHang;
 
   @Prop({ type: [LichSuThaoTacDHSchema] })
   lichSuThaoTac: LichSuThaoTacDH[];

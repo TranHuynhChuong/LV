@@ -5,20 +5,31 @@ import { Model, ClientSession, PipelineStage } from 'mongoose';
 import {
   DonHang,
   DonHangDocument,
-  OrderStatus,
+  TrangThaiDonHang,
 } from '../schemas/don-hang.schema';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
-export enum OrderFilterType {
-  All = 'All',
-  Pendding = 'Pendding', // Chờ xác nhận
-  Toship = 'Toship', // Chờ vận chuyển (Đã xác nhận)
-  Shipping = 'Shipping', // Đang vận chuyển (Đã xác nhận vận chuyển)
-  Complete = 'Complete', // Đã giao hàng thành công
-  InComplete = 'InComplete', // Đã giao hàng không thành công
-  CancelRequest = 'CancelRequest', // Yêu cầu hủy hàng
-  Canceled = 'Canceled', // Đã xác nhận hủy
+export enum OrderStatus {
+  All = 'all',
+  Pending = 'pending',
+  ToShip = 'toShip',
+  Shipping = 'shipping',
+  Complete = 'complete',
+  InComplete = 'inComplete',
+  CancelRequest = 'cancelRequest',
+  Canceled = 'canceled',
 }
+
+const OrderStatusMap: Record<OrderStatus, TrangThaiDonHang | undefined> = {
+  [OrderStatus.All]: undefined,
+  [OrderStatus.Pending]: TrangThaiDonHang.ChoXacNhan,
+  [OrderStatus.ToShip]: TrangThaiDonHang.ChoVanChuyen,
+  [OrderStatus.Shipping]: TrangThaiDonHang.DangVanChuyen,
+  [OrderStatus.Complete]: TrangThaiDonHang.GiaoThanhCong,
+  [OrderStatus.InComplete]: TrangThaiDonHang.GiaoThatBai,
+  [OrderStatus.CancelRequest]: TrangThaiDonHang.YeuCauHuy,
+  [OrderStatus.Canceled]: TrangThaiDonHang.DaHuy,
+};
 
 @Injectable()
 export class DonHangRepository {
@@ -147,7 +158,7 @@ export class DonHangRepository {
           DH_HD: { $first: '$DH_HD' },
           KH_id: { $first: '$KH_id' },
           KH_email: { $first: '$KH_email' },
-          lichSuThaoTac: { $first: '$DH_lichSuThaoTac' },
+          lichSuThaoTac: { $first: '$lichSuThaoTac' },
 
           // thông tin nhận hàng
           thongTinNhanHang: {
@@ -201,13 +212,24 @@ export class DonHangRepository {
   }
 
   protected getFilter(
-    filterType?: OrderFilterType,
+    filterType?: OrderStatus,
     userId?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
 
-    if (filterType !== OrderFilterType.All) {
-      filter.DH_trangThai = filterType;
+    const status = filterType ? OrderStatusMap[filterType] : undefined;
+
+    if (status) {
+      if (
+        filterType === OrderStatus.Complete ||
+        filterType === OrderStatus.InComplete
+      ) {
+        filter.DH_trangThai = {
+          $in: [TrangThaiDonHang.GiaoThanhCong, TrangThaiDonHang.GiaoThatBai],
+        };
+      } else {
+        filter.DH_trangThai = status;
+      }
     }
 
     if (userId) {
@@ -220,7 +242,7 @@ export class DonHangRepository {
   async findAll(
     page: number,
     limit: number = 24,
-    filterType?: OrderFilterType,
+    filterType?: OrderStatus,
     userId?: number
   ) {
     const filter = this.getFilter(filterType, userId);
@@ -229,6 +251,7 @@ export class DonHangRepository {
     const countPipeline = [...pipeline, { $count: 'count' }];
     const dataPipeline: PipelineStage[] = [...pipeline];
     const skip = (page - 1) * limit;
+    dataPipeline.push({ $sort: { DH_ngayTao: -1 } });
     dataPipeline.push({ $skip: skip }, { $limit: limit });
 
     return paginateRawAggregate({
@@ -240,7 +263,7 @@ export class DonHangRepository {
     });
   }
 
-  async findById(orderId: string, filterType?: OrderFilterType): Promise<any> {
+  async findById(orderId: string, filterType?: OrderStatus): Promise<any> {
     const filter = this.getFilter(filterType);
     const pipeline: PipelineStage[] = [
       { $match: { DH_id: orderId } },
@@ -263,7 +286,7 @@ export class DonHangRepository {
     activityLog?: any
   ): Promise<DonHang | null> {
     const updateQuery: any = {
-      DH_trangThai: status,
+      DH_trangThai: OrderStatusMap[status],
     };
 
     const updateOps: any = {
@@ -284,38 +307,142 @@ export class DonHangRepository {
   async countAll(): Promise<{
     total: number;
     pending: number;
-    toship: number;
+    toShip: number;
     shipping: number;
     complete: number;
-    cancelrequest: number;
+    inComplete: number;
+    cancelRequest: number;
+    canceled: number;
   }> {
-    const [total, pending, toship, shipping, complete, cancelrequest] =
-      await Promise.all([
-        this.DonHangModel.countDocuments(),
-        this.DonHangModel.countDocuments({
-          DH_trangThai: OrderStatus.Pendding,
-        }),
-        this.DonHangModel.countDocuments({
-          DH_trangThai: OrderStatus.ToShip,
-        }),
-        this.DonHangModel.countDocuments({
-          DH_trangThai: OrderStatus.Shipping,
-        }),
-        this.DonHangModel.countDocuments({
-          DH_trangThai: { $in: [OrderStatus.Complete, OrderStatus.InComplete] },
-        }),
-        this.DonHangModel.countDocuments({
-          DH_trangThai: OrderStatus.CancelRequest,
-        }),
-      ]);
+    const [
+      total,
+      pending,
+      toShip,
+      shipping,
+      complete,
+      inComplete,
+      cancelRequest,
+      canceled,
+    ] = await Promise.all([
+      this.DonHangModel.countDocuments(),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.ChoXacNhan,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.ChoVanChuyen,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.DangVanChuyen,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.GiaoThanhCong,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.GiaoThatBai,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.YeuCauHuy,
+      }),
+      this.DonHangModel.countDocuments({
+        DH_trangThai: TrangThaiDonHang.DaHuy,
+      }),
+    ]);
 
     return {
       total,
       pending,
-      toship,
+      toShip,
       shipping,
       complete,
-      cancelrequest,
+      inComplete,
+      cancelRequest,
+      canceled,
     };
+  }
+
+  //============ Thống kê ==============//
+
+  async getOrderStatsByStatus(startDate: Date, endDate: Date) {
+    const raw = await this.DonHangModel.aggregate([
+      {
+        $match: {
+          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai', 'DaHuy'] },
+        },
+      },
+      {
+        $group: {
+          _id: '$DH_trangThai',
+          count: { $sum: 1 },
+          orderIds: { $push: '$DH_id' }, // thu thập DH_id
+        },
+      },
+    ]);
+
+    const statusMap: Record<string, string> = {
+      GiaoThanhCong: 'complete',
+      GiaoThatBai: 'inComplete',
+      DaHuy: 'canceled',
+    };
+
+    const result: Record<string, { total: number; orderIds: string[] }> = {
+      complete: { total: 0, orderIds: [] },
+      inComplete: { total: 0, orderIds: [] },
+      canceled: { total: 0, orderIds: [] },
+    };
+
+    for (const item of raw) {
+      const status = statusMap[item._id] || item._id;
+      result[status] = {
+        total: item.total,
+        orderIds: item.orderIds,
+      };
+    }
+
+    return result;
+  }
+
+  async getOrderStatsByCustomerType(startDate: Date, endDate: Date) {
+    const raw = await this.DonHangModel.aggregate([
+      {
+        $match: {
+          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_trangThai: 'GiaoThanhCong',
+        },
+      },
+      {
+        $project: {
+          DH_id: 1,
+          type: {
+            $cond: {
+              if: { $ifNull: ['$KH_id', false] },
+              then: 'member',
+              else: 'guest',
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$type',
+          total: { $sum: 1 },
+          orderIds: { $push: '$DH_id' },
+        },
+      },
+    ]);
+
+    const result: Record<string, { total: number; orderIds: string[] }> = {
+      member: { total: 0, orderIds: [] },
+      guest: { total: 0, orderIds: [] },
+    };
+
+    for (const item of raw) {
+      result[item._id] = {
+        total: item.total,
+        orderIds: item.orderIds,
+      };
+    }
+
+    return result;
   }
 }

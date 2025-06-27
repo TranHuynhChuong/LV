@@ -26,4 +26,109 @@ export class ChiTietDonHangRepository {
     }));
     return this.ChiTietDonHangModel.insertMany(data, { session });
   }
+
+  async getOrderDetailsStats(dhIds: string[]): Promise<{
+    totalGiaBan: number;
+    totalGiaNhap: number;
+    totalGiaMua: number;
+    totalSoLuong: number;
+  }> {
+    const raw: {
+      totalGiaBan: number;
+      totalGiaNhap: number;
+      totalGiaMua: number;
+      totalSoLuong: number;
+    }[] = await this.ChiTietDonHangModel.aggregate([
+      {
+        $match: {
+          DH_id: { $in: dhIds },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSalePrice: {
+            $sum: { $multiply: ['$CTDH_giaBan', '$CTDH_soLuong'] },
+          },
+          totalCostPrice: {
+            $sum: { $multiply: ['$CTDH_giaNhap', '$CTDH_soLuong'] },
+          },
+          totalBuyPrice: {
+            $sum: { $multiply: ['$CTDH_giaMua', '$CTDH_soLuong'] },
+          },
+          totalQuantity: { $sum: '$CTDH_soLuong' },
+        },
+      },
+    ]);
+
+    return (
+      raw[0] ?? {
+        totalSalePrice: 0,
+        totalCostPrice: 0,
+        totalBuyPrice: 0,
+        totalQuantity: 0,
+      }
+    );
+  }
+
+  async getDiscountedProductStats(dhIds: string[]): Promise<{
+    totalProducts: number;
+    discountedProducts: number;
+  }> {
+    const raw: {
+      totalProducts: number;
+      discountedProducts: number;
+    }[] = await this.ChiTietDonHangModel.aggregate([
+      {
+        $match: {
+          DH_id: { $in: dhIds },
+        },
+      },
+      {
+        $facet: {
+          total: [
+            {
+              $group: {
+                _id: null,
+                totalProducts: { $sum: '$CTDH_soLuong' },
+              },
+            },
+          ],
+          discounted: [
+            {
+              $match: {
+                $expr: { $lt: ['$CTDH_giaMua', '$CTDH_giaBan'] },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                discountedProducts: { $sum: '$CTDH_soLuong' },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          totalProducts: {
+            $ifNull: [{ $arrayElemAt: ['$total.totalProducts', 0] }, 0],
+          },
+          discountedProducts: {
+            $ifNull: [
+              { $arrayElemAt: ['$discounted.discountedProducts', 0] },
+              0,
+            ],
+          },
+        },
+      },
+    ]);
+
+    return (
+      raw[0] || {
+        totalProducts: 0,
+        discountedProducts: 0,
+      }
+    );
+  }
 }

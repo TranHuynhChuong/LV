@@ -15,13 +15,14 @@ import { ConfigService } from '@nestjs/config';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import {
   DonHangRepository,
-  OrderFilterType,
+  OrderStatus,
 } from './repositories/don-hang.repository';
 import { EmailService } from 'src/Util/email.service';
 import { KhachHangUtilService } from 'src/nguoi-dung/khach-hang/khach-hang.service';
-import { OrderStatus } from './schemas/don-hang.schema';
+
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
 import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
+import { TrangThaiDonHang } from './schemas/don-hang.schema';
 
 @Injectable()
 export class DonHangService {
@@ -190,7 +191,7 @@ export class DonHangService {
         DH_giamHD: context.DH_giamHD,
         DH_giamVC: context.DH_giamVC,
         DH_phiVC: data.DH.DH_phiVC,
-        DH_trangThai: OrderStatus.Pendding,
+        DH_trangThai: TrangThaiDonHang.ChoVanChuyen,
         KH_id: data.DH.KH_id,
         KH_email: data.DH.KH_email,
         DH_HD: data.HD
@@ -335,7 +336,7 @@ export class DonHangService {
     return result;
   }
 
-  async findById(id: string, filterType?: OrderFilterType): Promise<any> {
+  async findById(id: string, filterType?: OrderStatus): Promise<any> {
     const result: any = await this.DonHangRepo.findById(id, filterType);
     if (!result) {
       throw new NotFoundException('Tìm đơn hàng - Đơn hàng không tồn tại');
@@ -356,7 +357,7 @@ export class DonHangService {
   async findAll(
     page: number,
     limit: number = 24,
-    filterType?: OrderFilterType,
+    filterType?: OrderStatus,
     userId?: number
   ) {
     const result = await this.DonHangRepo.findAll(
@@ -372,11 +373,94 @@ export class DonHangService {
   async countAll(): Promise<{
     total: number;
     pending: number;
-    toship: number;
+    toShip: number;
     shipping: number;
     complete: number;
-    cancelrequest: number;
+    inComplete: number;
+    cancelRequest: number;
+    canceled: number;
   }> {
     return this.DonHangRepo.countAll();
+  }
+
+  private getDateRangeByYear(year: number) {
+    const startDate = new Date(Date.UTC(year, 0, 1)); // 1/1
+    const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // 31/12
+    return { startDate, endDate };
+  }
+
+  private getDateRangeByQuarter(year: number, quarter: 1 | 2 | 3 | 4) {
+    const startMonth = (quarter - 1) * 3;
+    const startDate = new Date(Date.UTC(year, startMonth, 1));
+
+    const endMonth = startMonth + 2;
+    const endDate = new Date(Date.UTC(year, endMonth + 1, 0, 23, 59, 59, 999));
+
+    return { startDate, endDate };
+  }
+
+  private getDateRangeByMonth(year: number, month: number) {
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+    return { startDate, endDate };
+  }
+
+  private async getStats(startDate: Date, endDate: Date) {
+    // Lấy thống kê theo trạng thái đơn hàng
+    const { complete, inComplete, canceled } =
+      await this.DonHangRepo.getOrderStatsByStatus(startDate, endDate);
+
+    // Lấy thống kê theo loại khách hàng
+    const { member, guest } =
+      await this.DonHangRepo.getOrderStatsByCustomerType(startDate, endDate);
+
+    // Thống kê chi tiết đơn hàng theo trạng thái
+    const [completeDetail, inCompleteDetail, canceledDetail] =
+      await Promise.all([
+        this.ChiTietDonHangRepo.getOrderDetailsStats(complete.orderIds),
+        this.ChiTietDonHangRepo.getOrderDetailsStats(inComplete.orderIds),
+        this.ChiTietDonHangRepo.getOrderDetailsStats(canceled.orderIds),
+      ]);
+
+    // Thống kê chi tiết đơn hàng theo loại khách hàng
+    const [memberDetail, guestDetail] = await Promise.all([
+      this.ChiTietDonHangRepo.getOrderDetailsStats(member.orderIds),
+      this.ChiTietDonHangRepo.getOrderDetailsStats(guest.orderIds),
+    ]);
+
+    // Thống kê mã giảm theo loại
+    const voucherStats = await this.MaGiamDonHangRepo.getDiscountCodeStats(
+      complete.orderIds
+    );
+
+    console.log(complete.orderIds);
+    return {
+      orderStatusStats: {
+        complete: { total: complete.total, detail: completeDetail },
+        inComplete: { total: inComplete.total, detail: inCompleteDetail },
+        canceled: { total: canceled.total, detail: canceledDetail },
+      },
+      customerTypeStats: {
+        member: { total: member.total, detail: memberDetail },
+        guest: { total: guest.total, detail: guestDetail },
+      },
+      voucherStats,
+    };
+  }
+
+  async getStatsByYear(year: number) {
+    const { startDate, endDate } = this.getDateRangeByYear(year);
+    return this.getStats(startDate, endDate);
+  }
+
+  async getStatsByQuarter(year: number, quarter: 1 | 2 | 3 | 4) {
+    const { startDate, endDate } = this.getDateRangeByQuarter(year, quarter);
+    return this.getStats(startDate, endDate);
+  }
+
+  async getStatsByMonth(year: number, month: number) {
+    const { startDate, endDate } = this.getDateRangeByMonth(year, month);
+    return this.getStats(startDate, endDate);
   }
 }

@@ -13,3 +13,5 @@ export class MaGiamDonHang {
 }
 export const MaGiamDonHangSchema = SchemaFactory.createForClass(MaGiamDonHang);
 MaGiamDonHangSchema.index({ DH_id: 1, MG_id: 1 }, { unique: true });
+MaGiamDonHangSchema.index({ DH_id: 1 });
+MaGiamDonHangSchema.index({ MG_id: 1 });

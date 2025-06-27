@@ -6,12 +6,12 @@ import {
   Query,
   Body,
   Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { DonHangService } from './don-hang.service';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import { parsePositiveInt } from 'src/Util/convert';
-import { OrderFilterType } from './repositories/don-hang.repository';
-import { OrderStatus } from './schemas/don-hang.schema';
+import { OrderStatus } from './repositories/don-hang.repository';
 
 @Controller('api/orders')
 export class DonHangController {
@@ -32,7 +32,7 @@ export class DonHangController {
   async updateStatusByPath(
     @Param('id') id: string,
     @Param('status') status: OrderStatus,
-    @Query('staffId') staffId: string
+    @Body('staffId') staffId: string
   ) {
     return this.DonHangService.update(id, status, staffId);
   }
@@ -41,7 +41,7 @@ export class DonHangController {
   async findAll(
     @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType: OrderFilterType
+    @Query('filterType') filterType: OrderStatus
   ) {
     return this.DonHangService.findAll(
       parsePositiveInt(page) ?? 1,
@@ -54,7 +54,7 @@ export class DonHangController {
   async findAllUser(
     @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType: OrderFilterType,
+    @Query('filterType') filterType: OrderStatus,
     @Param('userId') userId: number
   ) {
     return this.DonHangService.findAll(
@@ -73,8 +73,34 @@ export class DonHangController {
   @Get(':id')
   async findById(
     @Param('id') id: string,
-    @Query('filterType') filterType: OrderFilterType
+    @Query('filterType') filterType: OrderStatus
   ): Promise<any> {
     return this.DonHangService.findById(id, filterType);
+  }
+
+  // ============== Thống kê ===================//
+
+  // Thống kê theo năm
+  @Get('/stats/year/:year')
+  getStatsByYear(@Param('year', ParseIntPipe) year: number) {
+    return this.DonHangService.getStatsByYear(year);
+  }
+
+  // Thống kê theo quý
+  @Get('/stats/quarter/:year/:quarter')
+  getStatsByQuarter(
+    @Param('year', ParseIntPipe) year: number,
+    @Param('quarter', ParseIntPipe) quarter: 1 | 2 | 3 | 4
+  ) {
+    return this.DonHangService.getStatsByQuarter(year, quarter);
+  }
+
+  // Thống kê theo tháng
+  @Get('/stats/month/:year/:month')
+  getStatsByMonth(
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number
+  ) {
+    return this.DonHangService.getStatsByMonth(year, month);
   }
 }

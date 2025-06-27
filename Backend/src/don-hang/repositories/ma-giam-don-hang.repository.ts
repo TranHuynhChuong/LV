@@ -11,7 +11,7 @@ import {
 export class MaGiamDonHangRepository {
   constructor(
     @InjectModel(MaGiamDonHang.name)
-    private readonly maGiamModel: Model<MaGiamDonHangDocument>
+    private readonly MaGiamDonHangModel: Model<MaGiamDonHangDocument>
   ) {}
 
   // Tạo mã giảm giá đơn hàng
@@ -20,6 +20,48 @@ export class MaGiamDonHangRepository {
       DH_id: dhId,
       MG_id: mgId,
     }));
-    return this.maGiamModel.insertMany(data, { session });
+    return this.MaGiamDonHangModel.insertMany(data, { session });
+  }
+
+  async getDiscountCodeStats(dhIds: string[]) {
+    const result = await this.MaGiamDonHangModel.aggregate([
+      {
+        $match: {
+          DH_id: { $in: dhIds },
+        },
+      },
+      {
+        $lookup: {
+          from: 'magiams', // Tên collection chứa mã giảm
+          localField: 'MG_id',
+          foreignField: 'MG_id',
+          as: 'maGiam',
+        },
+      },
+      {
+        $unwind: '$maGiam',
+      },
+      {
+        $group: {
+          _id: '$maGiam.MG_loai', // Giả sử là 'shipping' hoặc 'invoice'
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          type: '$_id',
+          count: 1,
+        },
+      },
+    ]);
+
+    // Đưa về dạng object nếu cần
+    const stats: Record<string, number> = {};
+    for (const item of result) {
+      stats[item.type] = item.count;
+    }
+
+    return stats;
   }
 }
