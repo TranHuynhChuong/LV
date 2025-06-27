@@ -9,7 +9,7 @@ interface ProductItemProps {
 }
 
 export default function ProductItem({ product }: Readonly<ProductItemProps>) {
-  const { name, salePrice, isOnSale, discountPrice, image, sold, score, discountPercent, id } =
+  const { name, salePrice, isOnSale, discountPrice, image, sold, rating, discountPercent, id } =
     product;
 
   return (
@@ -56,7 +56,7 @@ export default function ProductItem({ product }: Readonly<ProductItemProps>) {
           <div className="mt-2 flex flex-wrap items-center gap-2 justify-between text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <Star size={12} className=" text-yellow-500 fill-yellow-500" />
-              <span className="mt-0.5">{score.toFixed(1)}</span>
+              <span className="mt-0.5">{rating.toFixed(1)}</span>
             </div>
             <span>Đã bán {sold}</span>
           </div>

@@ -2,16 +2,12 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrderStore, OrderProduct } from '@/stores/orderStore';
-import { AddressType, mapAddressToApi, mapApiListToAddressList } from '@/types/address';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
-import AddressForm, { AddressFormHandle } from '../profile/addresses/components/addressForm';
-import AddressList from '@/components/utils/AddressList';
+import AddressList from '@/components/profiles/addresses/AddressList';
 import OverLay from '@/components/utils/OverLay';
-import ProductsOrderSection from './components/productsOrderSection';
-import VoucherSection from './components/voucherSection';
 
 import {
   Dialog,
@@ -25,12 +21,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CheckCheck, CircleAlert, X } from 'lucide-react';
 import clsx from 'clsx';
-import { Voucher } from './components/selectVoucher';
-import InvoiceForm, { InvoiceFormHandle } from './components/invoiceForm';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import Loader from '@/components/utils/Loader';
 import { useCartStore } from '@/stores/cart.store';
 import { emitCartChange } from '@/lib/cartEvents';
+import AddressForm, { AddressFormHandle } from '@/components/profiles/addresses/addressForm';
+import InvoiceForm, { InvoiceFormHandle } from '@/components/orders/invoiceForm';
+import ProductsOrderSection from '@/components/orders/productsOrderSection';
+import { Voucher } from '@/components/orders/selectVoucher';
+import VoucherSection from '@/components/orders/voucherSection';
+import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/addresses';
 
 // --- Utils ---
 type ShippingPolicy = {
@@ -131,7 +132,7 @@ const useOrderSummary = (
 
 // --- Main Component ---
 export default function OrderPage() {
-  const [address, setAddress] = useState<AddressType>();
+  const [address, setAddress] = useState<Address>();
 
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const [openSelectAddress, setOpenSelectAddress] = useState(false);
@@ -156,7 +157,7 @@ export default function OrderPage() {
   const fetchAndSetDefaultAddress = async (userId: number) => {
     try {
       const res = await api.get(`addresses/${userId}`);
-      const mapped = await mapApiListToAddressList(res.data);
+      const mapped = await mapAddressListFromDto(res.data);
       const defaultAddress = mapped.find((a) => a.default);
       setAddress(defaultAddress);
     } catch (error) {
@@ -189,7 +190,7 @@ export default function OrderPage() {
     const addressData = await addressRef.current?.submit();
     if (!addressData) return;
 
-    const rawAddress = mapAddressToApi(
+    const rawAddress = mapAddressToDto(
       {
         ...addressData,
         province: { id: addressData.provinceId },

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useCartStore, CartItemType, GioHangItem } from '@/stores/cart.store';
 import { useAuth } from '@/contexts/AuthContext';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { Checkbox } from '@/components/ui/checkbox';
-import CartItem, { ProductInCart } from './components/cartItem';
+
 import { emitCartChange } from '@/lib/cartEvents';
 import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useOrderStore } from '@/stores/orderStore';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import CartItem, { ProductInCart } from '@/components/carts/cartItem';
 
 export interface ApiCartRes {
   SP_id: number;

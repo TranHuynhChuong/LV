@@ -13,27 +13,29 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AddressForm, { AddressFormHandle } from '../components/addressForm';
-import { AddressType, mapAddressToApi, mapApiListToAddressList } from '@/types/address';
-import api from '@/lib/axiosClient';
+
+import api from '@/lib/axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import AddressForm, { AddressFormHandle } from '@/components/profiles/addresses/addressForm';
+import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/addresses';
 
 export default function AddressDetailPage() {
   const router = useRouter();
   const { addressId } = useParams();
   const formRef = useRef<AddressFormHandle>(null);
-  const [defaultData, setDefaultData] = useState<AddressType>();
+  const [defaultData, setDefaultData] = useState<Address>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const { authData } = useAuth();
   // Fetch existing address data
   useEffect(() => {
+    if (!authData.userId) return;
     if (addressId) {
       api
         .get(`/addresses/${authData.userId}/${addressId}`)
         .then(async (res) => {
-          const mapped = await mapApiListToAddressList([res.data]);
+          const mapped = await mapAddressListFromDto([res.data]);
           setDefaultData(mapped[0] || null);
         })
         .catch((err) => {
@@ -48,7 +50,7 @@ export default function AddressDetailPage() {
   const handleUpdate = async () => {
     const data = await formRef.current?.submit();
     if (data) {
-      const mapped = mapAddressToApi(
+      const mapped = mapAddressToDto(
         {
           ...data,
           province: { id: data.provinceId },

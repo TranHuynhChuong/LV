@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 
 export default function SearchInput() {
   const searchParams = useSearchParams();

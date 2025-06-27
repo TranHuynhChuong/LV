@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import AddressList from '@/components/utils/AddressList';
+import AddressList from '@/components/profiles/addresses/AddressList';
 import Link from 'next/link';
 
 export default function AddressPage() {

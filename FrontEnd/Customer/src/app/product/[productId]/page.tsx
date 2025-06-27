@@ -1,6 +1,6 @@
 'use client';
 
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useParams, useRouter } from 'next/navigation';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +11,7 @@ import { mapProductDetailFormDto } from '@/models/products';
 import type { ProductDetail } from '@/models/products';
 import ProductImageGallery from '@/components/product/productImgs';
 import ProductInfo from '@/components/product/productInf';
-import Comments from '@/components/comments/commentItem';
+import ReviewsSection from '@/components/reviews/reviewSection';
 
 export default function ProductDetail() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function ProductDetail() {
         </div>
       </div>
       <div className="w-full p-4 rounded-md shadow bg-white">
-        <Comments productId={data.id} score={data.score} />
+        <ReviewsSection productId={data.id} rating={data.rating} />
       </div>
 
       <div className="w-full p-4 rounded-md shadow bg-white">

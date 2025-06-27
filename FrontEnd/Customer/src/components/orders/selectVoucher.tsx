@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import Overlay from '@/components/utils/OverLay';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { Button } from '@/components/ui/button';
 import { BadgePercent, Ticket, Truck, X } from 'lucide-react';
 

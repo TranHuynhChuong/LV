@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import AddressForm, { AddressFormHandle } from '../components/addressForm';
-import { mapAddressToApi } from '@/types/address';
-import api from '@/lib/axiosClient';
+
+import api from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import {
@@ -18,6 +17,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import AddressForm, { AddressFormHandle } from '@/components/profiles/addresses/addressForm';
+import { mapAddressToDto } from '@/models/addresses';
 
 export default function NewAddressPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function NewAddressPage() {
   const handleSubmit = async () => {
     const data = await formRef.current?.submit();
     if (data) {
-      const mapped = mapAddressToApi(
+      const mapped = mapAddressToDto(
         {
           ...data,
 

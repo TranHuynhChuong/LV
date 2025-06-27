@@ -3,7 +3,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import PaginationControls from '@/components/utils/PaginationControls';
 
 import { ProductList } from '@/components/product/productList';

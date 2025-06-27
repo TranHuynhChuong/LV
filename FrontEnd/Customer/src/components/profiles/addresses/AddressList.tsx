@@ -1,18 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { useAuth } from '@/contexts/AuthContext';
-import { AddressType, mapApiListToAddressList } from '@/types/address';
+
 import { Button } from '@/components/ui/button';
 
 import { cn } from '@/lib/utils'; // nếu bạn dùng tailwind helper để gộp class
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { Badge } from '../ui/badge';
+import { Badge } from '../../ui/badge';
+import { Address, mapAddressListFromDto } from '@/models/addresses';
 
 interface Props {
-  address: AddressType;
+  address: Address;
   isComponent?: boolean;
   selected?: boolean;
   onSelect?: () => void;
@@ -57,18 +58,18 @@ export function AddressItem({ address, isComponent, selected, onSelect }: Readon
 
 interface AddressListProps {
   isComponent?: boolean;
-  onSelectAddress?: (address: AddressType) => void;
+  onSelectAddress?: (address: Address) => void;
 }
 
-export default function AddressList({ isComponent, onSelectAddress }: AddressListProps) {
-  const [addresses, setAddresses] = useState<AddressType[]>([]);
-  const [selected, setSelected] = useState<AddressType | undefined>(undefined);
+export default function AddressList({ isComponent, onSelectAddress }: Readonly<AddressListProps>) {
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selected, setSelected] = useState<Address | undefined>(undefined);
   const { authData } = useAuth();
 
   useEffect(() => {
     if (!authData.userId) return;
     api.get(`addresses/${authData.userId}`).then((res) => {
-      mapApiListToAddressList(res.data).then((mapped) => {
+      mapAddressListFromDto(res.data).then((mapped) => {
         setAddresses(mapped);
       });
     });
@@ -93,7 +94,7 @@ export default function AddressList({ isComponent, onSelectAddress }: AddressLis
           />
         ))}
       </div>
-      <Button onClick={() => handleSelect()}>Xác nhận</Button>
+      {isComponent && <Button onClick={() => handleSelect()}>Xác nhận</Button>}
     </div>
   );
 }

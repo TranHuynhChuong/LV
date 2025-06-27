@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import AddressSelect from '@/components/utils/FullAddressSelect';
 import { Textarea } from '@/components/ui/textarea';
 import { forwardRef, useEffect, useImperativeHandle } from 'react';
-import { AddressType } from '@/types/address';
+import { Address } from '@/models/addresses';
 
 // Schema và types
 const formSchema = z.object({
@@ -36,7 +36,7 @@ export type AddressFormHandle = {
 };
 
 type Props = {
-  defaultValue?: AddressType;
+  defaultValue?: Address;
   isComponent?: boolean;
   onProvinceChange?: (provinceId: number) => void;
 };

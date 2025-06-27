@@ -48,6 +48,8 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
             src={activeImage}
             alt="Ảnh chính"
             fill
+            priority
+            sizes="(min-width: 0px) 100%"
             className="object-contain p-2 cursor-pointer"
             onClick={() => handlePreview(activeImage)}
           />
@@ -81,6 +83,7 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
                 src={img}
                 alt={`thumb-${index}`}
                 fill
+                sizes="(min-width: 0px) 100%"
                 className={clsx(
                   'object-contain rounded-sm border cursor-pointer',
                   img === activeImage && 'ring-1 ring-zinc-500'

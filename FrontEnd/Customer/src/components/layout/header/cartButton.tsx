@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cart.store';
 import { useEffect, useState } from 'react';
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { subscribeToCartChange } from '@/lib/cartEvents';
 
 export default function CartButton() {

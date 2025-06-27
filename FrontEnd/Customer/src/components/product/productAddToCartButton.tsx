@@ -6,7 +6,7 @@ import { Minus, Plus } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cart.store'; // đường dẫn tùy cấu trúc dự án
-import api from '@/lib/axiosClient';
+import api from '@/lib/axios';
 import { emitCartChange } from '@/lib/cartEvents';
 
 type Props = {
