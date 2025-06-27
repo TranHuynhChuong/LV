@@ -118,33 +118,19 @@ export class DonHangRepository {
       {
         $lookup: {
           from: 'danhgias',
-          let: {
-            spId: '$chiTietDonHang.SP_id',
-            dhId: '$DH_id',
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $and: [
-                    { $eq: ['$SP_id', '$$spId'] },
-                    { $eq: ['$DH_id', '$$dhId'] },
-                  ],
-                },
-              },
-            },
-            { $limit: 1 }, // chỉ cần biết có đánh giá hay không
-          ],
-          as: 'danhGia',
+          localField: 'DH_id',
+          foreignField: 'DH_id',
+          as: 'danhGias',
         },
       },
       {
         $addFields: {
-          'chiTietDonHang.daDanhGia': {
-            $cond: [{ $gt: [{ $size: '$danhGia' }, 0] }, true, false],
+          daDanhGia: {
+            $cond: [{ $gt: [{ $size: '$danhGias' }, 0] }, true, false],
           },
         },
       },
+
       // B4: Gom nhóm đơn hàng và đính kèm thông tin
       {
         $group: {
@@ -155,6 +141,7 @@ export class DonHangRepository {
           DH_giamHD: { $first: '$DH_giamHD' },
           DH_giamVC: { $first: '$DH_giamVC' },
           DH_phiVC: { $first: '$DH_phiVC' },
+          DH_daDanhGia: { $first: '$daDanhGia' },
           DH_HD: { $first: '$DH_HD' },
           KH_id: { $first: '$KH_id' },
           KH_email: { $first: '$KH_email' },
@@ -201,7 +188,6 @@ export class DonHangRepository {
                 ],
               },
               SP_trangThai: '$sanPham.SP_trangThai',
-              daDanhGia: '$chiTietDonHang.daDanhGia',
             },
           },
         },
