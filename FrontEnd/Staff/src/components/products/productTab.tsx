@@ -11,8 +11,9 @@ import { toast } from 'sonner';
 import ProductSearchBar from './productSearchBar';
 import Loader from '@/components/utils/Loader';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+
 import { mapProductsOverviewFromDto, ProductFilterType, ProductOverView } from '@/models/products';
+import eventBus from '@/lib/eventBus';
 
 interface ProductTabProp {
   status: string;
@@ -81,7 +82,6 @@ export default function ProductTab({
   const sortType = undefined;
   const filterType = buildFilterType(status, type);
   const limit = 24;
-  const router = useRouter();
 
   const fetchData = useCallback(
     async (
@@ -221,7 +221,8 @@ export default function ProductTab({
     try {
       await api.delete(`/products/${id}?staffId=${authData.userId}`);
       toast.success('Xóa thành công!');
-      router.refresh();
+      eventBus.emit('product:refetch');
+      fetchData(currentPage, sortType, filterType, keyword, categoryId, productId);
     } catch (error) {
       toast.error('Xóa thất bại!');
       console.error('Xóa thất bại:', error);

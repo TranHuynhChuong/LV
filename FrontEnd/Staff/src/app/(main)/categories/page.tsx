@@ -46,10 +46,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import Loader from '@/components/utils/Loader';
 import { Category } from '@/models/categories';
-import { useRouter } from 'next/navigation';
 
 export default function Categories() {
-  const router = useRouter();
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<Category[]>([]);
@@ -124,7 +122,7 @@ export default function Categories() {
           id: null,
         });
         toast.success('Xóa thành công!');
-        router.refresh();
+        getData();
       })
       .catch((error) => {
         if (error.status === 400) {

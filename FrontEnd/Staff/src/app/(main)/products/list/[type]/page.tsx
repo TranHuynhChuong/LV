@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import ProductTab from '@/components/products/productTab';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import eventBus from '@/lib/eventBus';
 
 export default function ProductsListType() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -32,6 +33,13 @@ export default function ProductsListType() {
 
   useEffect(() => {
     fetchTotal();
+
+    const handler = () => fetchTotal();
+    eventBus.on('product:refetch', handler);
+
+    return () => {
+      eventBus.off('product:refetch', handler);
+    };
   }, []);
 
   const router = useRouter();

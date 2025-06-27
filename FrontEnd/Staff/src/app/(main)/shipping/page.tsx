@@ -124,14 +124,14 @@ export default function Shipments() {
     if (!id) return;
     setLoading(true);
     setIsSubmitting(true);
+    setDeleteDialogOpen({
+      open: false,
+      id: null,
+    });
     api
       .delete(`/shipping/${id}?staffId=${authData.userId}`)
       .then(() => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        setDeleteDialogOpen({
-          open: false,
-          id: null,
-        });
+        getData();
         toast.success('Xóa thành công!');
       })
       .catch((error) => {
