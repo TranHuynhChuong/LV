@@ -42,6 +42,7 @@ export interface Order {
     };
     note: string;
   };
+  reviewed: boolean;
   orderDetails: {
     productId: number;
     quantity: number;
@@ -51,7 +52,6 @@ export interface Order {
     productName: string;
     productImage: string;
     productStatus: number;
-    reviewed: boolean;
   }[];
 }
 
@@ -64,6 +64,7 @@ export interface OrderOverview {
   shippingFee: number;
   customerId: number | null;
   customerEmail: string | null;
+  reviewed: boolean;
   orderDetails: {
     productId: number;
     quantity: number;

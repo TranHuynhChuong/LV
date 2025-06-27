@@ -50,6 +50,7 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
       },
       note: dto.thongTinNhanHang?.NH_ghiChu ?? '',
     },
+    reviewed: dto.DH_daDanhGia ?? false,
     orderDetails: (dto.chiTietDonHang ?? []).map(
       (item: {
         SP_id: number;
@@ -60,7 +61,6 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
         SP_ten: string;
         SP_anh: string;
         SP_trangThai: number;
-        daDanhGia: boolean;
       }) => ({
         productId: item.SP_id ?? 0,
         quantity: item.CTDH_soLuong ?? 0,
@@ -70,7 +70,6 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
         productName: item.SP_ten ?? '',
         productImage: item.SP_anh ?? '',
         productStatus: item.SP_trangThai ?? 0,
-        reviewed: item.daDanhGia ?? false,
       })
     ),
   };
@@ -87,7 +86,7 @@ export function mapOrderOverviewListFromDto(dtos: OrderOverviewDto[]) {
 
     customerId: dto.KH_id ?? null,
     customerEmail: dto.KH_email ?? null,
-
+    reviewed: dto.DH_daDanhGia ?? false,
     orderDetails: (dto.chiTietDonHang ?? []).map((item) => ({
       productId: item.SP_id ?? 0,
       quantity: item.CTDH_soLuong ?? 0,
