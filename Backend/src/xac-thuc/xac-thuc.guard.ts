@@ -20,10 +20,10 @@ export class XacThucGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractTokenFromCookies(request);
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Yêu cầu đăng nhập');
     }
 
     try {
@@ -38,7 +38,7 @@ export class XacThucGuard implements CanActivate {
       );
 
       if (requiredRoles && !requiredRoles.includes(payload.role)) {
-        throw new ForbiddenException();
+        throw new ForbiddenException('Không có quyền truy cập');
       }
 
       return true;
@@ -50,22 +50,9 @@ export class XacThucGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHeader(request: Request): string | null {
-    let authHeader =
-      request.headers['authorization'] || request.headers['Authorization'];
+  private extractTokenFromCookies(request: Request): string | null {
+    const cookies: Record<string, string> = request.cookies ?? {};
 
-    if (!authHeader) return null;
-
-    if (Array.isArray(authHeader)) {
-      authHeader = authHeader[0];
-    }
-
-    const [type, token] = authHeader.split(' ');
-
-    if (type?.toLowerCase() !== 'bearer' || !token) {
-      return null;
-    }
-
-    return token;
+    return cookies['staff-token'] ?? cookies['customer-token'] ?? null;
   }
 }
