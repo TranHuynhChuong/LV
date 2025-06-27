@@ -9,6 +9,7 @@ import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
 import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
+import { DanhGia } from './schemas/danh-gia.schema';
 
 @Injectable()
 export class DanhGiaService {
@@ -19,28 +20,45 @@ export class DanhGiaService {
     private readonly SanPhamService: SanPhamUtilService
   ) {}
 
-  async create(dto: CreateDanhGiaDto) {
+  async create(dtos: CreateDanhGiaDto[]): Promise<DanhGia[]> {
     const session = await this.connection.startSession();
-    try {
-      const created = await session.withTransaction(async () => {
-        const created = await this.DanhGiaRepo.create(dto, session);
-        if (!created) {
-          throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
-        }
-        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
-          dto.SP_id,
-          session
-        );
-        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
-        return created;
-      });
 
-      if (!created) {
-        throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
+    try {
+      const result = await session.withTransaction(
+        async (): Promise<DanhGia[]> => {
+          const createdDanhGias: DanhGia[] = [];
+
+          for (const dto of dtos) {
+            const created = await this.DanhGiaRepo.create(dto, session);
+            if (!created) {
+              throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
+            }
+
+            // Sau khi tạo thành công thì cập nhật điểm trung bình
+            await this.DanhGiaRepo.getAverageRatingOfProduct(
+              dto.SP_id,
+              session
+            );
+            await this.SanPhamService.updateScore(
+              dto.SP_id,
+              dto.DG_diem,
+              session
+            );
+
+            createdDanhGias.push(created);
+          }
+
+          return createdDanhGias;
+        }
+      );
+
+      if (!result || result.length === 0) {
+        throw new BadRequestException(
+          'Tạo đánh giá - Không có đánh giá nào được tạo'
+        );
       }
-      return created;
-    } catch (error) {
-      throw new error(error);
+
+      return result;
     } finally {
       await session.endSession();
     }
@@ -54,7 +72,7 @@ export class DanhGiaService {
     return result;
   }
 
-  async getAllByProduct(spId: number, page: number, limit = 24) {
+  async getAllOfProduct(spId: number, page: number, limit = 24) {
     return this.DanhGiaRepo.findAllOfProduct(spId, page, limit);
   }
 
