@@ -11,7 +11,6 @@ export function mapProductDetailFormDto(dto: ProductDetailDto): ProductDetail {
   };
 
   const discountPercent = Math.round(((dto.SP_giaBan - dto.SP_giaGiam) / dto.SP_giaBan) * 100);
-  const isOnSale = dto.SP_giaGiam < dto.SP_giaBan;
   return {
     name: dto.SP_ten,
     id: dto.SP_id,
@@ -36,10 +35,10 @@ export function mapProductDetailFormDto(dto: ProductDetailDto): ProductDetail {
     inventory: dto.SP_tonKho,
     saled: dto.SP_daBan,
     weight: dto.SP_trongLuong,
-    score: dto.SP_diemDG,
+    rating: dto.SP_diemDG,
     coverImage: getCoverImageUrl(dto.SP_anh),
     productImages: getProductImageUrls(dto.SP_anh),
-    isOnSale,
+    isOnSale: dto.SP_giaGiam < dto.SP_giaBan,
     similar: dto.SP_tuongTu.map((item) => {
       const discountPercentItem = Math.round(
         ((item.SP_giaBan - item.SP_giaGiam) / item.SP_giaBan) * 100
@@ -54,10 +53,10 @@ export function mapProductDetailFormDto(dto: ProductDetailDto): ProductDetail {
         inventory: item.SP_tonKho,
         image: item.SP_anh,
         status: item.SP_trangThai,
-        score: item.SP_diemDG,
+        rating: item.SP_diemDG,
         categories: item.TL_id,
         discountPercent: discountPercentItem,
-        isOnSale: isOnSale,
+        isOnSale: item.SP_giaGiam < item.SP_giaBan,
       };
     }),
   };
@@ -77,7 +76,7 @@ export function mapProductOverviewFromDto(dto: ProductOverviewDto): ProductOverv
     image: dto.SP_anh,
     inventory: dto.SP_tonKho,
     sold: dto.SP_daBan,
-    score: dto.SP_diemDG,
+    rating: dto.SP_diemDG,
     categories: dto.TL_id,
     status: dto.SP_trangThai,
     isOnSale,

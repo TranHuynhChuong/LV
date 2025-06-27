@@ -16,7 +16,7 @@ export type ProductOverview = {
   image: string;
   inventory: number;
   sold: number;
-  score: number;
+  rating: number;
   categories: number[];
   status: number;
   isOnSale: boolean;
@@ -46,7 +46,7 @@ export type ProductDetail = {
   isOnSale: boolean;
   inventory: number;
   weight: number;
-  score: number;
+  rating: number;
   saled: number;
   coverImage: string;
   productImages: string[];
