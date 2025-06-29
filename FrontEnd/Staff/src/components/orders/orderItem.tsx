@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { OrderOverview } from '@/models/orders';
 import OrderActions from './orderActions';
 import eventBus from '@/lib/eventBus';
+import { Badge } from '../ui/badge';
 
 export const statusMap: Record<string, string> = {
   ChoXacNhan: 'Chờ xác nhận',
@@ -31,7 +32,10 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
       <div className="px-4">
         {/* Tiêu đề */}
         <div className="flex items-center justify-between gap-4 py-4">
-          <div className="text-sm font-medium whitespace-nowrap">Mã đơn: {order.orderId}</div>
+          <div className="text-sm font-medium whitespace-nowrap flex gap-2">
+            <p>Mã đơn: {order.orderId}</p>
+            {order.requestInvoice && <Badge variant="outline">Yêu cầu xuất hóa đơn</Badge>}
+          </div>
           <span className="text-sm whitespace-nowrap">
             {statusMap[order.status] || 'Không xác định'}
           </span>
