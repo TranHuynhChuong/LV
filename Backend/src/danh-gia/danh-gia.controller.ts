@@ -29,7 +29,7 @@ export class DanhGiaController {
     @Query('rating') rating?: number,
     @Query('date') date?: string,
     @Query('status') status?: 'all' | 'visible' | 'hidden'
-  ) {
+  ): Promise<unknown> {
     const parsedDate = date ? new Date(date) : undefined;
 
     return this.DanhGiaService.findAll(
