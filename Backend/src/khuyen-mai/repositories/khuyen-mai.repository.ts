@@ -183,7 +183,7 @@ export class KhuyenMaiRepository {
               },
             },
           ],
-          as: 'sanPham',
+          as: 'sanPhams',
         },
       },
       {
@@ -196,7 +196,7 @@ export class KhuyenMaiRepository {
           KM_ketThuc: 1,
           lichSuThaoTac: 1,
           chiTietKhuyenMai: 1,
-          sanPham: 1,
+          sanPhams: 1,
         },
       },
     ];
