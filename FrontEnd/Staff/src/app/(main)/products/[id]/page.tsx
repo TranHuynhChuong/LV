@@ -48,12 +48,12 @@ export default function ProductDetail() {
       formData.append('SP_namXuatBan', values.publishYear.toString());
     if (values.page !== undefined && values.page !== null)
       formData.append('SP_soTrang', values.page.toString());
-    if (values.price !== undefined && values.price !== null)
-      formData.append('SP_giaBan', values.price.toString());
-    if (values.stock !== undefined && values.stock !== null)
-      formData.append('SP_tonKho', values.stock.toString());
-    if (values.cost !== undefined && values.cost !== null)
-      formData.append('SP_giaNhap', values.cost.toString());
+    if (values.salePrice !== undefined && values.salePrice !== null)
+      formData.append('SP_giaBan', values.salePrice.toString());
+    if (values.inventory !== undefined && values.inventory !== null)
+      formData.append('SP_tonKho', values.inventory.toString());
+    if (values.costPrice !== undefined && values.costPrice !== null)
+      formData.append('SP_giaNhap', values.costPrice.toString());
     if (values.weight !== undefined && values.weight !== null)
       formData.append('SP_trongLuong', values.weight.toString());
     if (authData.userId) formData.append('NV_id', authData.userId);
@@ -123,9 +123,9 @@ export default function ProductDetail() {
         isbn: product.SP_isbn,
         language: product.SP_ngonNgu,
         translator: product.SP_nguoiDich,
-        price: product.SP_giaBan,
-        cost: product.SP_giaNhap,
-        stock: product.SP_tonKho,
+        salePrice: product.SP_giaBan,
+        costPrice: product.SP_giaNhap,
+        inventory: product.SP_tonKho,
         weight: product.SP_trongLuong,
         coverImage: getCoverImageUrl(product.SP_anh),
         productImages: getProductImageUrls(product.SP_anh),
