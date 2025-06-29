@@ -20,22 +20,24 @@ export default function StaffDetailPage() {
   const router = useRouter();
   useEffect(() => {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Hồ sơ' }]);
-    if (!authData.userId) return;
-    api
-      .get(`/users/staff/${authData.userId}`)
-      .then((res) => {
-        const staff = res.data;
-        setStaffData(mapStaffFormDto(staff)[0]);
-      })
-      .catch((error) => {
-        console.error('Lỗi khi lấy thông tin nhân viên:', error);
-        toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
-        router.back();
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+
+    fetchData();
   }, [authData.userId]);
+
+  const fetchData = async () => {
+    if (!authData.userId) return;
+    try {
+      const res = await api.get(`/users/staff/${authData.userId}`);
+      const staff = res.data;
+      setStaffData(mapStaffFormDto([staff])[0]);
+    } catch (error) {
+      console.error('Lỗi khi lấy thông tin nhân viên:', error);
+      toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
+      router.back();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (

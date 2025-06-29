@@ -38,6 +38,7 @@ export default function ShippingDetailPage() {
   }, [setBreadcrumbs]);
 
   const fetchShippingData = async () => {
+    if (!id) return;
     setLoading(true);
     try {
       const res = await api.get(`/shipping/${id}`);
@@ -54,7 +55,6 @@ export default function ShippingDetailPage() {
   };
 
   useEffect(() => {
-    if (!id) return;
     fetchShippingData();
   }, [id]);
 

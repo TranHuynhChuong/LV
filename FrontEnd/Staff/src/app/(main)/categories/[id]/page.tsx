@@ -36,6 +36,7 @@ export default function CategoryDetailPage() {
   }, [setBreadcrumbs]);
 
   async function fetchCategory() {
+    if (!id) return;
     setLoading(true);
     try {
       const res = await api.get(`/categories/${id}`);
@@ -57,10 +58,8 @@ export default function CategoryDetailPage() {
   }
 
   useEffect(() => {
-    if (!id) return;
-
     fetchCategory();
-  }, []);
+  }, [id]);
 
   async function handleSubmit(data: Category) {
     if (!authData.userId) return;

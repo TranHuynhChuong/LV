@@ -106,6 +106,7 @@ export default function ProductDetail() {
   const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   async function fetchData(id: string) {
+    if (!id) return;
     setLoading(true);
     try {
       const res = await api.get(`/products/${id}`);
@@ -144,7 +145,6 @@ export default function ProductDetail() {
   }
 
   useEffect(() => {
-    if (!id) return;
     fetchData(id);
   }, [id]);
 

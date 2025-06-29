@@ -62,6 +62,8 @@ export default function VoucherPromotionDetail() {
   const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   const fetchData = () => {
+    if (!id) return;
+    setLoading(true);
     api
       .get(`/vouchers/${id}`)
       .then((res) => {
@@ -77,10 +79,8 @@ export default function VoucherPromotionDetail() {
   };
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
     fetchData();
-  }, []);
+  }, [id]);
 
   if (loading)
     return (
