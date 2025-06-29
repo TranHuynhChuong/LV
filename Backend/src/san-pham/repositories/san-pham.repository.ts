@@ -55,7 +55,7 @@ export class SanPhamRepository {
   }
 
   async updateSold(
-    updates: { id: string; sold: number }[],
+    updates: { id: number; sold: number }[],
     session?: ClientSession
   ) {
     const operations = updates.map(({ id, sold }) => ({
