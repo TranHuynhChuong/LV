@@ -37,15 +37,12 @@ export class DanhGiaService {
             }
 
             // Sau khi tạo thành công thì cập nhật điểm trung bình
-            await this.DanhGiaRepo.getAverageRatingOfProduct(
+
+            const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
               dto.SP_id,
               session
             );
-            await this.SanPhamService.updateScore(
-              dto.SP_id,
-              dto.DG_diem,
-              session
-            );
+            await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
 
             createdDanhGias.push(created);
           }
