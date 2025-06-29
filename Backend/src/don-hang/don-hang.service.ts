@@ -197,7 +197,7 @@ export class DonHangService {
         DH_giamHD: context.DH_giamHD,
         DH_giamVC: context.DH_giamVC,
         DH_phiVC: data.DH.DH_phiVC,
-        DH_trangThai: TrangThaiDonHang.ChoVanChuyen,
+        DH_trangThai: TrangThaiDonHang.ChoXacNhan,
         KH_id: data.DH.KH_id,
         KH_email: data.DH.KH_email,
         DH_HD: data.HD
@@ -267,7 +267,7 @@ export class DonHangService {
 
         // B9.  Cập nhật đã bán và tồn kho
         const updates = data.DH.CTDH.map((item) => ({
-          id: item.SP_id.toString(),
+          id: item.SP_id,
           sold: item.CTDH_soLuong,
         }));
         await this.SanPhamService.updateSold(updates, session);
@@ -314,54 +314,53 @@ export class DonHangService {
       [OrderStatus.Complete]: 'Giao hàng thành công',
       [OrderStatus.InComplete]: 'Giao hàng thất bại',
       [OrderStatus.CancelRequest]: 'Yêu cầu hủy đơn hàng',
-      [OrderStatus.Canceled]: 'Yêu cầu hủy được xác nhận',
+      [OrderStatus.Canceled]: 'Đơn hàng đã được hủy',
     };
 
     const thaoTac = statusActionMap[newStatus];
     if (!thaoTac) return null;
 
     const session = await this.connection.startSession();
-    session.startTransaction();
-
     try {
-      const order = await this.DonHangRepo.getById(id);
-      if (!order) throw new NotFoundException('Đơn hàng không tồn tại');
+      const result = await session.withTransaction(async () => {
+        const order = await this.DonHangRepo.getById(id);
+        if (!order) throw new NotFoundException('Đơn hàng không tồn tại');
 
-      let email = order.KH_email;
-      if (!email && order.KH_id) {
-        email = await this.KhachHangService.getEmail(order.KH_id);
-      }
-      if (!email) throw new NotFoundException('Khách hàng không tồn tại');
+        let email = order.KH_email;
+        if (!email && order.KH_id) {
+          email = await this.KhachHangService.getEmail(order.KH_id);
+        }
+        if (!email) throw new NotFoundException('Khách hàng không tồn tại');
 
-      this.notifyEmailStatus(newStatus, email, order.DH_id);
+        this.notifyEmailStatus(newStatus, email, order.DH_id);
 
-      const result = await this.DonHangRepo.update(
-        id,
-        newStatus,
-        {
-          thaoTac,
-          NV_id: staffId,
-          thoiGian: new Date(),
-        },
-        session
-      ); // Pass session vào đây
+        const result = await this.DonHangRepo.update(
+          id,
+          newStatus,
+          {
+            thaoTac,
+            NV_id: staffId,
+            thoiGian: new Date(),
+          },
+          session
+        );
 
-      if (!result) {
-        throw new BadRequestException('Cập nhật đơn hàng thất bại');
-      }
+        if (!result)
+          throw new BadRequestException('Cập nhật đơn hàng thất bại');
 
-      // Nếu đơn hàng bị hủy, hoàn lại tồn kho và giảm đã bán
-      if (newStatus === OrderStatus.Canceled) {
-        const orderDetails = await this.ChiTietDonHangRepo.findByOrderId(id);
+        if (newStatus === OrderStatus.Canceled) {
+          const orderDetails = await this.ChiTietDonHangRepo.findByOrderId(id);
+          const updates = orderDetails.map((item) => ({
+            id: item.SP_id,
+            sold: -item.CTDH_soLuong,
+            stock: item.CTDH_soLuong,
+          }));
 
-        const updates = orderDetails.map((item) => ({
-          id: item.SP_id.toString(),
-          sold: -item.CTDH_soLuong, // Giảm số lượng đã bán
-          stock: item.CTDH_soLuong, // Tăng tồn kho
-        }));
+          await this.SanPhamService.updateSold(updates, session);
+        }
 
-        await this.SanPhamService.updateSold(updates, session);
-      }
+        return result;
+      });
 
       return result;
     } catch (error) {
@@ -370,7 +369,6 @@ export class DonHangService {
         `Cập nhật đơn hàng - ${error.message}`
       );
     } finally {
-      await session.abortTransaction();
       await session.endSession();
     }
   }
@@ -459,9 +457,6 @@ export class DonHangService {
 
     const {
       detail: ordersDetail,
-      totalComplete,
-      totalInComplete,
-      totalCanceled,
       completeOrderIds,
       inCompleteOrderIds,
     } = await this.processOrderStats(orderStats);
@@ -478,29 +473,27 @@ export class DonHangService {
       endDate
     );
 
+    const orderIds = await this.DonHangRepo.getOrderIdsByDate(
+      startDate,
+      endDate
+    );
+
+    const provinces = await this.NhanHangDHService.getStatsByProvince(orderIds);
+
     return {
-      orders: {
-        total: {
-          complete: totalComplete,
-          inComplete: totalInComplete,
-          canceled: totalCanceled,
-        },
-        detail: ordersDetail,
-      },
+      orders: ordersDetail,
       vouchers,
       buyers: {
         member: buyerStats.member ?? 0,
         guest: buyerStats.guest ?? 0,
       },
       totalDiscountStats,
+      provinces: provinces,
     };
   }
 
   private async processOrderStats(orderStats: Record<string, any>): Promise<{
     detail: Record<string, OrderStatsByDate>;
-    totalComplete: number;
-    totalInComplete: number;
-    totalCanceled: number;
     completeOrderIds: string[];
     inCompleteOrderIds: string[];
   }> {
@@ -508,18 +501,19 @@ export class DonHangService {
     const completeOrderIds: string[] = [];
     const inCompleteOrderIds: string[] = [];
 
-    let totalComplete = 0;
-    let totalInComplete = 0;
-    let totalCanceled = 0;
-
     for (const [date, stats] of Object.entries(orderStats)) {
-      const complete = stats.complete ?? { total: 0, orderIds: [], stats: {} };
+      const complete = stats.complete ?? { orderIds: [], stats: {} };
       const inComplete = stats.inComplete ?? {
-        total: 0,
         orderIds: [],
         stats: {},
       };
-      const canceled = stats.canceled ?? { total: 0 };
+
+      const total = stats.total ?? {
+        all: 0,
+        complete: 0,
+        inComplete: 0,
+        canceled: 0,
+      };
 
       const completeIds = complete.orderIds ?? [];
       const inCompleteIds = inComplete.orderIds ?? [];
@@ -535,40 +529,30 @@ export class DonHangService {
         ? await this.ChiTietDonHangRepo.getOrderDetailsStats(inCompleteIds)
         : this.emptyStats();
 
-      totalComplete += complete.total;
-      totalInComplete += inComplete.total;
-      totalCanceled += canceled.total;
-
       detail[date] = {
+        total: {
+          all: total.all ?? 0,
+          complete: total.complete ?? 0,
+          inComplete: total.inComplete ?? 0,
+          canceled: total.canceled ?? 0,
+        },
         complete: {
-          total: complete.total,
-          stats: {
-            ...completeStats,
-            totalBillSale: complete.stats?.totalBillSale ?? 0,
-            totalShipSale: complete.stats?.totalShipSale ?? 0,
-            totalShipPrice: complete.stats?.totalShipPrice ?? 0,
-          },
+          ...completeStats,
+          totalBillSale: complete.stats?.totalBillSale ?? 0,
+          totalShipSale: complete.stats?.totalShipSale ?? 0,
+          totalShipPrice: complete.stats?.totalShipPrice ?? 0,
         },
         inComplete: {
-          total: inComplete.total,
-          stats: {
-            ...inCompleteStats,
-            totalBillSale: inComplete.stats?.totalBillSale ?? 0,
-            totalShipSale: inComplete.stats?.totalShipSale ?? 0,
-            totalShipPrice: inComplete.stats?.totalShipPrice ?? 0,
-          },
-        },
-        canceled: {
-          total: canceled.total,
+          ...inCompleteStats,
+          totalBillSale: inComplete.stats?.totalBillSale ?? 0,
+          totalShipSale: inComplete.stats?.totalShipSale ?? 0,
+          totalShipPrice: inComplete.stats?.totalShipPrice ?? 0,
         },
       };
     }
 
     return {
       detail,
-      totalComplete,
-      totalInComplete,
-      totalCanceled,
       completeOrderIds,
       inCompleteOrderIds,
     };
