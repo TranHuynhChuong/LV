@@ -44,17 +44,18 @@ export default function ReviewsSection({ productId, rating }: Readonly<ReviewPro
       const res = await api.get(`/reviews/product/${productId}`, { params });
       const data = res.data;
 
-      const reviewDtos: ReviewOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
-      setReviews(mappedReviewOverviewFromDto(reviewDtos));
+      const reviews: ReviewOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
+      console.log(reviews);
+      setReviews(mappedReviewOverviewFromDto(reviews));
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
       setTotalPages(data.paginationInfo.totalPages);
       setStars({
-        s1: data.rating.s1,
-        s2: data.rating.s2,
-        s3: data.rating.s3,
-        s4: data.rating.s4,
-        s5: data.rating.s5,
+        s1: data.rating.s1 ?? 0,
+        s2: data.rating.s2 ?? 0,
+        s3: data.rating.s3 ?? 0,
+        s4: data.rating.s4 ?? 0,
+        s5: data.rating.s5 ?? 0,
       });
     } catch {
       setReviews([]);
@@ -174,7 +175,8 @@ export default function ReviewsSection({ productId, rating }: Readonly<ReviewPro
           </div>
           <div className="space-y-1 w-64">
             {[5, 4, 3, 2, 1].map((star) => {
-              const ratio = ((stars[`s${star}` as keyof typeof stars] || 0) / totalItems) * 100;
+              const raw = stars[`s${star}` as keyof typeof stars] || 0;
+              const ratio = totalItems > 0 ? (raw / totalItems) * 100 : 0;
               return (
                 <div key={star} className="flex items-center gap-1 text-sm">
                   <div className="flex items-center gap-1">
