@@ -80,10 +80,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuButton size="lg" asChild>
             <Link href="/">
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                logo
+                DL
               </div>
-              <div className="grid flex-1 text-left text-lg leading-tight ml-5">
-                <span className="truncate font-semibold">Dật Lạc</span>
+              <div className="grid flex-1 text-left leading-tight ml-2">
+                <span className="truncate font-bold text-xl  ">DẬT LẠC</span>
               </div>
             </Link>
           </SidebarMenuButton>
