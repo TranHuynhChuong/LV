@@ -1,11 +1,10 @@
-// context/BreadcrumbContext.tsx
 'use client';
 
 import { createContext, useContext, useState } from 'react';
 
 export type Crumb = {
   label: string;
-  href?: string; // Nếu không có là trang hiện tại
+  href?: string;
 };
 
 type BreadcrumbContextType = {
@@ -15,7 +14,7 @@ type BreadcrumbContextType = {
 
 const BreadcrumbContext = createContext<BreadcrumbContextType | null>(null);
 
-export function BreadcrumbProvider({ children }: { children: React.ReactNode }) {
+export function BreadcrumbProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [breadcrumbs, setBreadcrumbs] = useState<Crumb[]>([]);
 
   return (

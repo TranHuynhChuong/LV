@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/stores/cart.store'; // đường dẫn tùy cấu trúc dự án
 import api from '@/lib/axios';
 import { emitCartChange } from '@/lib/cartEvents';
+import Link from 'next/link';
 
 type Props = {
   inventory: number;
@@ -88,13 +89,15 @@ export default function AddToCartButton({ inventory, id }: Props) {
           >
             Thêm vào giỏ
           </Button>
-          <Button
-            className="rounded-none md:rounded-sm cursor-pointer"
-            onClick={handleAddToCart}
-            disabled={inventory === 0}
-          >
-            Mua Ngay
-          </Button>
+          <Link href={`/carts?id=${id}`}>
+            <Button
+              className="rounded-none md:rounded-sm cursor-pointer"
+              onClick={handleAddToCart}
+              disabled={inventory === 0}
+            >
+              Mua Ngay
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

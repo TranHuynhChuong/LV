@@ -2,22 +2,14 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { CartItemType } from '@/stores/cart.store';
+
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-
-export interface ProductInCart extends CartItemType {
-  name: string;
-  price: number;
-  salePrice: number;
-  cost: number;
-  cover: string;
-  stock: number;
-  weight: number;
-}
+import { Cart } from '@/models/carts';
+import { Badge } from '../ui/badge';
 
 interface CartItemProps {
-  product: ProductInCart;
+  cart: Cart;
   isSelected: boolean;
   onToggle: () => void;
   onQuantityChange: (id: number, value: string) => void;
@@ -25,20 +17,20 @@ interface CartItemProps {
 }
 
 export default function CartItem({
-  product,
+  cart,
   isSelected,
   onToggle,
   onQuantityChange,
   onRemove,
 }: Readonly<CartItemProps>) {
-  const quantity = product.quantity;
+  const quantity = cart.quantity;
 
   const handleMinus = () => {
-    onQuantityChange(product.productId, String(quantity - 1));
+    onQuantityChange(cart.productId, String(quantity - 1));
   };
 
   const handleAdd = () => {
-    onQuantityChange(product.productId, String(quantity + 1));
+    onQuantityChange(cart.productId, String(quantity + 1));
   };
 
   return (
@@ -47,8 +39,8 @@ export default function CartItem({
         <Checkbox checked={isSelected} onCheckedChange={onToggle} />
         <div className=" relative w-16 h-16">
           <Image
-            src={product.cover}
-            alt={product.name}
+            src={cart.cover}
+            alt={cart.name}
             fill
             sizes="64px"
             priority
@@ -56,19 +48,20 @@ export default function CartItem({
           />
         </div>
         <div className="flex-1">
-          <p className="line-clamp-2 h-[3em] text-sm font-light">{product.name}</p>
+          <p className="line-clamp-2 h-[3em] text-sm font-light">{cart.name}</p>
           <div className="flex items-center gap-2 h-fit">
-            {product.price !== product.salePrice ? (
+            {cart.isOnSale ? (
               <div className="flex items-center gap-2 h-fit">
                 <span className="text-red-500 font-medium">
-                  {product.salePrice.toLocaleString()}₫
+                  {cart.discountPrice.toLocaleString()}₫
                 </span>
                 <span className="text-zinc-400 text-xs line-through h-fit">
-                  {product.price.toLocaleString()}₫
+                  {cart.salePrice.toLocaleString()}₫
                 </span>
+                <Badge variant="destructive">{cart.discountPercent}%</Badge>
               </div>
             ) : (
-              <span className="font-medium">{product.price.toLocaleString()}₫</span>
+              <span className="font-medium">{cart.salePrice.toLocaleString()}₫</span>
             )}
           </div>
         </div>
@@ -95,9 +88,9 @@ export default function CartItem({
           </div>
         </div>
         <span className="w-24 items-center flex-1 text-right">
-          {(product.salePrice * quantity).toLocaleString()}₫
+          {(cart.discountPrice * quantity).toLocaleString()}₫
         </span>
-        <Button size="sm" onClick={() => onRemove(product.productId)}>
+        <Button size="sm" onClick={() => onRemove(cart.productId)}>
           <Trash2 />
         </Button>
       </div>

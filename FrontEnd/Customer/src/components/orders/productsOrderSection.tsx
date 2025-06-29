@@ -1,14 +1,15 @@
 'use client';
 
+import { Cart } from '@/models/carts';
 import Image from 'next/image';
-import { OrderProduct } from '@/stores/orderStore';
+import { Badge } from '../ui/badge';
 
 interface OrderPageProps {
-  readonly products: OrderProduct[];
+  readonly products: Cart[];
 }
 
 export default function ProductsOrderSection({ products }: OrderPageProps) {
-  const total = products.reduce((sum, p) => sum + p.salePrice * p.quantity, 0);
+  const total = products.reduce((sum, p) => sum + p.discountPrice * p.quantity, 0);
 
   return (
     <div className="space-y-2">
@@ -39,10 +40,17 @@ export default function ProductsOrderSection({ products }: OrderPageProps) {
 
                   <div className="flex w-full justify-between items-center">
                     <div className="space-x-2">
-                      <span className="text-red-500">₫{p.salePrice.toLocaleString()}</span>
-                      <span className="line-through text-zinc-500 text-xs">
-                        ₫{p.price.toLocaleString()}
-                      </span>
+                      {p.isOnSale ? (
+                        <>
+                          <span className="text-red-500">₫{p.discountPrice.toLocaleString()}</span>
+                          <span className="line-through text-zinc-500 text-xs">
+                            ₫{p.salePrice.toLocaleString()}
+                          </span>
+                          <Badge variant="destructive">{p.discountPercent}%</Badge>
+                        </>
+                      ) : (
+                        <span>₫{p.discountPrice.toLocaleString()}</span>
+                      )}
                     </div>
 
                     <span>x{p.quantity}</span>

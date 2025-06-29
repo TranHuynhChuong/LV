@@ -1,55 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useCartStore, CartItemType, GioHangItem } from '@/stores/cart.store';
+import CartItem from '@/components/carts/cartItem';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import api from '@/lib/axios';
-import { Checkbox } from '@/components/ui/checkbox';
-
 import { emitCartChange } from '@/lib/cartEvents';
-import { Button } from '@/components/ui/button';
-import clsx from 'clsx';
-import { useRouter } from 'next/navigation';
+import { Cart, mapCartFronDto, mapCartToDto } from '@/models/carts';
+import { useCartStore } from '@/stores/cart.store';
 import { useOrderStore } from '@/stores/orderStore';
+import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Loader2 } from 'lucide-react';
-import CartItem, { ProductInCart } from '@/components/carts/cartItem';
-
-export interface ApiCartRes {
-  SP_id: number;
-  SP_ten: string;
-  SP_anh: string;
-  SP_giaBan: number;
-  SP_giaGiam: number;
-  SP_giaNhap: number;
-  SP_tonKho: number;
-  SP_trongLuong: number;
-  GH_soLuong: number;
-  GH_thoiGian: string;
-}
-
-export function mapCartToGioHang(cartItems: CartItemType[]): GioHangItem[] {
-  return cartItems.map((item) => ({
-    SP_id: item.productId,
-    GH_soLuong: item.quantity,
-    GH_thoiGian: item.dateTime,
-  }));
-}
-
-export function mapGioHangToCart(gioHangItems: ApiCartRes[]): ProductInCart[] {
-  return gioHangItems.map((item) => ({
-    productId: item.SP_id,
-    quantity: item.GH_soLuong,
-    dateTime: item.GH_thoiGian,
-    cover: item.SP_anh,
-    name: item.SP_ten,
-    cost: item.SP_giaNhap,
-    price: item.SP_giaBan,
-    salePrice: item.SP_giaGiam,
-    stock: item.SP_tonKho,
-    weight: item.SP_trongLuong,
-  }));
-}
+import { Loader2, ShoppingCart } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function CartPage() {
   const { authData } = useAuth();
@@ -57,16 +21,15 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const replaceCart = useCartStore((state) => state.replaceCart);
-
-  const [products, setProducts] = useState<ProductInCart[]>([]);
+  const [carts, setCarts] = useState<Cart[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [hydrated, setHydrated] = useState(false);
-
   const router = useRouter();
-  const addProduct = useOrderStore((state) => state.addProduct);
+  const addOrder = useOrderStore((state) => state.addOrder);
   const clearOrder = useOrderStore((state) => state.clearOrder);
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     setHydrated(true);
@@ -79,27 +42,37 @@ export default function CartPage() {
       setLoading(true);
       try {
         if (!authData.userId) {
-          const cartsToSend = mapCartToGioHang(localCarts);
+          const cartsToSend = mapCartToDto(localCarts);
           if (cartsToSend.length > 0) {
             const res = await api.post('/carts/get-carts', cartsToSend);
-
             const validProducts = res.data.filter(Boolean);
-            const cartsRecive = mapGioHangToCart(validProducts);
-            setProducts(cartsRecive);
-
+            const cartsRecive = mapCartFronDto(validProducts);
+            setCarts(cartsRecive);
+            const idParam = searchParams.get('id');
+            if (idParam) {
+              const id = Number(idParam);
+              const match = cartsRecive.find((c) => c.productId === id);
+              if (match) setSelected([id]);
+            }
             replaceCart(
-              cartsRecive.map((p) => ({
-                productId: p.productId,
-                quantity: p.quantity,
-                dateTime: new Date(p.dateTime).toISOString(),
+              cartsRecive.map((c) => ({
+                productId: c.productId,
+                quantity: c.quantity,
+                dateTime: new Date(c.dateTime).toISOString(),
               }))
             );
           }
         } else {
           const res = await api.get(`/carts/${authData.userId}`);
           const validProducts = res.data.filter(Boolean);
-          const cartsRecive = mapGioHangToCart(validProducts);
-          setProducts(cartsRecive);
+          const cartsRecive = mapCartFronDto(validProducts);
+          setCarts(cartsRecive);
+          const idParam = searchParams.get('id');
+          if (idParam) {
+            const id = Number(idParam);
+            const match = cartsRecive.find((c) => c.productId === id);
+            if (match) setSelected([id]);
+          }
         }
       } catch (error) {
         console.error('Lỗi lấy giỏ hàng:', error);
@@ -117,22 +90,20 @@ export default function CartPage() {
 
   const handleQuantityChange = async (id: number, value: string) => {
     const quantity = Math.max(1, Number(value) || 1);
-    const product = products.find((p) => p.productId === id);
-    if (!product) return;
-
+    const cart = carts.find((c) => c.productId === id);
+    if (!cart) return;
     if (!authData?.userId) {
       try {
         const response = await api.post('/carts/get-carts', [{ SP_id: id, GH_soLuong: quantity }]);
         const updated = response.data ?? null;
-
         if (!updated) {
           removeFromCart(id);
-          setProducts((prev) => prev.filter((p) => p.productId !== id));
+          setCarts((prev) => prev.filter((c) => c.productId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          const newCart = mapGioHangToCart(updated);
+          const newCart = mapCartFronDto(updated);
           updateQuantity(id, newCart[0].quantity);
-          setProducts((prev) => prev.map((p) => (p.productId === id ? newCart[0] : p)));
+          setCarts((prev) => prev.map((c) => (c.productId === id ? newCart[0] : c)));
         }
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
@@ -144,18 +115,15 @@ export default function CartPage() {
           SP_id: id,
           GH_soLuong: quantity,
         });
-
         emitCartChange();
-
         const updated = response.data ?? null;
-
         if (!updated) {
-          setProducts((prev) => prev.filter((p) => p.productId !== id));
+          setCarts((prev) => prev.filter((c) => c.productId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          const newCart = mapGioHangToCart(updated);
+          const newCart = mapCartFronDto(updated);
           updateQuantity(id, newCart[0].quantity);
-          setProducts((prev) => prev.map((p) => (p.productId === id ? newCart[0] : p)));
+          setCarts((prev) => prev.map((c) => (c.productId === id ? newCart[0] : c)));
         }
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
@@ -166,17 +134,15 @@ export default function CartPage() {
   const handleRemove = async (id: number) => {
     if (!authData?.userId) {
       removeFromCart(id);
-      setProducts((prev) => prev.filter((p) => p.productId !== id));
+      setCarts((prev) => prev.filter((c) => c.productId !== id));
       setSelected((prev) => prev.filter((spid) => spid !== id));
     } else {
       try {
-        await api.delete<ProductInCart[]>('/carts', {
+        await api.delete<Cart[]>('/carts', {
           params: { KH_id: authData.userId, SP_id: id },
         });
-
         emitCartChange();
-
-        setProducts((prev) => prev.filter((p) => p.productId !== id));
+        setCarts((prev) => prev.filter((c) => c.productId !== id));
         setSelected((prev) => prev.filter((spid) => spid !== id));
       } catch (error) {
         console.error('Lỗi cập nhật số lượng:', error);
@@ -185,23 +151,11 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    const selectedItems = products.filter((p) => selected.includes(p.productId));
-
+    const selectedItems = carts.filter((c) => selected.includes(c.productId));
     clearOrder();
-
     selectedItems.forEach((item) => {
-      addProduct({
-        productId: item.productId,
-        salePrice: item.salePrice,
-        price: item.price,
-        cost: item.cost,
-        quantity: item.quantity,
-        cover: item.cover,
-        name: item.name,
-        weight: item.weight,
-      });
+      addOrder(item);
     });
-
     router.push('/order');
   };
 
@@ -219,7 +173,7 @@ export default function CartPage() {
     );
 
   // Khi giỏ hàng trống
-  if (!products.length)
+  if (!carts.length)
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -245,32 +199,31 @@ export default function CartPage() {
       <h1 className="text-xl font-bold mb-4">Giỏ hàng</h1>
 
       <div className="flex gap-4">
-        {/* LEFT: Sản phẩm */}
         <div className="flex-1 space-y-2">
           <div className="flex items-center justify-between p-3 rounded bg-zinc-50 shadow">
             <div className="flex items-center gap-4">
               <Checkbox
-                checked={selected.length === products.length}
+                checked={selected.length === carts.length}
                 onCheckedChange={() => {
-                  if (selected.length === products.length) {
+                  if (selected.length === carts.length) {
                     setSelected([]);
                   } else {
-                    setSelected(products.map((p) => p.productId));
+                    setSelected(carts.map((c) => c.productId));
                   }
                 }}
               />
               <span className="text-sm text-zinc-700">
-                Đã chọn {selected.length}/{products.length} sản phẩm
+                Đã chọn {selected.length}/{carts.length} sản phẩm
               </span>
             </div>
           </div>
 
-          {products.map((p) => (
+          {carts.map((c) => (
             <CartItem
-              key={p.productId}
-              product={p}
-              isSelected={selected.includes(p.productId)}
-              onToggle={() => toggleSelect(p.productId)}
+              key={c.productId}
+              cart={c}
+              isSelected={selected.includes(c.productId)}
+              onToggle={() => toggleSelect(c.productId)}
               onQuantityChange={handleQuantityChange}
               onRemove={handleRemove}
             />
@@ -289,8 +242,8 @@ export default function CartPage() {
             <span className="font-semibold text-lg text-red-500">
               {selected
                 .reduce((sum, id) => {
-                  const product = products.find((p) => p.productId === id);
-                  return sum + (product?.salePrice ?? 0) * (product?.quantity ?? 1);
+                  const cart = carts.find((c) => c.productId === id);
+                  return sum + (cart?.discountPrice ?? 0) * (cart?.quantity ?? 1);
                 }, 0)
                 .toLocaleString()}
               ₫
@@ -298,7 +251,7 @@ export default function CartPage() {
           </div>
 
           <Button
-            className="rounded-md md:rounded-sm px-6 py-2 lg:px-20 lg:py-4"
+            className="rounded-md md:rounded-sm px-6 py-2 lg:px-20 lg:py-4 cursor-pointer"
             disabled={selected.length === 0}
             onClick={handleCheckout}
           >

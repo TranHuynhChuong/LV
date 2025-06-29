@@ -119,10 +119,11 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
           <FormField
             control={form.control}
             name="wardId"
-            render={() => (
+            render={({ fieldState }) => (
               <FormItem>
                 <FormControl>
                   <AddressSelect
+                    error={!!fieldState.error}
                     valueProvinceId={form.getValues('provinceId')}
                     valueWardId={form.getValues('wardId')}
                     onSelectProvince={(provinceId) => {

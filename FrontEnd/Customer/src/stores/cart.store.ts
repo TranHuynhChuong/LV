@@ -1,29 +1,17 @@
-// cartStore.ts (đã cập nhật sort)
+import { CartItem } from '@/models/carts';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export interface GioHangItem {
-  SP_id: number;
-  GH_soLuong: number;
-  GH_thoiGian: string;
-}
-
-export interface CartItemType {
-  productId: number;
-  quantity: number;
-  dateTime: string;
-}
-
 interface CartState {
-  carts: CartItemType[];
-  addToCart: (item: CartItemType) => void;
-  removeFromCart: (SP_id: number) => void;
-  removeFromCartByIds: (SP_id: number[]) => void;
-  updateQuantity: (SP_id: number, GH_soLuong: number) => void;
-  replaceCart: (items: CartItemType[]) => void;
+  carts: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (id: number) => void;
+  removeFromCartByIds: (id: number[]) => void;
+  updateQuantity: (id: number, quantity: number) => void;
+  replaceCart: (items: CartItem[]) => void;
 }
 
-const sortByTimeDesc = (items: CartItemType[]): CartItemType[] =>
+const sortByTimeDesc = (items: CartItem[]): CartItem[] =>
   [...items].sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
 
 export const useCartStore = create<CartState>()(
@@ -35,7 +23,7 @@ export const useCartStore = create<CartState>()(
         const now = new Date().toISOString();
         const existing = get().carts.find((c) => c.productId === item.productId);
 
-        let updatedCarts: CartItemType[];
+        let updatedCarts: CartItem[];
 
         if (existing) {
           updatedCarts = get().carts.map((c) =>
@@ -70,7 +58,7 @@ export const useCartStore = create<CartState>()(
           carts: get().carts.filter((c) => !productIds.includes(c.productId)),
         }),
 
-      replaceCart: (items: CartItemType[]) =>
+      replaceCart: (items: CartItem[]) =>
         set(() => ({
           carts: items, // Ghi đè, đảm bảo cũ mất hoàn toàn
         })),

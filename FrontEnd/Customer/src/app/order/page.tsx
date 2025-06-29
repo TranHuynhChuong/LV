@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useOrderStore, OrderProduct } from '@/stores/orderStore';
+import { useOrderStore } from '@/stores/orderStore';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -32,6 +32,7 @@ import ProductsOrderSection from '@/components/orders/productsOrderSection';
 import { Voucher } from '@/components/orders/selectVoucher';
 import VoucherSection from '@/components/orders/voucherSection';
 import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/addresses';
+import { Cart } from '@/models/carts';
 
 // --- Utils ---
 type ShippingPolicy = {
@@ -57,7 +58,7 @@ function mapShippingPolicyFromApi(api: ShippingApiResponse): ShippingPolicy {
   };
 }
 
-function calculateShippingFee(products: OrderProduct[], policy: ShippingPolicy): number {
+function calculateShippingFee(products: Cart[], policy: ShippingPolicy): number {
   const totalWeightGrams = products.reduce((total, p) => total + p.weight * p.quantity, 0);
   const baseLimitGrams = policy.baseWeightLimitKg * 1000;
 
@@ -90,13 +91,13 @@ function calculateDiscounts(
   return { productDiscount, shippingDiscount };
 }
 
-function mapToDataCheck(products: OrderProduct[], vouchers: { code: string; type: number }[]) {
-  const CTDH = products.map((p) => ({
-    SP_id: p.productId,
-    CTDH_soLuong: p.quantity,
-    CTDH_giaNhap: p.cost,
-    CTDH_giaBan: p.price,
-    CTDH_giaMua: p.salePrice,
+function mapToDataCheck(products: Cart[], vouchers: { code: string; type: number }[]) {
+  const CTDH = products.map((c) => ({
+    SP_id: c.productId,
+    CTDH_soLuong: c.quantity,
+    CTDH_giaNhap: c.costPrice,
+    CTDH_giaBan: c.salePrice,
+    CTDH_giaMua: c.discountPrice,
   }));
   const MG = vouchers.length > 0 ? vouchers.map((v) => ({ MG_id: v.code })) : undefined;
   return { CTDH, MG };
@@ -105,7 +106,7 @@ function mapToDataCheck(products: OrderProduct[], vouchers: { code: string; type
 const formatCurrency = (value: number) => value.toLocaleString() + 'đ';
 
 const useOrderSummary = (
-  products: OrderProduct[],
+  products: Cart[],
   shippingPolicy: ShippingPolicy | undefined,
   vouchers: Voucher[]
 ) => {
@@ -141,12 +142,13 @@ export default function OrderPage() {
   const addressRef = useRef<AddressFormHandle>(null);
   const router = useRouter();
   const { authData } = useAuth();
-  const productsInStore = useOrderStore((state) => state.products);
+  const orders = useOrderStore((state) => state.orders);
   const clearOrder = useOrderStore((state) => state.clearOrder);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [shippingPolicy, setShippingPolicy] = useState<ShippingPolicy>();
-  const [products, setProducts] = useState<OrderProduct[]>([]);
+  const [products, setProducts] = useState<Cart[]>([]);
   const [guestEmail, setGuestEmail] = useState('');
+  const [guestEmailErr, setGuestEmailErr] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { orderTotal, shippingFee, productDiscount, shippingDiscount, total, totalSaving } =
     useOrderSummary(products, shippingPolicy, selectedVouchers);
@@ -171,12 +173,14 @@ export default function OrderPage() {
   }, [authData.userId]);
 
   useEffect(() => {
-    if (!productsInStore.length) return;
+    if (!orders.length) {
+      router.back();
+    }
     api
-      .post('/orders/check', mapToDataCheck(productsInStore, selectedVouchers))
+      .post('/orders/check', mapToDataCheck(orders, selectedVouchers))
       .then((res) => {
         if (res.data.errors.length === 0) {
-          setProducts(productsInStore);
+          setProducts(orders);
         } else {
           setErrorMessages(res.data.errors);
         }
@@ -184,11 +188,16 @@ export default function OrderPage() {
       .catch((error) => {
         console.error(error);
       });
-  }, [productsInStore, selectedVouchers]);
+  }, [orders, selectedVouchers]);
 
   const handleSubmit = async () => {
     const addressData = await addressRef.current?.submit();
-    if (!addressData) return;
+    if (!addressData) {
+      if (!authData.userId || !guestEmail) {
+        setGuestEmailErr(true);
+      }
+      return;
+    }
 
     const rawAddress = mapAddressToDto(
       {
@@ -208,14 +217,14 @@ export default function OrderPage() {
       NH: rawAddress,
       DH: {
         DH_phiVC: shippingFee,
-        KH_id: authData.userId,
+        KH_id: authData.userId ? undefined : authData.userId,
         KH_email: authData.userId ? undefined : guestEmail,
-        CTDH: products.map((p) => ({
-          SP_id: p.productId,
-          CTDH_soLuong: p.quantity,
-          CTDH_giaNhap: p.cost,
-          CTDH_giaBan: p.price,
-          CTDH_giaMua: p.salePrice,
+        CTDH: products.map((c) => ({
+          SP_id: c.productId,
+          CTDH_soLuong: c.quantity,
+          CTDH_giaNhap: c.costPrice,
+          CTDH_giaBan: c.salePrice,
+          CTDH_giaMua: c.discountPrice,
         })),
       },
       HD: invoiceData
@@ -302,7 +311,7 @@ export default function OrderPage() {
     handleCartUpdate();
   }, [createSuccess]);
 
-  if (!productsInStore.length) return null;
+  if (!orders.length) return null;
 
   return (
     <div className="space-y-2">
@@ -319,7 +328,12 @@ export default function OrderPage() {
 
         {!authData.userId && (
           <div>
-            <label htmlFor="guest-email" className="text-sm font-medium block mb-1">
+            <label
+              htmlFor="guest-email"
+              className={`text-sm font-medium block mb-1 ${
+                guestEmailErr ? 'text-red-600' : 'text-zinc-700'
+              }`}
+            >
               Email nhận đơn hàng
             </label>
             <Input
@@ -327,11 +341,10 @@ export default function OrderPage() {
               placeholder="example@gmail.com"
               value={guestEmail}
               onChange={(e) => setGuestEmail(e.target.value)}
+              className={guestEmailErr ? ' border-red-600 focus-visible:ring-red-600' : ''}
             />
-            {!guestEmail && (
-              <p className="text-sm text-red-500 mt-1">
-                Vui lòng nhập email để nhận thông tin đơn hàng
-              </p>
+            {guestEmailErr && (
+              <p className="text-sm text-red-600 mt-2">Nhập email để nhận thông tin đơn hàng</p>
             )}
           </div>
         )}
@@ -432,8 +445,17 @@ export default function OrderPage() {
               Tiết kiệm <span className="text-red-500">{formatCurrency(totalSaving)}</span>
             </p>
           </div>
-          <Button onClick={handleSubmit} className="rounded-md md:rounded-sm px-8">
+          <Button onClick={handleSubmit} className="rounded-md md:rounded-sm px-8 cursor-pointer">
             Đặt hàng
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              router.back();
+            }}
+            className="rounded-md md:rounded-sm px-8  cursor-pointer"
+          >
+            Hủy
           </Button>
         </div>
       </section>

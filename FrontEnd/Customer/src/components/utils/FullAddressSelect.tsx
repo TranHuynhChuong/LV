@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/Combobox';
+import clsx from 'clsx';
 
 interface AddressSelectProps {
   readonly onSelectProvince: (provinceId: number) => void;
   readonly onSelectWard: (wardId: number) => void;
   readonly valueProvinceId?: number;
   readonly valueWardId?: number;
+  readonly error?: boolean;
 }
 
 export default function AddressSelect({
@@ -15,6 +17,7 @@ export default function AddressSelect({
   onSelectWard,
   valueProvinceId,
   valueWardId,
+  error,
 }: AddressSelectProps) {
   const [provincesData, setProvincesData] = useState<{ code: number; name: string }[]>([]);
   const [wardsData, setWardsData] = useState<{ code: number; name: string }[]>([]);
@@ -89,11 +92,14 @@ export default function AddressSelect({
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm font-medium mb-1">Tỉnh/thành phố</p>
+        <p className={clsx('text-sm font-medium mb-1', error ? 'text-red-600' : '')}>
+          Tỉnh/thành phố
+        </p>
         <Combobox
           data={provincesData}
           value={valueProvinceId}
           onSelect={handleSelectProvince}
+          error={error}
           placeholders={{
             select: 'Chọn tỉnh/thành phố...',
             search: 'Nhập tên tỉnh/thành phố...',
@@ -103,11 +109,12 @@ export default function AddressSelect({
       </div>
 
       <div>
-        <p className="text-sm font-medium mb-1">Xã/phường</p>
+        <p className={clsx('text-sm font-medium mb-1', error ? 'text-red-600' : '')}>Xã/phường</p>
         <Combobox
           data={wardsData}
           value={valueWardId}
           onSelect={handleSelectWard}
+          error={error}
           placeholders={{
             select: 'Chọn xã/phường...',
             search: 'Nhập tên xã/phường...',

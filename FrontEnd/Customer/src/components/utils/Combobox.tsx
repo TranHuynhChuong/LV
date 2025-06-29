@@ -25,7 +25,8 @@ interface ComboboxProps {
   readonly data: { code: number; name: string }[] | null;
   readonly onSelect: (id: number) => void;
   readonly value?: number;
-  readonly placeholders?: PlaceholderSet; // prop placeholder truyền từ ngoài
+  readonly placeholders?: PlaceholderSet;
+  readonly error?: boolean;
 }
 
 const defaultPlaceholders: PlaceholderSet = {
@@ -34,7 +35,7 @@ const defaultPlaceholders: PlaceholderSet = {
   empty: 'Không tìm thấy kết quả.',
 };
 
-export default function Combobox({ data, onSelect, value, placeholders }: ComboboxProps) {
+export default function Combobox({ data, onSelect, value, placeholders, error }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
 
@@ -61,7 +62,8 @@ export default function Combobox({ data, onSelect, value, placeholders }: Combob
           aria-expanded={open}
           className={cn(
             'justify-between w-full font-normal',
-            !selectedItem && 'text-muted-foreground'
+            !selectedItem && 'text-muted-foreground',
+            error && ' border-red-600 ring-red-600 focus:ring-red-600 focus:border-red-600'
           )}
           disabled={isDisabled}
         >

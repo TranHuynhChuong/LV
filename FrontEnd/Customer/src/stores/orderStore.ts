@@ -1,45 +1,33 @@
+import { Cart } from '@/models/carts';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type OrderProduct = {
-  productId: number;
-  salePrice: number;
-  price: number;
-  cost: number;
-  quantity: number;
-  cover: string;
-  name: string;
-  weight: number;
-};
-
 type OrderState = {
-  products: OrderProduct[];
-  addProduct: (product: OrderProduct) => void;
+  orders: Cart[];
+  addOrder: (cart: Cart) => void;
   clearOrder: () => void;
 };
 
 export const useOrderStore = create<OrderState>()(
   persist(
     (set, get) => ({
-      products: [],
+      orders: [],
 
-      addProduct: (product) => {
-        const existing = get().products.find((p) => p.productId === product.productId);
+      addOrder: (order) => {
+        const existing = get().orders.find((p) => p.productId === order.productId);
         if (existing) {
           set({
-            products: get().products.map((p) =>
-              p.productId === product.productId
-                ? { ...p, quantity: p.quantity + product.quantity }
-                : p
+            orders: get().orders.map((p) =>
+              p.productId === order.productId ? { ...p, quantity: p.quantity + order.quantity } : p
             ),
           });
         } else {
-          set({ products: [...get().products, product] });
+          set({ orders: [...get().orders, order] });
         }
       },
       clearOrder: () =>
         set({
-          products: [],
+          orders: [],
         }),
     }),
     {
