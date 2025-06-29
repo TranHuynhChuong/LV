@@ -269,7 +269,8 @@ export class DonHangRepository {
   async update(
     DH_id: string,
     status: OrderStatus,
-    activityLog?: any
+    activityLog?: any,
+    session?: ClientSession
   ): Promise<DonHang | null> {
     const updateQuery: any = {
       DH_trangThai: OrderStatusMap[status],
@@ -287,6 +288,7 @@ export class DonHangRepository {
 
     return this.DonHangModel.findOneAndUpdate({ DH_id }, updateOps, {
       new: true,
+      session, // Thêm session tại đây
     });
   }
 
@@ -348,7 +350,39 @@ export class DonHangRepository {
 
   //============ Thống kê ==============//
 
-  async getOrderStatsByStatus(startDate: Date, endDate: Date) {
+  async getOrderStatsByStatus(
+    startDate: Date,
+    endDate: Date,
+    groupBy: 'day' | 'month' = 'day'
+  ): Promise<
+    Record<
+      string,
+      {
+        complete: {
+          total: number;
+          orderIds: string[];
+          stats: {
+            totalBillSale: number;
+            totalShipSale: number;
+            totalShipPrice: number;
+          };
+        };
+        inComplete: {
+          total: number;
+          orderIds: string[];
+          stats: {
+            totalBillSale: number;
+            totalShipSale: number;
+            totalShipPrice: number;
+          };
+        };
+        canceled: {
+          total: number;
+        };
+      }
+    >
+  > {
+    const dateFormat = groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
@@ -357,48 +391,125 @@ export class DonHangRepository {
         },
       },
       {
+        $project: {
+          DH_id: 1,
+          DH_trangThai: 1,
+          DH_giamHD: 1,
+          DH_giamVC: 1,
+          DH_phiVC: 1,
+          dateGroup: {
+            $dateToString: { format: dateFormat, date: '$DH_ngayTao' },
+          },
+        },
+      },
+      {
         $group: {
-          _id: '$DH_trangThai',
-          count: { $sum: 1 },
-          orderIds: { $push: '$DH_id' }, // thu thập DH_id
+          _id: { date: '$dateGroup', status: '$DH_trangThai' },
+          total: { $sum: 1 },
+          orderIds: { $addToSet: '$DH_id' },
+          billSale: { $sum: '$DH_giamHD' },
+          shipSale: { $sum: '$DH_giamVC' },
+          shipPrice: { $sum: '$DH_phiVC' },
         },
       },
     ]);
 
-    const statusMap: Record<string, string> = {
-      GiaoThanhCong: 'complete',
-      GiaoThatBai: 'inComplete',
-      DaHuy: 'canceled',
-    };
-
-    const result: Record<string, { total: number; orderIds: string[] }> = {
-      complete: { total: 0, orderIds: [] },
-      inComplete: { total: 0, orderIds: [] },
-      canceled: { total: 0, orderIds: [] },
-    };
+    const result: Record<
+      string,
+      {
+        complete: {
+          total: number;
+          orderIds: string[];
+          stats: {
+            totalBillSale: number;
+            totalShipSale: number;
+            totalShipPrice: number;
+          };
+        };
+        inComplete: {
+          total: number;
+          orderIds: string[];
+          stats: {
+            totalBillSale: number;
+            totalShipSale: number;
+            totalShipPrice: number;
+          };
+        };
+        canceled: {
+          total: number;
+        };
+      }
+    > = {};
 
     for (const item of raw) {
-      const status = statusMap[item._id] || item._id;
-      result[status] = {
-        total: item.total,
-        orderIds: item.orderIds,
-      };
+      const date = item._id.date;
+      const status = item._id.status;
+
+      if (!result[date]) {
+        result[date] = {
+          complete: {
+            total: 0,
+            orderIds: [],
+            stats: {
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
+            },
+          },
+          inComplete: {
+            total: 0,
+            orderIds: [],
+            stats: {
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
+            },
+          },
+          canceled: { total: 0 },
+        };
+      }
+
+      if (status === 'GiaoThanhCong') {
+        result[date].complete = {
+          total: item.total,
+          orderIds: item.orderIds,
+          stats: {
+            totalBillSale: item.billSale,
+            totalShipSale: item.shipSale,
+            totalShipPrice: item.shipPrice,
+          },
+        };
+      } else if (status === 'GiaoThatBai') {
+        result[date].inComplete = {
+          total: item.total,
+          orderIds: item.orderIds,
+          stats: {
+            totalBillSale: item.billSale,
+            totalShipSale: item.shipSale,
+            totalShipPrice: item.shipPrice,
+          },
+        };
+      } else if (status === 'DaHuy') {
+        result[date].canceled.total = item.total;
+      }
     }
 
     return result;
   }
 
-  async getOrderStatsByCustomerType(startDate: Date, endDate: Date) {
+  async getOrderStatsByCustomerType(
+    startDate: Date,
+    endDate: Date
+  ): Promise<Record<'member' | 'guest', number>> {
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
           DH_ngayTao: { $gte: startDate, $lte: endDate },
-          DH_trangThai: 'GiaoThanhCong',
+          DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai'] },
         },
       },
       {
         $project: {
-          DH_id: 1,
           type: {
             $cond: {
               if: { $ifNull: ['$KH_id', false] },
@@ -412,21 +523,19 @@ export class DonHangRepository {
         $group: {
           _id: '$type',
           total: { $sum: 1 },
-          orderIds: { $push: '$DH_id' },
         },
       },
     ]);
 
-    const result: Record<string, { total: number; orderIds: string[] }> = {
-      member: { total: 0, orderIds: [] },
-      guest: { total: 0, orderIds: [] },
+    // Mặc định kết quả
+    const result: Record<'member' | 'guest', number> = {
+      member: 0,
+      guest: 0,
     };
 
     for (const item of raw) {
-      result[item._id] = {
-        total: item.total,
-        orderIds: item.orderIds,
-      };
+      const type = item._id as 'member' | 'guest';
+      result[type] = item.total;
     }
 
     return result;

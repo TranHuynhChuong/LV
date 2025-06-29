@@ -13,12 +13,7 @@ import {
   ChiTietDonHang,
   ChiTietDonHangSchema,
 } from './schemas/chi-tiet-don-hang.schema';
-import {
-  MaGiamDonHang,
-  MaGiamDonHangSchema,
-} from './schemas/ma-giam-don-hang.schema';
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
-import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
 
 @Module({
   imports: [
@@ -26,9 +21,7 @@ import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.reposit
     MongooseModule.forFeature([
       { name: ChiTietDonHang.name, schema: ChiTietDonHangSchema },
     ]),
-    MongooseModule.forFeature([
-      { name: MaGiamDonHang.name, schema: MaGiamDonHangSchema },
-    ]),
+
     SanPhamModule,
     TTNhanHangModule,
     MaGiamModule,
@@ -36,12 +29,7 @@ import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.reposit
     UtilModule,
   ],
   controllers: [DonHangController],
-  providers: [
-    DonHangService,
-    DonHangRepository,
-    ChiTietDonHangRepository,
-    MaGiamDonHangRepository,
-  ],
+  providers: [DonHangService, DonHangRepository, ChiTietDonHangRepository],
   exports: [DonHangService],
 })
 export class DonHangModule {}

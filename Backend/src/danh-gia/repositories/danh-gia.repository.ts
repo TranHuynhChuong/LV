@@ -9,7 +9,7 @@ import {
 } from 'src/Util/paginateWithFacet';
 
 export type DanhGiaListResults = PaginateResult<DanhGiaDocument> & {
-  rating: {
+  rating?: {
     s1: number;
     s2: number;
     s3: number;
@@ -35,6 +35,66 @@ export class DanhGiaRepository {
 
   async findById(id: string) {
     return this.DanhGiaModel.findById(id).lean();
+  }
+
+  async findAll(
+    page: number,
+    limit = 24,
+    rating?: number,
+    date?: Date
+  ): Promise<DanhGiaListResults> {
+    const skip = (page - 1) * limit;
+
+    const matchConditions: any = {};
+
+    if (rating) {
+      matchConditions.DG_diem = rating;
+    }
+
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      matchConditions.DG_ngayTao = {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      };
+    }
+
+    const matchStage: PipelineStage.Match = {
+      $match: matchConditions,
+    };
+
+    const dataPipeline: PipelineStage[] = [
+      matchStage,
+      {
+        $lookup: {
+          from: 'khachhangs',
+          localField: 'KH_id',
+          foreignField: 'KH_id',
+          as: 'khachHang',
+        },
+      },
+      { $unwind: { path: '$khachHang', preserveNullAndEmptyArrays: true } },
+      { $addFields: { KH_hoTen: '$khachHang.KH_hoTen' } },
+      { $project: { khachHang: 0 } },
+      { $sort: { DG_ngayTao: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    const countPipeline: PipelineStage[] = [matchStage, { $count: 'count' }];
+
+    return paginateRawAggregate({
+      model: this.DanhGiaModel,
+      page,
+      limit,
+      dataPipeline,
+      countPipeline,
+    });
   }
 
   async findAllOfProduct(
@@ -166,7 +226,6 @@ export class DanhGiaRepository {
       },
     ]);
 
-    // Nếu không có dữ liệu thì Mongo không trả object → fallback mặc định
     return (
       result ?? {
         s1: 0,
@@ -174,6 +233,81 @@ export class DanhGiaRepository {
         s3: 0,
         s4: 0,
         s5: 0,
+      }
+    );
+  }
+
+  async countRatingOfMonth(
+    startDate: Date,
+    endDate: Date
+  ): Promise<{
+    s1: number;
+    s2: number;
+    s3: number;
+    s4: number;
+    s5: number;
+    totalOrders: number;
+    hidden: number;
+    visible: number;
+  }> {
+    const [result] = await this.DanhGiaModel.aggregate<{
+      s1: number;
+      s2: number;
+      s3: number;
+      s4: number;
+      s5: number;
+      totalOrders: number;
+      hidden: number;
+      visible: number;
+    }>([
+      {
+        $match: {
+          DG_ngayTao: {
+            $gte: startDate,
+            $lt: endDate,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          s1: { $sum: { $cond: [{ $eq: ['$DG_diem', 1] }, 1, 0] } },
+          s2: { $sum: { $cond: [{ $eq: ['$DG_diem', 2] }, 1, 0] } },
+          s3: { $sum: { $cond: [{ $eq: ['$DG_diem', 3] }, 1, 0] } },
+          s4: { $sum: { $cond: [{ $eq: ['$DG_diem', 4] }, 1, 0] } },
+          s5: { $sum: { $cond: [{ $eq: ['$DG_diem', 5] }, 1, 0] } },
+          orderIds: { $addToSet: '$DH_id' },
+          hidden: { $sum: { $cond: [{ $eq: ['$DG_daAn', true] }, 1, 0] } },
+          visible: {
+            $sum: { $cond: [{ $eq: ['$DG_daAn', false] }, 1, 0] },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          s1: 1,
+          s2: 1,
+          s3: 1,
+          s4: 1,
+          s5: 1,
+          hidden: 1,
+          visible: 1,
+          totalOrders: { $size: '$orderIds' },
+        },
+      },
+    ]);
+
+    return (
+      result ?? {
+        s1: 0,
+        s2: 0,
+        s3: 0,
+        s4: 0,
+        s5: 0,
+        totalOrders: 0,
+        hidden: 0,
+        visible: 0,
       }
     );
   }

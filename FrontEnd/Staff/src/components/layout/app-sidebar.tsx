@@ -47,7 +47,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
     { title: 'Vận chuyển', url: '/shipping', icon: Truck },
-    { title: 'Báo cáo', url: '/report', icon: FileChartLine },
+    { title: 'Thống kê', url: '/stats', icon: FileChartLine },
   ];
 
   type NavItem = {

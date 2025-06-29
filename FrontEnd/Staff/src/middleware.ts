@@ -15,7 +15,7 @@ const roleRequiredPaths: Record<string, number[]> = {
   '/promotions': [1, 2],
   '/reviews': [1, 2],
   '/shipping': [1, 2],
-  '/report': [1],
+  '/stats': [1],
 };
 
 export function middleware(req: NextRequest) {

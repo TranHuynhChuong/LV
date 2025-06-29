@@ -86,15 +86,6 @@ export class DonHangController {
     return this.DonHangService.getStatsByYear(year);
   }
 
-  // Thống kê theo quý
-  @Get('/stats/quarter/:year/:quarter')
-  getStatsByQuarter(
-    @Param('year', ParseIntPipe) year: number,
-    @Param('quarter', ParseIntPipe) quarter: 1 | 2 | 3 | 4
-  ) {
-    return this.DonHangService.getStatsByQuarter(year, quarter);
-  }
-
   // Thống kê theo tháng
   @Get('/stats/month/:year/:month')
   getStatsByMonth(

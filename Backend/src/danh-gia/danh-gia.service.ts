@@ -64,7 +64,7 @@ export class DanhGiaService {
     }
   }
 
-  async getById(id: string) {
+  async findById(id: string) {
     const result = await this.DanhGiaRepo.findById(id);
     if (!result) {
       throw new NotFoundException('Tìm đánh giá - Đánh giá không tồn tại');
@@ -72,8 +72,12 @@ export class DanhGiaService {
     return result;
   }
 
-  async getAllOfProduct(spId: number, page: number, limit = 24) {
+  async findAllOfProduct(spId: number, page: number, limit = 24) {
     return this.DanhGiaRepo.findAllOfProduct(spId, page, limit);
+  }
+
+  async findAll(page: number, limit = 24, rating?: number, date?: Date) {
+    return this.DanhGiaRepo.findAll(page, limit, rating, date);
   }
 
   async hide(id: string, dto: UpdateDanhGiaDto) {
@@ -126,5 +130,17 @@ export class DanhGiaService {
     }
 
     return updated;
+  }
+
+  async countRatingOfMonth(year: number, month: number) {
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+    return this.DanhGiaRepo.countRatingOfMonth(startDate, endDate);
+  }
+
+  async countRatingOfYear(year: number) {
+    const startDate = new Date(Date.UTC(year, 0, 1)); // 1/1
+    const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // 31/12
+    return this.DanhGiaRepo.countRatingOfMonth(startDate, endDate);
   }
 }

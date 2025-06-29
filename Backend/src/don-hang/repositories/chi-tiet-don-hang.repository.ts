@@ -27,21 +27,25 @@ export class ChiTietDonHangRepository {
     return this.ChiTietDonHangModel.insertMany(data, { session });
   }
 
-  async getOrderDetailsStats(dhIds: string[]): Promise<{
-    totalGiaBan: number;
-    totalGiaNhap: number;
-    totalGiaMua: number;
-    totalSoLuong: number;
+  async findByOrderId(orderId: string) {
+    return this.ChiTietDonHangModel.find({ DH_id: orderId }).lean();
+  }
+
+  async getOrderDetailsStats(orderIds: string[]): Promise<{
+    totalSalePrice: number;
+    totalCostPrice: number;
+    totalBuyPrice: number;
+    totalQuantity: number;
   }> {
     const raw: {
-      totalGiaBan: number;
-      totalGiaNhap: number;
-      totalGiaMua: number;
-      totalSoLuong: number;
+      totalSalePrice: number;
+      totalCostPrice: number;
+      totalBuyPrice: number;
+      totalQuantity: number;
     }[] = await this.ChiTietDonHangModel.aggregate([
       {
         $match: {
-          DH_id: { $in: dhIds },
+          DH_id: { $in: orderIds },
         },
       },
       {

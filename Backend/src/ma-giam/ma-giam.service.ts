@@ -13,6 +13,8 @@ import { MaGiam } from './schemas/ma-giam.schema';
 import { CreateMaGiamDto } from './dto/create-ma-giam.dto';
 import { UpdateMaGiamDto } from './dto/update-ma-giam.dto';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
+import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
+import { ClientSession } from 'mongoose';
 
 const typeOfChange: Record<string, string> = {
   MG_batDau: 'Thời gian bắt đầu',
@@ -26,10 +28,25 @@ const typeOfChange: Record<string, string> = {
 
 @Injectable()
 export class MaGiamUtilService {
-  constructor(private readonly MaGiamRepo: MaGiamRepository) {}
+  constructor(
+    private readonly MaGiamRepo: MaGiamRepository,
+    private readonly MaGiamDonHangRepo: MaGiamDonHangRepository
+  ) {}
 
   async findValidByIds(ids: string[]) {
     return this.MaGiamRepo.checkValid(ids);
+  }
+
+  async createVoucherForOrder(
+    dhId: string,
+    mgIds: string[],
+    session?: ClientSession
+  ) {
+    return this.MaGiamDonHangRepo.create(dhId, mgIds, session);
+  }
+
+  async getVoucherStatsForOrders(dhIds: string[]) {
+    return this.MaGiamDonHangRepo.getVoucherStats(dhIds);
   }
 }
 

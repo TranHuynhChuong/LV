@@ -22,7 +22,7 @@ export class DanhGiaController {
 
   @Get('/:id')
   getById(@Param('id') id: string) {
-    return this.DanhGiaService.getById(id);
+    return this.DanhGiaService.findById(id);
   }
 
   @Get('/product/:productId')
@@ -31,10 +31,24 @@ export class DanhGiaController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '24'
   ) {
-    return this.DanhGiaService.getAllOfProduct(
+    return this.DanhGiaService.findAllOfProduct(
       +spId,
       parseInt(page),
       parseInt(limit)
+    );
+  }
+
+  async getAll(
+    @Query('page') page: number,
+    @Query('limit') limit?: number,
+    @Query('rating') rating?: number,
+    @Query('date') date?: string
+  ) {
+    return this.DanhGiaService.findAll(
+      page,
+      limit,
+      rating,
+      date ? new Date(date) : undefined
     );
   }
 
@@ -46,5 +60,18 @@ export class DanhGiaController {
   @Patch('/:id/show')
   show(@Param('id') id: string, @Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.show(id, dto);
+  }
+
+  @Get('stats/month/:year/:month')
+  async countRatingOfMonth(
+    @Param('year') year: number,
+    @Param('month') month: number
+  ) {
+    return this.DanhGiaService.countRatingOfMonth(year, month);
+  }
+
+  @Get('stats/year/:year')
+  async countRatingOfYear(@Param('year') year: number) {
+    return this.DanhGiaService.countRatingOfYear(year);
   }
 }

@@ -21,8 +21,15 @@ import { EmailService } from 'src/Util/email.service';
 import { KhachHangUtilService } from 'src/nguoi-dung/khach-hang/khach-hang.service';
 
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
-import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
 import { TrangThaiDonHang } from './schemas/don-hang.schema';
+import {
+  GroupByType,
+  StatsResult,
+  OrderStatsByDate,
+  DiscountedProductStats,
+  VoucherStats,
+  OrderDetailStats,
+} from './interfaces/don-hang-thong-ke.interface';
 
 @Injectable()
 export class DonHangService {
@@ -38,8 +45,7 @@ export class DonHangService {
     private readonly NhanHangDHService: TTNhanHangDHService,
 
     private readonly DonHangRepo: DonHangRepository,
-    private readonly ChiTietDonHangRepo: ChiTietDonHangRepository,
-    private readonly MaGiamDonHangRepo: MaGiamDonHangRepository
+    private readonly ChiTietDonHangRepo: ChiTietDonHangRepository
   ) {}
 
   async checkValid(data: CheckDto): Promise<{
@@ -252,7 +258,11 @@ export class DonHangService {
         // B8. Tạo mã giảm đơn hàng nếu có
         const magiamIds = data.MG?.map((m) => m.MG_id) ?? [];
         if (magiamIds.length > 0) {
-          await this.MaGiamDonHangRepo.create(DH_id, magiamIds, session);
+          await this.MaGiamService.createVoucherForOrder(
+            DH_id,
+            magiamIds,
+            session
+          );
         }
 
         // B9.  Cập nhật đã bán và tồn kho
@@ -306,34 +316,63 @@ export class DonHangService {
       [OrderStatus.CancelRequest]: 'Yêu cầu hủy đơn hàng',
       [OrderStatus.Canceled]: 'Yêu cầu hủy được xác nhận',
     };
-    const thaoTac = statusActionMap[newStatus];
 
+    const thaoTac = statusActionMap[newStatus];
     if (!thaoTac) return null;
 
-    const order = await this.DonHangRepo.getById(id);
-    if (!order)
-      throw new NotFoundException('Cập nhật đơn hàng - Đơn hàng không tồn tại');
+    const session = await this.connection.startSession();
+    session.startTransaction();
 
-    let email = order.KH_email;
-    if (!email && order.KH_id) {
-      email = await this.KhachHangService.getEmail(order.KH_id);
-    }
-    if (!email)
-      throw new NotFoundException('Cập nhật đơn hàng - Khách hàng tồn tại');
+    try {
+      const order = await this.DonHangRepo.getById(id);
+      if (!order) throw new NotFoundException('Đơn hàng không tồn tại');
 
-    this.notifyEmailStatus(newStatus, email, order.DH_id);
+      let email = order.KH_email;
+      if (!email && order.KH_id) {
+        email = await this.KhachHangService.getEmail(order.KH_id);
+      }
+      if (!email) throw new NotFoundException('Khách hàng không tồn tại');
 
-    const result = await this.DonHangRepo.update(id, newStatus, {
-      thaoTac,
-      NV_id: staffId,
-      thoiGian: new Date(),
-    });
+      this.notifyEmailStatus(newStatus, email, order.DH_id);
 
-    if (!result)
-      throw new BadRequestException(
-        'Cập nhật đơn hàng - Cập nhật đơn hàng thất bại'
+      const result = await this.DonHangRepo.update(
+        id,
+        newStatus,
+        {
+          thaoTac,
+          NV_id: staffId,
+          thoiGian: new Date(),
+        },
+        session
+      ); // Pass session vào đây
+
+      if (!result) {
+        throw new BadRequestException('Cập nhật đơn hàng thất bại');
+      }
+
+      // Nếu đơn hàng bị hủy, hoàn lại tồn kho và giảm đã bán
+      if (newStatus === OrderStatus.Canceled) {
+        const orderDetails = await this.ChiTietDonHangRepo.findByOrderId(id);
+
+        const updates = orderDetails.map((item) => ({
+          id: item.SP_id.toString(),
+          sold: -item.CTDH_soLuong, // Giảm số lượng đã bán
+          stock: item.CTDH_soLuong, // Tăng tồn kho
+        }));
+
+        await this.SanPhamService.updateSold(updates, session);
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Cập nhật đơn hàng - ${error.message}`
       );
-    return result;
+    } finally {
+      await session.abortTransaction();
+      await session.endSession();
+    }
   }
 
   async findById(id: string, filterType?: OrderStatus): Promise<any> {
@@ -383,21 +422,7 @@ export class DonHangService {
     return this.DonHangRepo.countAll();
   }
 
-  private getDateRangeByYear(year: number) {
-    const startDate = new Date(Date.UTC(year, 0, 1)); // 1/1
-    const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // 31/12
-    return { startDate, endDate };
-  }
-
-  private getDateRangeByQuarter(year: number, quarter: 1 | 2 | 3 | 4) {
-    const startMonth = (quarter - 1) * 3;
-    const startDate = new Date(Date.UTC(year, startMonth, 1));
-
-    const endMonth = startMonth + 2;
-    const endDate = new Date(Date.UTC(year, endMonth + 1, 0, 23, 59, 59, 999));
-
-    return { startDate, endDate };
-  }
+  // ===================== Thống kê =========================//
 
   private getDateRangeByMonth(year: number, month: number) {
     const startDate = new Date(Date.UTC(year, month - 1, 1));
@@ -406,61 +431,200 @@ export class DonHangService {
     return { startDate, endDate };
   }
 
-  private async getStats(startDate: Date, endDate: Date) {
-    // Lấy thống kê theo trạng thái đơn hàng
-    const { complete, inComplete, canceled } =
-      await this.DonHangRepo.getOrderStatsByStatus(startDate, endDate);
-
-    // Lấy thống kê theo loại khách hàng
-    const { member, guest } =
-      await this.DonHangRepo.getOrderStatsByCustomerType(startDate, endDate);
-
-    // Thống kê chi tiết đơn hàng theo trạng thái
-    const [completeDetail, inCompleteDetail, canceledDetail] =
-      await Promise.all([
-        this.ChiTietDonHangRepo.getOrderDetailsStats(complete.orderIds),
-        this.ChiTietDonHangRepo.getOrderDetailsStats(inComplete.orderIds),
-        this.ChiTietDonHangRepo.getOrderDetailsStats(canceled.orderIds),
-      ]);
-
-    // Thống kê chi tiết đơn hàng theo loại khách hàng
-    const [memberDetail, guestDetail] = await Promise.all([
-      this.ChiTietDonHangRepo.getOrderDetailsStats(member.orderIds),
-      this.ChiTietDonHangRepo.getOrderDetailsStats(guest.orderIds),
-    ]);
-
-    // Thống kê mã giảm theo loại
-    const voucherStats = await this.MaGiamDonHangRepo.getDiscountCodeStats(
-      complete.orderIds
-    );
-
-    console.log(complete.orderIds);
-    return {
-      orderStatusStats: {
-        complete: { total: complete.total, detail: completeDetail },
-        inComplete: { total: inComplete.total, detail: inCompleteDetail },
-        canceled: { total: canceled.total, detail: canceledDetail },
-      },
-      customerTypeStats: {
-        member: { total: member.total, detail: memberDetail },
-        guest: { total: guest.total, detail: guestDetail },
-      },
-      voucherStats,
-    };
+  private getDateRangeByYear(year: number) {
+    const startDate = new Date(Date.UTC(year, 0, 1)); // 1/1
+    const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // 31/12
+    return { startDate, endDate };
+  }
+  async getStatsByMonth(year: number, month: number) {
+    const { startDate, endDate } = this.getDateRangeByMonth(year, month);
+    return this.getStatsByDateRange(startDate, endDate, 'day');
   }
 
   async getStatsByYear(year: number) {
     const { startDate, endDate } = this.getDateRangeByYear(year);
-    return this.getStats(startDate, endDate);
+    return this.getStatsByDateRange(startDate, endDate, 'month');
   }
 
-  async getStatsByQuarter(year: number, quarter: 1 | 2 | 3 | 4) {
-    const { startDate, endDate } = this.getDateRangeByQuarter(year, quarter);
-    return this.getStats(startDate, endDate);
+  public async getStatsByDateRange(
+    startDate: Date,
+    endDate: Date,
+    groupBy: GroupByType
+  ): Promise<StatsResult> {
+    const orderStats = await this.DonHangRepo.getOrderStatsByStatus(
+      startDate,
+      endDate,
+      groupBy
+    );
+
+    const {
+      detail: ordersDetail,
+      totalComplete,
+      totalInComplete,
+      totalCanceled,
+      completeOrderIds,
+      inCompleteOrderIds,
+    } = await this.processOrderStats(orderStats);
+
+    const totalDiscountStats = await this.calculateDiscountStats(
+      completeOrderIds,
+      inCompleteOrderIds
+    );
+
+    const vouchers = await this.getVoucherStats(completeOrderIds);
+
+    const buyerStats = await this.DonHangRepo.getOrderStatsByCustomerType(
+      startDate,
+      endDate
+    );
+
+    return {
+      orders: {
+        total: {
+          complete: totalComplete,
+          inComplete: totalInComplete,
+          canceled: totalCanceled,
+        },
+        detail: ordersDetail,
+      },
+      vouchers,
+      buyers: {
+        member: buyerStats.member ?? 0,
+        guest: buyerStats.guest ?? 0,
+      },
+      totalDiscountStats,
+    };
   }
 
-  async getStatsByMonth(year: number, month: number) {
-    const { startDate, endDate } = this.getDateRangeByMonth(year, month);
-    return this.getStats(startDate, endDate);
+  private async processOrderStats(orderStats: Record<string, any>): Promise<{
+    detail: Record<string, OrderStatsByDate>;
+    totalComplete: number;
+    totalInComplete: number;
+    totalCanceled: number;
+    completeOrderIds: string[];
+    inCompleteOrderIds: string[];
+  }> {
+    const detail: Record<string, OrderStatsByDate> = {};
+    const completeOrderIds: string[] = [];
+    const inCompleteOrderIds: string[] = [];
+
+    let totalComplete = 0;
+    let totalInComplete = 0;
+    let totalCanceled = 0;
+
+    for (const [date, stats] of Object.entries(orderStats)) {
+      const complete = stats.complete ?? { total: 0, orderIds: [], stats: {} };
+      const inComplete = stats.inComplete ?? {
+        total: 0,
+        orderIds: [],
+        stats: {},
+      };
+      const canceled = stats.canceled ?? { total: 0 };
+
+      const completeIds = complete.orderIds ?? [];
+      const inCompleteIds = inComplete.orderIds ?? [];
+
+      completeOrderIds.push(...completeIds);
+      inCompleteOrderIds.push(...inCompleteIds);
+
+      const completeStats = completeIds.length
+        ? await this.ChiTietDonHangRepo.getOrderDetailsStats(completeIds)
+        : this.emptyStats();
+
+      const inCompleteStats = inCompleteIds.length
+        ? await this.ChiTietDonHangRepo.getOrderDetailsStats(inCompleteIds)
+        : this.emptyStats();
+
+      totalComplete += complete.total;
+      totalInComplete += inComplete.total;
+      totalCanceled += canceled.total;
+
+      detail[date] = {
+        complete: {
+          total: complete.total,
+          stats: {
+            ...completeStats,
+            totalBillSale: complete.stats?.totalBillSale ?? 0,
+            totalShipSale: complete.stats?.totalShipSale ?? 0,
+            totalShipPrice: complete.stats?.totalShipPrice ?? 0,
+          },
+        },
+        inComplete: {
+          total: inComplete.total,
+          stats: {
+            ...inCompleteStats,
+            totalBillSale: inComplete.stats?.totalBillSale ?? 0,
+            totalShipSale: inComplete.stats?.totalShipSale ?? 0,
+            totalShipPrice: inComplete.stats?.totalShipPrice ?? 0,
+          },
+        },
+        canceled: {
+          total: canceled.total,
+        },
+      };
+    }
+
+    return {
+      detail,
+      totalComplete,
+      totalInComplete,
+      totalCanceled,
+      completeOrderIds,
+      inCompleteOrderIds,
+    };
+  }
+
+  private async calculateDiscountStats(
+    completeOrderIds: string[],
+    inCompleteOrderIds: string[]
+  ): Promise<DiscountedProductStats> {
+    const completeStats = completeOrderIds.length
+      ? await this.ChiTietDonHangRepo.getDiscountedProductStats(
+          completeOrderIds
+        )
+      : { totalProducts: 0, discountedProducts: 0 };
+
+    const inCompleteStats = inCompleteOrderIds.length
+      ? await this.ChiTietDonHangRepo.getDiscountedProductStats(
+          inCompleteOrderIds
+        )
+      : { totalProducts: 0, discountedProducts: 0 };
+
+    return {
+      totalProducts:
+        completeStats.totalProducts + inCompleteStats.totalProducts,
+      discountedProducts:
+        completeStats.discountedProducts + inCompleteStats.discountedProducts,
+    };
+  }
+
+  private async getVoucherStats(orderIds: string[]): Promise<VoucherStats> {
+    if (!orderIds.length) {
+      return {
+        orderUsed: 0,
+        typeStats: { shipping: 0, order: 0 },
+      };
+    }
+
+    const stats = await this.MaGiamService.getVoucherStatsForOrders(orderIds);
+    return {
+      orderUsed: stats.orderUsed ?? 0,
+      typeStats: {
+        shipping: stats.typeStats?.shipping ?? 0,
+        order: stats.typeStats?.order ?? 0,
+      },
+    };
+  }
+
+  private emptyStats(): OrderDetailStats {
+    return {
+      totalSalePrice: 0,
+      totalCostPrice: 0,
+      totalBuyPrice: 0,
+      totalQuantity: 0,
+      totalBillSale: 0,
+      totalShipSale: 0,
+      totalShipPrice: 0,
+    };
   }
 }
