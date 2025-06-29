@@ -45,7 +45,7 @@ export default function ReviewsSection({ productId, rating }: Readonly<ReviewPro
       const data = res.data;
 
       const reviews: ReviewOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
-      console.log(reviews);
+
       setReviews(mappedReviewOverviewFromDto(reviews));
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
