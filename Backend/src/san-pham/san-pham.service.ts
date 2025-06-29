@@ -57,7 +57,7 @@ export class SanPhamUtilService {
   }
 
   async updateSold(
-    updates: { id: string; sold: number }[],
+    updates: { id: number; sold: number }[],
     session: ClientSession
   ) {
     const result = await this.SanPhamRepo.updateSold(updates, session);
