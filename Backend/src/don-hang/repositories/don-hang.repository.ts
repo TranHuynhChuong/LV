@@ -358,8 +358,13 @@ export class DonHangRepository {
     Record<
       string,
       {
+        total: {
+          all: number;
+          complete: number;
+          inComplete: number;
+          canceled: number;
+        };
         complete: {
-          total: number;
           orderIds: string[];
           stats: {
             totalBillSale: number;
@@ -368,7 +373,6 @@ export class DonHangRepository {
           };
         };
         inComplete: {
-          total: number;
           orderIds: string[];
           stats: {
             totalBillSale: number;
@@ -376,13 +380,32 @@ export class DonHangRepository {
             totalShipPrice: number;
           };
         };
-        canceled: {
-          total: number;
-        };
       }
     >
   > {
     const dateFormat = groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
+
+    const allRaw = await this.DonHangModel.aggregate([
+      {
+        $match: {
+          DH_ngayTao: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $project: {
+          dateGroup: {
+            $dateToString: { format: dateFormat, date: '$DH_ngayTao' },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$dateGroup',
+          total: { $sum: 1 },
+        },
+      },
+    ]);
+
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
@@ -414,83 +437,71 @@ export class DonHangRepository {
       },
     ]);
 
-    const result: Record<
-      string,
-      {
+    const result: Record<string, any> = {};
+
+    for (const item of allRaw) {
+      const date = item._id;
+      result[date] = {
+        total: {
+          all: item.total,
+          complete: 0,
+          inComplete: 0,
+          canceled: 0,
+        },
         complete: {
-          total: number;
-          orderIds: string[];
-          stats: {
-            totalBillSale: number;
-            totalShipSale: number;
-            totalShipPrice: number;
-          };
-        };
+          orderIds: [],
+          stats: { totalBillSale: 0, totalShipSale: 0, totalShipPrice: 0 },
+        },
         inComplete: {
-          total: number;
-          orderIds: string[];
-          stats: {
-            totalBillSale: number;
-            totalShipSale: number;
-            totalShipPrice: number;
-          };
-        };
-        canceled: {
-          total: number;
-        };
-      }
-    > = {};
+          orderIds: [],
+          stats: { totalBillSale: 0, totalShipSale: 0, totalShipPrice: 0 },
+        },
+      };
+    }
 
     for (const item of raw) {
       const date = item._id.date;
       const status = item._id.status;
 
-      if (!result[date]) {
-        result[date] = {
-          complete: {
-            total: 0,
-            orderIds: [],
-            stats: {
-              totalBillSale: 0,
-              totalShipSale: 0,
-              totalShipPrice: 0,
-            },
-          },
-          inComplete: {
-            total: 0,
-            orderIds: [],
-            stats: {
-              totalBillSale: 0,
-              totalShipSale: 0,
-              totalShipPrice: 0,
-            },
-          },
-          canceled: { total: 0 },
-        };
-      }
+      result[date] ??= {
+        total: {
+          all: 0,
+          complete: 0,
+          inComplete: 0,
+          canceled: 0,
+        },
+        complete: {
+          orderIds: [],
+          stats: { totalBillSale: 0, totalShipSale: 0, totalShipPrice: 0 },
+        },
+        inComplete: {
+          orderIds: [],
+          stats: { totalBillSale: 0, totalShipSale: 0, totalShipPrice: 0 },
+        },
+      };
 
-      if (status === 'GiaoThanhCong') {
-        result[date].complete = {
-          total: item.total,
-          orderIds: item.orderIds,
-          stats: {
+      switch (status) {
+        case 'GiaoThanhCong':
+          result[date].total.complete = item.total;
+          result[date].complete.orderIds = item.orderIds;
+          result[date].complete.stats = {
             totalBillSale: item.billSale,
             totalShipSale: item.shipSale,
             totalShipPrice: item.shipPrice,
-          },
-        };
-      } else if (status === 'GiaoThatBai') {
-        result[date].inComplete = {
-          total: item.total,
-          orderIds: item.orderIds,
-          stats: {
+          };
+          break;
+        case 'GiaoThatBai':
+          result[date].total.inComplete = item.total;
+          result[date].inComplete.orderIds = item.orderIds;
+          result[date].inComplete.stats = {
             totalBillSale: item.billSale,
             totalShipSale: item.shipSale,
             totalShipPrice: item.shipPrice,
-          },
-        };
-      } else if (status === 'DaHuy') {
-        result[date].canceled.total = item.total;
+          };
+          break;
+        case 'DaHuy':
+          result[date].total.canceled = item.total;
+          break;
       }
     }
 
@@ -539,5 +550,23 @@ export class DonHangRepository {
     }
 
     return result;
+  }
+
+  async getOrderIdsByDate(startDate: Date, endDate: Date): Promise<string[]> {
+    const raw = await this.DonHangModel.aggregate([
+      {
+        $match: {
+          DH_ngayTao: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          DH_id: 1,
+        },
+      },
+    ]);
+
+    return raw.map((item: { DH_id: string }) => item.DH_id);
   }
 }
