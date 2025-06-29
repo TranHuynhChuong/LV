@@ -123,8 +123,12 @@ export default function ReviewPage() {
       ))}
 
       <div className="text-right pt-2 space-x-2">
-        <Button onClick={() => router.back()}>Hủy</Button>
-        <Button onClick={handleSubmit}>Gửi đánh giá</Button>
+        <Button onClick={() => router.back()} className="cursor-pointer">
+          Hủy
+        </Button>
+        <Button onClick={handleSubmit} className="cursor-pointer">
+          Gửi đánh giá
+        </Button>
       </div>
     </div>
   );
