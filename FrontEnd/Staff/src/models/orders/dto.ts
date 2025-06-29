@@ -36,7 +36,6 @@ export interface OrderDto {
     SP_anh: string;
     SP_trangThai: number;
   }[];
-  DH_daDanhGia: boolean;
 }
 
 export interface OrderOverviewDto {
@@ -46,9 +45,13 @@ export interface OrderOverviewDto {
   DH_giamHD: number;
   DH_giamVC: number;
   DH_phiVC: number;
-  KH_id: number | null;
-  KH_email: string | null;
-  DH_daDanhGia: boolean;
+  DH_HD: {
+    HD_mst: string;
+    HD_hoTen: string;
+    HD_diaChi: string;
+    HD_email: string;
+    _id: string;
+  };
   chiTietDonHang: {
     SP_id: number;
     CTDH_soLuong: number;

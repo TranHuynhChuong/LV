@@ -42,7 +42,7 @@ export interface Order {
     };
     note: string;
   };
-  reviewed: boolean;
+
   orderDetails: {
     productId: number;
     quantity: number;
@@ -62,9 +62,7 @@ export interface OrderOverview {
   discountInvoice: number;
   discountShipping: number;
   shippingFee: number;
-  customerId: number | null;
-  customerEmail: string | null;
-  reviewed: boolean;
+  requestInvoice: boolean;
   orderDetails: {
     productId: number;
     quantity: number;
