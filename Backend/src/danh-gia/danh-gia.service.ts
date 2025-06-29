@@ -64,50 +64,26 @@ export class DanhGiaService {
     }
   }
 
-  async findById(id: string) {
-    const result = await this.DanhGiaRepo.findById(id);
-    if (!result) {
-      throw new NotFoundException('Tìm đánh giá - Đánh giá không tồn tại');
-    }
-    return result;
-  }
-
   async findAllOfProduct(spId: number, page: number, limit = 24) {
     return this.DanhGiaRepo.findAllOfProduct(spId, page, limit);
   }
 
-  async findAll(page: number, limit = 24, rating?: number, date?: Date) {
-    return this.DanhGiaRepo.findAll(page, limit, rating, date);
+  async findAll(
+    page: number,
+    limit = 24,
+    rating?: number,
+    date?: Date,
+    status?: 'all' | 'visible' | 'hidden'
+  ) {
+    return this.DanhGiaRepo.findAll(page, limit, rating, date, status);
   }
 
-  async hide(id: string, dto: UpdateDanhGiaDto) {
-    const current = await this.DanhGiaRepo.findById(id);
-    if (!current) {
-      throw new NotFoundException(
-        'Cập nhật đánh giá - Không tìm thấy đánh giá'
-      );
-    }
-
-    const thaoTac = {
-      thaoTac: 'Cập nhật: Ẩn đánh giá',
-      NV_id: dto.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const updated = await this.DanhGiaRepo.update(id, {
-      DG_daAn: true,
-      lichSuThaoTac: [...(current.lichSuThaoTac || []), thaoTac],
-    });
-
-    if (!updated) {
-      throw new BadRequestException('Cập nhật đánh giá - Ẩn thất bại');
-    }
-
-    return updated;
-  }
-
-  async show(id: string, dto: UpdateDanhGiaDto) {
-    const current = await this.DanhGiaRepo.findById(id);
+  async show(dto: UpdateDanhGiaDto) {
+    const current = await this.DanhGiaRepo.findOne(
+      dto.DG_id,
+      dto.SP_id,
+      dto.KH_id
+    );
     if (!current) {
       throw new NotFoundException(
         'Cập nhật đánh giá - Không tìm thấy đánh giá'
@@ -120,13 +96,49 @@ export class DanhGiaService {
       thoiGian: new Date(),
     };
 
-    const updated = await this.DanhGiaRepo.update(id, {
-      DG_daAn: false,
-      lichSuThaoTac: [...(current.lichSuThaoTac || []), thaoTac],
-    });
+    const updated = await this.DanhGiaRepo.update(
+      dto.DG_id,
+      dto.SP_id,
+      dto.KH_id,
+      false,
+      thaoTac
+    );
 
     if (!updated) {
       throw new BadRequestException('Cập nhật đánh giá - Hiển thị thất bại');
+    }
+
+    return updated;
+  }
+
+  async hide(dto: UpdateDanhGiaDto) {
+    const current = await this.DanhGiaRepo.findOne(
+      dto.DG_id,
+      dto.SP_id,
+      dto.KH_id
+    );
+    if (!current) {
+      throw new NotFoundException(
+        'Cập nhật đánh giá - Không tìm thấy đánh giá'
+      );
+    }
+
+    const thaoTac = {
+      thaoTac: 'Cập nhật: Ẩn thị đánh giá',
+      NV_id: dto.NV_id,
+      thoiGian: new Date(),
+    };
+
+    const updated = await this.DanhGiaRepo.update(
+      dto.DG_id,
+      dto.SP_id,
+      dto.KH_id,
+      true,
+      thaoTac
+    );
+
+    if (!updated) {
+      throw new BadRequestException('Cập nhật đánh giá - Ẩn thị thất bại');
     }
 
     return updated;

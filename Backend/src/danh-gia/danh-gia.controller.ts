@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -20,9 +22,23 @@ export class DanhGiaController {
     return this.DanhGiaService.create(dto);
   }
 
-  @Get('/:id')
-  getById(@Param('id') id: string) {
-    return this.DanhGiaService.findById(id);
+  @Get('all')
+  async getAllReviews(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(24), ParseIntPipe) limit: number,
+    @Query('rating') rating?: number,
+    @Query('date') date?: string,
+    @Query('status') status?: 'all' | 'visible' | 'hidden'
+  ) {
+    const parsedDate = date ? new Date(date) : undefined;
+
+    return this.DanhGiaService.findAll(
+      page,
+      limit,
+      rating ? +rating : undefined,
+      parsedDate,
+      status
+    );
   }
 
   @Get('/product/:productId')
@@ -38,30 +54,6 @@ export class DanhGiaController {
     );
   }
 
-  async getAll(
-    @Query('page') page: number,
-    @Query('limit') limit?: number,
-    @Query('rating') rating?: number,
-    @Query('date') date?: string
-  ) {
-    return this.DanhGiaService.findAll(
-      page,
-      limit,
-      rating,
-      date ? new Date(date) : undefined
-    );
-  }
-
-  @Patch('/:id/hide')
-  hide(@Param('id') id: string, @Body() dto: UpdateDanhGiaDto) {
-    return this.DanhGiaService.hide(id, dto);
-  }
-
-  @Patch('/:id/show')
-  show(@Param('id') id: string, @Body() dto: UpdateDanhGiaDto) {
-    return this.DanhGiaService.show(id, dto);
-  }
-
   @Get('stats/month/:year/:month')
   async countRatingOfMonth(
     @Param('year') year: number,
@@ -73,5 +65,15 @@ export class DanhGiaController {
   @Get('stats/year/:year')
   async countRatingOfYear(@Param('year') year: number) {
     return this.DanhGiaService.countRatingOfYear(year);
+  }
+
+  @Patch('hide')
+  async hideReview(@Body() dto: UpdateDanhGiaDto) {
+    return this.DanhGiaService.hide(dto);
+  }
+
+  @Patch('show')
+  async showReview(@Body() dto: UpdateDanhGiaDto) {
+    return this.DanhGiaService.show(dto);
   }
 }

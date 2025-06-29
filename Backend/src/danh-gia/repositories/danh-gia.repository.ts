@@ -33,18 +33,22 @@ export class DanhGiaRepository {
     return created.save({ session });
   }
 
-  async findById(id: string) {
-    return this.DanhGiaModel.findById(id).lean();
+  async findOne(orderId: string, productId: number, customerId: number) {
+    return this.DanhGiaModel.findOne({
+      DH_id: orderId,
+      SP_id: productId,
+      KH_id: customerId,
+    }).lean();
   }
 
   async findAll(
     page: number,
     limit = 24,
     rating?: number,
-    date?: Date
+    date?: Date,
+    status?: 'all' | 'visible' | 'hidden'
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
-
     const matchConditions: any = {};
 
     if (rating) {
@@ -58,18 +62,19 @@ export class DanhGiaRepository {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      matchConditions.DG_ngayTao = {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      };
+      matchConditions.DG_ngayTao = { $gte: startOfDay, $lte: endOfDay };
     }
 
-    const matchStage: PipelineStage.Match = {
-      $match: matchConditions,
-    };
+    if (status && status !== 'all') {
+      matchConditions.DG_daAn = status === 'hidden';
+    }
+
+    const matchStage: PipelineStage.Match = { $match: matchConditions };
 
     const dataPipeline: PipelineStage[] = [
       matchStage,
+
+      // Lookup khách hàng
       {
         $lookup: {
           from: 'khachhangs',
@@ -79,8 +84,52 @@ export class DanhGiaRepository {
         },
       },
       { $unwind: { path: '$khachHang', preserveNullAndEmptyArrays: true } },
-      { $addFields: { KH_hoTen: '$khachHang.KH_hoTen' } },
-      { $project: { khachHang: 0 } },
+
+      // Lookup sản phẩm
+      {
+        $lookup: {
+          from: 'sanphams',
+          localField: 'SP_id',
+          foreignField: 'SP_id',
+          as: 'sanPham',
+        },
+      },
+      { $unwind: { path: '$sanPham', preserveNullAndEmptyArrays: true } },
+
+      // Add tên khách và thông tin sản phẩm
+      {
+        $addFields: {
+          KH_hoTen: '$khachHang.KH_hoTen',
+          SP_ten: '$sanPham.SP_ten',
+          SP_anh: {
+            $arrayElemAt: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$sanPham.SP_anh',
+                      as: 'anh',
+                      cond: { $eq: ['$$anh.A_anhBia', true] },
+                    },
+                  },
+                  as: 'anh',
+                  in: '$$anh.A_url',
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+
+      // Xoá các mảng lookup thô
+      {
+        $project: {
+          khachHang: 0,
+          sanPham: 0,
+        },
+      },
+
       { $sort: { DG_ngayTao: -1 } },
       { $skip: skip },
       { $limit: limit },
@@ -312,11 +361,24 @@ export class DanhGiaRepository {
     );
   }
 
-  async update(id: string, update: Partial<DanhGia>) {
-    return this.DanhGiaModel.findByIdAndUpdate(id, update, { new: true });
-  }
-
-  async deleteById(id: string) {
-    return this.DanhGiaModel.findByIdAndDelete(id);
+  async update(
+    orderId: string,
+    productId: number,
+    customerId: number,
+    status: boolean,
+    history: any
+  ) {
+    return this.DanhGiaModel.findOneAndUpdate(
+      {
+        DH_id: orderId,
+        SP_id: productId,
+        KH_id: customerId,
+      },
+      {
+        $set: { DG_daAn: status },
+        $push: { lichSuThaoTac: history },
+      },
+      { new: true }
+    );
   }
 }

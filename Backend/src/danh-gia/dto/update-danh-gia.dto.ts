@@ -1,9 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateDanhGiaDto } from './create-danh-gia.dto';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class UpdateDanhGiaDto extends PartialType(CreateDanhGiaDto) {
+export class UpdateDanhGiaDto {
   @IsString()
   @IsNotEmpty()
   NV_id: string;
+
+  @IsNumber()
+  SP_id: number;
+
+  @IsString()
+  DG_id: string;
+
+  @IsNumber()
+  KH_id: number;
 }

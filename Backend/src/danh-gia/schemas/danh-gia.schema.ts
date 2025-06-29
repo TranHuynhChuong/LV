@@ -50,5 +50,5 @@ export type DanhGiaDocument = DanhGia & Document;
 export const DanhGiaSchema = SchemaFactory.createForClass(DanhGia);
 
 DanhGiaSchema.index({ KH_id: 1, DH_id: 1, SP_id: 1 }, { unique: true });
-DanhGiaSchema.index({ DH_id: 1, SP_id: 1 });
+DanhGiaSchema.index({ SP_id: 1 });
 DanhGiaSchema.index({ KH_id: 1 });
