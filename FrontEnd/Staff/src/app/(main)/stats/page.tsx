@@ -264,13 +264,13 @@ export default function StatsPage() {
                 <StatsBarChart
                   title="Điểm đánh giá"
                   data={[
-                    { name: '1 ⭐', value: stats.rating.s1 },
-                    { name: '2 ⭐', value: stats.rating.s2 },
-                    { name: '3 ⭐', value: stats.rating.s3 },
-                    { name: '4 ⭐', value: stats.rating.s4 },
-                    { name: '5 ⭐', value: stats.rating.s5 },
+                    { name: '1 Sao', value: stats.rating.s1 },
+                    { name: '2 Sao', value: stats.rating.s2 },
+                    { name: '3 Sao', value: stats.rating.s3 },
+                    { name: '4 Sao', value: stats.rating.s4 },
+                    { name: '5 Sao', value: stats.rating.s5 },
                   ]}
-                  unit="⭐"
+                  unit="Đánh giá"
                   barSize={40}
                 />
               </div>
