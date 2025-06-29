@@ -19,13 +19,13 @@ import ConfirmDialog from '@/components/utils/ConfirmDialog';
 import FormFooterActions from '@/components/utils/FormFooterActions';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ProductTab from '../../../products/components/productTab';
 
 import ProductDiscountTable from './ProductDiscountTable';
 
 import { format } from 'date-fns';
 import { ProductPromotionDetail } from '@/models/promotionProduct';
 import { ProductOverView } from '@/models/products';
+import ProductTab from '@/components/products/productTab';
 
 const ProductPromotionSchema: z.Schema<ProductPromotionDetail> = z
   .object({
@@ -280,7 +280,7 @@ export default function ProductPromotionForm({
             <div className="overflow-y-auto max-h-[90vh] p-6">
               <ProductTab
                 status="noPromotion"
-                page={1}
+                currentPage={1}
                 selectedData={selectedData}
                 products={availableProducts}
                 onClose={() => setOpenProductTable(false)}
