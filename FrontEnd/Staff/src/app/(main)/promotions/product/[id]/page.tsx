@@ -39,12 +39,12 @@ export default function ProductPromotionDetail() {
       if (!authData.userId) return;
       setIsSubmitting(true);
       const apiData = mapProductPromotionDetailToDto(data, authData.userId);
-      await api.post('/promotions', apiData);
-      toast.success('Thêm mới thành công!');
+      await api.put('/promotions', apiData);
+      toast.success('Cập nhật thành công!');
       router.back();
     } catch (error) {
       console.error(error);
-      toast.error('Thêm mới thất bại!');
+      toast.error('Cập nhật thất bại!');
     } finally {
       setIsSubmitting(false);
     }
@@ -57,25 +57,27 @@ export default function ProductPromotionDetail() {
   const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   async function fetchData() {
+    if (!id) return;
     try {
+      setLoading(true);
       const res = await api.get(`/promotions/${id}`);
+
       const { data, products, activityLogs } = mapProductPromotionDetailFromDto(res.data);
       setData(data);
       setProducts(products);
       setActivityLogs(activityLogs);
     } catch (error) {
       console.error(error);
-      toast.error('Không tìm thấy sản phẩm!');
+      toast.error('Không tìm thấy khuyến mãi!');
+      router.back();
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
     fetchData();
-  }, []);
+  }, [id]);
 
   if (loading)
     return (
