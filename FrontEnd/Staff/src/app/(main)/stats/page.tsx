@@ -15,73 +15,23 @@ import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
 import StatsSummary from '@/components/stats/statsSumary';
 import RatioPieChart from '@/components/stats/statsRatioPieChart';
 import StatsBarChart from '@/components/stats/statsBarChart';
+import { Stats } from '@/models/stats';
 
 const START_YEAR = 2020;
 const CURRENT_YEAR = new Date().getFullYear();
 
-type Stats = {
-  orders: {
-    total: {
-      complete: number;
-      inComplete: number;
-      canceled: number;
-    };
-    detail: {
-      [key: string]: {
-        complete: {
-          total: number;
-          stats: {
-            totalSalePrice: number;
-            totalCostPrice: number;
-            totalBuyPrice: number;
-            totalQuantity: number;
-            totalBillSale: number;
-            totalShipSale: number;
-            totalShipPrice: number;
-          };
-        };
-        inComplete: {
-          total: number;
-          stats: {
-            totalSalePrice: number;
-            totalCostPrice: number;
-            totalBuyPrice: number;
-            totalQuantity: number;
-            totalBillSale: number;
-            totalShipSale: number;
-            totalShipPrice: number;
-          };
-        };
-        canceled: { total: number };
-      };
-    };
-  };
-  vouchers: {
-    orderUsed: number;
-    typeStats: {
-      shipping: number;
-      order: number;
-    };
-  };
-  buyers: {
-    member: number;
-    guest: number;
-  };
-  rating: {
-    s1: number;
-    s2: number;
-    s3: number;
-    s4: number;
-    s5: number;
-    totalOrders: number;
-    hidden: number;
-    visible: number;
-  };
-  totalDiscountStats: {
-    totalProducts: number;
-    discountedProducts: number;
-  };
-};
+function calculateOrderTotalsFromStats(orders: Stats['orders']): Stats['orders'][string]['total'] {
+  return Object.values(orders).reduce(
+    (acc, item) => {
+      acc.all += item.total.all;
+      acc.complete += item.total.complete;
+      acc.inComplete += item.total.inComplete;
+      acc.canceled += item.total.canceled;
+      return acc;
+    },
+    { all: 0, complete: 0, inComplete: 0, canceled: 0 }
+  );
+}
 
 // Helper: Lấy tất cả ngày trong tháng
 const getAllDatesInMonth = (year: number, month: number): string[] => {
@@ -111,10 +61,32 @@ export default function StatsPage() {
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
-
   const [stats, setStats] = useState<Stats | null>(null);
+  const [totalOrders, setTotalOrders] = useState<{
+    all: number;
+    complete: number;
+    inComplete: number;
+    canceled: number;
+  }>({ all: 0, complete: 0, inComplete: 0, canceled: 0 });
+
+  const [provincesData, setProvincesData] = useState<{ code: number; name: string }[]>([]);
 
   useEffect(() => {
+    async function fetchProvinces() {
+      const res = await fetch('/addresses/0.json');
+      const data = await res.json();
+      const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
+        code: item.T_id,
+        name: item.T_ten,
+      }));
+
+      setProvincesData(mapped);
+    }
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (provincesData.length === 0) return;
     const isYearMode = month === 0;
 
     const fetchOrders = isYearMode
@@ -131,34 +103,46 @@ export default function StatsPage() {
         const timeKeys = isYearMode ? getAllMonthsInYear(year) : getAllDatesInMonth(year, month);
 
         for (const key of timeKeys) {
-          ordersData.detail[key] ??= {
+          ordersData[key] ??= {
+            total: {
+              all: 0,
+              complete: 0,
+              inComplete: 0,
+              canceled: 0,
+            },
             complete: {
-              total: 0,
-              stats: {
-                totalSalePrice: 0,
-                totalCostPrice: 0,
-                totalBuyPrice: 0,
-                totalQuantity: 0,
-                totalBillSale: 0,
-                totalShipSale: 0,
-                totalShipPrice: 0,
-              },
+              totalSalePrice: 0,
+              totalCostPrice: 0,
+              totalBuyPrice: 0,
+              totalQuantity: 0,
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
             },
             inComplete: {
-              total: 0,
-              stats: {
-                totalSalePrice: 0,
-                totalCostPrice: 0,
-                totalBuyPrice: 0,
-                totalQuantity: 0,
-                totalBillSale: 0,
-                totalShipSale: 0,
-                totalShipPrice: 0,
-              },
+              totalSalePrice: 0,
+              totalCostPrice: 0,
+              totalBuyPrice: 0,
+              totalQuantity: 0,
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
             },
-            canceled: { total: 0 },
           };
         }
+
+        setTotalOrders(calculateOrderTotalsFromStats(ordersData));
+
+        const provincesRaw = ordersRes.data.provinces as { provinceId: number; count: number }[];
+
+        const mappedProvinces = provincesData.map((province) => {
+          const found = provincesRaw.find((item) => item.provinceId === province.code);
+          return {
+            code: province.code,
+            name: province.name,
+            count: found ? found.count : 0,
+          };
+        });
 
         setStats({
           orders: ordersData,
@@ -166,10 +150,12 @@ export default function StatsPage() {
           buyers: ordersRes.data.buyers,
           rating: reviewsRes.data,
           totalDiscountStats: ordersRes.data.totalDiscountStats,
+
+          provinces: mappedProvinces,
         });
       })
       .catch((err) => console.error(err));
-  }, [year, month]);
+  }, [year, month, provincesData]);
 
   return (
     <div className="p-6 space-y-4">
@@ -216,16 +202,16 @@ export default function StatsPage() {
 
       {stats && (
         <div className="space-y-4">
-          <StatsSummary detail={stats.orders.detail} total={stats.orders.total} />
+          <StatsSummary detail={stats.orders} />
           <div className="flex flex-col lg:flex-row gap-2">
             <div className="basis-2/3 min-h-[350px] bg-white rounded-md border p-4">
-              <StatsOrderComposedChart detail={stats.orders.detail} mode="month" />
+              <StatsOrderComposedChart detail={stats.orders} mode="month" />
             </div>
 
             <div className="basis-1/3 min-h-[350px] bg-white rounded-md border p-4">
               <RatioPieChart
                 title="Tỷ lệ giao hàng"
-                data={[stats.orders.total.complete, stats.orders.total.inComplete]}
+                data={[totalOrders?.complete, totalOrders?.inComplete]}
                 labels={['Giao thành công', 'Giao thất bại']}
                 unit="Đơn hàng"
               />
@@ -258,12 +244,7 @@ export default function StatsPage() {
               <div className="basis-1/2">
                 <RatioPieChart
                   title="Tỷ lệ dùng mã giảm giá trên đơn hàng"
-                  data={[
-                    stats.vouchers.orderUsed,
-                    stats.orders.total.complete +
-                      stats.orders.total.inComplete -
-                      stats.vouchers.orderUsed,
-                  ]}
+                  data={[stats.vouchers.orderUsed, totalOrders?.all]}
                   labels={['Có dùng', 'Không dùng']}
                   unit="Đơn hàng"
                 />
@@ -279,7 +260,7 @@ export default function StatsPage() {
               />
             </div>
             <div className="basis-2/3 min-h-[350px] bg-white rounded-md border p-4 flex flex-col md:flex-row">
-              <div className="basis-1/2">
+              <div className="basis-1/2 h-[350px] ">
                 <StatsBarChart
                   title="Điểm đánh giá"
                   data={[
@@ -295,18 +276,24 @@ export default function StatsPage() {
               </div>
               <div className="basis-1/2">
                 <RatioPieChart
-                  title="Tỷ lệ đánh giá sau khi nhận hàng"
-                  data={[
-                    stats.rating.totalOrders,
-                    stats.orders.total.complete +
-                      stats.orders.total.inComplete -
-                      stats.vouchers.orderUsed,
-                  ]}
+                  title="Tỷ lệ đánh giá của khách hàng thành viên sau khi nhận hàng"
+                  data={[stats.rating.totalOrders, stats.buyers.member - stats.rating.totalOrders]}
                   labels={['Có đánh giá', 'Không đánh giá']}
                   unit="Đơn hàng"
                 />
               </div>
             </div>
+          </div>
+          <div className=" min-h-[350px] bg-white rounded-md border p-4 ">
+            <StatsBarChart
+              title="Khu vực đặt hàng"
+              data={stats.provinces.map((p) => ({
+                name: `${p.name}`,
+                value: p.count,
+              }))}
+              barSize={20}
+              unit="Đơn hàng"
+            />
           </div>
         </div>
       )}
