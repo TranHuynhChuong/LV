@@ -16,5 +16,7 @@ export function mappedReviewFromDto(dto: ReviewDto[]) {
     orderId: item.DH_id,
 
     activityLogs: mapActivityLogsFromDto(item.lichSuThaoTac),
+
+    customerId: item.KH_id,
   }));
 }

@@ -10,6 +10,7 @@ import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
+import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 
 @Injectable()
 export class DanhGiaService {
@@ -17,7 +18,8 @@ export class DanhGiaService {
     @InjectConnection() private readonly connection: Connection,
 
     private readonly DanhGiaRepo: DanhGiaRepository,
-    private readonly SanPhamService: SanPhamUtilService
+    private readonly SanPhamService: SanPhamUtilService,
+    private readonly NhanVienService: NhanVienUtilService
   ) {}
 
   async create(dtos: CreateDanhGiaDto[]): Promise<DanhGia[]> {
@@ -74,8 +76,24 @@ export class DanhGiaService {
     rating?: number,
     date?: Date,
     status?: 'all' | 'visible' | 'hidden'
-  ) {
-    return this.DanhGiaRepo.findAll(page, limit, rating, date, status);
+  ): Promise<any> {
+    const result: any = await this.DanhGiaRepo.findAll(
+      page,
+      limit,
+      rating,
+      date,
+      status
+    );
+
+    for (const item of result.data) {
+      const lichSu = item.lichSuThaoTac ?? [];
+      item.lichSuThaoTac =
+        lichSu.length > 0
+          ? await this.NhanVienService.mapActivityLog(lichSu)
+          : [];
+    }
+
+    return result;
   }
 
   async show(dto: UpdateDanhGiaDto) {
@@ -91,7 +109,7 @@ export class DanhGiaService {
     }
 
     const thaoTac = {
-      thaoTac: 'Cập nhật: Hiển thị đánh giá',
+      thaoTac: 'Hiển thị đánh giá',
       NV_id: dto.NV_id,
       thoiGian: new Date(),
     };
@@ -124,7 +142,7 @@ export class DanhGiaService {
     }
 
     const thaoTac = {
-      thaoTac: 'Cập nhật: Ẩn thị đánh giá',
+      thaoTac: 'Ẩn đánh giá',
       NV_id: dto.NV_id,
       thoiGian: new Date(),
     };

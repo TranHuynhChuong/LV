@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Image from 'next/image';
 import { Review } from '@/models/reviews';
 import { Button } from '@/components/ui/button';
@@ -9,20 +9,95 @@ import { Eye, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
 import { ActionHistorySheet } from '../utils/ActivityLogSheet';
+import { useAuth } from '@/contexts/AuthContext';
+import api from '@/lib/axios';
+import eventBus from '@/lib/eventBus';
+import { toast } from 'sonner';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import Loader from '../utils/Loader';
+
+type ConfirmToggleReviewDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  submitting?: boolean;
+  isHidden: boolean;
+};
+
+export function ConfirmToggleReviewDialog({
+  open,
+  onOpenChange,
+  onConfirm,
+  submitting,
+  isHidden,
+}: Readonly<ConfirmToggleReviewDialogProps>) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Xác nhận {isHidden ? 'hiện' : 'ẩn'} đánh giá</DialogTitle>
+          <DialogDescription>
+            Bạn có chắc chắn muốn {isHidden ? 'hiển thị' : 'ẩn'} đánh giá này không?
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="mt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+            Hủy
+          </Button>
+          <Button onClick={onConfirm} disabled={submitting}>
+            Xác nhận
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 type Props = {
   review: Review;
 };
 
 const ReviewItem: FC<Props> = ({ review }) => {
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { authData } = useAuth();
   const handleToggleVisibility = () => {
-    // Gọi API để ẩn/hiện
-    // Ví dụ: api.patch('/reviews/hide', { ...review })
-    console.log('Toggle visibility');
+    if (!authData?.userId) return;
+    setIsSubmitting(true);
+    setOpenConfirm(false);
+    const endpoint = review.isHidden ? '/reviews/show' : '/reviews/hide';
+
+    const body = {
+      DG_id: review.orderId,
+      SP_id: review.productId,
+      KH_id: review.customerId,
+      NV_id: authData.userId,
+    };
+
+    api
+      .patch(endpoint, body)
+      .then(() => {
+        toast.success(review.isHidden ? 'Hiện đánh giá thành công' : 'Đã ẩn đánh giá');
+        eventBus.emit('review:refetch');
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error('Thao tác thất bại');
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
     <div className="p-4 border rounded-md bg-white flex flex-col md:flex-row gap-4">
+      {isSubmitting && <Loader />}
       <div className="flex-col flex-1">
         <h2 className="pl-4 pb-4 text-sm font-semibold">Mã đơn hàng: {review.orderId}</h2>
         <div className="flex">
@@ -58,7 +133,8 @@ const ReviewItem: FC<Props> = ({ review }) => {
         <div className="mr-12">
           <Button
             variant={review.isHidden ? 'default' : 'outline'}
-            onClick={handleToggleVisibility}
+            onClick={() => setOpenConfirm(true)}
+            className="cursor-pointer"
           >
             {review.isHidden ? (
               <>
@@ -70,6 +146,13 @@ const ReviewItem: FC<Props> = ({ review }) => {
               </>
             )}
           </Button>
+          <ConfirmToggleReviewDialog
+            open={openConfirm}
+            onOpenChange={setOpenConfirm}
+            onConfirm={handleToggleVisibility}
+            submitting={isSubmitting}
+            isHidden={review.isHidden}
+          />
         </div>
         <div className="relative">
           {/* Lịch sử */}

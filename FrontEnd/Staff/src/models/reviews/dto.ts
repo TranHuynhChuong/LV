@@ -14,4 +14,6 @@ export type ReviewDto = {
   DH_id: string;
 
   lichSuThaoTac: ActivityLogsDto[];
+
+  KH_id: number;
 };

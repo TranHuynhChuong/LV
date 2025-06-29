@@ -13,4 +13,6 @@ export type Review = {
   productId: number;
 
   orderId: string;
+
+  customerId: number;
 };

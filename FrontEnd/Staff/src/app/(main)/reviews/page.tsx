@@ -11,6 +11,7 @@ import PaginationControls from '@/components/utils/PaginationControls';
 import { Review, mappedReviewFromDto } from '@/models/reviews';
 import { ReviewSearchBar } from '@/components/reviews/reviewSearchBar'; // dùng đúng cái bạn tạo
 import ReviewList from '@/components/reviews/reviewList';
+import eventBus from '@/lib/eventBus';
 
 export default function ReviewsPage() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -66,6 +67,13 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchData(page);
+
+    const handler = () => fetchData(page);
+    eventBus.on('review:refetch', handler);
+
+    return () => {
+      eventBus.off('review:refetch', handler);
+    };
   }, [page, type, rating, date]);
 
   const handleSearch = (filters: { rating?: number; date?: Date }) => {
@@ -102,7 +110,7 @@ export default function ReviewsPage() {
         <div className="flex gap-2 overflow-x-auto">
           {['all', 'visible', 'hidden'].map((tab) => (
             <Link key={tab} href={`/reviews?type=${tab}`}>
-              <Button variant={type === tab ? 'default' : 'outline'}>
+              <Button variant={type === tab ? 'default' : 'outline'} className="cursor-pointer">
                 {tab === 'all' && `Tất cả `}
                 {tab === 'visible' && `Hiển thị `}
                 {tab === 'hidden' && `Đã ẩn `}

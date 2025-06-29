@@ -38,7 +38,7 @@ export const ReviewSearchBar: FC<Props> = ({ initialRating, initialDate, onApply
         <div className="flex gap-3 items-center">
           <Label className="block text-sm mb-1">Điểm đánh giá</Label>
           <Select value={rating} onValueChange={setRating}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] cursor-pointer">
               <SelectValue placeholder="Tất cả" />
             </SelectTrigger>
             <SelectContent>
@@ -54,16 +54,21 @@ export const ReviewSearchBar: FC<Props> = ({ initialRating, initialDate, onApply
 
         <div className="flex gap-3 items-center">
           <Label className="block text-sm mb-1 whitespace-nowrap">Ngày đánh giá</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Input
+            className="cursor-pointer"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
       </div>
 
       <div className="flex gap-2 flex-1 justify-end">
-        <Button onClick={handleSearch}>
+        <Button onClick={handleSearch} className="cursor-pointer">
           <Search className="w-4 h-4 mr-1" />
           Tìm kiếm
         </Button>
-        <Button variant="outline" onClick={handleReset}>
+        <Button variant="outline" onClick={handleReset} className="cursor-pointer">
           <RotateCcw className="w-4 h-4 mr-1" />
           Đặt lại
         </Button>
