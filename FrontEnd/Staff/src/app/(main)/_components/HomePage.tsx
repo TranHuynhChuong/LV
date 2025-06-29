@@ -29,7 +29,7 @@ interface HomePageProps {
     orders: {
       pending: 0;
       shipping: 0;
-      cancelrequest: 0;
+      cancelRequest: 0;
     };
   };
 }
@@ -119,7 +119,7 @@ export default function HomePage({ data }: HomePageProps) {
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <XCircle className="w-4 h-4" /> Yêu cầu hủy
                 </p>
-                <p className="text-lg font-semibold ">{totalOrders.cancelrequest}</p>
+                <p className="text-lg font-semibold ">{totalOrders.cancelRequest}</p>
               </div>
             </Link>
           </div>
