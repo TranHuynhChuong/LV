@@ -54,11 +54,10 @@ const ReviewItem: FC<Props> = ({ review }) => {
       {/* Ảnh sản phẩm */}
 
       {/* Hành động */}
-      <div className="flex flex-col justify-between items-end gap-2">
-        <div className="flex gap-2">
+      <div className="flex justify-end">
+        <div className="mr-12">
           <Button
             variant={review.isHidden ? 'default' : 'outline'}
-            size="sm"
             onClick={handleToggleVisibility}
           >
             {review.isHidden ? (
@@ -71,10 +70,10 @@ const ReviewItem: FC<Props> = ({ review }) => {
               </>
             )}
           </Button>
-          <div className="relative">
-            {/* Lịch sử */}
-            <ActionHistorySheet activityLogs={review.activityLogs} />
-          </div>
+        </div>
+        <div className="relative">
+          {/* Lịch sử */}
+          <ActionHistorySheet activityLogs={review.activityLogs} />
         </div>
       </div>
     </div>

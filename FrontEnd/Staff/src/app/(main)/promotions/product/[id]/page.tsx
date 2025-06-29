@@ -95,7 +95,9 @@ export default function ProductPromotionDetail() {
             defaultValues={data}
             availableProducts={products}
           />
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <div className=" absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
+          </div>
         </div>
 
         {isSubmitting && <Loader />}

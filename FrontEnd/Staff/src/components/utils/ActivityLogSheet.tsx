@@ -67,7 +67,7 @@ export function ActionHistorySheet({ activityLogs }: Readonly<ActionHistorySheet
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="absolute cursor-pointer top-6 right-6">
+        <Button variant="outline" className="absolute cursor-pointer top-0 right-0">
           <Info />
         </Button>
       </SheetTrigger>

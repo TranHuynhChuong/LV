@@ -181,7 +181,9 @@ export default function ProductDetail() {
           defaultValue={data}
           onDelete={data?.status === 2 ? handleOnDelete : undefined}
         />
-        <ActionHistorySheet activityLogs={activityLogs} />
+        <div className=" absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
+        </div>
       </div>
     </div>
   );

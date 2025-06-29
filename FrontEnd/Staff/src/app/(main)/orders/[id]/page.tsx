@@ -61,7 +61,9 @@ export default function OrderDetailPage() {
     <div className="p-4">
       <div className="relative w-full mx-auto">
         {data && <OrderDetail data={data} />}
-        <ActionHistorySheet activityLogs={data.activityLogs} />
+        <div className=" absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={data.activityLogs} />
+        </div>
       </div>
     </div>
   );

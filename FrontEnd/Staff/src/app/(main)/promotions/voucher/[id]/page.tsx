@@ -96,7 +96,9 @@ export default function VoucherPromotionDetail() {
       <div className="w-full max-w-6xl  mx-auto ">
         <div className="relative ">
           <VoucherPromotionForm onSubmit={onSubmit} defaultValues={data} />
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <div className=" absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
+          </div>
         </div>
 
         {isSubmitting && <Loader />}

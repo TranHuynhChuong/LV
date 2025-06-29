@@ -105,7 +105,9 @@ export default function StaffDetailPage() {
           />
         )}
         {isSubmitting && <Loader />}
-        <ActionHistorySheet activityLogs={activityLogs} />
+        <div className=" absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
+        </div>
       </div>
     </div>
   );

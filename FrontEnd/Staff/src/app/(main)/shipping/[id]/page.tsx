@@ -110,7 +110,9 @@ export default function ShippingDetailPage() {
           onDelete={handleDelete}
           defaultValues={initialData}
         />
-        <ActionHistorySheet activityLogs={activityLogs} />
+        <div className=" absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
+        </div>
       </div>
     </div>
   );
