@@ -1,32 +1,27 @@
 export type GroupByType = 'day' | 'month';
 
 export interface StatsResult {
-  orders: {
-    total: OrderTotalStats;
-    detail: Record<string, OrderStatsByDate>;
-  };
+  orders: Record<string, OrderStatsByDate>;
   vouchers: VoucherStats;
   buyers: BuyerStats;
   totalDiscountStats: DiscountedProductStats;
+  provinces: {
+    provinceId: number;
+    count: number;
+  }[];
 }
 
 export interface OrderTotalStats {
+  all: number;
   complete: number;
   inComplete: number;
   canceled: number;
 }
 
 export interface OrderStatsByDate {
-  complete: OrderStatusStats;
-  inComplete: OrderStatusStats;
-  canceled: {
-    total: number;
-  };
-}
-
-export interface OrderStatusStats {
-  total: number;
-  stats: OrderDetailStats;
+  total: OrderTotalStats;
+  complete: OrderDetailStats;
+  inComplete: OrderDetailStats;
 }
 
 export interface OrderDetailStats {
