@@ -100,9 +100,9 @@ export default function ProductTable({
       },
     },
     {
-      accessorKey: 'stock',
+      accessorKey: 'inventory',
       header: 'Số lượng',
-      cell: ({ row }) => <div>{row.getValue('stock')}</div>,
+      cell: ({ row }) => <div>{row.getValue('inventory')}</div>,
     },
     {
       accessorKey: 'sold',
@@ -110,25 +110,25 @@ export default function ProductTable({
       cell: ({ row }) => <div>{row.getValue('sold')}</div>,
     },
     {
-      accessorKey: 'price',
+      accessorKey: 'salePrice',
       header: 'Giá bán',
       cell: ({ row }) => (
         <div>
           {new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-          }).format(row.getValue('price'))}
+          }).format(row.getValue('salePrice'))}
         </div>
       ),
     },
     {
-      accessorKey: 'cost',
+      accessorKey: 'costPrice',
       header: !isComponent ? undefined : 'Giá nhập',
       enableHiding: false,
       cell: ({ row }) => {
         if (!isComponent) return undefined;
 
-        const value = row.getValue<number>('cost');
+        const value = row.getValue<number>('costPrice');
         return (
           <div>
             {new Intl.NumberFormat('vi-VN', {

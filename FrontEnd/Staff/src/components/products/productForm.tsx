@@ -62,15 +62,15 @@ const productSchema = z.object({
   isbn: z.string({ required_error: 'Không được để trống' }),
   language: z.string({ required_error: 'Không được để trống' }),
   translator: z.string().optional(),
-  price: z.preprocess(
+  salePrice: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
-  stock: z.preprocess(
+  inventory: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
-  cost: z.preprocess(
+  costPrice: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
@@ -95,9 +95,9 @@ export type ProductFormType = {
   isbn: string;
   language: string;
   translator: string;
-  price: number;
-  stock: number;
-  cost: number;
+  salePrice: number;
+  inventory: number;
+  costPrice: number;
   weight: number;
   coverImage: string;
   productImages: string[] | null;
@@ -618,7 +618,7 @@ export default function ProductForm({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={control}
-                name="price"
+                name="salePrice"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 sm:justify-end  mt-2">
@@ -649,7 +649,7 @@ export default function ProductForm({
 
               <FormField
                 control={control}
-                name="cost"
+                name="costPrice"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 sm:justify-end  mt-2">
@@ -679,7 +679,7 @@ export default function ProductForm({
               />
               <FormField
                 control={control}
-                name="stock"
+                name="inventory"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 sm:justify-end  mt-2">
