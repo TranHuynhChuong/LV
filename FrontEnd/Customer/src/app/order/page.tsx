@@ -217,7 +217,7 @@ export default function OrderPage() {
       NH: rawAddress,
       DH: {
         DH_phiVC: shippingFee,
-        KH_id: authData.userId ? undefined : authData.userId,
+        KH_id: authData.userId ?? undefined,
         KH_email: authData.userId ? undefined : guestEmail,
         CTDH: products.map((c) => ({
           SP_id: c.productId,
