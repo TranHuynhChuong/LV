@@ -31,6 +31,10 @@ export class TTNhanHangDHService {
   async findByTinhId(T_id: number) {
     return this.TTNhanHangDHRepo.findByTId(T_id);
   }
+
+  async getStatsByProvince(dhIds: string[]) {
+    return this.TTNhanHangDHRepo.getStatsByProvince(dhIds);
+  }
 }
 
 @Injectable()
