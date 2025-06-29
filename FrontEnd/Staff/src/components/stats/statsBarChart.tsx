@@ -11,10 +11,7 @@ import {
   Cell,
 } from 'recharts';
 
-type BarData = {
-  name: string;
-  value: number;
-};
+type BarData = Record<string, number | string | null | undefined>;
 
 type Props = {
   title: string;
@@ -22,6 +19,9 @@ type Props = {
   colors?: string[];
   barSize?: number;
   unit?: string;
+  xKey?: string; // Giá trị (số)
+  yKey?: string; // Nhãn (tên)
+  vertical?: boolean; // ⬅️ Mới: để chuyển layout
 };
 
 const DEFAULT_COLORS = ['#71717a', '#3f3f46'];
@@ -32,17 +32,37 @@ export default function StatsBarChart({
   colors = DEFAULT_COLORS,
   barSize = 60,
   unit = '',
-}: Props) {
+  xKey = 'value',
+  yKey = 'name',
+  vertical = false, // ⬅️ mặc định là ngang
+}: Readonly<Props>) {
   return (
     <div className="w-full h-[350px] pb-6">
       <h2 className="text font-semibold text-center mb-2">{title}</h2>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+        <BarChart
+          data={data}
+          layout={vertical ? 'vertical' : 'horizontal'} // ⬅️ chuyển layout
+          margin={{ top: 20, right: 20, bottom: 20, left: 40 }}
+        >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis allowDecimals={false} />
-          <Tooltip formatter={(value: number) => [`${value} ${unit}`, 'Số lượng']} />
-          <Bar dataKey="value" barSize={barSize} radius={[6, 6, 0, 0]}>
+          {vertical ? (
+            <>
+              <XAxis type="number" allowDecimals={false} />
+              <YAxis type="category" dataKey={yKey} />
+            </>
+          ) : (
+            <>
+              <XAxis dataKey={yKey} />
+              <YAxis allowDecimals={false} />
+            </>
+          )}
+
+          <Tooltip
+            formatter={(value: number) => [`${value} ${unit}`, 'Số lượng']}
+            labelFormatter={(label) => label}
+          />
+          <Bar dataKey={xKey} barSize={barSize} radius={[6, 6, 0, 0]}>
             {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
             ))}

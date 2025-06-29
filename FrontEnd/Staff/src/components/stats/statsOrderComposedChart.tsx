@@ -13,29 +13,18 @@ import {
 
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
-
-type OrderStatsDetail = {
-  [date: string]: {
-    complete: {
-      total: number;
-    };
-    inComplete: { total: number };
-    canceled: { total: number };
-  };
-};
+import { OrderStats } from '@/models/stats';
 
 type Props = {
-  detail: OrderStatsDetail;
+  detail: OrderStats;
   mode: 'month' | 'year'; // ⬅️ Thêm để xác định hiển thị theo ngày hay tháng
 };
 
-export default function StatsOrderComposedChart({ detail, mode }: Props) {
+export default function StatsOrderComposedChart({ detail, mode }: Readonly<Props>) {
   const chartData = Object.entries(detail)
     .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
     .map(([dateStr, data]) => {
       const date = new Date(dateStr);
-      const complete = data.complete.total ?? 0;
-      const inComplete = data.inComplete.total ?? 0;
 
       return {
         fullDate:
@@ -43,13 +32,16 @@ export default function StatsOrderComposedChart({ detail, mode }: Props) {
             ? format(date, 'MM/yyyy', { locale: vi })
             : format(date, 'dd/MM/yyyy', { locale: vi }),
         xLabel: mode === 'year' ? `T${date.getMonth() + 1}` : date.getDate(),
-        total: complete + inComplete,
+        total: data.total.all,
       };
     });
 
   return (
     <div className=" h-fit">
-      <h2 className="text-lg font-semibold text-center mb-2">Đơn hàng đã giao</h2>
+      <h2 className="text-lg font-semibold text-center mb-2">
+        {' '}
+        {mode === 'year' ? 'Đơn hàng trong năm' : 'Đơn hàng trong tháng'}
+      </h2>
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData}>
@@ -66,7 +58,7 @@ export default function StatsOrderComposedChart({ detail, mode }: Props) {
               type="monotone"
               dataKey="total"
               stroke="#3f3f46"
-              name="Số đơn hàng (Giao thành công + Giao thất bại)"
+              name="Số đơn hàng"
             />
           </ComposedChart>
         </ResponsiveContainer>
