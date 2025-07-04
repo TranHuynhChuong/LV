@@ -13,7 +13,7 @@ const robotoSans = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: 'Book App',
+  title: 'Dật Lạc',
   description: '',
 };
 

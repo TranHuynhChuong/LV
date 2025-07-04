@@ -73,7 +73,8 @@ export default function VoucherPromotionDetail() {
       })
       .catch((error) => {
         console.error(error);
-        toast.error('Không tìm thấy sản phẩm!');
+        toast.error('Không tìm thấy mã giảm!');
+        router.back();
       })
       .finally(() => setLoading(false));
   };

@@ -1,5 +1,3 @@
-'use client';
-
 import ProductItem from './productItem';
 
 import clsx from 'clsx';
