@@ -325,7 +325,7 @@ export default function ProductTable({
             {(selectedData?.length ?? 0) +
               selectData.filter((item) => !new Set(selectedData?.map((p) => p.id)).has(item.id))
                 .length}
-            / {total} đã chọn.
+            / {total + (selectedData?.length ?? 0)} đã chọn.
           </div>
           <div className="space-x-2">
             <Button
