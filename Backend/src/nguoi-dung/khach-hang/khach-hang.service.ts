@@ -105,14 +105,8 @@ export class KhachHangService {
     return await this.KhachHangRepo.countAll();
   }
 
-  async findByEmail(email: string): Promise<KhachHang> {
-    const result = await this.KhachHangRepo.findByEmail(email);
-    if (!result) {
-      throw new NotFoundException(
-        'Tìm khách hàng - Không thể tìm thấy khách hàng'
-      );
-    }
-    return result;
+  async findByEmail(email: string): Promise<KhachHang | null> {
+    return this.KhachHangRepo.findByEmail(email);
   }
 
   async findById(id: number): Promise<KhachHang> {
