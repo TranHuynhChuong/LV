@@ -11,7 +11,6 @@ import { MaGiamUtilService } from 'src/ma-giam/ma-giam.service';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
 import { TTNhanHangDHService } from '../tt-nhan-hang/tt-nhan-hang.service';
-import { ConfigService } from '@nestjs/config';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import {
   DonHangRepository,
@@ -19,6 +18,7 @@ import {
 } from './repositories/don-hang.repository';
 import { EmailService } from 'src/Util/email.service';
 import { KhachHangUtilService } from 'src/nguoi-dung/khach-hang/khach-hang.service';
+import { ExportService, SheetData } from 'src/Util/export';
 
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
 import { TrangThaiDonHang } from './schemas/don-hang.schema';
@@ -34,7 +34,7 @@ import {
 @Injectable()
 export class DonHangService {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly ExportService: ExportService,
     private readonly EmailService: EmailService,
     private readonly KhachHangService: KhachHangUtilService,
     @InjectConnection() private readonly connection: Connection,
@@ -162,14 +162,14 @@ export class DonHangService {
     let DH_giamVC = 0;
 
     for (const mg of validMGs) {
-      if (mg.MG_loai === 1) {
+      if (mg.MG_loai === 'hd') {
         if (tongTienSP >= (mg.MG_toiThieu || 0)) {
           const giam = mg.MG_theoTyLe
             ? (tongTienSP * mg.MG_giaTri) / 100
             : mg.MG_giaTri;
           DH_giamHD += mg.MG_toiDa ? Math.min(giam, mg.MG_toiDa) : giam;
         }
-      } else if (mg.MG_loai === 2) {
+      } else if (mg.MG_loai === 'vc') {
         const giam = mg.MG_theoTyLe
           ? (data.DH.DH_phiVC * mg.MG_giaTri) / 100
           : mg.MG_giaTri;
@@ -610,5 +610,167 @@ export class DonHangService {
       totalShipSale: 0,
       totalShipPrice: 0,
     };
+  }
+
+  protected calculateOrderStatsDetails(
+    orders: Record<string, OrderStatsByDate>
+  ) {
+    let totalBuyPrice_Complete = 0;
+    let totalBuyPrice_InComplete = 0;
+
+    let totalBillSale_Complete = 0;
+    let totalBillSale_InComplete = 0;
+
+    let totalShipPrice_Complete = 0;
+    let totalShipPrice_InComplete = 0;
+
+    let totalShipSale_Complete = 0;
+    let totalShipSale_InComplete = 0;
+
+    let totalPriceSale_Complete = 0;
+    let totalPriceSale_InComplete = 0;
+
+    for (const date in orders) {
+      const { complete, inComplete } = orders[date];
+
+      // Complete
+      totalBuyPrice_Complete += complete.totalBuyPrice || 0;
+      totalBillSale_Complete += complete.totalBillSale || 0;
+      totalShipPrice_Complete += complete.totalShipPrice || 0;
+      totalShipSale_Complete += complete.totalShipSale || 0;
+      totalPriceSale_Complete +=
+        (complete.totalSalePrice || 0) -
+        (complete.totalBillSale || 0) -
+        (complete.totalShipSale || 0);
+
+      // InComplete
+      totalBuyPrice_InComplete += inComplete.totalBuyPrice || 0;
+      totalBillSale_InComplete += inComplete.totalBillSale || 0;
+      totalShipPrice_InComplete += inComplete.totalShipPrice || 0;
+      totalShipSale_InComplete += inComplete.totalShipSale || 0;
+      totalPriceSale_InComplete +=
+        (inComplete.totalSalePrice || 0) -
+        (inComplete.totalBillSale || 0) -
+        (inComplete.totalShipSale || 0);
+    }
+
+    return {
+      totalBuyPrice_Complete,
+      totalBuyPrice_InComplete,
+
+      totalBillSale_Complete,
+      totalBillSale_InComplete,
+
+      totalShipPrice_Complete,
+      totalShipPrice_InComplete,
+
+      totalShipSale_Complete,
+      totalShipSale_InComplete,
+
+      totalPriceSale_Complete,
+      totalPriceSale_InComplete,
+    };
+  }
+
+  protected getExcelReportStats(
+    data: StatsResult,
+    nameFile: string
+  ): {
+    buffer: Buffer;
+    fileName: string;
+  } {
+    const result = this.calculateOrderStatsDetails(data.orders);
+
+    // Doanh thu tổng và doanh thu thuần (sản phẩm & vận chuyển)
+    const revenueProduct =
+      result.totalPriceSale_Complete + result.totalPriceSale_InComplete;
+    const netRevenueProduct =
+      result.totalPriceSale_Complete - result.totalBillSale_Complete;
+
+    const revenueShip =
+      result.totalShipPrice_Complete + result.totalShipPrice_InComplete;
+    const netRevenueShip =
+      result.totalShipPrice_Complete - result.totalShipSale_Complete;
+
+    const sheets: SheetData[] = [
+      {
+        sheetName: 'Tổng quan',
+        headers: ['Chỉ số', 'Giá trị'],
+        rows: [
+          ['Doanh thu (sản phẩm)', revenueProduct],
+          ['Doanh thu thuần (sản phẩm)', netRevenueProduct],
+          ['Doanh thu (vận chuyển)', revenueShip],
+          ['Doanh thu thuần (vận chuyển)', netRevenueShip],
+        ],
+      },
+      {
+        sheetName: 'Đơn hàng',
+        headers: [
+          'Ngày',
+          'Tổng đơn',
+          'Giao thành công',
+          'Giao thất bại',
+          'Doanh thu (sản phẩm)',
+          'Doanh thu thuần (sản phẩm)',
+          'Doanh thu (vận chuyển)',
+          'Doanh thu thuần (vận chuyển)',
+        ],
+        rows: Object.entries(data.orders).map(
+          ([date, stats]: [string, any]): [
+            string,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+          ] => {
+            const revenueP =
+              stats.complete.totalSalePrice + stats.inComplete.totalSalePrice;
+            const netRevenueP =
+              stats.complete.totalBuyPrice - stats.complete.totalBillSale;
+
+            const revenueS =
+              stats.complete.totalShipPrice + stats.inComplete.totalShipPrice;
+
+            const netRevenueS =
+              stats.complete.totalShipPrice - stats.complete.totalShipSale;
+
+            return [
+              date,
+              Number(stats.total.all ?? 0),
+              Number(stats.total.complete ?? 0),
+              Number(stats.total.inComplete ?? 0),
+              Number(revenueP ?? 0),
+              Number(netRevenueP ?? 0),
+              Number(revenueS ?? 0),
+              Number(netRevenueS ?? 0),
+            ];
+          }
+        ),
+      },
+    ];
+
+    const buffer = this.ExportService.generateExcelBuffer(sheets);
+    const fileName = this.ExportService.generateExcelFileName(
+      'Thong-ke-' + nameFile
+    );
+
+    return { buffer, fileName };
+  }
+
+  async getExcelReportStatsByMonth(year: number, month: number) {
+    const { startDate, endDate } = this.getDateRangeByMonth(year, month);
+    const stats = await this.getStatsByDateRange(startDate, endDate, 'day');
+    const fileName = `${year}-${String(month).padStart(2, '0')}`;
+    return this.getExcelReportStats(stats, fileName);
+  }
+
+  async getExcelReportStatsByYear(year: number) {
+    const { startDate, endDate } = this.getDateRangeByYear(year);
+    const stats = await this.getStatsByDateRange(startDate, endDate, 'month');
+    const fileName = `${year}`;
+    return this.getExcelReportStats(stats, fileName);
   }
 }

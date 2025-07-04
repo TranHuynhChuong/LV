@@ -7,7 +7,11 @@ import {
   Body,
   Patch,
   ParseIntPipe,
+  HttpStatus,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
+
 import { DonHangService } from './don-hang.service';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import { parsePositiveInt } from 'src/Util/convert';
@@ -75,7 +79,7 @@ export class DonHangController {
     @Param('id') id: string,
     @Query('filterType') filterType: OrderStatus
   ): Promise<any> {
-    return this.DonHangService.findById(id, filterType);
+    return this.DonHangService.findById(id.toUpperCase(), filterType);
   }
 
   // ============== Thống kê ===================//
@@ -93,5 +97,38 @@ export class DonHangController {
     @Param('month', ParseIntPipe) month: number
   ) {
     return this.DonHangService.getStatsByMonth(year, month);
+  }
+
+  @Get('/stats/export/month/:year/:month')
+  async exportByMonth(
+    @Param('year', ParseIntPipe) year: number,
+    @Param('month', ParseIntPipe) month: number,
+    @Res() res: Response
+  ) {
+    const { buffer, fileName } =
+      await this.DonHangService.getExcelReportStatsByMonth(year, month);
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.status(HttpStatus.OK).send(buffer);
+  }
+
+  @Get('/stats/export/year/:year')
+  async exportByYear(
+    @Param('year', ParseIntPipe) year: number,
+    @Res() res: Response
+  ) {
+    const { buffer, fileName } =
+      await this.DonHangService.getExcelReportStatsByYear(year);
+
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.status(HttpStatus.OK).send(buffer);
   }
 }
