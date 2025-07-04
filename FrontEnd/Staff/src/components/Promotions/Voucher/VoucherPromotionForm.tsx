@@ -34,17 +34,17 @@ const VoucherPromotionSchema: z.Schema<VoucherPromotionDetail> = z
     id: z.string({ required_error: 'Không được để trống' }).max(7),
     startAt: z.date({ required_error: 'Không được để trống' }),
     endAt: z.date({ required_error: 'Không được để trống' }),
-    type: z.string(),
-    isPercentage: z.boolean(),
+    type: z.string({ required_error: 'Không được để trống' }),
+    isPercentage: z.boolean().optional().default(false),
     discountValue: z
       .number({ required_error: 'Không được để trống' })
       .min(0, 'Giá trị giảm phải >= 0'),
     minOrderValue: z.number().min(0).optional(),
     maxDiscount: z.number().min(0).optional(), // nếu là phần trăm
   })
-  .refine((data) => data.startAt > data.endAt, {
+  .refine((data) => data.startAt < data.endAt, {
     message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
-    path: ['startAt'],
+    path: ['endAt'],
   })
   .refine((data) => (data.isPercentage ? !!data.maxDiscount : true), {
     message: 'Phải nhập giá trị giảm tối đa',
@@ -179,7 +179,7 @@ export default function VoucherPromotionForm({
                   <div className="flex flex-col flex-1">
                     <FormControl>
                       <Select
-                        value={String(field.value ?? 2)}
+                        value={String(field.value ?? '')}
                         onValueChange={field.onChange}
                         defaultValue={field.value?.toString()}
                       >
@@ -187,8 +187,8 @@ export default function VoucherPromotionForm({
                           <SelectValue placeholder="Chọn loại mã" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="order"> Giảm hóa đơn</SelectItem>
-                          <SelectItem value="shipping">Giảm vận chuyển</SelectItem>
+                          <SelectItem value="hd"> Giảm hóa đơn</SelectItem>
+                          <SelectItem value="vc">Giảm vận chuyển</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
