@@ -30,9 +30,11 @@ export class XacThucService {
   async register(data: any): Promise<any> {
     const { otp, name, email, password } = data;
 
-    const user = await this.KhachHangService.findByEmail(email);
-    if (user) {
+    try {
+      await this.KhachHangService.findByEmail(email);
       throw new ConflictException('Email đã được đăng ký');
+    } catch {
+      // Email not found, proceed with registration
     }
 
     const verifyOtp = await this.verifyOtp(email, otp);
@@ -120,7 +122,7 @@ export class XacThucService {
   async verifyOtp(email: string, code: string): Promise<boolean> {
     try {
       const record = await this.otp.findOne({ email });
-      console.log(email, record);
+
       return !!(
         record &&
         record.code === code &&
