@@ -9,6 +9,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import Loader from '@/components/utils/Loader';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface ProductReviewInput {
   productId: number;
@@ -36,7 +44,7 @@ export default function ReviewPage() {
   const { authData } = useAuth();
   const [data, setData] = useState<Order>();
   const [reviews, setReviews] = useState<Record<number, ReviewState>>({});
-
+  const [openConfirm, setOpenConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchData = useCallback(
@@ -126,10 +134,34 @@ export default function ReviewPage() {
         <Button onClick={() => router.back()} className="cursor-pointer">
           Hủy
         </Button>
-        <Button onClick={handleSubmit} className="cursor-pointer">
+        <Button onClick={() => setOpenConfirm(true)} className="cursor-pointer">
           Gửi đánh giá
         </Button>
       </div>
+      <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận gửi đánh giá</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn gửi đánh giá này? Sau khi gửi sẽ không thể chỉnh sửa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpenConfirm(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                handleSubmit();
+                setOpenConfirm(false);
+              }}
+            >
+              Gửi đánh giá
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
