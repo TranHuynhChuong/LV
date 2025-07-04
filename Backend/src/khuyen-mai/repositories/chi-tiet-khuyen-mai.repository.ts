@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import {
   ChiTietKhuyenMai,
   ChiTietKhuyenMaiDocument,
@@ -57,26 +57,28 @@ export class ChiTietKhuyenMaiRepository {
       .exec();
   }
 
-  async create(data: Partial<ChiTietKhuyenMai>[]) {
-    return this.ChiTietKhuyenMaiModel.insertMany(data);
+  async create(data: Partial<ChiTietKhuyenMai>[], session?: ClientSession) {
+    return this.ChiTietKhuyenMaiModel.insertMany(data, { session });
   }
 
   async update(
     SP_id: number,
     KM_id: string,
-    update: Partial<ChiTietKhuyenMai>
+    update: Partial<ChiTietKhuyenMai>,
+    session?: ClientSession
   ) {
     return this.ChiTietKhuyenMaiModel.findOneAndUpdate(
-      { SP_id: SP_id, KM_id, CTKM_daXoa: false },
+      { SP_id, KM_id, CTKM_daXoa: false },
       update,
-      { new: true }
+      { new: true, session }
     );
   }
 
-  async delete(KM_id: string, SP_id: number) {
+  async delete(KM_id: string, SP_id: number, session?: ClientSession) {
     return this.ChiTietKhuyenMaiModel.updateOne(
-      { KM_id, SP_id: SP_id },
-      { CTKM_daXoa: true }
+      { KM_id, SP_id },
+      { CTKM_daXoa: true },
+      { session }
     );
   }
 }

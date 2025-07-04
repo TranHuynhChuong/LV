@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage } from 'mongoose';
+import { ClientSession, Model, PipelineStage } from 'mongoose';
 import { KhuyenMai, KhuyenMaiDocument } from '../schemas/khuyen-mai.schema';
 import { Injectable } from '@nestjs/common';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
@@ -205,13 +205,20 @@ export class KhuyenMaiRepository {
     return (result[0] ?? null) as KhuyenMaiDocument | null;
   }
 
-  async create(data: Partial<KhuyenMai>) {
-    return this.KhuyenMaiModel.create(data);
+  async create(data: Partial<KhuyenMai>, session?: ClientSession) {
+    return this.KhuyenMaiModel.create([{ ...data }], { session }).then(
+      (res) => res[0]
+    );
   }
 
-  async update(KM_id: string, update: Partial<KhuyenMai>) {
+  async update(
+    KM_id: string,
+    update: Partial<KhuyenMai>,
+    session?: ClientSession
+  ) {
     return this.KhuyenMaiModel.findOneAndUpdate({ KM_id }, update, {
       new: true,
+      session,
     });
   }
 
