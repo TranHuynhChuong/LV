@@ -254,7 +254,7 @@ export default function ShippingFeeForm({
                 <FormControl>
                   <Input
                     type="number"
-                    value={field.value ?? ''}
+                    value={surchargeValue ? field.value : 0}
                     onChange={field.onChange}
                     disabled={!surchargeValue}
                     placeholder="Có thể để trống hoặc nhập số"
