@@ -35,11 +35,12 @@ export default function ProductPromotionDetail() {
   }, [setBreadcrumbs]);
 
   async function onSubmit(data: ProductPromotionDetail) {
+    if (!id) return;
+    if (!authData.userId) return;
     try {
-      if (!authData.userId) return;
       setIsSubmitting(true);
       const apiData = mapProductPromotionDetailToDto(data, authData.userId);
-      await api.put('/promotions', apiData);
+      await api.put(`/promotions/${id}`, apiData);
       toast.success('Cập nhật thành công!');
       router.back();
     } catch (error) {
