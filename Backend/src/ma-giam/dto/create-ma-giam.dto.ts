@@ -29,8 +29,8 @@ export class CreateMaGiamDto {
   @IsNumber()
   MG_giaTri: number;
 
-  @IsNumber()
-  MG_loai: number;
+  @IsString()
+  MG_loai: string;
 
   @IsNumber()
   MG_toiThieu: number;

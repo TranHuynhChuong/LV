@@ -11,8 +11,8 @@ export enum VoucherFilterType {
 }
 
 export enum VoucherType {
-  Shipping = 'shipping',
-  Order = 'order',
+  Shipping = 'vc',
+  Order = 'hd',
   All = 'all',
 }
 
@@ -45,7 +45,7 @@ export class MaGiamRepository {
         break;
     }
 
-    if (type !== VoucherType.All) {
+    if (type && type !== VoucherType.All) {
       filter.MG_loai = type;
     }
 

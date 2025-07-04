@@ -38,8 +38,8 @@ export class MaGiam {
   @Prop({ type: Number, required: true })
   MG_giaTri: number;
 
-  @Prop({ type: Number, required: true })
-  MG_loai: number;
+  @Prop({ type: String, required: true })
+  MG_loai: string;
 
   @Prop({ type: Number, default: 0 })
   MG_toiThieu: number;
