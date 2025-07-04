@@ -41,19 +41,21 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
         Mã đơn hàng: {orderId} | {statusMap[status] || 'Không xác định'}
       </div>
 
-      <div className=" p-6 bg-white border rounded-md ">
-        <h4 className="font-medium">Yêu cầu xuất hóa đơn</h4>
-        <div className="flex pt-2 pl-2 text-sm font-normal">
-          <div className="space-y-2">
-            <p>Tên: {invoice.fullName}</p>
-            <p>Mã số thuế: {invoice.taxCode}</p>
-            <div>
-              <p> Địa chỉ: {`${invoice.address}`}</p>
+      {invoice.taxCode && (
+        <div className=" p-6 bg-white border rounded-md ">
+          <h4 className="font-medium">Yêu cầu xuất hóa đơn</h4>
+          <div className="flex pt-2 pl-2 text-sm font-normal">
+            <div className="space-y-2">
+              <p>Tên: {invoice.fullName}</p>
+              <p>Mã số thuế: {invoice.taxCode}</p>
+              <div>
+                <p> Địa chỉ: {`${invoice.address}`}</p>
+              </div>
+              <p>Email: {invoice.email}</p>
             </div>
-            <p>Email: {invoice.email}</p>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col p-6 bg-white border rounded-md md:flex-row">
         <div className="flex-1">
