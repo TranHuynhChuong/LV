@@ -27,12 +27,12 @@ import Loader from '@/components/utils/Loader';
 import { useCartStore } from '@/stores/cart.store';
 import { emitCartChange } from '@/lib/cartEvents';
 import AddressForm, { AddressFormHandle } from '@/components/profiles/addresses/addressForm';
-import InvoiceForm, { InvoiceFormHandle } from '@/components/orders/invoiceForm';
-import ProductsOrderSection from '@/components/orders/productsOrderSection';
-import { Voucher } from '@/components/orders/selectVoucher';
-import VoucherSection from '@/components/orders/voucherSection';
+import InvoiceForm, { InvoiceFormHandle } from '@/components/checkOuts/invoiceForm';
+import ProductsOrderSection from '@/components/checkOuts/productsOrderSection';
+import VoucherSection from '@/components/checkOuts/voucherSection';
 import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/addresses';
 import { Cart } from '@/models/carts';
+import { Voucher } from '@/models/vouchers';
 
 // --- Utils ---
 type ShippingPolicy = {
@@ -80,18 +80,18 @@ function calculateDiscounts(
   for (const v of vouchers) {
     if (orderTotal < v.minOrderValue) continue;
 
-    const base = v.type === 1 ? orderTotal : shippingFee;
+    const base = v.type === 'hd' ? orderTotal : shippingFee;
     let discount = v.isPercentage ? Math.floor((v.discountValue / 100) * base) : v.discountValue;
     if (v.maxDiscount !== undefined) discount = Math.min(discount, v.maxDiscount);
 
-    if (v.type === 1) productDiscount += discount;
-    else if (v.type === 2) shippingDiscount += discount;
+    if (v.type === 'hd') productDiscount += discount;
+    else if (v.type === 'vc') shippingDiscount += discount;
   }
 
   return { productDiscount, shippingDiscount };
 }
 
-function mapToDataCheck(products: Cart[], vouchers: { code: string; type: number }[]) {
+function mapToDataCheck(products: Cart[], vouchers: { code: string; type: string }[]) {
   const CTDH = products.map((c) => ({
     SP_id: c.productId,
     CTDH_soLuong: c.quantity,
@@ -111,7 +111,7 @@ const useOrderSummary = (
   vouchers: Voucher[]
 ) => {
   const orderTotal = useMemo(
-    () => products.reduce((sum, p) => sum + p.salePrice * p.quantity, 0),
+    () => products.reduce((sum, p) => sum + p.discountPrice * p.quantity, 0),
     [products]
   );
 
@@ -124,17 +124,20 @@ const useOrderSummary = (
     () => calculateDiscounts(vouchers, orderTotal, shippingFee),
     [vouchers, orderTotal, shippingFee]
   );
+  const orderTotalUnit = useMemo(
+    () => products.reduce((sum, p) => sum + p.salePrice * p.quantity, 0),
+    [products]
+  );
 
   const total = orderTotal + shippingFee - productDiscount - shippingDiscount;
-  const totalSaving = productDiscount + shippingDiscount;
+  const totalSaving = productDiscount + shippingDiscount + (orderTotal - orderTotalUnit);
 
   return { orderTotal, shippingFee, productDiscount, shippingDiscount, total, totalSaving };
 };
 
 // --- Main Component ---
-export default function OrderPage() {
+export default function CheckOutPage() {
   const [address, setAddress] = useState<Address>();
-
   const [selectedVouchers, setSelectedVouchers] = useState<Voucher[]>([]);
   const [openSelectAddress, setOpenSelectAddress] = useState(false);
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
@@ -173,9 +176,10 @@ export default function OrderPage() {
   }, [authData.userId]);
 
   useEffect(() => {
-    if (!orders.length) {
-      router.back();
+    if (orders && orders.length == 0) {
+      return;
     }
+
     api
       .post('/orders/check', mapToDataCheck(orders, selectedVouchers))
       .then((res) => {
@@ -270,7 +274,6 @@ export default function OrderPage() {
         }
       })
       .finally(() => setIsSubmitting(false));
-    console.log(payload);
   };
 
   useEffect(() => {
