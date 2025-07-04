@@ -10,7 +10,7 @@ export type VoucherPromotionDetail = {
   startAt: Date;
   endAt: Date;
   type: string;
-  isPercentage: boolean;
+  isPercentage?: boolean;
   discountValue: number;
   minOrderValue?: number;
   maxDiscount?: number;

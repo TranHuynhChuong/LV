@@ -41,7 +41,7 @@ export function mapVoucherPromotionDetailToDto(data: VoucherPromotionDetail, sta
     NV_id: staffId,
     MG_theoTyLe: data.isPercentage,
     MG_giaTri: data.discountValue,
-    MG_loai: parseInt(data.type),
+    MG_loai: data.type,
     MG_toiThieu: data.minOrderValue,
     MG_toiDa: data.maxDiscount,
   };
