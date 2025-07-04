@@ -156,7 +156,7 @@ export default function CartPage() {
     selectedItems.forEach((item) => {
       addOrder(item);
     });
-    router.push('/order');
+    router.push('/checkout');
   };
 
   if (loading)

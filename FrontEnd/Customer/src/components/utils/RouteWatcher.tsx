@@ -10,11 +10,10 @@ export default function RouteWatcher() {
   const clearOrder = useOrderStore((state) => state.clearOrder);
 
   useEffect(() => {
-    if (prevPath.current?.startsWith('/order') && !pathname.startsWith('/order')) {
+    if (prevPath.current?.startsWith('/checkout') && !pathname.startsWith('/checkout')) {
       clearOrder();
+      prevPath.current = pathname;
     }
-
-    prevPath.current = pathname;
   }, [pathname]);
 
   return null;
