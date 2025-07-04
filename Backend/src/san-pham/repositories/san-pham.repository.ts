@@ -32,6 +32,7 @@ export enum ProductFilterType {
 export enum ProductSortType {
   Latest = 'latest',
   BestSelling = 'best-selling',
+  MostRating = 'most-rating',
   PriceAsc = 'price-asc',
   PriceDesc = 'price-desc',
 }
@@ -134,6 +135,7 @@ export class SanPhamRepository {
 
     const preStages: PipelineStage[] = [];
     if (search) preStages.push({ $search: search });
+
     preStages.push({ $match: filter });
 
     const dataPipeline: PipelineStage[] = [...preStages];
@@ -163,21 +165,11 @@ export class SanPhamRepository {
     return { dataPipeline, countPipeline };
   }
 
-  protected buildPromotionStages(
-    excludeActive: boolean = false
-  ): PipelineStage[] {
+  protected buildPromotionStages(excludeActive = false): PipelineStage[] {
     const now = new Date();
 
-    const matchCTKM: any[] = [
-      { $eq: ['$SP_id', '$$sp_id'] },
-      { $eq: ['$CTKM_daXoa', false] },
-    ];
-
-    if (excludeActive) {
-      matchCTKM.push({ $eq: ['$CTKM_tamNgung', false] });
-    }
-
     const stages: PipelineStage[] = [
+      // B1: Lấy tất cả CTKM còn hiệu lực gắn với sản phẩm
       {
         $lookup: {
           from: 'chitietkhuyenmais',
@@ -185,7 +177,13 @@ export class SanPhamRepository {
           pipeline: [
             {
               $match: {
-                $expr: { $and: matchCTKM },
+                $expr: {
+                  $and: [
+                    { $eq: ['$SP_id', '$$sp_id'] },
+                    { $eq: ['$CTKM_daXoa', false] },
+                    { $eq: ['$CTKM_tamNgung', false] },
+                  ],
+                },
               },
             },
             {
@@ -198,7 +196,7 @@ export class SanPhamRepository {
                       $expr: {
                         $and: [
                           { $eq: ['$KM_id', '$$km_id'] },
-                          { $eq: ['$KM_daXoa', false] },
+
                           { $lte: ['$KM_batDau', now] },
                           { $gte: ['$KM_ketThuc', now] },
                         ],
@@ -209,23 +207,18 @@ export class SanPhamRepository {
                 as: 'km',
               },
             },
-            { $unwind: '$km' },
-            ...(excludeActive
-              ? []
-              : [
-                  {
-                    $addFields: {
-                      CTKM_mucGiam: '$km.KM_mucGiam',
-                    },
-                  },
-                ]),
+            {
+              $match: {
+                $expr: { $gt: [{ $size: '$km' }, 0] }, // Chỉ giữ CTKM có KM hiệu lực
+              },
+            },
           ],
           as: 'khuyenMai',
         },
       },
     ];
 
-    // Nếu KHÔNG lấy sản phẩm khuyến mãi → loại bỏ các sản phẩm có khuyến mãi hiệu lực
+    // B2: Nếu excludeActive = true => loại sản phẩm có khuyến mãi hiệu lực
     if (excludeActive) {
       stages.push({
         $match: {
@@ -233,6 +226,7 @@ export class SanPhamRepository {
         },
       });
     } else {
+      // B3: Tính SP_giaGiam nếu có khuyến mãi
       stages.push({
         $addFields: {
           SP_giaGiam: {
@@ -242,27 +236,31 @@ export class SanPhamRepository {
                 $let: {
                   vars: {
                     goc: '$SP_giaBan',
-                    mucGiam: { $arrayElemAt: ['$khuyenMai.CTKM_giaTri', 0] },
-                    theoTyLe: { $arrayElemAt: ['$khuyenMai.CTKM_theoTyLe', 0] },
                   },
                   in: {
-                    $cond: {
-                      if: '$$theoTyLe',
-                      then: {
-                        $subtract: [
-                          '$$goc',
-                          {
-                            $multiply: [
-                              '$$goc',
-                              { $divide: ['$$mucGiam', 100] },
-                            ],
+                    $subtract: [
+                      '$$goc',
+                      {
+                        $max: {
+                          $map: {
+                            input: '$khuyenMai',
+                            as: 'km',
+                            in: {
+                              $cond: {
+                                if: '$$km.CTKM_theoTyLe',
+                                then: {
+                                  $multiply: [
+                                    '$$goc',
+                                    { $divide: ['$$km.CTKM_giaTri', 100] },
+                                  ],
+                                },
+                                else: '$$km.CTKM_giaTri',
+                              },
+                            },
                           },
-                        ],
+                        },
                       },
-                      else: {
-                        $subtract: ['$$goc', '$$mucGiam'],
-                      },
-                    },
+                    ],
                   },
                 },
               },
@@ -284,6 +282,8 @@ export class SanPhamRepository {
         return { SP_id: -1 }; // mới nhất
       case ProductSortType.BestSelling:
         return { SP_daBan: -1, SP_id: -1 }; // doanh số
+      case ProductSortType.MostRating:
+        return { SP_diemDG: -1, SP_id: -1 }; // điểm đánh giá giảm
       case ProductSortType.PriceAsc:
         return { SP_giaGiam: 1, SP_id: -1 }; // giá tăng
       case ProductSortType.PriceDesc:
@@ -585,14 +585,15 @@ export class SanPhamRepository {
   async findByVector(queryVector: number[], limit = 5): Promise<any[]> {
     const project = this.getProject();
     const discountStages = this.buildPromotionStages();
+
     return this.SanPhamModel.aggregate([
       {
         $vectorSearch: {
           index: 'vector_index',
           path: 'SP_eTomTat',
-          queryVector, // Mảng số (vector)
-          numCandidates: 100, // Số lượng bản ghi được xét để tìm top kết quả
-          limit, // Số kết quả trả về
+          queryVector,
+          numCandidates: 100,
+          limit,
         },
       },
       {
@@ -600,12 +601,37 @@ export class SanPhamRepository {
           SP_trangThai: ProductStatus.Show,
         },
       },
-      { $limit: limit },
+      {
+        $addFields: {
+          vectorScore: { $meta: 'vectorSearchScore' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'theloais',
+          localField: 'TL_id',
+          foreignField: 'TL_id',
+          as: 'SP_TL_info',
+        },
+      },
+      {
+        $addFields: {
+          SP_TL: {
+            $map: {
+              input: '$SP_TL_info',
+              as: 'tl',
+              in: '$$tl.TL_ten', // ✅ chỉ lấy tên thể loại
+            },
+          },
+        },
+      },
+
       ...discountStages,
       {
         $project: {
           ...project,
-          score: { $meta: 'vectorSearchScore' },
+          SP_TL: 1, // ✅ thêm vào để giữ kết quả lookup
+          score: '$vectorScore',
         },
       },
     ]).exec();
