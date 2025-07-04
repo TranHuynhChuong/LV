@@ -2,6 +2,7 @@ export enum ProductSortType {
   MostRelevant = 'most-relevant',
   Latest = 'latest',
   BestSelling = 'best-selling',
+  MostRating = 'most-rating',
   PriceAsc = 'price-asc',
   PriceDesc = 'price-desc',
 }

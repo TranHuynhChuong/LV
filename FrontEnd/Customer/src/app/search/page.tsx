@@ -25,17 +25,17 @@ export default function SearchPage() {
   const category = searchParams.get('c') ?? '';
   const page = parseInt(searchParams.get('p') ?? '1', 10);
 
-  const rawSort = searchParams.get('s') ?? '';
+  const rawSort = searchParams.get('s') ?? ProductSortType.MostRelevant;
   const sort = Object.values(ProductSortType).includes(rawSort as ProductSortType)
     ? (rawSort as ProductSortType)
-    : undefined;
+    : ProductSortType.MostRelevant;
 
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
   const [products, setProducts] = useState<ProductOverview[] | []>([]);
 
-  const pageSize = 24;
+  const pageSize = 20;
 
   const fetchData = useCallback(async () => {
     const params = {
@@ -43,7 +43,7 @@ export default function SearchPage() {
       categoryId: category,
       page,
       sortType: sort,
-      filterType: '11',
+      filterType: 'show-all',
       limit: pageSize,
     };
 
@@ -93,7 +93,7 @@ export default function SearchPage() {
   return (
     <div>
       <div className="w-full h-fit flex p-4 items-center bg-white rounded-md">
-        <h4 className="font-medium flex-1 ">Kết quả tìm kiếm: {totalItems}</h4>
+        <h4 className="font-medium flex-1 ">Kết quả tìm kiếm: {totalItems} sản phẩm </h4>
         <div className="h-fit justify-end flex">
           <Select value={sort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-48">
@@ -105,6 +105,7 @@ export default function SearchPage() {
                 <SelectItem value={ProductSortType.MostRelevant}>Liên quan</SelectItem>
                 <SelectItem value={ProductSortType.Latest}>Mới nhất</SelectItem>
                 <SelectItem value={ProductSortType.BestSelling}>Bán chạy</SelectItem>
+                <SelectItem value={ProductSortType.MostRating}>Đánh giá cao - thấp</SelectItem>
                 <SelectItem value={ProductSortType.PriceAsc}>Giá thấp - cao</SelectItem>
                 <SelectItem value={ProductSortType.PriceDesc}>Giá cao - thấp</SelectItem>
               </SelectGroup>
