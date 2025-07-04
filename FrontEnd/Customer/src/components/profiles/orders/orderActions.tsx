@@ -105,7 +105,7 @@ export default function OrderActions({
   const [dialog, setDialog] = useState<ActionStatus | null>(null);
 
   const canCancel = status === 'ChoXacNhan' || status === 'ChoVanChuyen';
-
+  const canReview = status === 'GiaoThanhCong' && !reviewed;
   const handleSubmit = async () => {
     if (!dialog || !authData.userId) return;
 
@@ -145,7 +145,7 @@ export default function OrderActions({
         </Link>
       )}
 
-      {!reviewed && (
+      {canReview && (
         <Link href={`/profile/orders/${id}/review`}>
           <Button variant="outline" className="text-sm font-normal border-zinc-500 cursor-pointer ">
             Đánh giá
