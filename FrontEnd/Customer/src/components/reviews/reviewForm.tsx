@@ -26,7 +26,7 @@ export default function ProductReviewForm({
 
   const handleRatingChange = (value: number) => {
     setRating(value);
-    onChange(value, content);
+    onChange(value, content.trim());
   };
 
   const handleContentChange = (value: string) => {
@@ -71,7 +71,7 @@ export default function ProductReviewForm({
           value={content}
           onChange={(e) => {
             const value = e.target.value;
-            if (value.length <= 400) {
+            if (value.length <= 1000) {
               handleContentChange(value);
             }
           }}
@@ -80,7 +80,7 @@ export default function ProductReviewForm({
           rows={4}
         />
         <div className="text-xs text-muted-foreground text-right mt-2">
-          {content.length}/400 ký tự
+          {content.length}/1000 ký tự
         </div>
       </div>
     </div>

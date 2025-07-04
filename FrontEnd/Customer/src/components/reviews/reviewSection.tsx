@@ -120,7 +120,7 @@ export default function ReviewsSection({ productId, rating }: Readonly<ReviewPro
                 expanded ? '' : 'line-clamp-3'
               }`}
             >
-              {comment}
+              {comment?.trim()}
             </div>
             {!expanded && showExpand && (
               <button
