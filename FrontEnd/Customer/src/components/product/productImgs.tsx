@@ -5,8 +5,14 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { Button } from '@/components/ui/button';
-import styles from './product.component.module.css';
 import Overlay from '@/components/utils/OverLay';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '../ui/carousel';
 
 type Props = {
   coverImage: string;
@@ -25,7 +31,7 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
 
   return (
     <>
-      <div className="space-y-2 w-full h-full flex flex-col rounded-xl bg-white shadow p-4">
+      <div className="space-y-2 w-full h-full flex flex-col rounded-xl bg-white shadow p-4 max-w-lg">
         {/* Ảnh chính + nút trái/phải */}
         <div className="relative w-full flex-1">
           {/* Nút trái */}
@@ -70,28 +76,35 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
           )}
         </div>
 
-        {/* Ảnh phụ: scroll ngang ở mọi màn hình */}
-        <div className={`flex gap-2 overflow-x-auto py-1 px-1 ${styles.scrollbarHide}`}>
-          {displayImages.map((img, index) => (
-            <Button
-              variant="ghost"
-              key={index}
-              className="relative min-w-[80px] h-20 flex-shrink-0"
-              onClick={() => setActiveImage(img)}
-            >
-              <Image
-                src={img}
-                alt={`thumb-${index}`}
-                fill
-                sizes="(min-width: 0px) 100%"
-                className={clsx(
-                  'object-contain rounded-sm border cursor-pointer',
-                  img === activeImage && 'ring-1 ring-zinc-500'
-                )}
-              />
-            </Button>
-          ))}
-        </div>
+        <Carousel className="w-full ">
+          <CarouselContent>
+            {displayImages.map((img, index) => (
+              <CarouselItem key={index} className="basis-1/5">
+                <div className="p-1">
+                  <Button
+                    variant="ghost"
+                    key={index}
+                    className="relative w-18 h-18 flex-shrink-0"
+                    onClick={() => setActiveImage(img)}
+                  >
+                    <Image
+                      src={img}
+                      alt={`thumb-${index}`}
+                      fill
+                      sizes="(min-width: 0px) 100%"
+                      className={clsx(
+                        'object-contain rounded-sm border cursor-pointer w-auto h-full',
+                        img === activeImage && 'ring-1 ring-zinc-500'
+                      )}
+                    />
+                  </Button>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
       </div>
 
       {/* === XEM ẢNH TO (Modal full màn hình) === */}
