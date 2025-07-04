@@ -130,12 +130,20 @@ export class SanPhamController {
     return this.SanPhamService.findAll(params);
   }
 
+  @Get('/isbn/:id')
+  findByIsbn(
+    @Param('id') id: string,
+    @Query('filterType') filterType: ProductFilterType
+  ) {
+    return this.SanPhamService.findByIsbn(id, filterType);
+  }
+
   // Chi tiết sản phẩm
   @Get('/:id')
   findById(
     @Param('id', ParseIntPipe) id: number,
     @Query('filterType') filterType: ProductFilterType,
-    @Query('mode') mode: 'default' | 'full' | 'search'
+    @Query('mode') mode: 'default' | 'full'
   ) {
     return this.SanPhamService.findById(id, mode, filterType);
   }

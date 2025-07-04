@@ -95,18 +95,11 @@ export default function ProductTab({
       setIsLoading(true);
 
       if (productId) {
-        const idNumber = Number(productId);
-        if (Number.isNaN(idNumber)) {
-          setData([]);
-          setPageNumbers([1]);
-          setTotalPages(1);
-          setTotalItems(0);
-          setIsLoading(false);
-          return;
-        }
         try {
-          const res = await api.get(`products/${productId}`, { params: { mode: 'search' } });
-          const item = res.data.product;
+          const res = await api.get(`products/isbn/${productId}`, {
+            params: { filterType: isComponent ? 0 : filterType },
+          });
+          const item = res.data;
           setData(mapProductsOverviewFromDto([item]));
           setPageNumbers([]);
           setTotalPages(1);

@@ -447,26 +447,27 @@ export class SanPhamRepository {
 
     return result?.SP_id ?? 0;
   }
+  async findByIsbn(id: string, filterType?: ProductFilterType): Promise<any> {
+    const discountStages = this.buildPromotionStages();
+    const searchFilter = {
+      SP_isbn: id,
+      ...this.getFilter(filterType),
+    };
+    const project = this.getProject();
+    return this.SanPhamModel.aggregate([
+      { $match: searchFilter },
+      ...discountStages,
+      { $project: project },
+    ]).then((result: SanPham[]) => result[0] ?? null);
+  }
 
   async findById(
     id: number,
-    mode: 'default' | 'full' | 'search' = 'default',
+    mode: 'default' | 'full' = 'default',
     filterType?: ProductFilterType
   ): Promise<any> {
     const filter = this.getFilter(filterType);
     const discountStages = this.buildPromotionStages();
-    if (mode === 'search') {
-      const searchFilter = {
-        SP_id: id,
-        ...this.getFilter(filterType),
-      };
-      const project = this.getProject();
-      return this.SanPhamModel.aggregate([
-        { $match: searchFilter },
-        ...discountStages,
-        { $project: project },
-      ]).then((result: SanPham[]) => result[0] ?? null);
-    }
 
     if (mode === 'full') {
       return this.SanPhamModel.aggregate([

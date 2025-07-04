@@ -379,9 +379,13 @@ export class SanPhamService {
     return this.SanPhamRepo.findByVector(queryVector, limit);
   }
 
+  async findByIsbn(id: string, filterType?: ProductFilterType): Promise<any> {
+    return this.SanPhamRepo.findByIsbn(id, filterType);
+  }
+
   async findById(
     id: number,
-    mode: 'default' | 'full' | 'search' = 'default',
+    mode: 'default' | 'full' = 'default',
     filterType?: ProductFilterType
   ): Promise<any> {
     const result: any = await this.SanPhamRepo.findById(id, mode, filterType);

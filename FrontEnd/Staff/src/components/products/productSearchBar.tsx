@@ -88,7 +88,7 @@ export default function ProductSearchBar({
             <SelectValue placeholder="Chọn tiêu chí" />
           </SelectTrigger>
           <SelectContent className="text-sm cursor-pointer">
-            <SelectItem value="id">Mã sản phẩm</SelectItem>
+            <SelectItem value="id">Mã ISBN</SelectItem>
             <SelectItem value="keyword">Từ khóa | Thể loại</SelectItem>
           </SelectContent>
         </Select>
@@ -106,7 +106,7 @@ export default function ProductSearchBar({
 
       <div className="flex items-center space-x-2 flex-1">
         <Input
-          placeholder={type === 'keyword' ? 'Nhập từ khóa ...' : 'Nhập mã sản phẩm'}
+          placeholder={type === 'keyword' ? 'Nhập từ khóa ...' : 'Nhập mã isbn sản phẩm'}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           className="flex-1 text-sm"
