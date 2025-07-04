@@ -16,6 +16,7 @@ import StatsSummary from '@/components/stats/statsSumary';
 import RatioPieChart from '@/components/stats/statsRatioPieChart';
 import StatsBarChart from '@/components/stats/statsBarChart';
 import { Stats } from '@/models/stats';
+import ExportStatsExcelButton from '@/components/stats/statsExportFile';
 
 const START_YEAR = 2020;
 const CURRENT_YEAR = new Date().getFullYear();
@@ -159,45 +160,48 @@ export default function StatsPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <div className="flex gap-4 items-center bg-white p-4 rounded-md border">
-        {/* Năm */}
-        <div>
-          <Select value={String(year)} onValueChange={(val) => setYear(Number(val))}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Chọn năm" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: CURRENT_YEAR - START_YEAR + 1 }, (_, i) => {
-                const y = CURRENT_YEAR - i;
-                return (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="flex items-center justify-between p-4 bg-white rounded-md border">
+        <div className="flex gap-4 items-center">
+          {/* Năm */}
+          <div>
+            <Select value={String(year)} onValueChange={(val) => setYear(Number(val))}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Chọn năm" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: CURRENT_YEAR - START_YEAR + 1 }, (_, i) => {
+                  const y = CURRENT_YEAR - i;
+                  return (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
 
-        {/* Tháng */}
-        <div>
-          <Select value={String(month)} onValueChange={(val) => setMonth(Number(val))}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Chọn tháng" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">Tất cả</SelectItem>
-              {Array.from({ length: 12 }, (_, i) => {
-                const m = i + 1;
-                return (
-                  <SelectItem key={m} value={String(m)}>
-                    Tháng {m}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          {/* Tháng */}
+          <div>
+            <Select value={String(month)} onValueChange={(val) => setMonth(Number(val))}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Chọn tháng" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Tất cả</SelectItem>
+                {Array.from({ length: 12 }, (_, i) => {
+                  const m = i + 1;
+                  return (
+                    <SelectItem key={m} value={String(m)}>
+                      Tháng {m}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+        <ExportStatsExcelButton year={year} month={month} />
       </div>
 
       {stats && (
