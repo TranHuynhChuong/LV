@@ -40,11 +40,7 @@ const productSchema = z.object({
     }),
   productImageFiles: z.array(z.instanceof(File)).optional(),
   name: z.string({ required_error: 'Không được để trống' }).max(128),
-  status: z.preprocess(
-    (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
-    z.number({ required_error: 'Không được để trống' })
-  ) as z.ZodType<number | undefined>,
-
+  status: z.string(),
   category: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
 
   summary: z.string({ required_error: 'Không được để trống' }).max(1200),
@@ -85,7 +81,7 @@ export type ProductFormValues = z.infer<typeof productSchema>;
 export type ProductFormType = {
   name: string;
   category: number[];
-  status: number;
+  status: string;
   summary: string;
   description?: string;
   author: string;
@@ -117,7 +113,7 @@ export default function ProductForm({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      status: 1,
+      status: 'Hien',
       category: [],
       ...defaultValue,
     },
@@ -405,16 +401,13 @@ export default function ProductForm({
                   <FormLabel className="items-start w-26 sm:justify-end mt-2">Trạng thái</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <Select
-                        value={field.value?.toString() ?? ''}
-                        onValueChange={(val) => field.onChange(Number(val))}
-                      >
+                      <Select value={field.value ?? ''} onValueChange={field.onChange}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="-- Chọn trạng thái --" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Hiển thị</SelectItem>
-                          <SelectItem value="2">Ẩn</SelectItem>
+                          <SelectItem value="Hien">Hiển thị</SelectItem>
+                          <SelectItem value="An">Ẩn</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
