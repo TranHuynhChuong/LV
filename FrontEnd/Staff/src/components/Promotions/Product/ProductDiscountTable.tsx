@@ -24,6 +24,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { UseFormWatch, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { ProductPromotionDetail } from '@/models/promotionProduct';
 import { ProductOverView } from '@/models/products';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Props {
   products?: ProductOverView[];
@@ -95,13 +96,23 @@ export default function ProductDiscountTable({
                 <TableRow key={item.productId} className="align-middle">
                   <TableCell>
                     <input type="hidden" {...register(idPath)} value={item.productId} />
-                    <div className="flex items-center gap-2 max-w-64 min-w-42">
+                    <div className="flex  gap-2 ">
                       <Avatar className="w-10 h-10 rounded-sm">
                         <AvatarImage src={product.image} alt={product.name} />
                         <AvatarFallback>#{product.id}</AvatarFallback>
                       </Avatar>
-                      <div className="w-full">
-                        <div className="truncate cursor-default w-full">{product.name}</div>
+                      <div className="max-w-48 min-w-32">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="text-xs cursor-default truncate">{product.name}</div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p> {product.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
                         <div className="text-xs text-muted-foreground">#{product.id}</div>
                       </div>
                     </div>
