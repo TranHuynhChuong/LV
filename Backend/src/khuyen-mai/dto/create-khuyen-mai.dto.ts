@@ -15,9 +15,6 @@ export class ChiTietKmDto {
   @IsInt()
   SP_id: number;
 
-  @IsString()
-  KM_id: string;
-
   @IsBoolean()
   CTKM_theoTyLe: boolean;
 
