@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,17 @@ export default function RegisterForm() {
   const [email, setEmail] = useState('');
   const router = useRouter();
   const { loadAuth } = useAuth();
+
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  useEffect(() => {
+    if (otpCountdown === 0) return;
+    const timer = setInterval(() => {
+      setOtpCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
+
   const handleSendOtp = async () => {
     if (!email) {
       setError('Vui lòng nhập email');
@@ -29,6 +41,9 @@ export default function RegisterForm() {
     try {
       await api.post('/auth/send-otp', { email });
       setError('');
+      toast.success('Mã OTP đã được gửi đến email');
+
+      setOtpCountdown(30);
     } catch (err) {
       setError('Không thể gửi mã OTP');
       console.error('Gửi OTP lỗi:', err);
@@ -65,10 +80,10 @@ export default function RegisterForm() {
         password: password,
       });
       await loadAuth();
-      router.replace('/login');
+      router.replace('/auth/login');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      if (err?.response?.status === 401) {
+      if (err?.response?.status === 409) {
         setError('Email đã được đăng ký');
       } else if (err?.response?.status === 422) {
         setError('Mã OTP không đúng hoặc hết hạn');
@@ -79,11 +94,10 @@ export default function RegisterForm() {
     } finally {
       setLoading(false);
     }
-    setError('');
   };
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="max-w-lg m-auto shadow-lg">
       <form onSubmit={handleSubmit}>
         <CardHeader className="mb-6">
           <CardTitle className="text-2xl text-center">Đăng ký</CardTitle>
@@ -100,16 +114,21 @@ export default function RegisterForm() {
                 value={email}
                 onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleSendOtp}
-                className="cursor-pointer"
-              >
-                Gửi mã
-              </Button>
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSendOtp}
+                  className="cursor-pointer"
+                >
+                  Gửi mã
+                </Button>
+              </div>
             </div>
+            <p className="text-xs text-end mt-2 text-zinc-600">
+              {otpCountdown > 0 ? `Gửi lại sau ${otpCountdown}s` : ''}
+            </p>
           </div>
           <div>
             <Label htmlFor="otp">Mã OTP</Label>
@@ -174,7 +193,7 @@ export default function RegisterForm() {
           </Button>
           <div className="flex justify-center items-center text-sm gap-2 ">
             <p>Đã có có tài khoản ? </p>
-            <Link href={'/auth/register'} className="hover:underline underline">
+            <Link href={'/auth/login'} className="hover:underline underline">
               Đăng nhập
             </Link>
           </div>
