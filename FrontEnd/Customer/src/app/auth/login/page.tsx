@@ -116,7 +116,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-lg w-full mx-auto mt-10">
+    <div className="max-w-lg w-full mx-auto my-10">
       {showForgotPassword ? (
         <div className="bg-white rounded-md shadow border p-6">
           <h2 className="text-xl font-semibold text-center mb-8">Quên mật khẩu</h2>
