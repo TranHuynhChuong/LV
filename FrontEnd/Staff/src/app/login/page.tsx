@@ -40,8 +40,8 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Login failed:', errorData.message);
+        const data = await res.json();
+        console.error('Login failed:', data.message);
 
         if (res.status === 401) {
           setServerError('Mã đăng nhập / Mật khẩu không đúng');
@@ -51,8 +51,10 @@ export default function LoginPage() {
 
         return;
       }
+      const { role } = await res.json();
 
-      router.push('/');
+      if (role === 3) router.push('/orders');
+      else router.push('/');
     } catch (error) {
       console.error('Login error:', error);
       setServerError('Đã xảy ra lỗi!');

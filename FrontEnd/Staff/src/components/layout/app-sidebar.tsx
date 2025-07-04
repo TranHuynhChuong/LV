@@ -63,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   } else if (authData.role === 2) {
     navMain = fullNav.filter((item) => item.url !== '/accounts');
   } else if (authData.role === 3) {
-    navMain = fullNav.filter((item) => item.url === '/orders');
+    navMain = fullNav.filter((item) => item.url === '/orders' || item.url === '/');
   }
 
   const data = {
@@ -79,11 +79,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuButton size="lg" asChild>
             <Link href="/">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                DL
-              </div>
+              <img src="/icon.png" alt="icon" className="h-8 w-8" />
               <div className="grid flex-1 text-left leading-tight ml-2">
-                <span className="truncate font-bold text-xl  ">DẬT LẠC</span>
+                <img src="/name.png" alt="icon" className="h-6 w-fit" />
               </div>
             </Link>
           </SidebarMenuButton>
