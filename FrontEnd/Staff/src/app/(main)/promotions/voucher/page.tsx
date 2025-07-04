@@ -23,8 +23,8 @@ export enum VoucherFilterType {
 }
 
 export enum VoucherType {
-  Shipping = 'shipping',
-  Order = 'order',
+  Shipping = 'vc',
+  Order = 'hd',
   All = 'all',
 }
 
@@ -90,12 +90,12 @@ export default function VoucherPromotion() {
       api
         .get('/vouchers', { params })
         .then((res) => {
-          const { data, metadata } = res.data;
+          const { data, paginationInfo } = res.data;
 
           setData(mapVouchers(data));
-          setPageNumbers(metadata.pagination);
-          setTotalPages(metadata.totalPage);
-          setTotalItems(metadata.totalItems);
+          setPageNumbers(paginationInfo.pageNumbers);
+          setTotalPages(paginationInfo.totalPages);
+          setTotalItems(paginationInfo.totalItems);
         })
         .catch(() => {
           setData([]);
@@ -137,14 +137,14 @@ export default function VoucherPromotion() {
     <div className="min-w-fit p-4">
       <div className="space-y-4 bg-white min-w-fit rounded-sm shadow p-4">
         <div className="flex gap-2">
-          {['ended', 'open', 'active'].map((tab) => (
+          {['expired', 'notEnded', 'active'].map((tab) => (
             <Link
               key={tab}
               href={{ pathname: `/promotions/voucher`, query: { status: tab, page: 1 } }}
             >
               <Button variant={status === tab ? 'default' : 'outline'} className="cursor-pointer">
-                {tab === 'ended' && `Đã kết thúc`}
-                {tab === 'open' && `Chưa kết thúc`}
+                {tab === 'expired' && `Đã kết thúc`}
+                {tab === 'notEnded' && `Chưa kết thúc`}
                 {tab === 'active' && `Đang diễn ra`}
               </Button>
             </Link>

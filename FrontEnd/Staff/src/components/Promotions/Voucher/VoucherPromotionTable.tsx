@@ -55,7 +55,7 @@ export default function VoucherPromotionsTable({
       cell: ({ row }) => {
         const type = row.original.type;
         const display =
-          type === 'shipping' ? 'Vận chuyển' : type === 'order' ? 'Tiền hàng' : 'Không xác định';
+          type === 'vc' ? 'Vận chuyển' : type === 'hd' ? 'Tiền hàng' : 'Không xác định';
         return <div>{display}</div>;
       },
     },
