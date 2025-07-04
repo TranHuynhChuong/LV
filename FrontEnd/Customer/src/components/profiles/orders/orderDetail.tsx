@@ -41,19 +41,21 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
         Mã đơn hàng: {orderId} | {statusMap[status] || 'Không xác định'}
       </div>
 
-      <div className=" p-6 bg-white border rounded-md ">
-        <h4 className="font-medium">Yêu cầu xuất hóa đơn</h4>
-        <div className="flex pt-2 pl-2 text-sm font-normal">
-          <div className="space-y-2">
-            <p>Tên: {invoice.fullName}</p>
-            <p>Mã số thuế: {invoice.taxCode}</p>
-            <div>
-              <p> Địa chỉ: {`${invoice.address}`}</p>
+      {invoice.taxCode && (
+        <div className=" p-6 bg-white border rounded-md ">
+          <h4 className="font-medium">Yêu cầu xuất hóa đơn</h4>
+          <div className="flex pt-2 pl-2 text-sm font-normal">
+            <div className="space-y-2">
+              <p>Tên: {invoice.fullName}</p>
+              <p>Mã số thuế: {invoice.taxCode}</p>
+              <div>
+                <p> Địa chỉ: {`${invoice.address}`}</p>
+              </div>
+              <p>Email: {invoice.email}</p>
             </div>
-            <p>Email: {invoice.email}</p>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col p-6 bg-white border rounded-md md:flex-row">
         <div className="flex-1">
@@ -91,7 +93,6 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
           `}
                   />
 
-                  {/* Nếu không phải cuối thì có line kèm theo */}
                   {!isLast && (
                     <div className="absolute w-[1px] h-10 bg-gray-300 -left-[11px] top-4"></div>
                   )}
@@ -171,13 +172,13 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
             <span className="text-gray-600">Phí vận chuyển</span>
             <span>{shippingFee.toLocaleString()} đ</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Giảm hóa đơn</span>
+          <div className="flex justify-between italic text-zinc-500">
+            <span>Giảm hóa đơn</span>
             <span>-{discountInvoice.toLocaleString()} đ</span>
           </div>
 
-          <div className="flex justify-between">
-            <span className="text-gray-600">Giảm phí vận chuyển</span>
+          <div className="flex justify-between italic text-zinc-500">
+            <span>Giảm phí vận chuyển</span>
             <span>-{discountShipping.toLocaleString()} đ</span>
           </div>
 
