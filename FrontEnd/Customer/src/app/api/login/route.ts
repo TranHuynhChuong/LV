@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try {
     const { email, pass } = await request.json();
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-customer`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BE_API}/auth/login-customer`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, pass }),
