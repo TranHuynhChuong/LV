@@ -179,7 +179,7 @@ export default function ProductDetail() {
         <ProductForm
           onSubmit={onSubmit}
           defaultValue={data}
-          onDelete={data?.status === 2 ? handleOnDelete : undefined}
+          onDelete={data?.status === 'An' ? handleOnDelete : undefined}
         />
         <div className=" absolute top-6 right-6">
           <ActionHistorySheet activityLogs={activityLogs} />
