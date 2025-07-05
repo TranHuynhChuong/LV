@@ -97,9 +97,10 @@ export default function ProductTab({
       if (productId) {
         try {
           const res = await api.get(`products/isbn/${productId}`, {
-            params: { filterType: isComponent ? 0 : filterType },
+            params: { filterType: filterType },
           });
           const item = res.data;
+          if (!item) throw new Error();
           setData(mapProductsOverviewFromDto([item]));
           setPageNumbers([]);
           setTotalPages(1);
@@ -118,7 +119,7 @@ export default function ProductTab({
         const params = {
           page,
           sortType,
-          filterType: isComponent ? 0 : filterType,
+          filterType: filterType,
           limit,
           keyword,
           categoryId,
@@ -139,7 +140,7 @@ export default function ProductTab({
         setIsLoading(false);
       }
     },
-    [sortType, filterType, limit]
+    [keyword, categoryId, productId]
   );
 
   const handleError = () => {
@@ -148,15 +149,13 @@ export default function ProductTab({
     setTotalPages(1);
     setTotalItems(0);
   };
+  useEffect(() => {
+    if (status === 'noPromotion') setIsComponent(true);
+  }, [status]);
 
   useEffect(() => {
-    if (onPageChange && onSearch && onClearSearch) {
-      setIsComponent(false);
-    } else {
-      setIsComponent(true);
-    }
     fetchData(currentPage, sortType, filterType, keyword, categoryId, productId);
-  }, [status, currentPage, keyword, categoryId, productId, fetchData]);
+  }, [status, currentPage, fetchData]);
 
   useEffect(() => {
     if (!isComponent) {
@@ -183,20 +182,18 @@ export default function ProductTab({
   }) => {
     if (onSearch) {
       onSearch?.(param);
+    } else if (param.type === 'id') {
+      setProductId(param.keyword);
+      setCategoryId(undefined);
+      setKeyword(undefined);
+    } else if (param.type === 'keyword') {
+      setProductId(undefined);
+      setCategoryId(param.categoryId);
+      setKeyword(param.keyword);
     } else {
-      if (param.type === 'id') {
-        setProductId(keyword);
-        setCategoryId(undefined);
-        setKeyword(undefined);
-      } else if (param.type === 'keyword') {
-        setProductId(undefined);
-        setCategoryId(param.categoryId);
-        setKeyword(param.keyword);
-      } else {
-        setProductId(undefined);
-        setCategoryId(undefined);
-        setKeyword(undefined);
-      }
+      setProductId(undefined);
+      setCategoryId(undefined);
+      setKeyword(undefined);
     }
   };
 
@@ -225,7 +222,7 @@ export default function ProductTab({
   }
 
   return (
-    <div className="space-y-4 bg-white min-w-fit">
+    <div className="space-y-4 bg-white min-w-xl">
       {isSubmitting && <Loader />}
       <div className="flex items-center  justify-between">
         <h1 className="text-lg font-semibold pl-4">{totalItems} Sản phẩm</h1>
