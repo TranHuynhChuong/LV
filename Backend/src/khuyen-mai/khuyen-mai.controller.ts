@@ -7,6 +7,8 @@ import {
   Query,
   Body,
   UseGuards,
+  ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import { KhuyenMaiService } from './khuyen-mai.service';
 import { CreateKhuyenMaiDto } from './dto/create-khuyen-mai.dto';
@@ -51,7 +53,7 @@ export class KhuyenMaiController {
   // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
   @Get(':id')
   async findById(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Query('filterType') filterType?: PromotionFilterType
   ): Promise<ReturnType<typeof this.KhuyenMaiService.findById>> {
     return this.KhuyenMaiService.findById(id, filterType);
@@ -60,7 +62,17 @@ export class KhuyenMaiController {
   // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: UpdateKhuyenMaiDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateKhuyenMaiDto
+  ) {
     return this.KhuyenMaiService.update(id, data);
+  }
+
+  // ======= [DELETE] Xóa khuyến mãi =======
+  @UseGuards(XacThucGuard)
+  @Delete(':id')
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.KhuyenMaiService.delete(id);
   }
 }

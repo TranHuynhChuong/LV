@@ -7,6 +7,7 @@ import {
   Query,
   Body,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { MaGiamService } from './ma-giam.service';
 import { CreateMaGiamDto } from './dto/create-ma-giam.dto';
@@ -22,14 +23,14 @@ import {
 export class MaGiamController {
   constructor(private readonly MaGiamService: MaGiamService) {}
 
-  // ======= [POST] /ma-giam - Tạo mới mã giảm =======
+  // ======= [POST] /Tạo mới mã giảm =======
   @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateMaGiamDto) {
     return this.MaGiamService.create(data);
   }
 
-  // ======= [GET] /ma-giam - Lấy danh sách mã giảm (phân trang, status) =======
+  // ======= [GET] /Lấy danh sách mã giảm (phân trang, status) =======
   @Get()
   findAll(
     @Query('page') page: string,
@@ -50,14 +51,14 @@ export class MaGiamController {
     return this.MaGiamService.getAllValid();
   }
 
-  // ======= [GET] /ma-giam - Lấy số lượng mã giảm hợp lệ =======
+  // ======= [GET] /Lấy số lượng mã giảm hợp lệ =======
 
   @Get('/total')
   async count(): Promise<any> {
     return await this.MaGiamService.countValid();
   }
 
-  // ======= [GET] /ma-giam/:id - Lấy chi tiết mã giảm theo ID =======
+  // ======= [GET] Lấy chi tiết mã giảm theo ID =======
   @Get(':id')
   async findById(
     @Param('id') id: string,
@@ -67,10 +68,17 @@ export class MaGiamController {
     return this.MaGiamService.getById(id, filterType, type);
   }
 
-  // ======= [PUT] /ma-giam/:id - Cập nhật mã giảm =======
+  // ======= [PUT] Cập nhật mã giảm =======
   @UseGuards(XacThucGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateMaGiamDto) {
     return this.MaGiamService.update(id, data);
+  }
+
+  // ======= [DELETE] Xóa mã giảm =======
+  @UseGuards(XacThucGuard)
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.MaGiamService.delete(id);
   }
 }

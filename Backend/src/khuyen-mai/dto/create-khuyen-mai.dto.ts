@@ -30,10 +30,6 @@ export class CreateKhuyenMaiDto {
   @MaxLength(128)
   KM_ten: string;
 
-  @IsString()
-  @MaxLength(7)
-  KM_id: string;
-
   @IsDate()
   @Transform(({ value }) => (value ? new Date(value) : undefined))
   KM_batDau: Date;

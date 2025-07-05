@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -52,12 +51,8 @@ export class KhuyenMaiService {
     try {
       const result = await session.withTransaction(async () => {
         // Kiểm tra mã khuyến mãi đã tồn tại chưa
-        const existing = await this.KhuyenMaiRepo.findById(data.KM_id);
-        if (existing) {
-          throw new ConflictException(
-            'Tạo khuyến mãi - Mã khuyến mãi đã tồn tại'
-          );
-        }
+        const lastId = await this.KhuyenMaiRepo.findLastId(session);
+        const newId = lastId + 1;
 
         const thaoTac = {
           thaoTac: 'Tạo mới',
@@ -71,6 +66,7 @@ export class KhuyenMaiService {
         const created = await this.KhuyenMaiRepo.create(
           {
             ...KhuyenMaiData,
+            KM_id: newId,
             lichSuThaoTac: [thaoTac],
           },
           session
@@ -86,7 +82,7 @@ export class KhuyenMaiService {
         if (KM_chiTiet && KM_chiTiet.length > 0) {
           const chiTietWithKMId = KM_chiTiet.map((ct) => ({
             ...ct,
-            KM_id: KhuyenMaiData.KM_id,
+            KM_id: newId,
           }));
 
           await this.ChiTietKhuyenMaiRepo.create(chiTietWithKMId, session);
@@ -115,7 +111,7 @@ export class KhuyenMaiService {
 
   // =======================Lấy chi tiết khuyến mãi theo id==========================
   async findById(
-    KM_id: string,
+    KM_id: number,
     filterType?: PromotionFilterType
   ): Promise<any> {
     const result: any = await this.KhuyenMaiRepo.findAndGetDetailById(
@@ -135,7 +131,7 @@ export class KhuyenMaiService {
   }
 
   // ==================== Cập nhật khuyến mãi =======================================
-  async update(id: string, newData: UpdateKhuyenMaiDto): Promise<KhuyenMai> {
+  async update(id: number, newData: UpdateKhuyenMaiDto): Promise<KhuyenMai> {
     const session = await this.connection.startSession();
 
     try {
@@ -231,7 +227,7 @@ export class KhuyenMaiService {
 
   // Kiểm tra cập nhật các chi tiết khuyến mãi
   private async processChiTietKhuyenMai(
-    KM_id: string,
+    KM_id: number,
     newList: any[],
     session: ClientSession
   ): Promise<boolean> {
@@ -274,7 +270,7 @@ export class KhuyenMaiService {
       if (!newMap.has(oldItem.SP_id)) {
         changed = true;
         promises.push(
-          this.ChiTietKhuyenMaiRepo.delete(KM_id, oldItem.SP_id, session)
+          this.ChiTietKhuyenMaiRepo.remove(KM_id, oldItem.SP_id, session)
         );
       }
     }
@@ -302,5 +298,36 @@ export class KhuyenMaiService {
 
   async countValid(): Promise<number> {
     return this.KhuyenMaiRepo.countValid();
+  }
+
+  async delete(id: number): Promise<void> {
+    // Bắt đầu session
+    const session: ClientSession = await this.connection.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        // Tìm bản ghi
+        const current = await this.KhuyenMaiRepo.findById(id, session);
+        if (!current) {
+          throw new NotFoundException(
+            'Xóa khuyến mãi - Không tìm thấy khuyến mãi'
+          );
+        }
+
+        const now = new Date();
+        const isOngoing = current.KM_batDau <= now && now <= current.KM_ketThuc;
+        if (isOngoing) {
+          throw new BadRequestException(
+            'Xóa khuyến mãi - Không thể xóa khi khuyến mãi đang diễn ra.'
+          );
+        }
+
+        // Xóa khuyến mãi & chi tiết khuyến mãi trong cùng session
+        await this.KhuyenMaiRepo.delete(id, session);
+        await this.ChiTietKhuyenMaiRepo.delete(id, session);
+      });
+    } finally {
+      await session.endSession();
+    }
   }
 }

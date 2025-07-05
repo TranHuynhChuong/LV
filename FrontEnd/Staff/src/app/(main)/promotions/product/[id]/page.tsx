@@ -76,6 +76,31 @@ export default function ProductPromotionDetail() {
     }
   }
 
+  async function onDelete() {
+    if (!id) return;
+    if (!authData.userId) return;
+
+    const now = new Date();
+    const start = data?.from;
+
+    if (start && start <= now) {
+      toast.error('Không thể xoá vì khuyến mãi đã hoặc đang diễn ra!');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await api.delete(`/promotions/${id}`);
+      toast.success('Xoá khuyến mãi thành công!');
+      router.back();
+    } catch (error) {
+      console.error(error);
+      toast.error('Xoá khuyến mãi thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     fetchData();
   }, [id]);
@@ -97,6 +122,8 @@ export default function ProductPromotionDetail() {
             onSubmit={onSubmit}
             defaultValues={data}
             availableProducts={products}
+            isViewing={!!data?.from && data.from < new Date()}
+            onDelete={onDelete}
           />
           <div className=" absolute top-6 right-6">
             <ActionHistorySheet activityLogs={activityLogs} />

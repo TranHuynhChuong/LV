@@ -92,12 +92,14 @@ export class KhuyenMaiRepository {
     });
   }
 
-  async findById(id: string) {
-    return this.KhuyenMaiModel.findOne({ KM_id: id }).exec();
+  async findById(id: number, session?: ClientSession) {
+    return this.KhuyenMaiModel.findOne({ KM_id: id })
+      .session(session ?? null)
+      .exec();
   }
 
   async findAndGetDetailById(
-    KM_id: string,
+    KM_id: number,
     filterType?: PromotionFilterType
   ): Promise<KhuyenMaiDocument | null> {
     const filter = this.getFilter(filterType);
@@ -211,8 +213,27 @@ export class KhuyenMaiRepository {
     );
   }
 
+  async delete(id: number, session?: ClientSession): Promise<boolean> {
+    const result = await this.KhuyenMaiModel.findOneAndDelete({
+      KM_id: id,
+    }).session(session ?? null);
+    return !!result;
+  }
+
+  async findLastId(session?: ClientSession): Promise<number> {
+    const result = await this.KhuyenMaiModel.find({})
+      .sort({ KM_id: -1 })
+      .limit(1)
+      .select('KM_id')
+      .session(session ?? null)
+      .lean()
+      .exec();
+
+    return result.length > 0 ? result[0].KM_id : 0;
+  }
+
   async update(
-    KM_id: string,
+    KM_id: number,
     update: Partial<KhuyenMai>,
     session?: ClientSession
   ) {

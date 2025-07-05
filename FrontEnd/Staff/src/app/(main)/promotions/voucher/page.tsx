@@ -49,7 +49,7 @@ export default function VoucherPromotion() {
   const searchParams = useSearchParams();
 
   const router = useRouter();
-  const status = searchParams.get('status') ?? 'open';
+  const status = searchParams.get('status') ?? 'notEnded';
   const type = (searchParams.get('type') ?? 'all') as VoucherType;
   const page = parseInt(searchParams.get('page') ?? '1');
 

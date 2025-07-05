@@ -124,6 +124,19 @@ export class MaGiamService {
       throw new NotFoundException('Cập nhật mã giảm - Không tim thấy mã giảm');
     }
 
+    const now = new Date();
+
+    const isOngoing = current.MG_batDau <= now && now <= current.MG_ketThuc;
+    if (
+      isOngoing &&
+      newData.MG_batDau &&
+      newData.MG_batDau.getTime() !== current.MG_batDau.getTime()
+    ) {
+      throw new BadRequestException(
+        'Cập nhật mã giảm - Không thể cập nhật thời gian bắt đầu khi mã giảm đang diễn ra.'
+      );
+    }
+
     // Xác định trường thay đổi
     const fieldsChange: string[] = [];
     const updatePayload: any = {};
@@ -169,6 +182,25 @@ export class MaGiamService {
     }
 
     return updated;
+  }
+
+  async delete(id: string) {
+    // Tìm bản ghi hiện tại theo id
+    const current = await this.MaGiamRepo.findById(id);
+    if (!current) {
+      throw new NotFoundException('Xóa mã giảm - Không tim thấy mã giảm');
+    }
+
+    const now = new Date();
+
+    const isOngoing = current.MG_batDau <= now && now <= current.MG_ketThuc;
+    if (isOngoing) {
+      throw new BadRequestException(
+        'Xóa mã giảm - Không thể xóa khi mã giảm đang diễn ra.'
+      );
+    }
+
+    return this.MaGiamRepo.delete(id);
   }
 
   async countValid(): Promise<number> {

@@ -133,6 +133,11 @@ export class MaGiamRepository {
     });
   }
 
+  async delete(id: string): Promise<boolean> {
+    const result = await this.MaGiamModel.findOneAndDelete({ MG_id: id });
+    return !!result;
+  }
+
   async countValid(): Promise<number> {
     const now = new Date();
     // Assuming you are using Mongoose or similar ODM

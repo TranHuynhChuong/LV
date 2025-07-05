@@ -2,7 +2,7 @@ import { ActivityLogsDto } from '../activityLogs/dto';
 import { ProductOverViewDto } from '../products/dto';
 
 export type ProductPromotionOverviewDto = {
-  KM_id: string;
+  KM_id: number;
   KM_ten: string;
   KM_batDau: Date;
   KM_ketThuc: Date;
@@ -10,7 +10,7 @@ export type ProductPromotionOverviewDto = {
 };
 
 export type DetailDto = {
-  KM_id: string;
+  KM_id: number;
   SP_id: number;
   CTKM_theoTyLe: boolean;
   CTKM_giaTri: number;
@@ -19,7 +19,7 @@ export type DetailDto = {
 };
 
 export type ProductPromotionDetailDto = {
-  KM_id: string;
+  KM_id: number;
   KM_ten: string;
   KM_batDau: Date;
   KM_ketThuc: Date;

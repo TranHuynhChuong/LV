@@ -48,7 +48,6 @@ export function mapProductPromotionsFromDto(
 }
 
 interface ProductPromotionDetailToDto {
-  KM_id: string;
   KM_ten: string;
   KM_batDau: string;
   KM_ketThuc: string;
@@ -66,7 +65,6 @@ export function mapProductPromotionDetailToDto(
   staffId: string
 ): ProductPromotionDetailToDto {
   const dto: ProductPromotionDetailToDto = {
-    KM_id: data.id,
     KM_ten: data.name ?? '',
     KM_batDau: data.from.toISOString(),
     KM_ketThuc: data.to.toISOString(),

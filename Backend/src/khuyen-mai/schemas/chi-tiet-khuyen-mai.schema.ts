@@ -5,8 +5,8 @@ export type ChiTietKhuyenMaiDocument = ChiTietKhuyenMai & Document;
 
 @Schema()
 export class ChiTietKhuyenMai {
-  @Prop({ type: String, required: true })
-  KM_id: string;
+  @Prop({ type: Number, required: true })
+  KM_id: number;
 
   @Prop({ type: Number, required: true })
   SP_id: number;

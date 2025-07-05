@@ -1,7 +1,7 @@
 import { ProductOverView } from '../products/domain';
 
 export type ProductPromotionOverview = {
-  id: string;
+  id: number;
   name: string;
   startAt: Date;
   endAt: Date;
@@ -16,7 +16,7 @@ export type Details = {
 };
 
 export type ProductPromotionDetail = {
-  id: string;
+  id?: number;
   name?: string;
   from: Date;
   to: Date;

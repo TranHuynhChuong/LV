@@ -22,8 +22,8 @@ export const LichSuThaoTacKMSchema =
 
 @Schema()
 export class KhuyenMai {
-  @Prop({ type: String, required: true, unique: true, maxlength: 7 })
-  KM_id: string;
+  @Prop({ type: Number, required: true, unique: true })
+  KM_id: number;
 
   @Prop({ type: String, maxlength: 120 })
   KM_ten: string;

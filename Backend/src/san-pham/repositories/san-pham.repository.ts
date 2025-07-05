@@ -120,7 +120,7 @@ export class SanPhamRepository {
     categoryIds?: number[];
     keyword?: string;
   }): { dataPipeline: PipelineStage[]; countPipeline: PipelineStage[] } {
-    const excludeActivePromotion =
+    const ExcludeUnexpiredPromotion =
       filterType === ProductFilterType.ExcludeActivePromotion;
     const search = this.getSearch(keyword);
     const filter = this.getFilter(filterType, categoryIds);
@@ -140,24 +140,28 @@ export class SanPhamRepository {
 
     const dataPipeline: PipelineStage[] = [...preStages];
 
-    if (needDiscountEarly) {
-      dataPipeline.push(...this.buildPromotionStages(excludeActivePromotion));
+    if (ExcludeUnexpiredPromotion) {
+      dataPipeline.push(...this.buildExcludeUnexpiredPromotionStage());
+    } else if (needDiscountEarly) {
+      dataPipeline.push(...this.buildPromotionStages());
     }
 
     if (sort && Object.keys(sort).length > 0) {
       dataPipeline.push({ $sort: sort });
     }
 
-    const countPipeline = [
-      ...preStages,
-      ...this.buildPromotionStages(excludeActivePromotion),
-      { $count: 'count' },
-    ];
+    const countPipeline: PipelineStage[] = [...preStages];
+
+    if (ExcludeUnexpiredPromotion) {
+      countPipeline.push(...this.buildExcludeUnexpiredPromotionStage());
+    }
+
+    countPipeline.push(...this.buildPromotionStages(), { $count: 'count' });
 
     dataPipeline.push({ $skip: skip }, { $limit: limit });
 
-    if (!needDiscountEarly) {
-      dataPipeline.push(...this.buildPromotionStages(excludeActivePromotion));
+    if (!ExcludeUnexpiredPromotion && !needDiscountEarly) {
+      dataPipeline.push(...this.buildPromotionStages());
     }
 
     dataPipeline.push({ $project: project });
@@ -165,7 +169,7 @@ export class SanPhamRepository {
     return { dataPipeline, countPipeline };
   }
 
-  protected buildPromotionStages(excludeActive = false): PipelineStage[] {
+  protected buildPromotionStages(): PipelineStage[] {
     const now = new Date();
 
     const stages: PipelineStage[] = [
@@ -218,60 +222,110 @@ export class SanPhamRepository {
       },
     ];
 
-    // B2: Nếu excludeActive = true => loại sản phẩm có khuyến mãi hiệu lực
-    if (excludeActive) {
-      stages.push({
-        $match: {
-          $expr: { $eq: [{ $size: '$khuyenMai' }, 0] },
-        },
-      });
-    } else {
-      // B3: Tính SP_giaGiam nếu có khuyến mãi
-      stages.push({
-        $addFields: {
-          SP_giaGiam: {
-            $cond: {
-              if: { $gt: [{ $size: '$khuyenMai' }, 0] },
-              then: {
-                $let: {
-                  vars: {
-                    goc: '$SP_giaBan',
-                  },
-                  in: {
-                    $subtract: [
-                      '$$goc',
-                      {
-                        $max: {
-                          $map: {
-                            input: '$khuyenMai',
-                            as: 'km',
-                            in: {
-                              $cond: {
-                                if: '$$km.CTKM_theoTyLe',
-                                then: {
-                                  $multiply: [
-                                    '$$goc',
-                                    { $divide: ['$$km.CTKM_giaTri', 100] },
-                                  ],
-                                },
-                                else: '$$km.CTKM_giaTri',
+    stages.push({
+      $addFields: {
+        SP_giaGiam: {
+          $cond: {
+            if: { $gt: [{ $size: '$khuyenMai' }, 0] },
+            then: {
+              $let: {
+                vars: {
+                  goc: '$SP_giaBan',
+                },
+                in: {
+                  $subtract: [
+                    '$$goc',
+                    {
+                      $max: {
+                        $map: {
+                          input: '$khuyenMai',
+                          as: 'km',
+                          in: {
+                            $cond: {
+                              if: '$$km.CTKM_theoTyLe',
+                              then: {
+                                $multiply: [
+                                  '$$goc',
+                                  { $divide: ['$$km.CTKM_giaTri', 100] },
+                                ],
                               },
+                              else: '$$km.CTKM_giaTri',
                             },
                           },
                         },
                       },
-                    ],
-                  },
+                    },
+                  ],
                 },
               },
-              else: '$SP_giaBan',
             },
+            else: '$SP_giaBan',
           },
         },
-      });
-    }
+      },
+    });
 
     return stages;
+  }
+
+  protected buildExcludeUnexpiredPromotionStage(): PipelineStage[] {
+    const now = new Date();
+
+    return [
+      {
+        $lookup: {
+          from: 'chitietkhuyenmais',
+          let: { sp_id: '$SP_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$SP_id', '$$sp_id'] },
+                    { $eq: ['$CTKM_daXoa', false] },
+                    { $eq: ['$CTKM_tamNgung', false] },
+                  ],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: 'khuyenmais',
+                let: { km_id: '$KM_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$KM_id', '$$km_id'] },
+                          { $gte: ['$KM_ketThuc', now] }, // Chưa kết thúc
+                        ],
+                      },
+                    },
+                  },
+                ],
+                as: 'km',
+              },
+            },
+            {
+              $match: {
+                $expr: {
+                  $gt: [{ $size: '$km' }, 0], // Có KM chưa kết thúc
+                },
+              },
+            },
+          ],
+          as: 'unexpiredPromotions',
+        },
+      },
+      {
+        $match: {
+          $expr: {
+            $eq: [{ $size: '$unexpiredPromotions' }, 0], // Không có khuyến mãi chưa kết thúc
+          },
+        },
+      },
+    ];
   }
 
   protected getSort(

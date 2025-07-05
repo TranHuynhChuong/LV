@@ -97,14 +97,18 @@ export default function ProductPromotionsTable({
       header: 'Thao tác',
       cell: ({ row }) => {
         const item = row.original;
+        const now = new Date();
+        const from = new Date(item.startAt);
+
+        const canUpdate = from > now;
 
         return (
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-1.5">
             <Link
-              className="cursor-pointer hover:underline"
+              className="cursor-pointer hover:underline "
               href={`/promotions/product/${item.id}`}
             >
-              Cập nhật
+              {canUpdate ? 'Cập nhật' : 'Chi tiết'}
             </Link>
           </div>
         );

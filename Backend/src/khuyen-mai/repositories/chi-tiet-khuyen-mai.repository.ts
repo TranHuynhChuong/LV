@@ -51,7 +51,7 @@ export class ChiTietKhuyenMaiRepository {
     ]);
   }
 
-  async findAllByKMid(KM_id: string): Promise<ChiTietKhuyenMai[]> {
+  async findAllByKMid(KM_id: number): Promise<ChiTietKhuyenMai[]> {
     return this.ChiTietKhuyenMaiModel.find({ KM_id, CTKM_daXoa: false })
       .lean()
       .exec();
@@ -63,7 +63,7 @@ export class ChiTietKhuyenMaiRepository {
 
   async update(
     SP_id: number,
-    KM_id: string,
+    KM_id: number,
     update: Partial<ChiTietKhuyenMai>,
     session?: ClientSession
   ) {
@@ -74,11 +74,15 @@ export class ChiTietKhuyenMaiRepository {
     );
   }
 
-  async delete(KM_id: string, SP_id: number, session?: ClientSession) {
+  async remove(KM_id: number, SP_id: number, session?: ClientSession) {
     return this.ChiTietKhuyenMaiModel.updateOne(
       { KM_id, SP_id },
       { CTKM_daXoa: true },
       { session }
     );
+  }
+
+  async delete(KM_id: number, session?: ClientSession) {
+    return this.ChiTietKhuyenMaiModel.deleteOne({ KM_id }, { session });
   }
 }

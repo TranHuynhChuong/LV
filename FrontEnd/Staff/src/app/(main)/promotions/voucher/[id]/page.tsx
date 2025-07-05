@@ -61,6 +61,31 @@ export default function VoucherPromotionDetail() {
 
   const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
+  async function onDelete() {
+    if (!id) return;
+    if (!authData.userId) return;
+
+    const now = new Date();
+    const start = data?.startAt;
+
+    if (start && start <= now) {
+      toast.error('Không thể xoá vì mã giảm giá đã hoặc đang diễn ra!');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await api.delete(`/vouchers/${id}`);
+      toast.success('Xoá mã giảm giá thành công!');
+      router.back();
+    } catch (error) {
+      console.error(error);
+      toast.error('Xoá mã giảm giá thất bại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   const fetchData = () => {
     if (!id) return;
     setLoading(true);
@@ -96,7 +121,12 @@ export default function VoucherPromotionDetail() {
     <div className="p-4">
       <div className="w-full max-w-6xl  mx-auto ">
         <div className="relative ">
-          <VoucherPromotionForm onSubmit={onSubmit} defaultValues={data} />
+          <VoucherPromotionForm
+            onSubmit={onSubmit}
+            defaultValues={data}
+            onDelete={onDelete}
+            isViewing={!!data?.startAt && data.startAt < new Date()}
+          />
           <div className=" absolute top-6 right-6">
             <ActionHistorySheet activityLogs={activityLogs} />
           </div>

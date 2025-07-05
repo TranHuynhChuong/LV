@@ -38,6 +38,7 @@ interface Props {
   register: UseFormRegister<ProductPromotionDetail>;
   setValue: UseFormSetValue<ProductPromotionDetail>;
   onRemove?: (id: number) => void;
+  isViewing?: boolean;
 }
 
 export default function ProductDiscountTable({
@@ -47,6 +48,7 @@ export default function ProductDiscountTable({
   register,
   setValue,
   onRemove,
+  isViewing = false,
 }: Readonly<Props>) {
   function calcFinalPrice(price: number, value: number, isPercent: boolean): number {
     if (isPercent) {
@@ -139,7 +141,7 @@ export default function ProductDiscountTable({
                   <TableCell>
                     <Input
                       type="number"
-                      disabled={isBlocked}
+                      disabled={isBlocked || isViewing}
                       min={0}
                       value={rawValue ?? 0}
                       onChange={(e) => setValue(valuePath, Number(e.target.value))}
@@ -149,7 +151,7 @@ export default function ProductDiscountTable({
 
                   <TableCell>
                     <Select
-                      disabled={isBlocked}
+                      disabled={isBlocked || isViewing}
                       onValueChange={(val) => setValue(percentPath, val === 'percent')}
                       value={isPercent ? 'percent' : 'amount'}
                     >
@@ -190,6 +192,7 @@ export default function ProductDiscountTable({
                         className="cursor-pointer"
                         checked={isBlocked}
                         onCheckedChange={(val) => setValue(blockedPath, val)}
+                        disabled={isViewing}
                       />
                     </div>
                   </TableCell>
@@ -200,6 +203,7 @@ export default function ProductDiscountTable({
                       onClick={() => onRemove?.(product.id)}
                       size="icon"
                       className="cursor-pointer"
+                      disabled={isViewing}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
