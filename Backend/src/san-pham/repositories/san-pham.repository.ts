@@ -283,7 +283,6 @@ export class SanPhamRepository {
                   $and: [
                     { $eq: ['$SP_id', '$$sp_id'] },
                     { $eq: ['$CTKM_daXoa', false] },
-                    { $eq: ['$CTKM_tamNgung', false] },
                   ],
                 },
               },
@@ -398,6 +397,7 @@ export class SanPhamRepository {
   protected getProject() {
     return {
       SP_id: 1,
+      SP_isbn: 1,
       SP_diemDG: 1,
       SP_ten: 1,
       SP_giaBan: 1,
