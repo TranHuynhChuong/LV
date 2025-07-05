@@ -1,5 +1,6 @@
 export type ProductOverViewDto = {
   SP_id: number;
+  SP_isbn: string;
   SP_ten: string;
   SP_giaBan: number;
   SP_giaNhap: number;

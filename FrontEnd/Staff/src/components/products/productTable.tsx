@@ -93,7 +93,7 @@ export default function ProductTable({
                 </Tooltip>
               </TooltipProvider>
 
-              <div className="text-xs text-muted-foreground">#{product.id}</div>
+              <div className="text-xs text-muted-foreground mt-1">#{product.isbn}</div>
             </div>
           </div>
         );

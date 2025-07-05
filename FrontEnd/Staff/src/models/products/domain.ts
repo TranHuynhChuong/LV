@@ -1,5 +1,6 @@
 export type ProductOverView = {
   id: number;
+  isbn: string;
   name: string;
   salePrice: number;
   inventory: number;
