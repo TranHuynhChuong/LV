@@ -76,12 +76,13 @@ export default function ProductTab({
   const [keyword, setKeyword] = useState<string | undefined>(initialKeyword);
   const [categoryId, setCategoryId] = useState<string | undefined>(initialcategoryId);
   const [productId, setProductId] = useState<string | undefined>(initialProductId);
+  const [page, setPage] = useState<number>(currentPage);
   const searchType = productId ? 'id' : keyword || categoryId ? 'keyword' : undefined;
   const { authData } = useAuth();
   const [isComponent, setIsComponent] = useState<boolean>(false);
   const sortType = undefined;
   const filterType = buildFilterType(status, type);
-  const limit = 24;
+  const limit = 12;
 
   const fetchData = useCallback(
     async (
@@ -140,7 +141,7 @@ export default function ProductTab({
         setIsLoading(false);
       }
     },
-    [keyword, categoryId, productId]
+    [keyword, categoryId, productId, page, status]
   );
 
   const handleError = () => {
@@ -149,13 +150,18 @@ export default function ProductTab({
     setTotalPages(1);
     setTotalItems(0);
   };
+
+  useEffect(() => {
+    setPage(currentPage);
+  }, [currentPage]);
+
   useEffect(() => {
     if (status === 'noPromotion') setIsComponent(true);
   }, [status]);
 
   useEffect(() => {
-    fetchData(currentPage, sortType, filterType, keyword, categoryId, productId);
-  }, [status, currentPage, fetchData]);
+    fetchData(page, sortType, filterType, keyword, categoryId, productId);
+  }, [fetchData]);
 
   useEffect(() => {
     if (!isComponent) {
@@ -166,11 +172,11 @@ export default function ProductTab({
   }, [initialKeyword, initialcategoryId, initialProductId, isComponent]);
 
   const handlePageChange = (targetPage: number) => {
-    if (targetPage !== currentPage) {
-      if (onPageChange) {
+    if (targetPage !== page) {
+      if (!isComponent) {
         onPageChange?.(targetPage);
       } else {
-        fetchData(currentPage, sortType, filterType, keyword, categoryId, productId);
+        setPage(targetPage);
       }
     }
   };
@@ -201,7 +207,7 @@ export default function ProductTab({
     if (onClearSearch) {
       onClearSearch?.();
     } else {
-      fetchData(1, sortType, filterType);
+      setPage(1);
     }
   };
 
@@ -251,7 +257,7 @@ export default function ProductTab({
         isComponent={isComponent}
         onPageChange={handlePageChange}
         pageNumbers={pageNumbers}
-        currentPage={currentPage}
+        currentPage={page}
         totalPages={totalPages}
         onClose={onClose}
         onConfirmSelect={onConfirmSelect}

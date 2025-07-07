@@ -75,7 +75,7 @@ export default function ProductsListType() {
   const handlePageChange = (targetPage: number) => {
     const search = new URLSearchParams(searchParams.toString());
     search.set('page', targetPage.toString());
-    router.push(`/products/all?${search.toString()}`);
+    router.push(`/products/list/${type}?${search.toString()}`);
   };
 
   const pathname = usePathname();
