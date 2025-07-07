@@ -25,7 +25,6 @@ export class MaGiamDonHangRepository {
 
   async getVoucherStats(dhIds: string[]) {
     const [typeResult, usedResult] = await Promise.all([
-      // Thống kê lượt dùng theo loại mã (giống cũ)
       this.MaGiamDonHangModel.aggregate([
         { $match: { DH_id: { $in: dhIds } } },
         {
@@ -36,7 +35,8 @@ export class MaGiamDonHangRepository {
             as: 'maGiam',
           },
         },
-        { $unwind: '$maGiam' },
+        { $unwind: { path: '$maGiam', preserveNullAndEmptyArrays: false } },
+
         {
           $group: {
             _id: '$maGiam.MG_loai',
@@ -52,7 +52,6 @@ export class MaGiamDonHangRepository {
         },
       ]),
 
-      // Đếm số đơn hàng unique có dùng ít nhất một mã
       this.MaGiamDonHangModel.aggregate([
         { $match: { DH_id: { $in: dhIds } } },
         {
@@ -66,9 +65,15 @@ export class MaGiamDonHangRepository {
       ]),
     ]);
 
+    const TYPE_LABELS: Record<string, string> = {
+      vc: 'shipping',
+      hd: 'order',
+    };
+
     const typeStats: Record<string, number> = {};
     for (const item of typeResult) {
-      typeStats[item.type] = item.count;
+      const key = TYPE_LABELS[item.type] ?? item.type;
+      typeStats[key] = item.count;
     }
 
     return {
