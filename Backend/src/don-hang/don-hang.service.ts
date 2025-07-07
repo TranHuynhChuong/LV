@@ -471,7 +471,6 @@ export class DonHangService {
       ...inCompleteOrderIds,
     ]);
 
-    console.log(vouchers);
     const buyerStats = await this.DonHangRepo.getOrderStatsByCustomerType(
       startDate,
       endDate
