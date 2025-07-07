@@ -366,8 +366,9 @@ export class DanhGiaRepository {
     productId: number,
     customerId: number,
     status: boolean,
-    history: any
-  ) {
+    history: any,
+    session?: ClientSession
+  ): Promise<DanhGia | null> {
     return this.DanhGiaModel.findOneAndUpdate(
       {
         DH_id: orderId,
@@ -378,7 +379,10 @@ export class DanhGiaRepository {
         $set: { DG_daAn: status },
         $push: { lichSuThaoTac: history },
       },
-      { new: true }
+      {
+        new: true,
+        session,
+      }
     );
   }
 }

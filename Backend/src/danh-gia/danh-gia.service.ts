@@ -93,70 +93,113 @@ export class DanhGiaService {
     return result;
   }
 
-  async show(dto: UpdateDanhGiaDto) {
-    const current = await this.DanhGiaRepo.findOne(
-      dto.DG_id,
-      dto.SP_id,
-      dto.KH_id
-    );
-    if (!current) {
-      throw new NotFoundException(
-        'Cập nhật đánh giá - Không tìm thấy đánh giá'
-      );
+  async show(dto: UpdateDanhGiaDto): Promise<DanhGia> {
+    const session = await this.connection.startSession();
+    let updated: DanhGia | null = null;
+
+    try {
+      await session.withTransaction(async () => {
+        const current = await this.DanhGiaRepo.findOne(
+          dto.DG_id,
+          dto.SP_id,
+          dto.KH_id
+        );
+        if (!current) {
+          throw new NotFoundException(
+            'Cập nhật đánh giá - Không tìm thấy đánh giá'
+          );
+        }
+
+        const thaoTac = {
+          thaoTac: 'Hiển thị đánh giá',
+          NV_id: dto.NV_id,
+          thoiGian: new Date(),
+        };
+
+        const updateResult = await this.DanhGiaRepo.update(
+          dto.DG_id,
+          dto.SP_id,
+          dto.KH_id,
+          false,
+          thaoTac,
+          session
+        );
+
+        if (!updateResult) {
+          throw new BadRequestException(
+            'Cập nhật đánh giá - Hiển thị thất bại'
+          );
+        }
+        updated = updateResult;
+
+        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
+          dto.SP_id,
+          session
+        );
+        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+      });
+
+      if (!updated) {
+        throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
+      }
+      return updated;
+    } finally {
+      await session.endSession();
     }
-
-    const thaoTac = {
-      thaoTac: 'Hiển thị đánh giá',
-      NV_id: dto.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const updated = await this.DanhGiaRepo.update(
-      dto.DG_id,
-      dto.SP_id,
-      dto.KH_id,
-      false,
-      thaoTac
-    );
-
-    if (!updated) {
-      throw new BadRequestException('Cập nhật đánh giá - Hiển thị thất bại');
-    }
-
-    return updated;
   }
 
-  async hide(dto: UpdateDanhGiaDto) {
-    const current = await this.DanhGiaRepo.findOne(
-      dto.DG_id,
-      dto.SP_id,
-      dto.KH_id
-    );
-    if (!current) {
-      throw new NotFoundException(
-        'Cập nhật đánh giá - Không tìm thấy đánh giá'
-      );
+  async hide(dto: UpdateDanhGiaDto): Promise<DanhGia> {
+    const session = await this.connection.startSession();
+    let updated: DanhGia | null = null;
+
+    try {
+      await session.withTransaction(async () => {
+        const current = await this.DanhGiaRepo.findOne(
+          dto.DG_id,
+          dto.SP_id,
+          dto.KH_id
+        );
+        if (!current) {
+          throw new NotFoundException(
+            'Cập nhật đánh giá - Không tìm thấy đánh giá'
+          );
+        }
+
+        const thaoTac = {
+          thaoTac: 'Ẩn đánh giá',
+          NV_id: dto.NV_id,
+          thoiGian: new Date(),
+        };
+
+        const updateResult = await this.DanhGiaRepo.update(
+          dto.DG_id,
+          dto.SP_id,
+          dto.KH_id,
+          true,
+          thaoTac,
+          session
+        );
+
+        if (!updated) {
+          throw new BadRequestException('Cập nhật đánh giá - Ẩn thất bại');
+        }
+
+        updated = updateResult;
+
+        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
+          dto.SP_id,
+          session
+        );
+        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+      });
+
+      if (!updated) {
+        throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
+      }
+      return updated;
+    } finally {
+      await session.endSession();
     }
-
-    const thaoTac = {
-      thaoTac: 'Ẩn đánh giá',
-      NV_id: dto.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const updated = await this.DanhGiaRepo.update(
-      dto.DG_id,
-      dto.SP_id,
-      dto.KH_id,
-      true,
-      thaoTac
-    );
-
-    if (!updated) {
-      throw new BadRequestException('Cập nhật đánh giá - Ẩn thị thất bại');
-    }
-
-    return updated;
   }
 
   async countRatingOfMonth(year: number, month: number) {
