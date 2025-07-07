@@ -7,6 +7,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { Cart } from '@/models/carts';
 import { Badge } from '../ui/badge';
+import Link from 'next/link';
 
 interface CartItemProps {
   cart: Cart;
@@ -37,18 +38,22 @@ export default function CartItem({
     <div className="flex md:items-center flex-col gap-4 md:flex-row  pl-3 pt-2 pb-4 md:pb-2 pr-6 rounded shadow-sm bg-white">
       <div className="flex flex-1 items-center gap-2">
         <Checkbox checked={isSelected} onCheckedChange={onToggle} />
-        <div className=" relative w-16 h-16">
-          <Image
-            src={cart.cover}
-            alt={cart.name}
-            fill
-            sizes="64px"
-            priority
-            className=" object-contain"
-          />
-        </div>
+        <Link href={`/product/${cart.productId}`}>
+          <div className=" relative w-16 h-16">
+            <Image
+              src={cart.cover}
+              alt={cart.name}
+              fill
+              sizes="64px"
+              priority
+              className=" object-contain"
+            />
+          </div>
+        </Link>
         <div className="flex-1">
-          <p className="line-clamp-2 h-[3em] text-sm font-light">{cart.name}</p>
+          <Link href={`/product/${cart.productId}`}>
+            <p className="line-clamp-2 h-[3em] text-sm font-light">{cart.name}</p>
+          </Link>
           <div className="flex items-center gap-2 h-fit">
             {cart.isOnSale ? (
               <div className="flex items-center gap-2 h-fit">

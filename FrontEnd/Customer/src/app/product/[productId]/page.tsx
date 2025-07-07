@@ -50,7 +50,7 @@ export default function ProductDetail() {
     <div className="space-y-4 ">
       <div className="flex flex-col md:flex-row gap-4 relative">
         {/* Cột trái: ảnh sản phẩm */}
-        <div className="basis-0 flex-[5] w-full">
+        <div className="basis-0 flex-[5] w-full md:max-w-lg">
           <div className="sticky top-4  z-40">
             <div className=" min-w-86 h-124 ">
               <ProductImageGallery

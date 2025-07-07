@@ -31,7 +31,7 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
 
   return (
     <>
-      <div className="space-y-2 w-full h-full flex flex-col rounded-xl bg-white shadow p-4 max-w-lg">
+      <div className="space-y-2 w-full h-full flex flex-col rounded-xl bg-white shadow p-4 ">
         {/* Ảnh chính + nút trái/phải */}
         <div className="relative w-full flex-1">
           {/* Nút trái */}
@@ -76,7 +76,7 @@ export default function ProductImageGallery({ coverImage, productImages }: Reado
           )}
         </div>
 
-        <Carousel className="w-full ">
+        <Carousel className="w-full">
           <CarouselContent>
             {displayImages.map((img, index) => (
               <CarouselItem key={index} className="basis-1/5">

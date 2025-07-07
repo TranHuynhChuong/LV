@@ -53,7 +53,15 @@ function buildCategoryTree(flatList: Categories[]): CategoryNode[] {
   return tree;
 }
 
-export function CategoryLink({ id, children }: { id: number; children: React.ReactNode }) {
+export function CategoryLink({
+  id,
+
+  children,
+}: {
+  id: number;
+
+  children: React.ReactNode;
+}) {
   const params = new URLSearchParams();
   params.set('c', id.toString());
   params.set('p', '1');
@@ -163,7 +171,7 @@ export function CategoryTreeMenuOnMobile({ nodes }: { nodes: CategoryNode[] }) {
           </SheetHeader>
           <div>
             {nodes.map((node) => (
-              <div key={node.id} className="px-6 mb-6" onClick={() => setOpen(false)}>
+              <div key={node.id} className="px-6 mb-6">
                 <CategoryLink id={node.id}>
                   <span className=" font-bold text-sm uppercase text-zinc-700 mb-1">
                     {node.name}
