@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { GioHangRepository } from './repositories/gio-hang.repository';
 import { GioHang } from './schemas/gioHang.schema';
 import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
@@ -29,6 +34,16 @@ export class GioHangService {
     GH_soLuong: number;
   }): Promise<CartReturn[]> {
     const { KH_id, SP_id, GH_soLuong } = dto;
+    const product = await this.SanPhamService.findByIds([SP_id]);
+
+    if (product && product.length > 0) {
+      if (product[0].SP_tonKho < GH_soLuong)
+        throw new ConflictException('Thêm giỏ hàng - Không đủ số lượng');
+    } else {
+      throw new NotFoundException('Thêm giỏ hàng - Không tồn tại sản phẩm');
+    }
+
+    if (dto.KH_id === -1) return [];
 
     const existing = await this.GioHangRepo.findOne(KH_id, SP_id);
 

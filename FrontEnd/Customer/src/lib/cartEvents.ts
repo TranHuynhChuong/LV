@@ -5,7 +5,7 @@ const subscribers = new Set<CartChangeCallback>();
 
 export const subscribeToCartChange = (callback: CartChangeCallback) => {
   subscribers.add(callback);
-  return () => subscribers.delete(callback); // hủy khi unmount
+  return () => subscribers.delete(callback);
 };
 
 export const emitCartChange = () => {

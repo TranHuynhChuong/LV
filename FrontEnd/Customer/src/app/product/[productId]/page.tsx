@@ -12,6 +12,7 @@ import type { ProductDetail } from '@/models/products';
 import ProductImageGallery from '@/components/product/productImgs';
 import ProductInfo from '@/components/product/productInf';
 import ReviewsSection from '@/components/reviews/reviewSection';
+import eventBus from '@/lib/eventBus';
 
 export default function ProductDetail() {
   const router = useRouter();
@@ -41,6 +42,14 @@ export default function ProductDetail() {
   useEffect(() => {
     fetchProductDetail();
   }, [id]);
+
+  useEffect(() => {
+    const handler = () => {
+      fetchProductDetail();
+    };
+    eventBus.on('reloadProduct', handler);
+    return () => eventBus.off('reloadProduct', handler);
+  }, []);
 
   if (!data) {
     return <Loading />;

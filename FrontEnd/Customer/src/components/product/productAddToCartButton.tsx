@@ -9,6 +9,8 @@ import { useCartStore } from '@/stores/cart.store'; // đường dẫn tùy cấ
 import api from '@/lib/axios';
 import { emitCartChange } from '@/lib/cartEvents';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import eventBus from '@/lib/eventBus';
 
 type Props = {
   inventory: number;
@@ -31,18 +33,41 @@ export default function AddToCartButton({ inventory, id }: Props) {
     }
   };
 
-  const handleAddToCart = () => {
-    if (!authData.userId) {
-      addToCart({
-        productId: id,
-        quantity: quantity,
-        dateTime: new Date().toISOString(),
+  const handleAddToCart = async () => {
+    try {
+      const res = await api.post('/carts', {
+        KH_id: authData.userId ?? -1,
+        SP_id: id,
+        GH_soLuong: quantity,
       });
-    } else {
-      api
-        .post('/carts', { KH_id: authData.userId, SP_id: id, GH_soLuong: quantity })
-        .then(() => emitCartChange())
-        .catch((error) => console.log(error));
+
+      const data = res.data;
+      if (data && data.length === 0) {
+        addToCart({
+          productId: id,
+          quantity: quantity,
+          dateTime: new Date().toISOString(),
+        });
+      }
+
+      toast.success('Sản phẩm đã thêm vào giỏ hàng');
+      emitCartChange();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const status = error?.response?.status;
+
+      switch (status) {
+        case 404:
+          toast.error('Sản phẩm không tồn tại');
+          break;
+        case 409:
+          toast.error('Số lượng tồn kho không đủ');
+
+          break;
+        default:
+          toast.error('Thêm giỏ hàng thất bại');
+      }
+      eventBus.emit('reloadProduct');
     }
   };
 
