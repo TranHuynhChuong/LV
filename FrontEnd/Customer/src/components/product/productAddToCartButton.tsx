@@ -11,7 +11,7 @@ import { emitCartChange } from '@/lib/cartEvents';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import eventBus from '@/lib/eventBus';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   inventory: number;
@@ -23,6 +23,7 @@ export default function AddToCartButton({ inventory, id }: Props) {
   const { authData } = useAuth();
   const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
+  const carts = useCartStore((state) => state.carts);
 
   const handleAdd = () => {
     if (quantity < inventory) setQuantity(quantity + 1);
@@ -36,6 +37,14 @@ export default function AddToCartButton({ inventory, id }: Props) {
 
   const handleAddToCart = async () => {
     try {
+      if (authData.userId) {
+        const res = await api.get(`/carts/${authData.userId}`);
+        emitCartChange();
+        if (res.data.length > 99) {
+          toast.error('Vui lòng xóa bớt sản phẩm trong giỏ hàng');
+          return;
+        }
+      }
       const res = await api.post('/carts', {
         KH_id: authData.userId ?? -1,
         SP_id: id,
@@ -44,6 +53,11 @@ export default function AddToCartButton({ inventory, id }: Props) {
 
       const data = res.data;
       if (data && data.length === 0) {
+        if (carts.length > 99) {
+          toast.error('Vui lòng xóa bớt sản phẩm trong giỏ hàng');
+          return;
+        }
+
         addToCart({
           productId: id,
           quantity: quantity,
@@ -68,6 +82,7 @@ export default function AddToCartButton({ inventory, id }: Props) {
         default:
           toast.error('Thêm giỏ hàng thất bại');
       }
+    } finally {
       eventBus.emit('reloadProduct');
     }
   };
