@@ -11,6 +11,7 @@ import { emitCartChange } from '@/lib/cartEvents';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import eventBus from '@/lib/eventBus';
+import { useRouter } from 'next/router';
 
 type Props = {
   inventory: number;
@@ -20,7 +21,7 @@ type Props = {
 export default function AddToCartButton({ inventory, id }: Props) {
   const [quantity, setQuantity] = useState(1);
   const { authData } = useAuth();
-
+  const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
 
   const handleAdd = () => {
@@ -59,10 +60,10 @@ export default function AddToCartButton({ inventory, id }: Props) {
       switch (status) {
         case 404:
           toast.error('Sản phẩm không tồn tại');
+          router.back();
           break;
         case 409:
           toast.error('Số lượng tồn kho không đủ');
-
           break;
         default:
           toast.error('Thêm giỏ hàng thất bại');
