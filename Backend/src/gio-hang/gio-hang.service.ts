@@ -115,7 +115,34 @@ export class GioHangService {
 
   async findUserCarts(KH_id: number): Promise<CartReturn[]> {
     const carts = await this.GioHangRepo.findAll(KH_id);
-    return this.getCarts(carts);
+    const newCart = await this.getCarts(carts);
+
+    const updatedCarts: {
+      KH_id: number;
+      SP_id: number;
+      GH_soLuong: number;
+    }[] = [];
+    const newCartMap = new Map(newCart.map((item) => [item.SP_id, item]));
+
+    for (const cart of carts) {
+      const matched = newCartMap.get(cart.SP_id);
+
+      if (!matched) {
+        await this.delete(cart.KH_id, cart.SP_id);
+      } else if (cart.GH_soLuong !== matched.GH_soLuong) {
+        updatedCarts.push({
+          KH_id: cart.KH_id,
+          SP_id: cart.SP_id,
+          GH_soLuong: matched.GH_soLuong,
+        });
+      }
+    }
+
+    if (updatedCarts.length > 0) {
+      await this.GioHangRepo.updateMany(updatedCarts);
+    }
+
+    return newCart;
   }
 
   async getCarts(carts: Partial<GioHang>[]): Promise<CartReturn[]> {
@@ -129,12 +156,12 @@ export class GioHangService {
     const result = carts
       .map((cart): any => {
         const product = products.find((p) => p.SP_id === cart.SP_id);
-        if (!product) return null; // ❌ Không có sản phẩm
+        if (!product) return null;
 
-        if (product.SP_tonKho === 0) return null; // ❌ Hết hàng
+        if (product.SP_tonKho === 0) return null;
 
         const quantity = Math.min(cart.GH_soLuong ?? 0, product.SP_tonKho ?? 0);
-        if (quantity <= 0) return null; // ❌ Không còn số lượng phù hợp
+        if (quantity <= 0) return null;
 
         return {
           SP_id: product.SP_id,

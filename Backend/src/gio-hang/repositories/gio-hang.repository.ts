@@ -38,6 +38,25 @@ export class GioHangRepository {
     );
   }
 
+  async updateMany(
+    items: {
+      KH_id: number;
+      SP_id: number;
+      GH_soLuong: number;
+    }[]
+  ): Promise<void> {
+    const operations = items.map((item) => ({
+      updateOne: {
+        filter: { KH_id: item.KH_id, SP_id: item.SP_id },
+        update: {
+          $set: { GH_soLuong: item.GH_soLuong },
+        },
+      },
+    }));
+
+    await this.GioHangModel.bulkWrite(operations);
+  }
+
   async delete(KH_id: number, SP_id: number): Promise<GioHang | null> {
     return this.GioHangModel.findOneAndDelete({ KH_id, SP_id });
   }

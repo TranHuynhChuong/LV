@@ -77,6 +77,7 @@ export default function CartPage() {
       } catch (error) {
         console.error('Lỗi lấy giỏ hàng:', error);
       } finally {
+        emitCartChange();
         setLoading(false);
       }
     };
