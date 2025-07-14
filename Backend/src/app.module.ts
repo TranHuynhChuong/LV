@@ -14,6 +14,7 @@ import { MaGiamModule } from './ma-giam/ma-giam.module';
 import { DonHangModule } from './don-hang/don-hang.module';
 import { DanhGiaModule } from './danh-gia/danh-gia.module';
 import { PhiVanChuyenModule } from './phi-van-chuyen/phi-van-chuyen.module';
+import { DiaChiModule } from './dia-chi/dia-chi.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { PhiVanChuyenModule } from './phi-van-chuyen/phi-van-chuyen.module';
     MaGiamModule,
     DonHangModule,
     DanhGiaModule,
+    DiaChiModule,
   ],
 })
 export class AppModule {}
