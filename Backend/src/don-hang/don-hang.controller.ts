@@ -74,6 +74,11 @@ export class DonHangController {
     return await this.DonHangService.countAll();
   }
 
+  @Get('/find/:id')
+  async search(@Param('id') id: string): Promise<any> {
+    return this.DonHangService.searchOrder(id.toUpperCase());
+  }
+
   @Get(':id')
   async findById(
     @Param('id') id: string,

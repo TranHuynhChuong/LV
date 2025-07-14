@@ -391,6 +391,15 @@ export class DonHangService {
     return result;
   }
 
+  async searchOrder(id: string): Promise<any> {
+    const order = await this.DonHangRepo.findById(id);
+    if (!order) return null;
+    delete order.lichSuThaoTac;
+    delete order.DH_HD;
+
+    return order;
+  }
+
   async findAll(
     page: number,
     limit: number = 24,
