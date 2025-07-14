@@ -400,6 +400,8 @@ export class SanPhamRepository {
       SP_isbn: 1,
       SP_diemDG: 1,
       SP_ten: 1,
+      SP_tacGia: 1,
+      SP_nhaXuatBan: 1,
       SP_giaBan: 1,
       SP_giaGiam: 1,
       SP_tonKho: 1,
@@ -534,8 +536,8 @@ export class SanPhamRepository {
         {
           $lookup: {
             from: 'theloais',
-            localField: 'TL_id', // TL_id trong sản phẩm là mảng
-            foreignField: 'TL_id', // TL_id trong bảng thể loại là số
+            localField: 'TL_id',
+            foreignField: 'TL_id',
             as: 'SP_TL_info',
           },
         },

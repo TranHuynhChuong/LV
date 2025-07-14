@@ -62,10 +62,11 @@ export class SanPhamController {
   }
 
   // Tìm sản phẩm tương tự (vector search)
-  @Post('/similar')
-  findByVectorViaPost(@Body() body: { query: string; limit?: number }) {
-    const limit = body.limit ?? 5;
-    return this.SanPhamService.findByVector(body.query, limit);
+  @Post('/find')
+  findByVectorViaPost(@Body() body: { content: string; limit?: number }) {
+    const { content, limit = 3 } = body;
+    console.log(content, limit);
+    return this.SanPhamService.findByVector(content, limit);
   }
 
   // Đếm tổng số sản phẩm
