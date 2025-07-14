@@ -194,13 +194,6 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
         <Button
           variant="outline"
           className="text-sm font-normal cursor-pointer"
-          onClick={() => router.back()}
-        >
-          Thoát
-        </Button>
-        <Button
-          variant="outline"
-          className="text-sm font-normal cursor-pointer"
           onClick={() => generateDeliveryNotePdf(data)}
         >
           Xuất phiếu giao hàng
@@ -213,6 +206,13 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
             router.back();
           }}
         />
+        <Button
+          variant="outline"
+          className="text-sm font-normal cursor-pointer"
+          onClick={() => router.back()}
+        >
+          Thoát
+        </Button>
       </div>
     </div>
   );

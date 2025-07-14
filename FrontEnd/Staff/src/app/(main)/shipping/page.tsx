@@ -82,29 +82,31 @@ export default function Shipments() {
   const [provinces, setProvinces] = useState<{ T_id: number; T_ten: string }[]>([]);
   const getData = () => {
     setLoading(true);
-    Promise.all([api.get('/shipping'), fetch('/addresses/0.json').then((res) => res.json())])
+    Promise.all([api.get('/shipping'), api.get('/address/0')])
       .then(([shippingRes, locationRes]) => {
-        setProvinces(locationRes);
+        setProvinces(locationRes.data);
 
         const shippingRaw: ShippingFeeDto[] = shippingRes.data;
         setTotal(shippingRaw.length);
-        const mapped: ShippingFee[] = shippingRaw.map((item) => {
-          const province = locationRes.find(
-            (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
-          ); // Dùng trực tiếp locationRes
-          const locationName =
-            item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
+        const mapped: ShippingFee[] = shippingRaw
+          .sort((a, b) => a.T_id - b.T_id)
+          .map((item) => {
+            const province = locationRes.data.find(
+              (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
+            ); // Dùng trực tiếp locationRes.data
+            const locationName =
+              item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
 
-          return {
-            id: item.PVC_id,
-            fee: item.PVC_phi,
-            level: item.PVC_ntl,
-            surcharge: item.PVC_phuPhi,
-            unit: item.PVC_dvpp,
-            location: locationName,
-            locationId: item.T_id,
-          };
-        });
+            return {
+              id: item.PVC_id,
+              fee: item.PVC_phi,
+              level: item.PVC_ntl,
+              surcharge: item.PVC_phuPhi,
+              unit: item.PVC_dvpp,
+              location: locationName,
+              locationId: item.T_id,
+            };
+          });
 
         setData(mapped);
       })

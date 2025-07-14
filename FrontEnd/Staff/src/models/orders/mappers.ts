@@ -1,8 +1,9 @@
+import api from '@/lib/axios';
 import { Order, OrderDto, OrderOverviewDto } from '.';
 import { mapActivityLogsFromDto } from '../activityLogs';
 
 export async function getProvinceName(provinceId: number) {
-  const provinces = await fetch('/addresses/0.json').then((res) => res.json());
+  const provinces = await api.get('/address/0').then((res) => res.data);
   return (
     provinces.find((p: { T_id: number; T_ten: string }) => p.T_id === provinceId)?.T_ten ??
     'Không xác định'
@@ -10,7 +11,7 @@ export async function getProvinceName(provinceId: number) {
 }
 
 export async function getWardName(provinceId: number, wardId: number) {
-  const wards = await fetch(`/addresses/${provinceId}.json`).then((res) => res.json());
+  const wards = await api(`/address/${provinceId}`).then((res) => res.data);
   return (
     wards.find((w: { X_id: number; X_ten: string }) => w.X_id === wardId)?.X_ten ?? 'Không xác định'
   );

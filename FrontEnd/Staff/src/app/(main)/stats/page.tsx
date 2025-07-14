@@ -62,6 +62,7 @@ export default function StatsPage() {
 
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
+  const [modeStat, setModeStat] = useState<'month' | 'year'>('month');
   const [stats, setStats] = useState<Stats | null>(null);
   const [totalOrders, setTotalOrders] = useState<{
     all: number;
@@ -74,8 +75,8 @@ export default function StatsPage() {
 
   useEffect(() => {
     async function fetchProvinces() {
-      const res = await fetch('/addresses/0.json');
-      const data = await res.json();
+      const res = await api.get('/address/0');
+      const data = res.data;
       const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
         code: item.T_id,
         name: item.T_ten,
@@ -90,6 +91,8 @@ export default function StatsPage() {
     if (provincesData.length === 0) return;
     const isYearMode = month === 0;
 
+    setModeStat(isYearMode ? 'year' : 'month');
+
     const fetchOrders = isYearMode
       ? api.get(`/orders/stats/year/${year}`)
       : api.get(`/orders/stats/month/${year}/${month}`);
@@ -100,7 +103,6 @@ export default function StatsPage() {
     Promise.all([fetchOrders, fetchReviews])
       .then(([ordersRes, reviewsRes]) => {
         const ordersData = ordersRes.data.orders;
-
         const timeKeys = isYearMode ? getAllMonthsInYear(year) : getAllDatesInMonth(year, month);
 
         for (const key of timeKeys) {
@@ -209,7 +211,7 @@ export default function StatsPage() {
           <StatsSummary detail={stats.orders} />
           <div className="flex flex-col lg:flex-row gap-2">
             <div className="basis-2/3 min-h-[350px] bg-white rounded-md border p-4">
-              <StatsOrderComposedChart detail={stats.orders} mode="month" />
+              <StatsOrderComposedChart detail={stats.orders} mode={modeStat} />
             </div>
 
             <div className="basis-1/3 min-h-[350px] bg-white rounded-md border p-4">
