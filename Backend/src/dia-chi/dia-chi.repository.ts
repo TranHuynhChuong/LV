@@ -1,24 +1,57 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { DiaChi, DiaChiDocument } from './schemas/dia-chi.schema';
+import { locationData } from './data/dia-chi.data';
+
+export interface XaPhuong {
+  X_id: number;
+  X_ten: string;
+}
+
+export interface DiaChi {
+  T_id: number;
+  T_ten: string;
+  XaPhuong: XaPhuong[];
+}
 
 @Injectable()
 export class DiaChiRepository {
-  constructor(
-    @InjectModel(DiaChi.name)
-    private readonly DiaChiModel: Model<DiaChiDocument>
-  ) {}
+  private readonly data: DiaChi[];
 
-  async getAllTinh(): Promise<Partial<DiaChi>[]> {
-    return this.DiaChiModel.find({}, { T_id: 1, T_ten: 1, _id: 0 }).exec();
+  constructor() {
+    this.data = locationData;
+  }
+  getAllProvinces(): { T_id: number; T_ten: string }[] {
+    return this.data.map(({ T_id, T_ten }) => ({ T_id, T_ten }));
   }
 
-  async getXaPhuongByTinhId(tinhId: number): Promise<any[]> {
-    const DiaChi = await this.DiaChiModel.findOne(
-      { T_id: tinhId },
-      { XaPhuong: 1, _id: 0 }
-    ).exec();
-    return DiaChi?.XaPhuong || [];
+  getWardsByProvinceId(provinceId: number): XaPhuong[] {
+    const province = this.data.find((d) => d.T_id === provinceId);
+    return province?.XaPhuong ?? [];
+  }
+
+  getFullAddressText(provinceId: number, wardId: number): string | undefined {
+    const province = this.data.find((d) => d.T_id === provinceId);
+    if (!province) return undefined;
+
+    const ward = province.XaPhuong.find((x) => x.X_id === wardId);
+    if (!ward) return undefined;
+
+    return `${ward.X_ten} - ${province.T_ten}`;
+  }
+
+  getProvinceInfo(
+    provinceId: number
+  ): { T_id: number; T_ten: string } | undefined {
+    const province = this.data.find((d) => d.T_id === provinceId);
+    if (!province) return undefined;
+
+    return { T_id: province.T_id, T_ten: province.T_ten };
+  }
+
+  findAll(): DiaChi[] {
+    return this.data;
+  }
+
+  findByProvinceId(id: number): DiaChi | undefined {
+    return this.data.find((d) => d.T_id === id);
   }
 }

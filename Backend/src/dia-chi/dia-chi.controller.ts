@@ -1,14 +1,14 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { DiaChiService } from './dia-chi.service';
 
-@Controller('api/address')
+@Controller('api/location')
 export class DiaChiController {
-  constructor(private readonly service: DiaChiService) {}
+  constructor(private readonly DiaChiService: DiaChiService) {}
 
   @Get(':id')
   getXaPhuong(@Param('id', ParseIntPipe) id: number) {
     if (id === 0) {
-      return this.service.getDanhSachTinh();
-    } else return this.service.getXaPhuongTheoTinh(id);
+      return this.DiaChiService.getAllProvinces();
+    } else return this.DiaChiService.getWardsByProvinceId(id);
   }
 }
