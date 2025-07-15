@@ -21,10 +21,6 @@ import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
 export class PhiVanChuyenController {
   constructor(private readonly PhiVanChuyenService: PhiVanChuyenService) {}
 
-  @Get('addressFiles')
-  getAllShipmentJson() {
-    return this.PhiVanChuyenService.loadAddressFiles();
-  }
   @UseGuards(XacThucGuard)
   @Post()
   async create(@Body() data: CreatePhiVanChuyenDto) {

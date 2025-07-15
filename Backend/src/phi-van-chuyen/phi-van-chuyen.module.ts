@@ -8,6 +8,7 @@ import {
   PhiVanChuyenSchema,
 } from './schemas/phi-van-chuyen.schema';
 import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
+import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
       { name: PhiVanChuyen.name, schema: PhiVanChuyenSchema },
     ]),
     NguoiDungModule,
+    DiaChiModule,
   ],
   controllers: [PhiVanChuyenController],
   providers: [PhiVanChuyenService, PhiVanChuyenRepository],

@@ -4,12 +4,14 @@ import {
   Injectable,
   BadRequestException,
 } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 import { NhanVienUtilService } from '../nguoi-dung/nhan-vien/nhan-vien.service';
-
 import { PhiVanChuyenRepository } from './repositories/phi-van-chuyen.repository';
 import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
-import * as fs from 'fs';
-import * as path from 'path';
+import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
+import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
+import { DiaChiService } from '../dia-chi/dia-chi.service';
 
 const typeOfChange: Record<string, string> = {
   PVC_phi: 'Phí',
@@ -19,18 +21,12 @@ const typeOfChange: Record<string, string> = {
   T_id: 'Khu vực',
 };
 
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
-import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
-import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
-
 @Injectable()
 export class PhiVanChuyenService {
-  private readonly dataDir = path.join(__dirname, '../../addresses');
-
   constructor(
     private readonly PhiVanChuyenRepo: PhiVanChuyenRepository,
     private readonly NhanVienService: NhanVienUtilService,
+    private readonly DiaChiService: DiaChiService,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
@@ -99,8 +95,20 @@ export class PhiVanChuyenService {
     }
   }
 
-  async getAllShippingFee(): Promise<Partial<PhiVanChuyen>[]> {
-    return this.PhiVanChuyenRepo.findAll();
+  async getAllShippingFee(): Promise<
+    Partial<PhiVanChuyen & { T_ten: string }>[]
+  > {
+    const data = await this.PhiVanChuyenRepo.findAll();
+    return data.map((item) => {
+      const province =
+        item.T_id !== undefined
+          ? this.DiaChiService.getProvinceInfo(item.T_id)
+          : undefined;
+      return {
+        ...item,
+        T_ten: item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten,
+      };
+    });
   }
 
   async getShippingFeeById(id: number): Promise<any> {
@@ -211,26 +219,5 @@ export class PhiVanChuyenService {
 
   async countAll(): Promise<number> {
     return this.PhiVanChuyenRepo.countAll();
-  }
-
-  loadAddressFiles(): { T_id: string; data: Record<string, unknown> }[] {
-    const files = fs
-      .readdirSync(this.dataDir)
-      .filter((file) => file.endsWith('.json'))
-      .sort(
-        (a, b) =>
-          Number(a.replace('.json', '')) - Number(b.replace('.json', ''))
-      );
-
-    return files.map((file) => {
-      const filePath = path.join(this.dataDir, file);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      const data = JSON.parse(fileContent) as Record<string, unknown>;
-
-      return {
-        T_id: file.replace('.json', ''),
-        data,
-      };
-    });
   }
 }
