@@ -30,6 +30,7 @@ import {
   VoucherStats,
   OrderDetailStats,
 } from './interfaces/don-hang-thong-ke.interface';
+import { DiaChiService } from 'src/dia-chi/dia-chi.service';
 
 @Injectable()
 export class DonHangService {
@@ -43,6 +44,7 @@ export class DonHangService {
     private readonly NhanVienService: NhanVienUtilService,
     private readonly MaGiamService: MaGiamUtilService,
     private readonly NhanHangDHService: TTNhanHangDHService,
+    private readonly DiaChiService: DiaChiService,
 
     private readonly DonHangRepo: DonHangRepository,
     private readonly ChiTietDonHangRepo: ChiTietDonHangRepository
@@ -388,6 +390,9 @@ export class DonHangService {
     if ((!result.KH_email || result.KH_email === '') && result.KH_id) {
       result.KH_email = await this.KhachHangService.getEmail(result.KH_id);
     }
+    const { T_id, X_id } = result.thongTinNhanHang || {};
+    const location = this.DiaChiService.getFullAddressText(T_id, X_id);
+    result.thongTinNhanHang.NH_diaChi = location;
     return result;
   }
 
@@ -396,22 +401,43 @@ export class DonHangService {
     if (!order) return null;
     delete order.lichSuThaoTac;
     delete order.DH_HD;
-
+    const { T_id, X_id } = order.thongTinNhanHang || {};
+    const location = this.DiaChiService.getFullAddressText(T_id, X_id);
+    order.thongTinNhanHang.NH_diaChi = location;
     return order;
   }
 
-  async findAll(
-    page: number,
-    limit: number = 24,
-    filterType?: OrderStatus,
-    userId?: number
-  ) {
-    const result = await this.DonHangRepo.findAll(
+  async findAll(options: {
+    page: number;
+    limit: number;
+    filterType?: OrderStatus;
+    dateStart?: Date;
+    dateEnd?: Date;
+    userId?: number;
+  }) {
+    const {
       page,
-      limit,
+      limit = 12,
       filterType,
-      userId
-    );
+      dateStart,
+      dateEnd,
+      userId,
+    } = options;
+    // Nếu không có dateStart và dateEnd thì mặc định là hôm nay
+
+    const result = await this.DonHangRepo.findAll({
+      page: page,
+      limit: limit,
+      filterType: filterType,
+      dateStart: dateStart,
+      dateEnd: dateEnd,
+      userId: userId,
+    });
+
+    for (const order of result.data as any[]) {
+      delete order?.lichSuThaoTac;
+      delete order?.thongTinNhanHang;
+    }
 
     return result;
   }

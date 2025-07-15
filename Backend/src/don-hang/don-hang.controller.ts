@@ -45,13 +45,20 @@ export class DonHangController {
   async findAll(
     @Query('page') page: string,
     @Query('limit') limit: string,
-    @Query('filterType') filterType: OrderStatus
+    @Query('filterType') filterType: OrderStatus,
+    @Query('dateStart') dateStartRaw: string,
+    @Query('dateEnd') dateEndRaw: string
   ) {
-    return this.DonHangService.findAll(
-      parsePositiveInt(page) ?? 1,
-      parsePositiveInt(limit) ?? 24,
-      filterType
-    );
+    const dateStart = dateStartRaw ? new Date(dateStartRaw) : undefined;
+    const dateEnd = dateEndRaw ? new Date(dateEndRaw) : undefined;
+
+    return this.DonHangService.findAll({
+      page: parsePositiveInt(page) ?? 1,
+      limit: parsePositiveInt(limit) ?? 24,
+      filterType: filterType,
+      dateStart: dateStart,
+      dateEnd: dateEnd,
+    });
   }
 
   @Get('/user/:userId')
@@ -61,12 +68,12 @@ export class DonHangController {
     @Query('filterType') filterType: OrderStatus,
     @Param('userId') userId: number
   ) {
-    return this.DonHangService.findAll(
-      parsePositiveInt(page) ?? 1,
-      parsePositiveInt(limit) ?? 24,
-      filterType,
-      userId
-    );
+    return this.DonHangService.findAll({
+      page: parsePositiveInt(page) ?? 1,
+      limit: parsePositiveInt(limit) ?? 24,
+      filterType: filterType,
+      userId: userId,
+    });
   }
 
   @Get('/total')

@@ -146,19 +146,7 @@ export class DonHangRepository {
           KH_id: { $first: '$KH_id' },
           KH_email: { $first: '$KH_email' },
           lichSuThaoTac: { $first: '$lichSuThaoTac' },
-
-          // thông tin nhận hàng
-          thongTinNhanHang: {
-            $first: {
-              NH_hoTen: '$nhanHang.NH_hoTen',
-              NH_soDienThoai: '$nhanHang.NH_soDienThoai',
-              NH_diaChi: {
-                T_id: '$nhanHang.T_id',
-                X_id: '$nhanHang.X_id',
-              },
-              NH_ghiChu: '$nhanHang.NH_ghiChu',
-            },
-          },
+          thongTinNhanHang: { $first: '$nhanHang' },
 
           // chi tiết sản phẩm
           chiTietDonHang: {
@@ -199,6 +187,8 @@ export class DonHangRepository {
 
   protected getFilter(
     filterType?: OrderStatus,
+    dateStart?: Date,
+    dateEnd?: Date,
     userId?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
@@ -222,16 +212,34 @@ export class DonHangRepository {
       filter.KH_id = userId;
     }
 
+    if (dateStart && dateEnd) {
+      filter.DH_ngayTao = {
+        $gte: dateStart,
+        $lte: dateEnd,
+      };
+    }
+
     return filter;
   }
 
-  async findAll(
-    page: number,
-    limit: number = 24,
-    filterType?: OrderStatus,
-    userId?: number
-  ) {
-    const filter = this.getFilter(filterType, userId);
+  async findAll(options: {
+    page: number;
+    limit: number;
+    filterType?: OrderStatus;
+    dateStart?: Date;
+    dateEnd?: Date;
+    userId?: number;
+  }) {
+    const {
+      page,
+      limit = 12,
+      filterType,
+      dateStart,
+      dateEnd,
+      userId,
+    } = options;
+
+    const filter = this.getFilter(filterType, dateStart, dateEnd, userId);
     const pipeline = [...this.getOrderPipeline(filter)];
 
     const countPipeline = [...pipeline, { $count: 'count' }];

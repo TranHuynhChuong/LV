@@ -14,6 +14,7 @@ import {
   ChiTietDonHangSchema,
 } from './schemas/chi-tiet-don-hang.schema';
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
+import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repos
     MaGiamModule,
     NguoiDungModule,
     UtilModule,
+    DiaChiModule,
   ],
   controllers: [DonHangController],
   providers: [DonHangService, DonHangRepository, ChiTietDonHangRepository],
