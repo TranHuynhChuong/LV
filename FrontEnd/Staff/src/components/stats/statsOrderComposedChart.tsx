@@ -14,10 +14,11 @@ import {
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
 import { OrderStats } from '@/models/stats';
+import { TimeUnit } from '@/app/(main)/stats/page';
 
 type Props = {
   detail: OrderStats;
-  mode: 'month' | 'year'; // ⬅️ Thêm để xác định hiển thị theo ngày hay tháng
+  mode: TimeUnit;
 };
 
 export default function StatsOrderComposedChart({ detail, mode }: Readonly<Props>) {
@@ -26,21 +27,31 @@ export default function StatsOrderComposedChart({ detail, mode }: Readonly<Props
     .map(([dateStr, data]) => {
       const date = new Date(dateStr);
 
+      const fullDate =
+        mode === 'year'
+          ? format(date, 'yyyy', { locale: vi })
+          : mode === 'month'
+          ? format(date, 'MM/yyyy', { locale: vi })
+          : format(date, 'dd/MM/yyyy', { locale: vi });
+
+      const xLabel =
+        mode === 'year'
+          ? format(date, 'yyyy')
+          : mode === 'month'
+          ? `T${date.getMonth() + 1}`
+          : format(date, 'dd/MM');
+
       return {
-        fullDate:
-          mode === 'year'
-            ? format(date, 'MM/yyyy', { locale: vi })
-            : format(date, 'dd/MM/yyyy', { locale: vi }),
-        xLabel: mode === 'year' ? `T${date.getMonth() + 1}` : date.getDate(),
+        fullDate,
+        xLabel,
         total: data.total.all,
       };
     });
 
   return (
     <div className=" h-fit">
-      <h2 className="text-lg font-semibold text-center mb-2">
-        {' '}
-        {mode === 'year' ? 'Đơn hàng trong năm' : 'Đơn hàng trong tháng'}
+      <h2 className=" font-semibold text-center mb-2">
+        Thống kê đơn hàng đã giao (Thành công + Thất bại)
       </h2>
       <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
