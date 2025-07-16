@@ -300,7 +300,10 @@ export class DonHangRepository {
     });
   }
 
-  async countAll(): Promise<{
+  async countAll(
+    from?: Date,
+    to?: Date
+  ): Promise<{
     total: number;
     pending: number;
     toShip: number;
@@ -310,49 +313,42 @@ export class DonHangRepository {
     cancelRequest: number;
     canceled: number;
   }> {
-    const [
-      total,
-      pending,
-      toShip,
-      shipping,
-      complete,
-      inComplete,
-      cancelRequest,
-      canceled,
-    ] = await Promise.all([
-      this.DonHangModel.countDocuments(),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.ChoXacNhan,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.ChoVanChuyen,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.DangVanChuyen,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.GiaoThanhCong,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.GiaoThatBai,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.YeuCauHuy,
-      }),
-      this.DonHangModel.countDocuments({
-        DH_trangThai: TrangThaiDonHang.DaHuy,
-      }),
+    const match: any = {};
+    if (from || to) {
+      match.DH_ngayTao = {};
+      if (from) match.DH_ngayTao.$gte = from;
+      if (to) match.DH_ngayTao.$lte = to;
+    }
+
+    type GroupResult = { _id: string; count: number };
+
+    const result: GroupResult[] = await this.DonHangModel.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: '$DH_trangThai',
+          count: { $sum: 1 },
+        },
+      },
     ]);
+
+    // Biến kết quả thành object dễ truy cập
+    const stats: Record<string, number> = {};
+    result.forEach((r) => {
+      stats[r._id] = r.count;
+    });
+
+    const total = result.reduce((sum, r) => sum + r.count, 0);
 
     return {
       total,
-      pending,
-      toShip,
-      shipping,
-      complete,
-      inComplete,
-      cancelRequest,
-      canceled,
+      pending: stats[TrangThaiDonHang.ChoXacNhan] || 0,
+      toShip: stats[TrangThaiDonHang.ChoVanChuyen] || 0,
+      shipping: stats[TrangThaiDonHang.DangVanChuyen] || 0,
+      complete: stats[TrangThaiDonHang.GiaoThanhCong] || 0,
+      inComplete: stats[TrangThaiDonHang.GiaoThatBai] || 0,
+      cancelRequest: stats[TrangThaiDonHang.YeuCauHuy] || 0,
+      canceled: stats[TrangThaiDonHang.DaHuy] || 0,
     };
   }
 

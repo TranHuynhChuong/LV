@@ -76,8 +76,13 @@ export class DonHangController {
   }
 
   @Get('/total')
-  async count(): Promise<any> {
-    return await this.DonHangService.countAll();
+  async count(
+    @Query('dateStart') dateStartRaw: string,
+    @Query('dateEnd') dateEndRaw: string
+  ): Promise<any> {
+    const dateStart = dateStartRaw ? new Date(dateStartRaw) : undefined;
+    const dateEnd = dateEndRaw ? new Date(dateEndRaw) : undefined;
+    return await this.DonHangService.countAll(dateStart, dateEnd);
   }
 
   @Get('/find/:id')

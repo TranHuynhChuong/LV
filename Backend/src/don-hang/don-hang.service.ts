@@ -390,7 +390,7 @@ export class DonHangService {
       result.KH_email = await this.KhachHangService.getEmail(result.KH_id);
     }
     const { T_id, X_id } = result.thongTinNhanHang || {};
-    const location = this.DiaChiService.getFullAddressText(T_id, X_id);
+    const location = await this.DiaChiService.getFullAddressText(T_id, X_id);
     result.thongTinNhanHang.NH_diaChi = location;
     return result;
   }
@@ -401,7 +401,7 @@ export class DonHangService {
     delete order.lichSuThaoTac;
     delete order.DH_HD;
     const { T_id, X_id } = order.thongTinNhanHang || {};
-    const location = this.DiaChiService.getFullAddressText(T_id, X_id);
+    const location = await this.DiaChiService.getFullAddressText(T_id, X_id);
     order.thongTinNhanHang.NH_diaChi = location;
     return order;
   }
@@ -441,7 +441,10 @@ export class DonHangService {
     return result;
   }
 
-  async countAll(): Promise<{
+  async countAll(
+    dateStart?: Date,
+    dateEnd?: Date
+  ): Promise<{
     total: number;
     pending: number;
     toShip: number;
@@ -451,7 +454,7 @@ export class DonHangService {
     cancelRequest: number;
     canceled: number;
   }> {
-    return this.DonHangRepo.countAll();
+    return this.DonHangRepo.countAll(dateStart, dateEnd);
   }
 
   // ===================== Thống kê =========================//
@@ -512,8 +515,21 @@ export class DonHangService {
       endDate
     );
 
-    const provinces = await this.NhanHangDHService.getStatsByProvince(orderIds);
+    const provincesStats =
+      await this.NhanHangDHService.getStatsByProvince(orderIds);
+    const result = await Promise.all(
+      provincesStats.map(async (item) => {
+        const province =
+          item.provinceId !== undefined
+            ? await this.DiaChiService.getProvinceInfo(item.provinceId)
+            : undefined;
 
+        return {
+          ...item,
+          provinceName: province?.T_ten ? province?.T_ten : 'Không xác định',
+        };
+      })
+    );
     return {
       orders: ordersDetail,
       vouchers,
@@ -522,7 +538,7 @@ export class DonHangService {
         guest: buyerStats.guest ?? 0,
       },
       totalDiscountStats,
-      provinces: provinces,
+      provinces: result,
     };
   }
 
