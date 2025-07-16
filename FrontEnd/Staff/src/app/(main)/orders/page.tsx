@@ -16,6 +16,10 @@ import {
 import { OrderSearchBar } from '@/components/orders/orderSearchBar';
 import OrderList from '@/components/orders/orderList';
 import eventBus from '@/lib/eventBus';
+import { DateRange } from 'react-day-picker';
+import { endOfDay, startOfDay } from 'date-fns';
+import { RotateCcw, Search } from 'lucide-react';
+import DateRangePicker from '@/components/utils/DateRangePicker';
 
 export default function Orders() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -34,8 +38,22 @@ export default function Orders() {
   const type = (searchParams.get('type') ?? 'pending') as OrderStatus;
   const orderId = searchParams.get('orderId') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1');
-
   const limit = 24;
+
+  const from = searchParams.get('from') ?? '';
+  const to = searchParams.get('to') ?? '';
+
+  const [range, setRange] = useState<DateRange | undefined>();
+
+  useEffect(() => {
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    setRange({
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
+    });
+  }, [searchParams.toString()]);
+
   const [total, setTotal] = useState<{
     total: number;
     pending: number;
@@ -57,7 +75,13 @@ export default function Orders() {
   });
 
   const fetchData = useCallback(
-    async (page: number, filterType?: OrderStatus, orderId?: string) => {
+    async (
+      page: number,
+      filterType?: OrderStatus,
+      orderId?: string,
+      dateStart?: string,
+      dateEnd?: string
+    ) => {
       try {
         if (orderId) {
           const res = await api.get(`orders/${orderId}`, {
@@ -72,7 +96,13 @@ export default function Orders() {
           return;
         }
 
-        const params = { page, filterType, limit };
+        const params = {
+          page: page,
+          filterType: filterType,
+          limit: limit,
+          dateStart: dateStart,
+          dateEnd: dateEnd,
+        };
         const res = await api.get('orders', { params });
         const { data, paginationInfo } = res.data;
         const mapped = mapOrderOverviewListFromDto(data);
@@ -92,9 +122,14 @@ export default function Orders() {
     []
   );
 
-  async function fetchOrderTotal() {
+  async function fetchOrderTotal(dateStart?: string, dateEnd?: string) {
     try {
-      const res = await api.get('orders/total');
+      const params = {
+        dateStart: dateStart,
+        dateEnd: dateEnd,
+      };
+
+      const res = await api.get('orders/total', { params });
       const data = res.data;
       setTotal(data);
     } catch (error) {
@@ -113,32 +148,38 @@ export default function Orders() {
   }
 
   useEffect(() => {
-    fetchOrderTotal();
+    fetchOrderTotal(from, to);
 
-    const handler = () => fetchOrderTotal();
+    const handler = () => fetchOrderTotal(from, to);
     eventBus.on('order:refetch', handler);
 
     return () => {
       eventBus.off('order:refetch', handler);
     };
-  }, []);
+  }, [from, to]);
 
   useEffect(() => {
-    fetchData(page, type, orderId);
+    fetchData(page, type, orderId, from, to);
 
-    const handler = () => fetchData(page, type, orderId);
+    const handler = () => fetchData(page, type, orderId, from, to);
     eventBus.on('order:refetch', handler);
 
     return () => {
       eventBus.off('order:refetch', handler);
     };
-  }, [page, orderId, fetchData, type]);
+  }, [page, orderId, fetchData, type, from, to]);
 
-  const handleSearch = (orderId: string) => {
+  const handleSearch = (orderId?: string, range?: DateRange) => {
     const search = new URLSearchParams();
     search.set('type', type);
     search.set('page', '1');
-    search.set('orderId', orderId);
+    if (orderId) search.set('orderId', orderId);
+
+    if (range && range.from && range.to) {
+      search.set('from', startOfDay(range.from).toISOString());
+      search.set('to', endOfDay(range.to).toISOString());
+    }
+
     router.push(`/orders?${search.toString()}`);
   };
 
@@ -158,10 +199,28 @@ export default function Orders() {
 
   return (
     <div className="p-4 space-y-2">
+      <div className="flex flex-wrap items-center justify-end bg-white rounded-md px-4 py-2 border">
+        <div className="flex flex-1 gap-2 my-2">
+          <DateRangePicker date={range} onChange={setRange} />
+        </div>
+
+        {/* Nút hành động */}
+        <div className="flex gap-2 justify-end ml-8 my-2">
+          <Button onClick={() => handleSearch(undefined, range)}>
+            <Search className="mr-1 w-4 h-4" />
+            Tìm kiếm
+          </Button>
+
+          <Button variant="outline" onClick={handleClearSearch}>
+            <RotateCcw className="mr-1 w-4 h-4" />
+            Đặt lại
+          </Button>
+        </div>
+      </div>
       <div className="p-4 space-y-4 bg-white border rounded-md ">
         <div className="flex gap-2 pb-4 overflow-x-auto whitespace-nowrap">
           {['all', 'pending', 'toShip', 'shipping', 'complete', 'cancelRequest'].map((tab) => (
-            <Link key={tab} href={`/orders?type=${tab}`}>
+            <Link key={tab} href={`/orders?type=${tab}&from=${from}&to=${to}`}>
               <Button
                 variant={type === tab ? 'default' : 'outline'}
                 className="cursor-pointer whitespace-nowrap"
