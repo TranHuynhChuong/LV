@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/Combobox';
+import api from '@/lib/axios';
 
 interface AddressSelectProps {
   readonly onChange: (provinceId: number) => void;
@@ -13,8 +14,8 @@ export default function AddressSelect({ onChange, value }: AddressSelectProps) {
 
   useEffect(() => {
     async function fetchProvinces() {
-      const res = await fetch('/addresses/0.json');
-      const data = await res.json();
+      const res = await api.get('/location/0');
+      const data = res.data;
       const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
         code: item.T_id,
         name: item.T_ten,
