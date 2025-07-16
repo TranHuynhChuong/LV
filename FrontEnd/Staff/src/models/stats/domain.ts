@@ -55,8 +55,8 @@ export type Stats = {
     discountedProducts: number;
   };
   provinces: {
-    code: number;
-    name: string;
+    provinceId: number;
+    provinceName: string;
     count: number;
   }[];
 };

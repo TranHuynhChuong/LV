@@ -7,16 +7,18 @@ type Props = {
   data: [number, number];
   labels: [string, string];
   unit?: string;
+  colors?: [string, string];
 };
 
-const COLORS = ['#3f3f46', '#71717b']; // Màu cố định
+const DEFAULT_COLORS: [string, string] = ['#3f3f46', '#71717b'];
 
-export default function RatioPieChart({ title, data, labels, unit = '' }: Props) {
+export default function RatioPieChart({ title, data, labels, unit = '', colors }: Props) {
   const total = data[0] + data[1];
   const chartData = [
     { name: labels[0], value: data[0] },
     { name: labels[1], value: data[1] },
   ];
+  const colorPalette = colors ?? DEFAULT_COLORS;
 
   return (
     <div className="h-fit">
@@ -39,7 +41,7 @@ export default function RatioPieChart({ title, data, labels, unit = '' }: Props)
                 label={({ value = 0 }) => `${((value / total) * 100).toFixed(0)}%`}
               >
                 {chartData.map((_, index) => (
-                  <Cell key={index} fill={COLORS[index]} />
+                  <Cell key={index} fill={colorPalette[index]} />
                 ))}
               </Pie>
               <Tooltip formatter={(value: number, name: string) => [`${value} ${unit}`, name]} />

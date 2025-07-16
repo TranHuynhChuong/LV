@@ -64,7 +64,7 @@ export default function StatsBarChart({
           />
           <Bar dataKey={xKey} barSize={barSize} radius={[6, 6, 0, 0]}>
             {data.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              <Cell key={`cell-${index}`} fill={colors[index]} />
             ))}
           </Bar>
         </BarChart>
