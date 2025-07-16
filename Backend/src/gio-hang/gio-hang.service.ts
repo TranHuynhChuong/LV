@@ -158,10 +158,14 @@ export class GioHangService {
         const product = products.find((p) => p.SP_id === cart.SP_id);
         if (!product) return null;
 
-        if (product.SP_tonKho === 0) return null;
+        // Số lượng sản phẩm trong giỏ hàng = min(số lượng của cart, số lượng tồn kho)
+        let quantity = Math.min(cart.GH_soLuong ?? 0, product.SP_tonKho ?? 0);
 
-        const quantity = Math.min(cart.GH_soLuong ?? 0, product.SP_tonKho ?? 0);
-        if (quantity <= 0) return null;
+        // Nếu số lượng trong giỏ là 0 nhưng tồn kho > 0 → phục hồi lại thành 1
+        // Sản phẩm trước đó hết hàng, sau lại có hàng
+        if ((cart.GH_soLuong ?? 0) === 0 && (product.SP_tonKho ?? 0) > 0) {
+          quantity = 1;
+        }
 
         return {
           SP_id: product.SP_id,
