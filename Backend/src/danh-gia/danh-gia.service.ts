@@ -202,15 +202,7 @@ export class DanhGiaService {
     }
   }
 
-  async countRatingOfMonth(year: number, month: number) {
-    const startDate = new Date(Date.UTC(year, month - 1, 1));
-    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
-    return this.DanhGiaRepo.countRatingOfMonth(startDate, endDate);
-  }
-
-  async countRatingOfYear(year: number) {
-    const startDate = new Date(Date.UTC(year, 0, 1)); // 1/1
-    const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)); // 31/12
+  async countRating(startDate: Date, endDate: Date) {
     return this.DanhGiaRepo.countRatingOfMonth(startDate, endDate);
   }
 }

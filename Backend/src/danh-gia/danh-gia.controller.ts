@@ -54,25 +54,22 @@ export class DanhGiaController {
     );
   }
 
-  @Get('stats/month/:year/:month')
+  @Get('/stats')
   async countRatingOfMonth(
-    @Param('year') year: number,
-    @Param('month') month: number
+    @Query('dateStart') dateStartRaw: string,
+    @Query('dateEnd') dateEndRaw: string
   ) {
-    return this.DanhGiaService.countRatingOfMonth(year, month);
+    const dateStart = new Date(dateStartRaw);
+    const dateEnd = new Date(dateEndRaw);
+    return this.DanhGiaService.countRating(dateStart, dateEnd);
   }
 
-  @Get('stats/year/:year')
-  async countRatingOfYear(@Param('year') year: number) {
-    return this.DanhGiaService.countRatingOfYear(year);
-  }
-
-  @Patch('hide')
+  @Patch('/hide')
   async hideReview(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.hide(dto);
   }
 
-  @Patch('show')
+  @Patch('/show')
   async showReview(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.show(dto);
   }
