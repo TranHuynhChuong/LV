@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/select';
 import Loader from '@/components/utils/Loader';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShippingFee, ShippingFeeDto } from '@/models/shipping';
+import { mapShippingFeesFromDtoList, ShippingFee } from '@/models/shipping';
 
 export type Shipping = {
   id: number;
@@ -77,43 +77,22 @@ export default function Shipments() {
     open: false,
     id: null,
   });
-  const [total, setTotal] = useState(0);
-  const [errorMessage, setErrorMessage] = useState('');
   const [provinces, setProvinces] = useState<{ T_id: number; T_ten: string }[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
+
   const getData = () => {
     setLoading(true);
-    Promise.all([api.get('/shipping'), api.get('/address/0')])
+    Promise.all([api.get('/shipping'), api.get('/location/0')])
       .then(([shippingRes, locationRes]) => {
-        setProvinces(locationRes.data);
-
-        const shippingRaw: ShippingFeeDto[] = shippingRes.data;
-        setTotal(shippingRaw.length);
-        const mapped: ShippingFee[] = shippingRaw
-          .sort((a, b) => a.T_id - b.T_id)
-          .map((item) => {
-            const province = locationRes.data.find(
-              (p: { T_id: number; T_ten: string }) => p.T_id === item.T_id
-            ); // Dùng trực tiếp locationRes.data
-            const locationName =
-              item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten ?? 'Không xác định';
-
-            return {
-              id: item.PVC_id,
-              fee: item.PVC_phi,
-              level: item.PVC_ntl,
-              surcharge: item.PVC_phuPhi,
-              unit: item.PVC_dvpp,
-              location: locationName,
-              locationId: item.T_id,
-            };
-          });
-
+        const mapped = mapShippingFeesFromDtoList(shippingRes.data);
         setData(mapped);
+        setProvinces(locationRes.data);
       })
       .catch((error) => {
         setData([]);
+        setProvinces([]);
         setErrorMessage('Đã xảy ra lỗi!');
-        console.error('Lỗi tải dữ liệu phí vận chuyển:', error);
+        console.error('Lỗi tải dữ liệu:', error);
       })
       .finally(() => setLoading(false));
   };
@@ -317,7 +296,7 @@ export default function Shipments() {
       <div className="w-full p-4 bg-white rounded-md shadow-sm h-fit">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center pl-4 space-x-2">
-            <span className="text-xl font-semibold">{total}</span>
+            <span className="text-xl font-semibold">{data.length}</span>
             <span>Phí vận chuyển</span>
           </div>
           <Link href="shipping/new">
