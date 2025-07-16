@@ -287,7 +287,6 @@ export default function ProductPromotionForm({
                 status="noPromotion"
                 currentPage={1}
                 selectedData={selectedData}
-                products={availableProducts}
                 onClose={() => setOpenProductTable(false)}
                 onConfirmSelect={handleSelect}
               />

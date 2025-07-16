@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
@@ -47,7 +47,6 @@ interface ProductTableProps {
 export default function ProductTable({
   data,
   selectedData,
-  products,
   loading = false,
   onDelete,
   isComponent = false,
@@ -62,10 +61,6 @@ export default function ProductTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
   const [rowSelection, setRowSelection] = useState({});
   const [selectData, setSelectData] = useState<ProductOverView[]>([]);
-
-  const mergedData: ProductOverView[] = useMemo(() => {
-    return [...(products?.filter((p) => !data.some((d) => d.id === p.id)) ?? []), ...data];
-  }, [products, data]);
 
   let columns: ColumnDef<ProductOverView>[] = [
     {
@@ -197,7 +192,7 @@ export default function ProductTable({
   }
 
   const table = useReactTable({
-    data: mergedData,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableRowSelection: true,
@@ -208,7 +203,7 @@ export default function ProductTable({
       setRowSelection(newRowSelection);
 
       const selected = Object.keys(newRowSelection).map((rowId) =>
-        mergedData.find((item) => item.id.toString() === rowId)
+        [...data, ...selectData].find((item) => item.id.toString() === rowId)
       );
 
       setSelectData(selected.filter(Boolean) as ProductOverView[]);
@@ -333,6 +328,7 @@ export default function ProductTable({
                 // Loại bỏ những sản phẩm đã được chọn sẵn (selectedData) khỏi selectData
                 const selectedIds = new Set(selectedData?.map((p) => p.id));
                 const newSelected = selectData.filter((item) => !selectedIds.has(item.id));
+
                 onConfirmSelect?.(newSelected);
               }}
             >

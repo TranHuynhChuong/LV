@@ -64,7 +64,6 @@ export default function ProductTab({
   onPageChange,
   onClose,
   selectedData,
-  products,
   onConfirmSelect,
 }: Readonly<ProductTabProp>) {
   const [data, setData] = useState<ProductOverView[]>([]);
@@ -262,7 +261,6 @@ export default function ProductTab({
         onClose={onClose}
         onConfirmSelect={onConfirmSelect}
         selectedData={selectedData}
-        products={products}
       />
     </div>
   );
