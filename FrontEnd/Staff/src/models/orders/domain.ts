@@ -31,14 +31,9 @@ export interface Order {
     recipientName: string;
     phoneNumber: string;
     addressInfo: {
-      province: {
-        id: number;
-        name: string;
-      };
-      ward: {
-        id: number;
-        name: string;
-      };
+      provinceId: number;
+      wardId: number;
+      fulltext: string;
     };
     note: string;
   };

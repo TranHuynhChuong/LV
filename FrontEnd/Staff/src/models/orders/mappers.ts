@@ -1,31 +1,7 @@
-import api from '@/lib/axios';
 import { Order, OrderDto, OrderOverviewDto } from '.';
 import { mapActivityLogsFromDto } from '../activityLogs';
 
-export async function getProvinceName(provinceId: number) {
-  const provinces = await api.get('/address/0').then((res) => res.data);
-  return (
-    provinces.find((p: { T_id: number; T_ten: string }) => p.T_id === provinceId)?.T_ten ??
-    'Không xác định'
-  );
-}
-
-export async function getWardName(provinceId: number, wardId: number) {
-  const wards = await api(`/address/${provinceId}`).then((res) => res.data);
-  return (
-    wards.find((w: { X_id: number; X_ten: string }) => w.X_id === wardId)?.X_ten ?? 'Không xác định'
-  );
-}
-
 export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
-  const provinceId = dto.thongTinNhanHang?.NH_diaChi?.T_id ?? 0;
-  const wardId = dto.thongTinNhanHang?.NH_diaChi?.X_id ?? 0;
-
-  const [provinceName, wardName] = await Promise.all([
-    getProvinceName(provinceId),
-    getWardName(provinceId, wardId),
-  ]);
-
   return {
     orderId: dto.DH_id ?? '',
     createdAt: dto.DH_ngayTao ?? '',
@@ -46,8 +22,9 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
       recipientName: dto.thongTinNhanHang?.NH_hoTen ?? '',
       phoneNumber: dto.thongTinNhanHang?.NH_soDienThoai ?? '',
       addressInfo: {
-        province: { id: provinceId, name: provinceName },
-        ward: { id: wardId, name: wardName },
+        provinceId: dto.thongTinNhanHang.T_id,
+        wardId: dto.thongTinNhanHang.X_id,
+        fulltext: dto.thongTinNhanHang.NH_diaChi,
       },
       note: dto.thongTinNhanHang?.NH_ghiChu ?? '',
     },

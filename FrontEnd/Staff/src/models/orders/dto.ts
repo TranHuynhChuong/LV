@@ -20,10 +20,9 @@ export interface OrderDto {
   thongTinNhanHang: {
     NH_hoTen: string;
     NH_soDienThoai: string;
-    NH_diaChi: {
-      T_id: number;
-      X_id: number;
-    };
+    T_id: number;
+    X_id: number;
+    NH_diaChi: string;
     NH_ghiChu: string;
   };
   chiTietDonHang: {
