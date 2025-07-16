@@ -1,35 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { locationData } from './data/dia-chi.data';
-
-export interface XaPhuong {
-  X_id: number;
-  X_ten: string;
-}
-
-export interface DiaChi {
-  T_id: number;
-  T_ten: string;
-  XaPhuong: XaPhuong[];
-}
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import {
+  TinhThanhDocument,
+  TinhThanh,
+  XaPhuong,
+} from './schemas/dia-chi.schema';
 
 @Injectable()
-export class DiaChiRepository {
-  private readonly data: DiaChi[];
+export class DiaChiRepository implements OnModuleInit {
+  private location: TinhThanh[] | null = null;
 
-  constructor() {
-    this.data = locationData;
-  }
-  getAllProvinces(): { T_id: number; T_ten: string }[] {
-    return this.data.map(({ T_id, T_ten }) => ({ T_id, T_ten }));
+  constructor(
+    @InjectModel(TinhThanh.name)
+    private readonly diaChiModel: Model<TinhThanhDocument>
+  ) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.fetchLocation();
   }
 
-  getWardsByProvinceId(provinceId: number): XaPhuong[] {
-    const province = this.data.find((d) => d.T_id === provinceId);
+  async fetchLocation(): Promise<void> {
+    this.location = await this.diaChiModel.find().lean();
+  }
+
+  private async ensureDataLoaded(): Promise<void> {
+    if (!this.location) {
+      await this.fetchLocation();
+    }
+  }
+
+  async getAllProvinces(): Promise<{ T_id: number; T_ten: string }[]> {
+    await this.ensureDataLoaded();
+    return this.location!.map(({ T_id, T_ten }) => ({ T_id, T_ten }));
+  }
+
+  async getWardsByProvinceId(provinceId: number): Promise<XaPhuong[]> {
+    await this.ensureDataLoaded();
+    const province = this.location!.find((d) => d.T_id === provinceId);
     return province?.XaPhuong ?? [];
   }
 
-  getFullAddressText(provinceId: number, wardId: number): string | undefined {
-    const province = this.data.find((d) => d.T_id === provinceId);
+  async getFullAddressText(
+    provinceId: number,
+    wardId: number
+  ): Promise<string | undefined> {
+    await this.ensureDataLoaded();
+    const province = this.location!.find((d) => d.T_id === provinceId);
     if (!province) return undefined;
 
     const ward = province.XaPhuong.find((x) => x.X_id === wardId);
@@ -38,20 +55,23 @@ export class DiaChiRepository {
     return `${ward.X_ten} - ${province.T_ten}`;
   }
 
-  getProvinceInfo(
+  async getProvinceInfo(
     provinceId: number
-  ): { T_id: number; T_ten: string } | undefined {
-    const province = this.data.find((d) => d.T_id === provinceId);
+  ): Promise<{ T_id: number; T_ten: string } | undefined> {
+    await this.ensureDataLoaded();
+    const province = this.location!.find((d) => d.T_id === provinceId);
     if (!province) return undefined;
 
     return { T_id: province.T_id, T_ten: province.T_ten };
   }
 
-  findAll(): DiaChi[] {
-    return this.data;
+  async findAll(): Promise<TinhThanh[]> {
+    await this.ensureDataLoaded();
+    return this.location!;
   }
 
-  findByProvinceId(id: number): DiaChi | undefined {
-    return this.data.find((d) => d.T_id === id);
+  async findByProvinceId(id: number): Promise<TinhThanh | undefined> {
+    await this.ensureDataLoaded();
+    return this.location!.find((d) => d.T_id === id);
   }
 }

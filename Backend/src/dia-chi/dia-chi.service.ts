@@ -1,33 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { DiaChi, DiaChiRepository, XaPhuong } from './dia-chi.repository';
+import { DiaChiRepository } from './dia-chi.repository';
+import { TinhThanh, XaPhuong } from './schemas/dia-chi.schema';
 
 @Injectable()
 export class DiaChiService {
   constructor(private readonly DiaChiRepo: DiaChiRepository) {}
 
-  getAllProvinces(): { T_id: number; T_ten: string }[] {
+  async getAllProvinces(): Promise<{ T_id: number; T_ten: string }[]> {
     return this.DiaChiRepo.getAllProvinces();
   }
 
-  getWardsByProvinceId(provinceId: number): XaPhuong[] {
+  async getWardsByProvinceId(provinceId: number): Promise<XaPhuong[]> {
     return this.DiaChiRepo.getWardsByProvinceId(provinceId);
   }
 
-  getFullAddressText(provinceId: number, wardId: number): string | undefined {
+  async getFullAddressText(
+    provinceId: number,
+    wardId: number
+  ): Promise<string | undefined> {
     return this.DiaChiRepo.getFullAddressText(provinceId, wardId);
   }
 
-  getProvinceInfo(
+  async getProvinceInfo(
     provinceId: number
-  ): { T_id: number; T_ten: string } | undefined {
+  ): Promise<{ T_id: number; T_ten: string } | undefined> {
     return this.DiaChiRepo.getProvinceInfo(provinceId);
   }
 
-  findAll(): DiaChi[] {
+  async findAll(): Promise<TinhThanh[]> {
     return this.DiaChiRepo.findAll();
   }
 
-  findByProvinceId(id: number): DiaChi | undefined {
+  async findByProvinceId(id: number): Promise<TinhThanh | undefined> {
     return this.DiaChiRepo.findByProvinceId(id);
+  }
+
+  async refetchLocation() {
+    return this.DiaChiRepo.fetchLocation();
   }
 }

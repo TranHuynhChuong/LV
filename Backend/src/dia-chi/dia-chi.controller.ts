@@ -11,4 +11,9 @@ export class DiaChiController {
       return this.DiaChiService.getAllProvinces();
     } else return this.DiaChiService.getWardsByProvinceId(id);
   }
+
+  @Get('refetch')
+  refetchData() {
+    return this.DiaChiService.refetchLocation();
+  }
 }
