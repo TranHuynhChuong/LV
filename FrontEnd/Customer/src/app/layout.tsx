@@ -7,7 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 
 import { Roboto, Geist } from 'next/font/google';
 import RouteWatcher from '@/components/utils/RouteWatcher';
-import VoiceflowWidget from '@/components/voiceFlow/VoiceflowWidget';
+import RasaWidget from '@/chatbot/rasaWidget';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -44,7 +44,7 @@ export default function RootLayout({
           </main>
           <Footer />
           <Toaster richColors position="bottom-right" duration={2000} />
-          <VoiceflowWidget />
+          <RasaWidget />
         </body>
       </html>
     </AuthProvider>
