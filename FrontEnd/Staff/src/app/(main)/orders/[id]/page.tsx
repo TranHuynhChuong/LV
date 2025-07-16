@@ -31,7 +31,7 @@ export default function OrderDetailPage() {
   const fetchData = useCallback(
     async (id: string) => {
       try {
-        const res = await api.get(`orders/${id}`);
+        const res = await api.get(`orders/detail/${id}`);
         const item = res.data;
         const mapped = await mapOrderFromDto(item);
 
