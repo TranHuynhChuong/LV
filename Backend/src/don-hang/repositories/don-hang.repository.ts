@@ -356,12 +356,12 @@ export class DonHangRepository {
     };
   }
 
-  //============ Thống kê ==============//
+  //================================================ THỐNG KÊ =====================================================//
 
   async getOrderStatsByStatus(
     startDate: Date,
     endDate: Date,
-    groupBy: 'day' | 'month' = 'day'
+    groupBy: 'day' | 'month' | 'year'
   ): Promise<
     Record<
       string,
@@ -391,7 +391,8 @@ export class DonHangRepository {
       }
     >
   > {
-    const dateFormat = groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
+    const dateFormat =
+      groupBy === 'year' ? '%Y' : groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
 
     const allRaw = await this.DonHangModel.aggregate([
       {
@@ -411,6 +412,9 @@ export class DonHangRepository {
           _id: '$dateGroup',
           total: { $sum: 1 },
         },
+      },
+      {
+        $sort: { _id: 1 }, // sắp xếp tăng dần theo ngày
       },
     ]);
 

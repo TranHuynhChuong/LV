@@ -6,7 +6,6 @@ import {
   Query,
   Body,
   Patch,
-  ParseIntPipe,
   HttpStatus,
   Res,
 } from '@nestjs/common';
@@ -86,7 +85,7 @@ export class DonHangController {
     return this.DonHangService.searchOrder(id.toUpperCase());
   }
 
-  @Get(':id')
+  @Get('/detail/:id')
   async findById(
     @Param('id') id: string,
     @Query('filterType') filterType: OrderStatus
@@ -94,47 +93,33 @@ export class DonHangController {
     return this.DonHangService.findById(id.toUpperCase(), filterType);
   }
 
-  // ============== Thống kê ===================//
-
   // Thống kê theo năm
-  @Get('/stats/year/:year')
-  getStatsByYear(@Param('year', ParseIntPipe) year: number) {
-    return this.DonHangService.getStatsByYear(year);
-  }
-
-  // Thống kê theo tháng
-  @Get('/stats/month/:year/:month')
-  getStatsByMonth(
-    @Param('year', ParseIntPipe) year: number,
-    @Param('month', ParseIntPipe) month: number
+  @Get('/stats')
+  getStatsByYear(
+    @Query('dateStart') dateStartRaw: string,
+    @Query('dateEnd') dateEndRaw: string
   ) {
-    return this.DonHangService.getStatsByMonth(year, month);
+    const dateStart = new Date(dateStartRaw);
+    const dateEnd = new Date(dateEndRaw);
+    return this.DonHangService.getStatsByDateRange(dateStart, dateEnd);
   }
 
-  @Get('/stats/export/month/:year/:month')
-  async exportByMonth(
-    @Param('year', ParseIntPipe) year: number,
-    @Param('month', ParseIntPipe) month: number,
+  @Get('/stats/export')
+  async exportStats(
+    @Query('dateStart') dateStartRaw: string,
+    @Query('dateEnd') dateEndRaw: string,
+    @Query('staffId') staffId: string,
     @Res() res: Response
   ) {
-    const { buffer, fileName } =
-      await this.DonHangService.getExcelReportStatsByMonth(year, month);
+    const dateStart = new Date(dateStartRaw);
+    const dateEnd = new Date(dateEndRaw);
 
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-    res.status(HttpStatus.OK).send(buffer);
-  }
-
-  @Get('/stats/export/year/:year')
-  async exportByYear(
-    @Param('year', ParseIntPipe) year: number,
-    @Res() res: Response
-  ) {
     const { buffer, fileName } =
-      await this.DonHangService.getExcelReportStatsByYear(year);
+      await this.DonHangService.getExcelReportStatsByDateRange(
+        dateStart,
+        dateEnd,
+        staffId
+      );
 
     res.setHeader(
       'Content-Type',

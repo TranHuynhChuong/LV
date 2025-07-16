@@ -1,5 +1,3 @@
-export type GroupByType = 'day' | 'month';
-
 export interface StatsResult {
   orders: Record<string, OrderStatsByDate>;
   vouchers: VoucherStats;
