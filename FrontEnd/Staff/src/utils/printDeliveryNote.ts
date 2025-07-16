@@ -61,7 +61,7 @@ export async function generateDeliveryNotePdf(order: any) {
   drawText(`SĐT: ${order.shippingInfo.phoneNumber}`, 8, MARGIN);
   y -= LINE_HEIGHT;
   drawText(
-    `Địa chỉ: ${order.shippingInfo.addressInfo.ward.name}, ${order.shippingInfo.addressInfo.province.name}`,
+    `Địa chỉ: ${order.shippingInfo.addressInfo.fulltext}, ${order.shippingInfo.addressInfo.fulltext}`,
     8,
     MARGIN
   );

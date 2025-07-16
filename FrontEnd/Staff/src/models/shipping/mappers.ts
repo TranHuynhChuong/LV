@@ -10,6 +10,10 @@ export function mapShippingFeeFromDto(dto: ShippingFeeDto): ShippingFee {
   };
 }
 
+export function mapShippingFeesFromDtoList(dtos: ShippingFeeDto[]): ShippingFee[] {
+  return dtos.map(mapShippingFeeFromDto);
+}
+
 export function mapShippingFeeToDto(data: ShippingFee, staffId: string): ShippingFeeDto {
   return {
     PVC_phi: data.fee ?? 0,
@@ -17,6 +21,7 @@ export function mapShippingFeeToDto(data: ShippingFee, staffId: string): Shippin
     PVC_phuPhi: data.surcharge ?? 0,
     PVC_dvpp: data.surchargeUnit ?? 0,
     T_id: data.provinceId ?? 0,
+    T_ten: data.province ?? '',
     NV_id: staffId,
   };
 }

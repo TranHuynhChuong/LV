@@ -5,5 +5,6 @@ export type ShippingFeeDto = {
   PVC_phuPhi: number;
   PVC_dvpp: number;
   T_id: number;
+  T_ten: string;
   NV_id?: string;
 };
