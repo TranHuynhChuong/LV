@@ -677,7 +677,7 @@ export class SanPhamRepository {
             $map: {
               input: '$SP_TL_info',
               as: 'tl',
-              in: '$$tl.TL_ten', // ✅ chỉ lấy tên thể loại
+              in: '$$tl.TL_ten',
             },
           },
         },
@@ -687,7 +687,7 @@ export class SanPhamRepository {
       {
         $project: {
           ...project,
-          SP_TL: 1, // ✅ thêm vào để giữ kết quả lookup
+          SP_TL: 1,
           score: '$vectorScore',
         },
       },

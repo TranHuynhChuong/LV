@@ -99,16 +99,22 @@ export class PhiVanChuyenService {
     Partial<PhiVanChuyen & { T_ten: string }>[]
   > {
     const data = await this.PhiVanChuyenRepo.findAll();
-    return data.map((item) => {
-      const province =
-        item.T_id !== undefined
-          ? this.DiaChiService.getProvinceInfo(item.T_id)
-          : undefined;
-      return {
-        ...item,
-        T_ten: item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten,
-      };
-    });
+
+    const result = await Promise.all(
+      data.map(async (item) => {
+        const province =
+          item.T_id !== undefined
+            ? await this.DiaChiService.getProvinceInfo(item.T_id)
+            : undefined;
+
+        return {
+          ...item,
+          T_ten: item.T_id === 0 ? 'Khu vực còn lại' : province?.T_ten,
+        };
+      })
+    );
+
+    return result;
   }
 
   async getShippingFeeById(id: number): Promise<any> {

@@ -15,13 +15,15 @@ export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<OrderS
   const [code, setCode] = useState(initalcode);
 
   const handleApply = () => {
-    if (code !== '') {
-      onApply(code);
+    const trimmed = code.trim();
+    if (trimmed !== '') {
+      onApply(trimmed);
     }
   };
 
   const handleReset = () => {
     setCode('');
+
     onReset();
   };
 

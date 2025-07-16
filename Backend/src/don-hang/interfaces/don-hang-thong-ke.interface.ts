@@ -5,6 +5,7 @@ export interface StatsResult {
   totalDiscountStats: DiscountedProductStats;
   provinces: {
     provinceId: number;
+    provinceName: string;
     count: number;
   }[];
 }
