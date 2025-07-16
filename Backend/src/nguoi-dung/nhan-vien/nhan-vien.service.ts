@@ -38,6 +38,12 @@ export class NhanVienUtilService {
     return this.NhanVienRepo.findAllIds(ids);
   }
 
+  vaiTroMap: Record<number, string> = {
+    1: 'Quản trị',
+    2: 'Quản lý',
+    3: 'Bán Hàng',
+  };
+
   async mapActivityLog<
     T extends { NV_id?: string; thoiGian: any; thaoTac: any },
   >(
@@ -74,16 +80,22 @@ export class NhanVienUtilService {
           NV_hoTen: nv?.NV_hoTen ?? null,
           NV_email: nv?.NV_email ?? null,
           NV_soDienThoai: nv?.NV_soDienThoai ?? null,
+          NV_tenVaiTro: this.vaiTroMap[nv.NV_vaiTro] ?? null,
         },
       };
     });
   }
 
-  async findById(id: string): Promise<NhanVien> {
-    const result = await this.NhanVienRepo.findById(id);
-    if (!result) {
+  async findById(id: string): Promise<NhanVien & { NV_tenVaiTro: string }> {
+    const staff = await this.NhanVienRepo.findById(id);
+    if (!staff) {
       throw new NotFoundException();
     }
+
+    const result: NhanVien & { NV_tenVaiTro: string } = {
+      ...staff, // nếu staff là document mongoose
+      NV_tenVaiTro: this.vaiTroMap[staff.NV_vaiTro] ?? 'Không xác định',
+    };
 
     return result;
   }
