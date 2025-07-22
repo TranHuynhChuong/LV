@@ -47,6 +47,7 @@ export type ProductDetail = {
   isOnSale: boolean;
   inventory: number;
   weight: number;
+  size: string;
   rating: number;
   saled: number;
   coverImage: string;

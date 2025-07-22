@@ -35,6 +35,7 @@ export function mapProductDetailFormDto(dto: ProductDetailDto): ProductDetail {
     inventory: dto.SP_tonKho,
     saled: dto.SP_daBan,
     weight: dto.SP_trongLuong,
+    size: dto.SP_kichThuoc,
     rating: dto.SP_diemDG,
     coverImage: getCoverImageUrl(dto.SP_anh),
     productImages: getProductImageUrls(dto.SP_anh),

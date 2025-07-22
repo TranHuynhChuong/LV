@@ -37,6 +37,7 @@ export type ProductDetailDto = {
   SP_giaNhap: number;
   SP_tonKho: number;
   SP_trongLuong: number;
+  SP_kichThuoc: string;
   SP_diemDG: number;
   SP_daBan: number;
   SP_anh: {
