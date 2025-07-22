@@ -78,7 +78,7 @@ export default function ProductTable({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="text-sm leading-5 truncate max-w-36 lg:max-w-none">
+                    <div className="text-sm leading-5 truncate max-w-36 lg:max-w-90 ">
                       {product.name}
                     </div>
                   </TooltipTrigger>
