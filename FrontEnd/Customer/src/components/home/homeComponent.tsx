@@ -1,6 +1,7 @@
 import { ProductOverview } from '@/models/products';
 
 import HomeSection from './homeSection';
+import HomeSlidingBanner from './homeSlidingBanner';
 
 interface HomeComponentProps {
   mostRated: ProductOverview[];
@@ -11,6 +12,8 @@ interface HomeComponentProps {
 export default function HomeComponent({ mostRated, latest, bestSelling }: HomeComponentProps) {
   return (
     <div className="space-y-6">
+      <HomeSlidingBanner />
+      {/* <HomeIntroduceSection /> */}
       <HomeSection
         title="Top sản phẩm bán chạy"
         products={bestSelling}

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ProductList } from '@/components/product/productList';
+import { ProductList } from '@/components/products/productList';
 import { ProductOverview } from '@/models/products';
 import { Button } from '../ui/button';
 
