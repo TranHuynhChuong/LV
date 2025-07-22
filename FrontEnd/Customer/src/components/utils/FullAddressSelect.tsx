@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/Combobox';
 import clsx from 'clsx';
+import api from '@/lib/axios';
 
 interface AddressSelectProps {
   readonly onSelectProvince: (provinceId: number) => void;
@@ -29,8 +30,8 @@ export default function AddressSelect({
   // Load danh sách tỉnh
   useEffect(() => {
     async function fetchProvinces() {
-      const res = await fetch('/addresses/0.json');
-      const data = await res.json();
+      const res = await api.get(`/location/0`);
+      const data = res.data;
       const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
         code: item.T_id,
         name: item.T_ten,
@@ -42,12 +43,11 @@ export default function AddressSelect({
 
   // Load xã nếu có tỉnh được chọn từ props ban đầu (dùng cho edit)
   useEffect(() => {
-    if (!valueProvinceId) return;
-
     async function fetchWards() {
       try {
-        const res = await fetch(`/addresses/${valueProvinceId}.json`);
-        const data = await res.json();
+        if (!selectedProvinceId) return;
+        const res = await api.get(`/location/${selectedProvinceId}`);
+        const data = res.data;
         const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
           code: item.X_id,
           name: item.X_ten,
@@ -68,8 +68,9 @@ export default function AddressSelect({
     setWardsData([]);
     onSelectProvince(provinceId);
     try {
-      const res = await fetch(`/addresses/${provinceId}.json`);
-      const data = await res.json();
+      if (!selectedProvinceId) return;
+      const res = await api.get(`/location/${selectedProvinceId}`);
+      const data = res.data;
       const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
         code: item.X_id,
         name: item.X_ten,

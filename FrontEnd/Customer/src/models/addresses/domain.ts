@@ -3,14 +3,9 @@ export type Address = {
   orderId?: string;
   name: string;
   phone: string;
-  province: {
-    id: number;
-    name?: string;
-  };
-  ward: {
-    id: number;
-    name?: string;
-  };
+  provinceId: number;
+  wardId: number;
+  fullName?: string;
   note?: string;
   userId?: number;
   default?: boolean;

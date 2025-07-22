@@ -48,8 +48,8 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
       defaultValues: {
         name: defaultValue?.name ?? '',
         phone: defaultValue?.phone ?? '',
-        provinceId: defaultValue?.province.id ?? undefined,
-        wardId: defaultValue?.ward.id ?? undefined,
+        provinceId: defaultValue?.provinceId ?? undefined,
+        wardId: defaultValue?.wardId ?? undefined,
         note: defaultValue?.note ?? '',
         default: defaultValue?.default ?? false,
       },
@@ -61,14 +61,14 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
       form.reset({
         name: defaultValue.name ?? '',
         phone: defaultValue.phone ?? '',
-        provinceId: defaultValue.province.id ?? undefined,
-        wardId: defaultValue.ward.id ?? undefined,
+        provinceId: defaultValue.provinceId ?? undefined,
+        wardId: defaultValue.wardId ?? undefined,
         note: defaultValue.note ?? '',
         default: defaultValue.default ?? false,
       });
 
-      if (defaultValue.province?.id) {
-        onProvinceChange?.(defaultValue.province.id);
+      if (defaultValue.provinceId) {
+        onProvinceChange?.(defaultValue.provinceId);
       }
     }, [defaultValue, form]);
 

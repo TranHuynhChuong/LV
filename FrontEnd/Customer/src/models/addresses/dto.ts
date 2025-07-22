@@ -6,6 +6,7 @@ export type AddressDto = {
   NH_ghiChu?: string;
   T_id: number;
   X_id: number;
+  NH_diaChi?: string;
   NH_macDinh?: boolean;
   KH_id?: number;
 };

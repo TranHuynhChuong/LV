@@ -45,9 +45,7 @@ export function AddressItem({ address, isComponent, selected, onSelect }: Readon
         )}
       </div>
 
-      <div className="text-sm">
-        {address.ward.name}, {address.province.name}
-      </div>
+      <div className="text-sm">{address.fullName}</div>
 
       {address.note && <div className="text-xs italic text-muted-foreground">{address.note}</div>}
 
