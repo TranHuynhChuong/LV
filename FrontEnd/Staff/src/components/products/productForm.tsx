@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from 'next/image';
-
+import CurrencyInput from 'react-currency-input-field';
 import {
   Form,
   FormControl,
@@ -58,6 +58,7 @@ const productSchema = z.object({
   isbn: z.string({ required_error: 'Không được để trống' }),
   language: z.string({ required_error: 'Không được để trống' }),
   translator: z.string().optional(),
+  size: z.string({ required_error: 'Không được để trống' }),
   salePrice: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
@@ -86,6 +87,7 @@ export type ProductFormType = {
   description?: string;
   author: string;
   publisher: string;
+  size: string;
   publishYear: number;
   page: number;
   isbn: string;
@@ -398,7 +400,9 @@ export default function ProductForm({
               name="status"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Trạng thái</FormLabel>
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                    <span className="text-red-500">*</span>Trạng thái
+                  </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Select value={field.value ?? ''} onValueChange={field.onChange}>
@@ -437,6 +441,7 @@ export default function ProductForm({
                         maxLength={1200}
                         onChange={field.onChange}
                         className="h-40 resize-none"
+                        placeholder="Tên sách + Thể loại + Tác giả + Nhà xuất bản + Nội dung"
                       />
                     </FormControl>
                     <div className="flex justify-between mx-1">
@@ -562,6 +567,27 @@ export default function ProductForm({
                 </FormItem>
               )}
             />
+            <FormField
+              control={control}
+              name="size"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                    <span className="text-red-500">*</span>Kích thước
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <Input
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        placeholder="Dài x Rộng x Cao (cm)"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={control}
@@ -619,20 +645,19 @@ export default function ProductForm({
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            className="pl-12"
-                            value={field.value ?? ''}
-                            onChange={field.onChange}
-                          />
-                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
-                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
-                              VND
-                            </span>
-                          </div>
-                        </div>
+                        <CurrencyInput
+                          id={field.name}
+                          name={field.name}
+                          className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                          value={field.value ?? ''}
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          prefix="₫"
+                          onValueChange={(value) =>
+                            field.onChange({ target: { name: field.name, value } })
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </div>
@@ -650,20 +675,19 @@ export default function ProductForm({
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            className="pl-12"
-                            value={field.value ?? ''}
-                            onChange={field.onChange}
-                          />
-                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
-                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
-                              VND
-                            </span>
-                          </div>
-                        </div>
+                        <CurrencyInput
+                          id={field.name}
+                          name={field.name}
+                          className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                          value={field.value ?? ''}
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          prefix="₫"
+                          onValueChange={(value) =>
+                            field.onChange({ target: { name: field.name, value } })
+                          }
+                        />
                       </FormControl>
                       <FormMessage />
                     </div>
