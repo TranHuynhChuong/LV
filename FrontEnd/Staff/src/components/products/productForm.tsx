@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import CategoryCombobox from '@/components/utils/CategoriesCombobox';
+import { useEffect, useMemo, useState } from 'react';
+import CategoryCombobox from '@/components/categories/categoriesCombobox';
 import { ImagePlus, Trash2 } from 'lucide-react';
 
 import ConfirmDialog from '@/components/utils/ConfirmDialog';
@@ -43,7 +43,7 @@ const productSchema = z.object({
   status: z.string(),
   category: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
 
-  summary: z.string({ required_error: 'Không được để trống' }).max(1200),
+  summary: z.string({ required_error: 'Không được để trống' }),
   description: z.string().max(3000).optional(),
   author: z.string({ required_error: 'Không được để trống' }),
   publisher: z.string({ required_error: 'Không được để trống' }),
@@ -123,16 +123,56 @@ export default function ProductForm({
 
   IS_EDITING = !!defaultValue;
 
-  const { control } = form;
+  const { control, watch, setValue } = form;
+
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [productImageFiles, setProductImageFiles] = useState<File[]>([]);
-  const [coverImage, setCoverImage] = useState<string | null>(defaultValue?.coverImage ?? null);
-  const [productImages, setProductImages] = useState<string[]>(defaultValue?.productImages || []);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [productImages, setProductImages] = useState<string[]>([]);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   const [formDataToSubmit, setFormDataToSubmit] = useState<ProductFormValues | null>(null);
+
+  const [categoryLabels, setCategoryLabels] = useState<string[]>([]); // giữ lại state
+  const [manualSummary, setManualSummary] = useState('');
+
+  const name = watch('name') ?? '';
+  const author = watch('author') ?? '';
+  const publisher = watch('publisher') ?? '';
+
+  const autoSummary = useMemo(() => {
+    return (
+      [
+        name && `${name}`,
+        categoryLabels.length && `Thể loại ${categoryLabels.join(', ')}`,
+        author && `Tác giả ${author}`,
+        publisher && `Nhà xuất bản ${publisher}`,
+      ]
+        .filter(Boolean)
+        .join('. ') + '.'
+    );
+  }, [name, author, publisher, categoryLabels]);
+
+  useEffect(() => {
+    setValue('summary', `${autoSummary.trim()}\n\n${manualSummary.trim()}`);
+  }, [autoSummary, manualSummary, setValue]);
+
+  useEffect(() => {
+    if (!defaultValue) return;
+
+    setCoverImage(defaultValue.coverImage ?? null);
+    setProductImages(defaultValue.productImages || []);
+    const summary = defaultValue.summary ?? '';
+
+    if (summary && autoSummary && summary.startsWith(autoSummary)) {
+      const extracted = summary.slice(autoSummary.length).trimStart();
+      setManualSummary(extracted);
+    } else {
+      setManualSummary(summary);
+    }
+  }, [defaultValue, autoSummary]);
 
   function getPreviewUrl(file: File | null) {
     if (!file) return null;
@@ -381,10 +421,12 @@ export default function ProductForm({
                     <FormControl>
                       <CategoryCombobox
                         value={field.value}
-                        leafOnly={true}
                         onChange={(value) => {
                           const cleanedValue = (value || []).filter((v) => v !== undefined);
                           field.onChange(cleanedValue);
+                        }}
+                        onLabelChange={(labels) => {
+                          setCategoryLabels(labels);
                         }}
                         className={fieldState.invalid ? 'border border-red-500 rounded-md' : ''}
                       />
@@ -435,19 +477,28 @@ export default function ProductForm({
                     <span className="text-red-500">*</span>Tóm tắt
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
+                    <Textarea
+                      value={autoSummary}
+                      className="h-20 resize-none bg-muted text-muted-foreground"
+                      readOnly
+                    />
                     <FormControl>
                       <Textarea
-                        value={field.value ?? ''}
-                        maxLength={1200}
-                        onChange={field.onChange}
+                        value={manualSummary}
+                        maxLength={800}
+                        onChange={(e) => {
+                          const newManual = e.target.value;
+                          setManualSummary(newManual);
+                          field.onChange(`${autoSummary} ${newManual}`.trim().replace(/\s+/g, ' '));
+                        }}
                         className="h-40 resize-none"
-                        placeholder="Tên sách + Thể loại + Tác giả + Nhà xuất bản + Nội dung"
+                        placeholder="Thêm mô tả chi tiết nội dung sách..."
                       />
                     </FormControl>
                     <div className="flex justify-between mx-1">
                       <FormMessage />
                       <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
-                        {field.value?.length ?? 0} / 1200
+                        {field.value?.length ?? 0} / 800
                       </div>
                     </div>
                   </div>
