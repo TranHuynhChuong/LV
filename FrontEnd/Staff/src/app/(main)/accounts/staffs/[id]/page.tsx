@@ -29,8 +29,8 @@ export default function StaffDetailPage() {
     try {
       const res = await api.get(`/users/staff/${id}`);
       const data = res.data;
-
-      setStaffData(mapStaffFormDto(data)[0]);
+      console.log(data);
+      setStaffData(mapStaffFormDto([data])[0]);
       setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
     } catch (error) {
       console.error('Lỗi khi lấy thông tin nhân viên:', error);
