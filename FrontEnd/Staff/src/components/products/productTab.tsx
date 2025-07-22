@@ -230,7 +230,7 @@ export default function ProductTab({
     <div className="space-y-4 bg-white min-w-xl">
       {isSubmitting && <Loader />}
       <div className="flex items-center  justify-between">
-        <h1 className="text-lg font-semibold pl-4">{totalItems} Sản phẩm</h1>
+        <h1 className="text-lg font-semibold pl-4">{totalItems} Sách</h1>
         {!isComponent && (
           <Link href="/products/new">
             <Button className="cursor-pointer">

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import {
   UserCog,
-  ShoppingBag,
+  Book,
   ChartBar,
   Package,
   Percent,
@@ -33,7 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const fullNav = [
     { title: 'Trang chủ', url: '/', icon: Home },
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
-    { title: 'Sản phẩm', url: '/products', icon: ShoppingBag },
+    { title: 'Sách', url: '/products', icon: Book },
     { title: 'Thể loại', url: '/categories', icon: ChartBar },
     { title: 'Đơn hàng', url: '/orders', icon: Package },
     {

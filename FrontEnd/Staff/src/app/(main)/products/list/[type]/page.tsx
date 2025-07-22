@@ -11,7 +11,7 @@ import eventBus from '@/lib/eventBus';
 export default function ProductsListType() {
   const { setBreadcrumbs } = useBreadcrumb();
   useEffect(() => {
-    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sản phẩm' }]);
+    setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Sách' }]);
   }, [setBreadcrumbs]);
 
   const params = useParams();
