@@ -67,18 +67,21 @@ export class DanhGiaService {
     return this.DanhGiaRepo.findAllOfProduct(spId, page, limit);
   }
 
-  async findAll(
-    page: number,
-    limit = 24,
-    rating?: number,
-    daterange?: [Date, Date],
-    status?: 'all' | 'visible' | 'hidden'
-  ): Promise<any> {
+  async findAll(option: {
+    page: number;
+    limit: number;
+    rating?: number;
+    from?: Date;
+    to?: Date;
+    status?: 'all' | 'visible' | 'hidden';
+  }): Promise<any> {
+    const { page, limit = 24, rating, from, to, status } = option;
     const result: any = await this.DanhGiaRepo.findAll(
       page,
       limit,
       rating,
-      daterange,
+      from,
+      to,
       status
     );
 
@@ -202,7 +205,7 @@ export class DanhGiaService {
     }
   }
 
-  async countRating(startDate: Date, endDate: Date) {
-    return this.DanhGiaRepo.countRatingOfMonth(startDate, endDate);
+  async countRating(from: Date, to: Date) {
+    return this.DanhGiaRepo.countRating(from, to);
   }
 }

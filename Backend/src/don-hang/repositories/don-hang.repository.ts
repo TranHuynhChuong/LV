@@ -187,8 +187,8 @@ export class DonHangRepository {
 
   protected getFilter(
     filterType?: OrderStatus,
-    dateStart?: Date,
-    dateEnd?: Date,
+    from?: Date,
+    to?: Date,
     userId?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
@@ -212,11 +212,10 @@ export class DonHangRepository {
       filter.KH_id = userId;
     }
 
-    if (dateStart && dateEnd) {
-      filter.DH_ngayTao = {
-        $gte: dateStart,
-        $lte: dateEnd,
-      };
+    if (from && to) {
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      filter.DH_ngayTao = { $gte: from, $lte: to };
     }
 
     return filter;
@@ -226,20 +225,13 @@ export class DonHangRepository {
     page: number;
     limit: number;
     filterType?: OrderStatus;
-    dateStart?: Date;
-    dateEnd?: Date;
+    from?: Date;
+    to?: Date;
     userId?: number;
   }) {
-    const {
-      page,
-      limit = 12,
-      filterType,
-      dateStart,
-      dateEnd,
-      userId,
-    } = options;
+    const { page, limit = 12, filterType, from, to, userId } = options;
 
-    const filter = this.getFilter(filterType, dateStart, dateEnd, userId);
+    const filter = this.getFilter(filterType, from, to, userId);
     const pipeline = [...this.getOrderPipeline(filter)];
 
     const countPipeline = [...pipeline, { $count: 'count' }];
@@ -314,10 +306,11 @@ export class DonHangRepository {
     canceled: number;
   }> {
     const match: any = {};
-    if (from || to) {
-      match.DH_ngayTao = {};
-      if (from) match.DH_ngayTao.$gte = from;
-      if (to) match.DH_ngayTao.$lte = to;
+
+    if (from && to) {
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      match.DH_ngayTao = { $gte: from, $lte: to };
     }
 
     type GroupResult = { _id: string; count: number };
@@ -355,8 +348,8 @@ export class DonHangRepository {
   //================================================ THỐNG KÊ =====================================================//
 
   async getOrderStatsByStatus(
-    startDate: Date,
-    endDate: Date,
+    from: Date,
+    to: Date,
     groupBy: 'day' | 'month' | 'year'
   ): Promise<
     Record<
@@ -387,13 +380,16 @@ export class DonHangRepository {
       }
     >
   > {
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
+
     const dateFormat =
       groupBy === 'year' ? '%Y' : groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
 
     const allRaw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_ngayTao: { $gte: from, $lte: to },
         },
       },
       {
@@ -417,7 +413,7 @@ export class DonHangRepository {
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_ngayTao: { $gte: from, $lte: to },
           DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai', 'DaHuy'] },
         },
       },
@@ -517,13 +513,15 @@ export class DonHangRepository {
   }
 
   async getOrderStatsByCustomerType(
-    startDate: Date,
-    endDate: Date
+    from: Date,
+    to: Date
   ): Promise<Record<'member' | 'guest', number>> {
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_ngayTao: { $gte: from, $lte: to },
           DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai'] },
         },
       },
@@ -560,11 +558,13 @@ export class DonHangRepository {
     return result;
   }
 
-  async getOrderIdsByDate(startDate: Date, endDate: Date): Promise<string[]> {
+  async getOrderIdsByDate(from: Date, to: Date): Promise<string[]> {
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: startDate, $lte: endDate },
+          DH_ngayTao: { $gte: from, $lte: to },
         },
       },
       {

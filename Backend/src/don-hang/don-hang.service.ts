@@ -411,26 +411,19 @@ export class DonHangService {
     page: number;
     limit: number;
     filterType?: OrderStatus;
-    dateStart?: Date;
-    dateEnd?: Date;
+    from?: Date;
+    to?: Date;
     userId?: number;
   }) {
-    const {
-      page,
-      limit = 12,
-      filterType,
-      dateStart,
-      dateEnd,
-      userId,
-    } = options;
+    const { page, limit = 12, filterType, from, to, userId } = options;
     // Nếu không có dateStart và dateEnd thì mặc định là hôm nay
 
     const result = await this.DonHangRepo.findAll({
       page: page,
       limit: limit,
       filterType: filterType,
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      from,
+      to,
       userId: userId,
     });
 
@@ -443,8 +436,8 @@ export class DonHangService {
   }
 
   async countAll(
-    dateStart?: Date,
-    dateEnd?: Date
+    from?: Date,
+    to?: Date
   ): Promise<{
     total: number;
     pending: number;
@@ -455,14 +448,14 @@ export class DonHangService {
     cancelRequest: number;
     canceled: number;
   }> {
-    return this.DonHangRepo.countAll(dateStart, dateEnd);
+    return this.DonHangRepo.countAll(from, to);
   }
 
   // ===================== Thống kê =========================//
   // Xác định kiểu thời gian thống kê
-  getTimeUnitByRange(startDate: Date, endDate: Date): 'day' | 'month' | 'year' {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+  getTimeUnitByRange(from: Date, to: Date): 'day' | 'month' | 'year' {
+    const start = new Date(from);
+    const end = new Date(to);
 
     const diffInMonths =
       end.getFullYear() * 12 +
@@ -478,15 +471,12 @@ export class DonHangService {
     }
   }
 
-  public async getStatsByDateRange(
-    startDate: Date,
-    endDate: Date
-  ): Promise<StatsResult> {
-    const groupBy = this.getTimeUnitByRange(startDate, endDate);
+  public async getStatsByDateRange(from: Date, to: Date): Promise<StatsResult> {
+    const groupBy = this.getTimeUnitByRange(from, to);
 
     const orderStats = await this.DonHangRepo.getOrderStatsByStatus(
-      startDate,
-      endDate,
+      from,
+      to,
       groupBy
     );
 
@@ -507,14 +497,11 @@ export class DonHangService {
     ]);
 
     const buyerStats = await this.DonHangRepo.getOrderStatsByCustomerType(
-      startDate,
-      endDate
+      from,
+      to
     );
 
-    const orderIds = await this.DonHangRepo.getOrderIdsByDate(
-      startDate,
-      endDate
-    );
+    const orderIds = await this.DonHangRepo.getOrderIdsByDate(from, to);
 
     const provincesStats =
       await this.NhanHangDHService.getStatsByProvince(orderIds);
@@ -670,14 +657,10 @@ export class DonHangService {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  async getExcelReportStatsByDateRange(
-    startDate: Date,
-    endDate: Date,
-    staffId: string
-  ) {
-    const stats = await this.getStatsByDateRange(startDate, endDate);
+  async getExcelReportStatsByDateRange(from: Date, to: Date, staffId: string) {
+    const stats = await this.getStatsByDateRange(from, to);
     const staffInfor = await this.NhanVienService.findById(staffId);
-    const fileName = `${this.formatDateForFile(startDate)}-${this.formatDateForFile(endDate)}`;
+    const fileName = `${this.formatDateForFile(from)}-${this.formatDateForFile(to)}`;
 
     const sheets = this.getExcelReportStats(stats, {
       NV_hoTen: staffInfor.NV_hoTen,
@@ -696,7 +679,7 @@ export class DonHangService {
           NV_soDienThoai: staffInfor.NV_soDienThoai,
           NV_tenVaiTro: staffInfor.NV_tenVaiTro,
         },
-        dateRange: { start: startDate, end: endDate },
+        dateRange: { start: from, end: to },
       }
     );
 

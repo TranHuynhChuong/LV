@@ -79,8 +79,8 @@ export default function Orders() {
       page: number,
       filterType?: OrderStatus,
       orderId?: string,
-      dateStart?: string,
-      dateEnd?: string
+      from?: string,
+      to?: string
     ) => {
       try {
         if (orderId) {
@@ -100,8 +100,8 @@ export default function Orders() {
           page: page,
           filterType: filterType,
           limit: limit,
-          dateStart: dateStart,
-          dateEnd: dateEnd,
+          from: from,
+          to: to,
         };
         const res = await api.get('orders', { params });
         const { data, paginationInfo } = res.data;
@@ -122,11 +122,11 @@ export default function Orders() {
     []
   );
 
-  async function fetchOrderTotal(dateStart?: string, dateEnd?: string) {
+  async function fetchOrderTotal(from?: string, to?: string) {
     try {
       const params = {
-        dateStart: dateStart,
-        dateEnd: dateEnd,
+        from: from,
+        to: to,
       };
 
       const res = await api.get('orders/total', { params });
@@ -176,8 +176,8 @@ export default function Orders() {
     if (orderId) search.set('orderId', orderId);
 
     if (range && range.from && range.to) {
-      search.set('from', startOfDay(range.from).toISOString());
-      search.set('to', endOfDay(range.to).toISOString());
+      search.set('from', startOfDay(range.from).toDateString());
+      search.set('to', endOfDay(range.to).toDateString());
     }
 
     router.push(`/orders?${search.toString()}`);
@@ -219,21 +219,24 @@ export default function Orders() {
       </div>
       <div className="p-4 space-y-4 bg-white border rounded-md ">
         <div className="flex gap-2 pb-4 overflow-x-auto whitespace-nowrap">
-          {['all', 'pending', 'toShip', 'shipping', 'complete', 'cancelRequest'].map((tab) => (
-            <Link key={tab} href={`/orders?type=${tab}&from=${from}&to=${to}`}>
-              <Button
-                variant={type === tab ? 'default' : 'outline'}
-                className="cursor-pointer whitespace-nowrap"
-              >
-                {tab === 'all' && `Tất cả ${total?.total}`}
-                {tab === 'pending' && `Chờ xác nhận ${total?.pending}`}
-                {tab === 'toShip' && `Chờ vận chuyển ${total?.toShip}`}
-                {tab === 'shipping' && `Đang vận chuyển ${total?.shipping}`}
-                {tab === 'complete' && `Đã giao hàng ${total?.complete + total?.inComplete}`}
-                {tab === 'cancelRequest' && `Yêu cầu hủy ${total?.cancelRequest}`}
-              </Button>
-            </Link>
-          ))}
+          {['all', 'pending', 'toShip', 'shipping', 'complete', 'cancelRequest', 'canceled'].map(
+            (tab) => (
+              <Link key={tab} href={`/orders?type=${tab}&from=${from}&to=${to}`}>
+                <Button
+                  variant={type === tab ? 'default' : 'outline'}
+                  className="cursor-pointer whitespace-nowrap"
+                >
+                  {tab === 'all' && `Tất cả ${total?.total}`}
+                  {tab === 'pending' && `Chờ xác nhận ${total?.pending}`}
+                  {tab === 'toShip' && `Chờ vận chuyển ${total?.toShip}`}
+                  {tab === 'shipping' && `Đang vận chuyển ${total?.shipping}`}
+                  {tab === 'complete' && `Đã giao hàng ${total?.complete + total?.inComplete}`}
+                  {tab === 'cancelRequest' && `Yêu cầu hủy ${total?.cancelRequest}`}
+                  {tab === 'canceled' && `Đã hủy ${total?.canceled}`}
+                </Button>
+              </Link>
+            )
+          )}
         </div>
 
         <OrderSearchBar initalcode={orderId} onApply={handleSearch} onReset={handleClearSearch} />

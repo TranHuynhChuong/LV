@@ -31,25 +31,17 @@ export class DanhGiaController {
     @Query('to') to?: string,
     @Query('status') status?: 'all' | 'visible' | 'hidden'
   ): Promise<unknown> {
-    let parsedRange: [Date, Date] | undefined = undefined;
+    const start = from ? new Date(from) : undefined;
+    const end = to ? new Date(to) : undefined;
 
-    if (from && to) {
-      const start = new Date(from);
-      const end = new Date(to);
-
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-
-      parsedRange = [start, end];
-    }
-
-    return this.DanhGiaService.findAll(
-      page,
-      limit,
-      rating ? +rating : undefined,
-      parsedRange,
-      status
-    );
+    return this.DanhGiaService.findAll({
+      page: page,
+      limit: limit,
+      rating: rating ? +rating : undefined,
+      from: start,
+      to: end,
+      status: status,
+    });
   }
 
   @Get('/product/:productId')
@@ -67,12 +59,12 @@ export class DanhGiaController {
 
   @Get('/stats')
   async countRatingOfMonth(
-    @Query('dateStart') dateStartRaw: string,
-    @Query('dateEnd') dateEndRaw: string
+    @Query('from') from: string,
+    @Query('to') to: string
   ) {
-    const dateStart = new Date(dateStartRaw);
-    const dateEnd = new Date(dateEndRaw);
-    return this.DanhGiaService.countRating(dateStart, dateEnd);
+    const start = new Date(from);
+    const end = new Date(to);
+    return this.DanhGiaService.countRating(start, end);
   }
 
   @Patch('/hide')

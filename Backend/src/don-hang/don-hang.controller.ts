@@ -45,18 +45,18 @@ export class DonHangController {
     @Query('page') page: string,
     @Query('limit') limit: string,
     @Query('filterType') filterType: OrderStatus,
-    @Query('dateStart') dateStartRaw: string,
-    @Query('dateEnd') dateEndRaw: string
+    @Query('from') from?: string,
+    @Query('to') to?: string
   ) {
-    const dateStart = dateStartRaw ? new Date(dateStartRaw) : undefined;
-    const dateEnd = dateEndRaw ? new Date(dateEndRaw) : undefined;
+    const start = from ? new Date(from) : undefined;
+    const end = to ? new Date(to) : undefined;
 
     return this.DonHangService.findAll({
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 24,
       filterType: filterType,
-      dateStart: dateStart,
-      dateEnd: dateEnd,
+      from: start,
+      to: end,
     });
   }
 
@@ -77,12 +77,12 @@ export class DonHangController {
 
   @Get('/total')
   async count(
-    @Query('dateStart') dateStartRaw: string,
-    @Query('dateEnd') dateEndRaw: string
+    @Query('from') from?: string,
+    @Query('to') to?: string
   ): Promise<any> {
-    const dateStart = dateStartRaw ? new Date(dateStartRaw) : undefined;
-    const dateEnd = dateEndRaw ? new Date(dateEndRaw) : undefined;
-    return await this.DonHangService.countAll(dateStart, dateEnd);
+    const start = from ? new Date(from) : undefined;
+    const end = to ? new Date(to) : undefined;
+    return await this.DonHangService.countAll(start, end);
   }
 
   @Get('/find/:id')
@@ -100,29 +100,28 @@ export class DonHangController {
 
   // Thống kê theo năm
   @Get('/stats')
-  getStatsByYear(
-    @Query('dateStart') dateStartRaw: string,
-    @Query('dateEnd') dateEndRaw: string
-  ) {
-    const dateStart = new Date(dateStartRaw);
-    const dateEnd = new Date(dateEndRaw);
-    return this.DonHangService.getStatsByDateRange(dateStart, dateEnd);
+  getStatsByYear(@Query('from') from: string, @Query('to') to: string) {
+    const start = new Date(from);
+    const end = new Date(to);
+    return this.DonHangService.getStatsByDateRange(start, end);
   }
 
   @Get('/stats/export')
   async exportStats(
-    @Query('dateStart') dateStartRaw: string,
-    @Query('dateEnd') dateEndRaw: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
     @Query('staffId') staffId: string,
     @Res() res: Response
   ) {
-    const dateStart = new Date(dateStartRaw);
-    const dateEnd = new Date(dateEndRaw);
+    if (!from && !to) return;
+
+    const start = new Date(from);
+    const end = new Date(to);
 
     const { buffer, fileName } =
       await this.DonHangService.getExcelReportStatsByDateRange(
-        dateStart,
-        dateEnd,
+        start,
+        end,
         staffId
       );
 

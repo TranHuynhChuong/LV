@@ -45,7 +45,8 @@ export class DanhGiaRepository {
     page: number,
     limit = 24,
     rating?: number,
-    daterange?: [Date, Date],
+    from?: Date,
+    to?: Date,
     status?: 'all' | 'visible' | 'hidden'
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
@@ -55,15 +56,11 @@ export class DanhGiaRepository {
       matchConditions.DG_diem = rating;
     }
 
-    if (daterange && daterange.length === 2) {
-      const [from, to] = daterange;
-      const start = new Date(from);
-      start.setHours(0, 0, 0, 0);
+    if (from && to) {
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
 
-      const end = new Date(to);
-      end.setHours(23, 59, 59, 999);
-
-      matchConditions.DG_ngayTao = { $gte: start, $lte: end };
+      matchConditions.DG_ngayTao = { $gte: from, $lte: to };
     }
 
     if (status && status !== 'all') {
@@ -287,9 +284,9 @@ export class DanhGiaRepository {
     );
   }
 
-  async countRatingOfMonth(
-    startDate: Date,
-    endDate: Date
+  async countRating(
+    from: Date,
+    to: Date
   ): Promise<{
     s1: number;
     s2: number;
@@ -300,6 +297,13 @@ export class DanhGiaRepository {
     hidden: number;
     visible: number;
   }> {
+    const matchConditions: any = {};
+    if (from && to) {
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+
+      matchConditions.DG_ngayTao = { $gte: from, $lte: to };
+    }
     const [result] = await this.DanhGiaModel.aggregate<{
       s1: number;
       s2: number;
@@ -311,12 +315,7 @@ export class DanhGiaRepository {
       visible: number;
     }>([
       {
-        $match: {
-          DG_ngayTao: {
-            $gte: startDate,
-            $lt: endDate,
-          },
-        },
+        $match: matchConditions,
       },
       {
         $group: {

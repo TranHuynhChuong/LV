@@ -120,22 +120,22 @@ export default function StatsPage() {
 
   useEffect(() => {
     if (!range) return;
-    const fromDate = range?.from ? startOfDay(range.from).toISOString() : undefined;
-    const toDate = range?.to ? endOfDay(range.to).toISOString() : undefined;
+    const fromDate = range?.from ? startOfDay(range.from).toDateString() : undefined;
+    const toDate = range?.to ? endOfDay(range.to).toDateString() : undefined;
 
     setTimeUnit(getTimeUnitByRange(range));
 
     const fetchOrders = api.get(`/orders/stats`, {
       params: {
-        dateStart: fromDate,
-        dateEnd: toDate,
+        from: fromDate,
+        to: toDate,
       },
     });
 
     const fetchReviews = api.get(`/reviews/stats`, {
       params: {
-        dateStart: fromDate,
-        dateEnd: toDate,
+        from: fromDate,
+        to: toDate,
       },
     });
 
