@@ -65,8 +65,7 @@ export class SanPhamController {
   @Post('/find')
   findByVectorViaPost(@Body() body: { content: string; limit?: number }) {
     const { content, limit = 3 } = body;
-    console.log(content, limit);
-    return this.SanPhamService.findByVector(content, limit);
+    return this.SanPhamService.findByVector(content, Math.min(limit, 10));
   }
 
   // Đếm tổng số sản phẩm
@@ -76,8 +75,14 @@ export class SanPhamController {
   }
 
   @Get('/suggestions')
-  getAutocomplete(@Query('keyword') keyword: string) {
-    return this.SanPhamService.searchAutocomplete(keyword);
+  getAutocomplete(
+    @Query('keyword') keyword: string,
+    @Query('limit') limit: string
+  ) {
+    return this.SanPhamService.searchAutocomplete(
+      keyword,
+      parsePositiveInt(limit)
+    );
   }
 
   @Get('/search')
@@ -143,10 +148,9 @@ export class SanPhamController {
   @Get('/:id')
   findById(
     @Param('id', ParseIntPipe) id: number,
-    @Query('filterType') filterType: ProductFilterType,
     @Query('mode') mode: 'default' | 'full'
   ) {
-    return this.SanPhamService.findById(id, mode, filterType);
+    return this.SanPhamService.findById(id, mode);
   }
 
   // Xóa sản phẩm (ẩn - soft delete)
