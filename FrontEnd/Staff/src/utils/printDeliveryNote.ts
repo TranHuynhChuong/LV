@@ -60,19 +60,15 @@ export async function generateDeliveryNotePdf(order: any) {
   y -= LINE_HEIGHT;
   drawText(`SĐT: ${order.shippingInfo.phoneNumber}`, 8, MARGIN);
   y -= LINE_HEIGHT;
-  drawText(
-    `Địa chỉ: ${order.shippingInfo.addressInfo.fulltext}, ${order.shippingInfo.addressInfo.fulltext}`,
-    8,
-    MARGIN
-  );
+  drawText(`Địa chỉ: ${order.shippingInfo.addressInfo.fulltext}`, 8, MARGIN);
   y -= LINE_HEIGHT;
   drawText(`Ghi chú: ${order.shippingInfo.note || '-'}`, 8, MARGIN);
-  y -= LINE_HEIGHT * 2;
+  y -= LINE_HEIGHT;
 
   drawText(`Mã đơn: ${order.orderId}`, 8, MARGIN);
   drawText(`Ngày đặt: ${new Date(order.createdAt).toLocaleString()}`, 8, A5_WIDTH / 2);
-  y -= LINE_HEIGHT * 2;
 
+  y -= LINE_HEIGHT * 2;
   // Table Header
   const tableHeaders = ['STT', 'Tên sản phẩm', 'SL', 'Đơn giá'];
   let x = MARGIN;
@@ -80,8 +76,15 @@ export async function generateDeliveryNotePdf(order: any) {
     drawText(header, 8, x, true);
     x += TABLE_COLS[i];
   });
-  y -= LINE_HEIGHT;
+  y -= 8;
+  page.drawLine({
+    start: { x: MARGIN, y },
+    end: { x: A5_WIDTH - MARGIN, y },
+    thickness: 0.5,
+    color: rgb(0, 0, 0),
+  });
 
+  y -= LINE_HEIGHT;
   let totalProduct = 0;
 
   order.orderDetails.forEach((item: any, index: number) => {
@@ -102,15 +105,21 @@ export async function generateDeliveryNotePdf(order: any) {
     y -= LINE_HEIGHT;
   });
 
-  y -= 10;
+  page.drawLine({
+    start: { x: MARGIN, y },
+    end: { x: A5_WIDTH - MARGIN, y },
+    thickness: 0.5,
+    color: rgb(0, 0, 0),
+  });
+  y -= 20;
 
   const shipping = order.shippingFee;
   const discount = order.discountInvoice + order.discountShipping;
   const total = totalProduct + shipping - discount;
 
   const drawRight = (label: string, value: string, bold = false) => {
-    drawText(label, 8, A5_WIDTH - 200, bold);
-    drawText(value, 8, A5_WIDTH - 80, bold);
+    drawText(label, 8, MARGIN, bold);
+    drawText(value, 8, MARGIN * 8 - 8, bold);
     y -= LINE_HEIGHT;
   };
 
@@ -118,8 +127,6 @@ export async function generateDeliveryNotePdf(order: any) {
   drawRight('Phí vận chuyển', `${shipping.toLocaleString()} đ`);
   drawRight('Giảm giá', `-${discount.toLocaleString()} đ`);
   drawRight('Tổng thanh toán', `${total.toLocaleString()} đ`, true);
-
-  y -= 10;
 
   drawText(`Số tiền bằng chữ: ${numberToVietnameseCurrencyWords(total)}`, 8, MARGIN);
   // Signatures
