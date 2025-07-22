@@ -389,9 +389,9 @@ export class DonHangService {
     if ((!result.KH_email || result.KH_email === '') && result.KH_id) {
       result.KH_email = await this.KhachHangService.getEmail(result.KH_id);
     }
-    const { T_id, X_id } = result.thongTinNhanHang || {};
-    const location = await this.DiaChiService.getFullAddressText(T_id, X_id);
-    result.thongTinNhanHang.NH_diaChi = location;
+    result.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
+      result.DH_id
+    );
     return result;
   }
 
@@ -400,9 +400,10 @@ export class DonHangService {
     if (!order) return null;
     delete order.lichSuThaoTac;
     delete order.DH_HD;
-    const { T_id, X_id } = order.thongTinNhanHang || {};
-    const location = await this.DiaChiService.getFullAddressText(T_id, X_id);
-    order.thongTinNhanHang.NH_diaChi = location;
+
+    order.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
+      order.DH_id
+    );
     return order;
   }
 

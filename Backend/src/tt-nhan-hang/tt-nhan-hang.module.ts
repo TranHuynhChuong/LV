@@ -15,6 +15,7 @@ import {
 } from './schemas/tt-nhan-hang-kh.schema';
 import { TTNhanHangKHRepository } from './repositories/tt-nhan-hang-kh.repository';
 import { TTNhanHangDHRepository } from './repositories/tt-nhan-hang-dh.repository';
+import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { TTNhanHangDHRepository } from './repositories/tt-nhan-hang-dh.repositor
     MongooseModule.forFeature([
       { name: TTNhanHangDH.name, schema: TTNhanHangDHSchema },
     ]),
+    DiaChiModule,
   ],
   controllers: [TTNhanHangController],
   providers: [

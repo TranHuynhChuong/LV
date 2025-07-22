@@ -10,9 +10,13 @@ import { TTNhanHangDHRepository } from './repositories/tt-nhan-hang-dh.repositor
 import { TTNhanHangKHRepository } from './repositories/tt-nhan-hang-kh.repository';
 import { TTNhanHangKH } from './schemas/tt-nhan-hang-kh.schema';
 import { TTNhanHangDH } from './schemas/tt-nhan-hang-dh.schema';
+import { DiaChiService } from 'src/dia-chi/dia-chi.service';
 @Injectable()
 export class TTNhanHangDHService {
-  constructor(private readonly TTNhanHangDHRepo: TTNhanHangDHRepository) {}
+  constructor(
+    private readonly TTNhanHangDHRepo: TTNhanHangDHRepository,
+    private readonly DiaChiService: DiaChiService
+  ) {}
 
   async create(data: Partial<TTNhanHangDH>, session?: ClientSession) {
     const result = await this.TTNhanHangDHRepo.createDH(data, session);
@@ -25,11 +29,17 @@ export class TTNhanHangDHService {
   }
 
   async findByDHId(DH_id: string) {
-    return this.TTNhanHangDHRepo.findByDHId(DH_id);
-  }
+    const result = await this.TTNhanHangDHRepo.findByDHId(DH_id);
+    if (!result) return null;
+    const NH_diaChi = await this.DiaChiService.getFullAddressText(
+      result.T_id,
+      result.X_id
+    );
 
-  async findByTinhId(T_id: number) {
-    return this.TTNhanHangDHRepo.findByTId(T_id);
+    return {
+      ...result,
+      NH_diaChi,
+    };
   }
 
   async getStatsByProvince(dhIds: string[]) {
@@ -41,6 +51,7 @@ export class TTNhanHangDHService {
 export class TTNhanHangKHService {
   constructor(
     private readonly TTNhanHangKHRepo: TTNhanHangKHRepository,
+    private readonly DiaChiService: DiaChiService,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
@@ -94,16 +105,41 @@ export class TTNhanHangKHService {
 
   // Lấy danh sách theo KH
   async findAll(KH_id: number) {
-    return this.TTNhanHangKHRepo.findAll(KH_id);
+    const results = await this.TTNhanHangKHRepo.findAll(KH_id);
+
+    // Thêm trường NH_diaChi cho từng kết quả
+    const resultsWithAddress = await Promise.all(
+      results.map(async (item) => {
+        const NH_diaChi = await this.DiaChiService.getFullAddressText(
+          item.T_id,
+          item.X_id
+        );
+
+        return {
+          ...item,
+          NH_diaChi,
+        };
+      })
+    );
+
+    return resultsWithAddress;
   }
 
   // Lấy 1 bản ghi theo NH_id
-  async findOne(NH_id: number, KH_id: number): Promise<TTNhanHangKH> {
+  async findOne(NH_id: number, KH_id: number) {
     const data = await this.TTNhanHangKHRepo.findById(NH_id, KH_id);
     if (!data) {
       throw new NotFoundException();
     }
-    return data;
+    const NH_diaChi = await this.DiaChiService.getFullAddressText(
+      data.T_id,
+      data.X_id
+    );
+
+    return {
+      ...data,
+      NH_diaChi,
+    };
   }
 
   // Cập nhật
