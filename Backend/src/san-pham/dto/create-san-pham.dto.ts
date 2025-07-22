@@ -86,6 +86,9 @@ export class CreateSanPhamDto {
   SP_trongLuong: number;
 
   @IsString()
+  SP_kichThuoc: string;
+
+  @IsString()
   @IsNotEmpty()
   NV_id: string;
 }

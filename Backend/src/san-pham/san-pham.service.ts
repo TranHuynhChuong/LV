@@ -40,6 +40,7 @@ const typeOfChange: Record<string, string> = {
   SP_giaNhap: 'Giá nhập',
   SP_tonKho: 'Tồn kho',
   SP_trongLuong: 'Trọng lượng',
+  SP_kichThuoc: 'Kích thước',
   SP_anh: 'Hình ảnh',
 };
 
@@ -369,8 +370,8 @@ export class SanPhamService {
     return result;
   }
 
-  async searchAutocomplete(keyword: string): Promise<string[]> {
-    return this.SanPhamRepo.searchAutocomplete(keyword);
+  async searchAutocomplete(keyword: string, limit?: number): Promise<string[]> {
+    return this.SanPhamRepo.searchAutocomplete(keyword, limit);
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
@@ -385,10 +386,9 @@ export class SanPhamService {
 
   async findById(
     id: number,
-    mode: 'default' | 'full' = 'default',
-    filterType?: ProductFilterType
+    mode: 'default' | 'full' = 'default'
   ): Promise<any> {
-    const result: any = await this.SanPhamRepo.findById(id, mode, filterType);
+    const result: any = await this.SanPhamRepo.findById(id, mode);
     if (!result) {
       throw new NotFoundException('Tìm sản phẩm - Không tồn tại sản phẩm');
     }

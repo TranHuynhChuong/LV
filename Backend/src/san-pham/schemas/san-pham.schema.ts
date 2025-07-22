@@ -95,6 +95,9 @@ export class SanPham {
   @Prop({ type: Number, required: true })
   SP_trongLuong: number;
 
+  @Prop({ type: String, required: true })
+  SP_kichThuoc: string;
+
   @Prop({
     type: [Number],
     required: true,
