@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import CategoryCombobox from '@/components/utils/CategoriesCombobox';
+import CategoryCombobox from '@/components/categories/categoriesCombobox';
 import {
   Select,
   SelectTrigger,

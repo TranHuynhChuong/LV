@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import CategoryCombobox from '@/components/utils/CategoriesCombobox';
+import CategoryCombobox from './categoriesCombobox';
 import ConfirmDialog from '@/components/utils/ConfirmDialog';
 import FormFooterActions from '@/components/utils/FormFooterActions';
 import { Category } from '@/models/categories';
