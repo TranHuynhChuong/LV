@@ -154,10 +154,11 @@ const ReviewItem: FC<Props> = ({ review }) => {
             isHidden={review.isHidden}
           />
         </div>
-        <div className="relative">
-          {/* Lịch sử */}
-          <ActionHistorySheet activityLogs={review.activityLogs} />
-        </div>
+        {authData.role && authData.userId && authData.role === 1 && (
+          <div className="relative">
+            <ActionHistorySheet activityLogs={review.activityLogs} />
+          </div>
+        )}
       </div>
     </div>
   );
