@@ -11,5 +11,5 @@ export type Staff = {
   fullName: string;
   phone: string;
   id?: string;
-  password?: string;
+  password: string;
 };

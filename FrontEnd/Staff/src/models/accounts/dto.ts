@@ -5,6 +5,7 @@ export type StaffDto = {
   NV_email: string;
   NV_soDienThoai: string;
   NV_idNV?: string;
+  NV_matKhau: string;
 };
 
 export type CustomerDto = {

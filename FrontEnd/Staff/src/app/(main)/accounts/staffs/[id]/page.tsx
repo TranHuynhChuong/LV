@@ -29,7 +29,6 @@ export default function StaffDetailPage() {
     try {
       const res = await api.get(`/users/staff/${id}`);
       const data = res.data;
-      console.log(data);
       setStaffData(mapStaffFormDto([data])[0]);
       setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
     } catch (error) {

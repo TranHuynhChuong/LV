@@ -32,11 +32,7 @@ const formSchema: z.Schema<Staff> = z.object({
   phone: z.string().regex(/^[0-9]{9,11}$/, 'Số điện thoại không hợp lệ (9-11 số)'),
   email: z.string().email('Email không hợp lệ').max(128, 'Email không được vượt quá 128 ký tự'),
   role: z.string(),
-  password: z
-    .string()
-    .min(6, 'Mật khẩu ít nhất 6 ký tự')
-    .max(72, 'Mật khẩu tối đa 72 ký tự')
-    .optional(),
+  password: z.string().min(6, 'Mật khẩu ít nhất 6 ký tự').max(72, 'Mật khẩu tối đa 72 ký tự'),
 });
 
 type StaffFormProps = {
@@ -161,11 +157,7 @@ export function StaffForm({
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Vai trò</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full" disabled={isViewing}>
                         <SelectValue placeholder="Chọn vai trò" />

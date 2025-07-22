@@ -10,35 +10,23 @@ export function mapCustomersFromDto(data: CustomerDto[]): Customer[] {
 }
 
 export function mapStaffFormDto(data: StaffDto[]): Staff[] {
-  const getRole = (vaiTro: number) => {
-    if (vaiTro === 1) return 'Quản trị';
-    if (vaiTro === 2) return 'Quản lý';
-    if (vaiTro === 3) return 'Bán hàng';
-    return 'Không xác định';
-  };
   return data.map((staff) => ({
     id: staff.NV_id,
-    role: getRole(staff.NV_vaiTro),
+    role: staff.NV_vaiTro.toString(),
     fullName: staff.NV_hoTen,
     email: staff.NV_email,
     phone: staff.NV_soDienThoai,
+    password: staff.NV_matKhau,
   }));
 }
 
 export function mapStaffToDto(data: Staff, staffId: string): StaffDto {
-  const getRoleNumber = (role: string): number => {
-    if (role === 'Quản trị') return 1;
-    if (role === 'Quản lý') return 2;
-    if (role === 'Bán hàng') return 3;
-    return 0;
-  };
-
   return {
-    NV_id: data.id,
     NV_idNV: staffId,
-    NV_vaiTro: getRoleNumber(data.role),
+    NV_vaiTro: Number(data.role),
     NV_hoTen: data.fullName,
     NV_email: data.email,
     NV_soDienThoai: data.phone,
+    NV_matKhau: data.password,
   };
 }
