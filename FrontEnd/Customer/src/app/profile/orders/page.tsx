@@ -38,7 +38,7 @@ export default function Orders() {
       if (!authData.userId) return;
       try {
         if (orderId) {
-          const res = await api.get(`orders/${orderId}`, {
+          const res = await api.get(`orders/detail/${orderId}`, {
             params: { filterType },
           });
           const item = res.data;

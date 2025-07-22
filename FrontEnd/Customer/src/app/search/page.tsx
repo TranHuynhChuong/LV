@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import PaginationControls from '@/components/utils/PaginationControls';
 
-import { ProductList } from '@/components/product/productList';
+import { ProductList } from '@/components/products/productList';
 import {
   Select,
   SelectContent,

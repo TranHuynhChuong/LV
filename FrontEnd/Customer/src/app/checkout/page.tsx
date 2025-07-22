@@ -206,8 +206,8 @@ export default function CheckOutPage() {
     const rawAddress = mapAddressToDto(
       {
         ...addressData,
-        province: { id: addressData.provinceId },
-        ward: { id: addressData.wardId },
+        provinceId: addressData.provinceId,
+        wardId: addressData.wardId,
       },
       authData.userId ?? undefined
     );
@@ -235,7 +235,7 @@ export default function CheckOutPage() {
         ? {
             HD_hoTen: invoiceData.name,
             HD_diaChi: invoiceData.address,
-            HD_mstKh: invoiceData.taxCode,
+            HD_mst: invoiceData.taxCode,
             HD_email: invoiceData.email,
           }
         : undefined,
@@ -448,7 +448,11 @@ export default function CheckOutPage() {
               Tiết kiệm <span className="text-red-500">{formatCurrency(totalSaving)}</span>
             </p>
           </div>
-          <Button onClick={handleSubmit} className="rounded-md md:rounded-sm px-8 cursor-pointer">
+          <Button
+            onClick={handleSubmit}
+            className="rounded-md md:rounded-sm px-8 cursor-pointer"
+            disabled={isSubmitting}
+          >
             Đặt hàng
           </Button>
           <Button

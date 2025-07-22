@@ -5,6 +5,7 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { Button } from '@/components/ui/button';
 
 export default function SearchInput() {
   const searchParams = useSearchParams();
@@ -24,7 +25,7 @@ export default function SearchInput() {
     if (trimmed !== '' && isFocused) {
       const localTimeout = setTimeout(() => {
         api
-          .get(`/products/suggestions`, { params: { keyword: trimmed } })
+          .get(`/products/suggestions`, { params: { keyword: trimmed, limit: 10 } })
           .then((res) => res.data)
           .then((data: string[]) => setSuggestions(data))
           .catch(() => setSuggestions([]));
@@ -40,17 +41,21 @@ export default function SearchInput() {
     setValue(e.target.value);
   };
 
+  const handleSearch = (keyword?: string) => {
+    const trimmed = (keyword ?? value).trim();
+    if (trimmed) {
+      const newParams = new URLSearchParams();
+      newParams.set('k', trimmed);
+      newParams.set('p', '1');
+      newParams.set('s', '1');
+      router.push(`/search?${newParams.toString()}`);
+      setSuggestions([]);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      const trimmed = value.trim();
-      const newParams = new URLSearchParams();
-      if (trimmed) {
-        newParams.set('k', trimmed);
-        newParams.set('p', '1');
-        newParams.set('s', '1');
-        router.push(`/search?${newParams.toString()}`);
-        setSuggestions([]);
-      }
+      handleSearch();
     }
   };
 
@@ -60,17 +65,15 @@ export default function SearchInput() {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    const newParams = new URLSearchParams();
-    newParams.set('k', suggestion);
-    newParams.set('p', '1');
-    newParams.set('s', '1');
-    router.push(`/search?${newParams.toString()}`);
-    setSuggestions([]);
+    handleSearch(suggestion);
   };
 
   return (
     <div className="relative w-full">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+      <Button className="absolute  top-1/2 -translate-y-1/2 text-muted-foreground rounded-r-none">
+        <Search color="white" />
+      </Button>
+
       {value && (
         <X
           onClick={handleClear}
@@ -79,7 +82,7 @@ export default function SearchInput() {
       )}
       <Input
         type="text"
-        className="pl-9 pr-9 w-full"
+        className="pl-12 pr-9 w-full"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

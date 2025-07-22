@@ -64,8 +64,8 @@ export default function AddressSelect({
     setWardsData([]);
 
     try {
-      const res = await fetch(`/addresses/${provinceId}.json`);
-      const data = await res.json();
+      const res = await api.get(`/location/${selectedProvinceId}`);
+      const data = res.data;
       const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
         code: item.X_id,
         name: item.X_ten,

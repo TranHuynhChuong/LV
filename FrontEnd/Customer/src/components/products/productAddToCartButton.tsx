@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import eventBus from '@/lib/eventBus';
 import { useRouter } from 'next/navigation';
+import { mapCartFronDto, mapCartToDto } from '@/models/carts';
 
 type Props = {
   inventory: number;
@@ -23,6 +24,7 @@ export default function AddToCartButton({ inventory, id }: Props) {
   const { authData } = useAuth();
   const router = useRouter();
   const addToCart = useCartStore((state) => state.addToCart);
+  const replaceCart = useCartStore((state) => state.replaceCart);
   const carts = useCartStore((state) => state.carts);
 
   const handleAdd = () => {
@@ -37,14 +39,6 @@ export default function AddToCartButton({ inventory, id }: Props) {
 
   const handleAddToCart = async () => {
     try {
-      if (authData.userId) {
-        const res = await api.get(`/carts/${authData.userId}`);
-        emitCartChange();
-        if (res.data.length > 99) {
-          toast.error('Vui lòng xóa bớt sản phẩm trong giỏ hàng');
-          return;
-        }
-      }
       const res = await api.post('/carts', {
         KH_id: authData.userId ?? -1,
         SP_id: id,
@@ -53,7 +47,19 @@ export default function AddToCartButton({ inventory, id }: Props) {
 
       const data = res.data;
       if (data && data.length === 0) {
-        if (carts.length > 99) {
+        const cartsToSend = mapCartToDto(carts);
+        const response = await api.post('/carts/get-carts', cartsToSend);
+        const validProducts = response.data.filter(Boolean);
+        const cartsRecive = mapCartFronDto(validProducts);
+        replaceCart(
+          cartsRecive.map((c) => ({
+            productId: c.productId,
+            quantity: c.quantity,
+            dateTime: new Date(c.dateTime).toISOString(),
+          }))
+        );
+
+        if (cartsRecive.length >= 99) {
           toast.error('Vui lòng xóa bớt sản phẩm trong giỏ hàng');
           return;
         }
@@ -64,9 +70,8 @@ export default function AddToCartButton({ inventory, id }: Props) {
           dateTime: new Date().toISOString(),
         });
       }
-
       toast.success('Sản phẩm đã thêm vào giỏ hàng');
-      emitCartChange();
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const status = error?.response?.status;
@@ -77,13 +82,14 @@ export default function AddToCartButton({ inventory, id }: Props) {
           router.back();
           break;
         case 409:
-          toast.error('Số lượng tồn kho không đủ');
+          toast.error('Vui lòng xóa bớt sản phẩm trong giỏ hàng');
           break;
         default:
           toast.error('Thêm giỏ hàng thất bại');
       }
     } finally {
       eventBus.emit('reloadProduct');
+      emitCartChange();
     }
   };
 
@@ -124,21 +130,25 @@ export default function AddToCartButton({ inventory, id }: Props) {
         <div className="flex gap-2 ">
           <Button
             variant="outline"
-            className="border-0 cursor-pointer md:border-2 border-zinc-500 rounded-none md:rounded-sm"
+            className="border-0 cursor-pointer md:border-2 border-zinc-700 rounded-none md:rounded-sm hover:border-zinc-600 text-zinc-700 hover:text-zinc-600"
             onClick={handleAddToCart}
-            disabled={inventory === 0}
           >
             Thêm vào giỏ
           </Button>
-          <Link href={`/carts?id=${id}`}>
-            <Button
-              className="rounded-none md:rounded-sm cursor-pointer"
-              onClick={handleAddToCart}
-              disabled={inventory === 0}
-            >
+          {inventory === 0 ? (
+            <Button className="rounded-none md:rounded-sm cursor-not-allowed" disabled>
               Mua Ngay
             </Button>
-          </Link>
+          ) : (
+            <Link href={`/carts?id=${id}`}>
+              <Button
+                className="rounded-none md:rounded-sm cursor-pointer "
+                onClick={handleAddToCart}
+              >
+                Mua Ngay
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>

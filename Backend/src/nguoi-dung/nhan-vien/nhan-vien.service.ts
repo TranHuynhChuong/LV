@@ -69,7 +69,6 @@ export class NhanVienUtilService {
 
     const nhanVienMap = new Map<string, any>();
     nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
-
     return activityLog.map((a) => {
       const nv = a.NV_id ? nhanVienMap.get(a.NV_id) : undefined;
       return {

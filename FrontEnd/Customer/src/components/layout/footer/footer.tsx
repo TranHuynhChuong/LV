@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="w-full h-fit bg-zinc-800">
+    <footer className="w-full h-fit bg-white border-t">
       <div className="container mx-auto w-full h-fit">
-        <div className=" text-white ">
+        <div className="  ">
           <div className="px-4 pb-10 pt-6 grid grid-cols-2   gap-6">
             {/* Cột 1: Giới thiệu + Logo */}
             <div className="space-y-2">
@@ -37,7 +37,7 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h3 className=" mb-3">Dịch vụ</h3>
+                <h3 className="font-semibold  mb-3">Dịch vụ</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
                     <Link className="hover:underline" href="/terms-of-service">
@@ -67,7 +67,7 @@ export default function Footer() {
           </div>
 
           {/* Dòng bản quyền */}
-          <div className="text-center text-xs text-white py-4 border-t">
+          <div className="text-center text-xs py-4 border-t">
             © {new Date().getFullYear()} Dật Lạc. Đã đăng ký bản quyền.
           </div>
         </div>

@@ -387,8 +387,8 @@ export class SanPhamRepository {
         query: keyword,
         path: ['SP_ten', 'SP_tacGia', 'SP_nhaXuatBan'],
         fuzzy: {
-          maxEdits: 2,
-          prefixLength: 1,
+          maxEdits: 1,
+          prefixLength: 2,
         },
       },
     };
@@ -519,13 +519,12 @@ export class SanPhamRepository {
 
   async findById(
     id: number,
-    mode: 'default' | 'full' = 'default',
-    filterType?: ProductFilterType
+    mode: 'default' | 'full' = 'default'
   ): Promise<any> {
-    const filter = this.getFilter(filterType);
     const discountStages = this.buildPromotionStages();
 
     if (mode === 'full') {
+      const filter = this.getFilter(ProductFilterType.ShowAll);
       return this.SanPhamModel.aggregate([
         {
           $match: {
@@ -576,7 +575,7 @@ export class SanPhamRepository {
       .exec();
   }
 
-  async searchAutocomplete(keyword: string): Promise<string[]> {
+  async searchAutocomplete(keyword: string, limit = 10): Promise<string[]> {
     const pipelineForField = (field: string, priority: number) => [
       {
         $search: {
@@ -632,7 +631,7 @@ export class SanPhamRepository {
         $replaceWith: { suggestion: '$_id' },
       },
       {
-        $limit: 10,
+        $limit: limit,
       },
     ]);
 

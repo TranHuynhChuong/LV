@@ -116,7 +116,6 @@ export default function ProductSearchBar({
             <CategoryCombobox
               value={categoryId && !isNaN(Number(categoryId)) ? Number(categoryId) : null}
               onChange={(val: number[]) => setCategoryId(val[0] ? val[0].toString() : '')}
-              leafOnly
             />
           </div>
         )}

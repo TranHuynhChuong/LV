@@ -53,7 +53,7 @@ export default function ProductInfo({ data }: Readonly<Props>) {
               <span className="font-medium ">Đánh giá:</span>
               <div className="flex-1 flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span>{data.rating.toFixed(1)} / 5</span>
+                <span>{data.rating === 0 ? '--' : data.rating.toFixed(1)} / 5</span>
               </div>
             </div>
 
@@ -81,7 +81,7 @@ export default function ProductInfo({ data }: Readonly<Props>) {
 
           {data.inventory <= 0 && (
             <div className="bg-zinc-100 rounded-sm px-4 py-2 mt-6">
-              <span className="">Hết hàng</span>
+              <span className="">Tạm hết hàng</span>
             </div>
           )}
         </div>
@@ -122,6 +122,7 @@ export default function ProductInfo({ data }: Readonly<Props>) {
           ['Người dịch', data.translator],
           ['Số trang', data.page],
           ['Trọng lượng (gr)', data.weight],
+          ['Kích thước (cm)', data.size],
         ].map(([label, value], idx) => (
           <div key={label} className={`flex text-sm py-2 ${idx !== 0 ? 'border-t' : ''}`}>
             <div className="w-32 text-muted-foreground">{label}</div>

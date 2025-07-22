@@ -22,10 +22,15 @@ export default function AuthButtons() {
   if (!isAuthenticated) {
     return (
       <div className="flex space-x-2 justify-end w-full">
-        <Button variant="outline" onClick={() => router.push('/auth/login')}>
+        <Button
+          variant="outline"
+          onClick={() => router.push('/auth/login')}
+          className="cursor-pointer"
+        >
           Đăng nhập
         </Button>
         <Button
+          className="cursor-pointer "
           onClick={() => {
             router.push('/auth/register');
           }}

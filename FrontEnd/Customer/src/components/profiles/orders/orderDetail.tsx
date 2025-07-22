@@ -68,9 +68,7 @@ export default function OrderDetail({ data }: Readonly<OrderDetailProps>) {
                 <span className="ml-2 text-muted-foreground">| {shippingInfo.phoneNumber}</span>
               </p>
               <div>
-                <p className=" text-muted-foreground">
-                  {`${shippingInfo.addressInfo.ward.name}, ${shippingInfo.addressInfo.province.name}`}
-                </p>
+                <p className=" text-muted-foreground">{`${shippingInfo.addressInfo.fullText}`}</p>
                 <p className=" text-muted-foreground">{shippingInfo.note}</p>
               </div>
               <p className=" text-muted-foreground">Email: {customerEmail}</p>

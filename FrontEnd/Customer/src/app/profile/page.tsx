@@ -77,10 +77,7 @@ export default function Profile() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6 w-full border p-6  shadow rounded-md bg-white"
-    >
+    <form onSubmit={handleSubmit} className="space-y-6 w-full border p-6   rounded-md bg-white">
       {/* Họ tên */}
       <div className="space-y-2">
         <Label>Họ tên</Label>

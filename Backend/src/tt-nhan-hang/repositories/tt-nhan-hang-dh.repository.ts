@@ -21,12 +21,8 @@ export class TTNhanHangDHRepository {
     );
   }
 
-  async findByDHId(DH_id: string) {
-    return this.TTNhanHangDHModel.findOne({ DH_id }).exec();
-  }
-
-  async findByTId(T_id: number) {
-    return this.TTNhanHangDHModel.find({ T_id }).exec();
+  async findByDHId(DH_id: string): Promise<TTNhanHangDH | null> {
+    return this.TTNhanHangDHModel.findOne({ DH_id }).lean().exec();
   }
 
   async getStatsByProvince(

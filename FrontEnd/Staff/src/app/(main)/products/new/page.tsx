@@ -38,6 +38,7 @@ export default function Products() {
     if (values.isbn) formData.append('SP_isbn', values.isbn);
     if (values.language) formData.append('SP_ngonNgu', values.language);
     if (values.translator) formData.append('SP_nguoiDich', values.translator);
+    if (values.size) formData.append('SP_kichThuoc', values.size);
     if (values.publishYear !== undefined && values.publishYear !== null)
       formData.append('SP_namXuatBan', values.publishYear.toString());
     if (values.page !== undefined && values.page !== null)
