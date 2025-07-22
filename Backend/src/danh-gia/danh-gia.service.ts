@@ -71,14 +71,14 @@ export class DanhGiaService {
     page: number,
     limit = 24,
     rating?: number,
-    date?: Date,
+    daterange?: [Date, Date],
     status?: 'all' | 'visible' | 'hidden'
   ): Promise<any> {
     const result: any = await this.DanhGiaRepo.findAll(
       page,
       limit,
       rating,
-      date,
+      daterange,
       status
     );
 

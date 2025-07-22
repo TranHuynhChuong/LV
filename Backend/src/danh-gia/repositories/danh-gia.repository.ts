@@ -45,7 +45,7 @@ export class DanhGiaRepository {
     page: number,
     limit = 24,
     rating?: number,
-    date?: Date,
+    daterange?: [Date, Date],
     status?: 'all' | 'visible' | 'hidden'
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
@@ -55,14 +55,15 @@ export class DanhGiaRepository {
       matchConditions.DG_diem = rating;
     }
 
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
+    if (daterange && daterange.length === 2) {
+      const [from, to] = daterange;
+      const start = new Date(from);
+      start.setHours(0, 0, 0, 0);
 
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      const end = new Date(to);
+      end.setHours(23, 59, 59, 999);
 
-      matchConditions.DG_ngayTao = { $gte: startOfDay, $lte: endOfDay };
+      matchConditions.DG_ngayTao = { $gte: start, $lte: end };
     }
 
     if (status && status !== 'all') {

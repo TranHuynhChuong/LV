@@ -12,6 +12,7 @@ import { Review, mappedReviewFromDto } from '@/models/reviews';
 import { ReviewSearchBar } from '@/components/reviews/reviewSearchBar'; // dùng đúng cái bạn tạo
 import ReviewList from '@/components/reviews/reviewList';
 import eventBus from '@/lib/eventBus';
+import { startOfDay } from 'date-fns';
 
 export default function ReviewsPage() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -30,8 +31,9 @@ export default function ReviewsPage() {
   const type = (searchParams.get('type') ?? 'visible') as 'all' | 'visible' | 'hidden';
   const page = parseInt(searchParams.get('page') ?? '1');
   const limit = 20;
-  const rating = searchParams.get('rating');
-  const date = searchParams.get('date');
+  const rating = searchParams.get('rating') ?? '';
+  const from = searchParams.get('from') ?? '';
+  const to = searchParams.get('to') ?? '';
 
   const fetchData = useCallback(
     async (page: number) => {
@@ -44,7 +46,8 @@ export default function ReviewsPage() {
         };
 
         if (rating) params.rating = rating;
-        if (date) params.date = date;
+        if (from) params.from = from;
+        if (to) params.to = to;
 
         const res = await api.get('/reviews/all', { params });
         const { data, paginationInfo } = res.data;
@@ -62,7 +65,7 @@ export default function ReviewsPage() {
         setTotalItems(0);
       }
     },
-    [type, rating, date]
+    [type, rating, from, to]
   );
 
   useEffect(() => {
@@ -74,9 +77,9 @@ export default function ReviewsPage() {
     return () => {
       eventBus.off('review:refetch', handler);
     };
-  }, [page, type, rating, date]);
+  }, [page, fetchData]);
 
-  const handleSearch = (filters: { rating?: number; date?: Date }) => {
+  const handleSearch = (filters: { rating?: number; daterange?: { from?: Date; to?: Date } }) => {
     const search = new URLSearchParams(searchParams.toString());
     search.set('page', '1');
     search.set('type', type);
@@ -84,8 +87,17 @@ export default function ReviewsPage() {
     if (filters.rating) search.set('rating', filters.rating.toString());
     else search.delete('rating');
 
-    if (filters.date) search.set('date', filters.date.toISOString().split('T')[0]);
-    else search.delete('date');
+    if (filters.daterange?.from) {
+      search.set('from', startOfDay(filters.daterange.from).toDateString());
+    } else {
+      search.delete('from');
+    }
+
+    if (filters.daterange?.to) {
+      search.set('to', startOfDay(filters.daterange.to).toDateString());
+    } else {
+      search.delete('to');
+    }
 
     router.push(`/reviews?${search.toString()}`);
   };
@@ -121,7 +133,10 @@ export default function ReviewsPage() {
 
         <ReviewSearchBar
           initialRating={rating ? parseInt(rating) : undefined}
-          initialDate={date ? new Date(date) : undefined}
+          initialDateRange={{
+            from: from ? new Date(from) : undefined,
+            to: to ? new Date(to) : undefined,
+          }}
           onApply={handleSearch}
           onReset={handleClearSearch}
         />

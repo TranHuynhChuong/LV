@@ -1,34 +1,42 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
+import DateRangePicker from '../utils/DateRangePicker';
+import { DateRange } from 'react-day-picker';
 
 type Props = {
   initialRating?: number;
-  initialDate?: Date;
-  onApply: (filters: { rating?: number; date?: Date }) => void;
+  initialDateRange?: { from: Date | undefined; to: Date | undefined } | undefined;
+  onApply: (filters: { rating?: number; daterange?: { from: Date; to: Date } }) => void;
   onReset: () => void;
 };
 
-export const ReviewSearchBar: FC<Props> = ({ initialRating, initialDate, onApply, onReset }) => {
+export const ReviewSearchBar: FC<Props> = ({
+  initialRating,
+  initialDateRange,
+  onApply,
+  onReset,
+}) => {
   const [rating, setRating] = useState<string>(initialRating?.toString() ?? 'all');
-  const [date, setDate] = useState<string>(
-    initialDate ? initialDate.toISOString().split('T')[0] : ''
-  );
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(initialDateRange);
 
   const handleSearch = () => {
     const parsedRating = rating === 'all' ? undefined : parseInt(rating);
-    const parsedDate = date ? new Date(date) : undefined;
-    onApply({ rating: parsedRating, date: parsedDate });
+    onApply({
+      rating: parsedRating,
+      daterange:
+        dateRange?.from && dateRange?.to ? { from: dateRange.from, to: dateRange.to } : undefined,
+    });
   };
 
   const handleReset = () => {
-    setRating('');
-    setDate('');
+    setRating('all');
+    setDateRange(undefined);
     onReset();
   };
 
@@ -53,13 +61,8 @@ export const ReviewSearchBar: FC<Props> = ({ initialRating, initialDate, onApply
         </div>
 
         <div className="flex gap-3 items-center">
-          <Label className="block text-sm mb-1 whitespace-nowrap">Ngày đánh giá</Label>
-          <Input
-            className="cursor-pointer"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <Label className="block text-sm mb-1 whitespace-nowrap">Khoảng thời gian</Label>
+          <DateRangePicker date={dateRange} onChange={setDateRange} />
         </div>
       </div>
 

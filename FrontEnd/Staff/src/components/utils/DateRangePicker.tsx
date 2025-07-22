@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon } from 'lucide-react';
-
+import { vi } from 'date-fns/locale';
 export default function DateRangePicker({
   date,
   onChange,
@@ -31,7 +31,7 @@ export default function DateRangePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
-        <Calendar mode="range" selected={date} onSelect={onChange} />
+        <Calendar mode="range" selected={date} onSelect={onChange} locale={vi} />
       </PopoverContent>
     </Popover>
   );
