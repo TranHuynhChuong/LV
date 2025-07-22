@@ -195,6 +195,8 @@ export default function CartPage() {
       </motion.div>
     );
 
+  const outStockCarts = carts.filter((c) => c.quantity === 0);
+  const inStockCarts = carts.filter((c) => c.quantity > 0);
   return (
     <div>
       <h1 className="text-xl font-bold mb-4">Giỏ hàng</h1>
@@ -204,31 +206,48 @@ export default function CartPage() {
           <div className="flex items-center justify-between p-3 rounded bg-zinc-50 shadow">
             <div className="flex items-center gap-4">
               <Checkbox
-                checked={selected.length === carts.length}
+                checked={selected.length === inStockCarts.length}
                 onCheckedChange={() => {
-                  if (selected.length === carts.length) {
+                  if (selected.length === inStockCarts.length) {
                     setSelected([]);
                   } else {
-                    setSelected(carts.map((c) => c.productId));
+                    setSelected(inStockCarts.map((c) => c.productId));
                   }
                 }}
               />
               <span className="text-sm text-zinc-700">
-                Đã chọn {selected.length}/{carts.length} sản phẩm
+                Đã chọn {selected.length}/{inStockCarts.length} sản phẩm
               </span>
             </div>
           </div>
 
-          {carts.map((c) => (
-            <CartItem
-              key={c.productId}
-              cart={c}
-              isSelected={selected.includes(c.productId)}
-              onToggle={() => toggleSelect(c.productId)}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemove}
-            />
-          ))}
+          <div className="space-y-2">
+            {inStockCarts.map((c) => (
+              <CartItem
+                key={c.productId}
+                cart={c}
+                isSelected={selected.includes(c.productId)}
+                onToggle={() => toggleSelect(c.productId)}
+                onQuantityChange={handleQuantityChange}
+                onRemove={handleRemove}
+              />
+            ))}
+          </div>
+          {outStockCarts.length > 0 && (
+            <div className="space-y-2 mt-6">
+              <div>Tạm hết hàng</div>
+              {outStockCarts.map((c) => (
+                <CartItem
+                  key={c.productId}
+                  cart={c}
+                  isSelected={selected.includes(c.productId)}
+                  onToggle={() => toggleSelect(c.productId)}
+                  onQuantityChange={handleQuantityChange}
+                  onRemove={handleRemove}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div
@@ -243,7 +262,7 @@ export default function CartPage() {
             <span className="font-semibold text-lg text-red-500">
               {selected
                 .reduce((sum, id) => {
-                  const cart = carts.find((c) => c.productId === id);
+                  const cart = inStockCarts.find((c) => c.productId === id);
                   return sum + (cart?.discountPrice ?? 0) * (cart?.quantity ?? 1);
                 }, 0)
                 .toLocaleString()}

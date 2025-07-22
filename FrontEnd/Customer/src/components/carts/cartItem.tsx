@@ -34,10 +34,12 @@ export default function CartItem({
     onQuantityChange(cart.productId, String(quantity + 1));
   };
 
+  const isOutOfStock = quantity === 0;
+
   return (
     <div className="flex md:items-center flex-col gap-4 md:flex-row  pl-3 pt-2 pb-4 md:pb-2 pr-6 rounded shadow-sm bg-white">
       <div className="flex flex-1 items-center gap-2">
-        <Checkbox checked={isSelected} onCheckedChange={onToggle} />
+        <Checkbox checked={isSelected} onCheckedChange={onToggle} disabled={isOutOfStock} />
         <Link href={`/product/${cart.productId}`}>
           <div className=" relative w-16 h-16">
             <Image
@@ -46,56 +48,86 @@ export default function CartItem({
               fill
               sizes="64px"
               priority
-              className=" object-contain"
+              className={`object-contain `}
             />
           </div>
         </Link>
         <div className="flex-1">
-          <Link href={`/product/${cart.productId}`}>
-            <p className="line-clamp-2 h-[3em] text-sm font-light">{cart.name}</p>
-          </Link>
+          <div className="space-y-1">
+            <Link href={`/product/${cart.productId}`}>
+              <p
+                className={`line-clamp-2 h-[3em] text-sm font-light ${
+                  isOutOfStock ? 'text-zinc-400' : ''
+                }`}
+              >
+                {cart.name}
+              </p>
+            </Link>
+          </div>
           <div className="flex items-center gap-2 h-fit">
             {cart.isOnSale ? (
               <div className="flex items-center gap-2 h-fit">
-                <span className="text-red-500 font-medium">
+                <span className={`font-medium ${isOutOfStock ? 'text-zinc-400' : 'text-red-500'}`}>
                   {cart.discountPrice.toLocaleString()}₫
                 </span>
-                <span className="text-zinc-400 text-xs line-through h-fit">
+                <span
+                  className={`text-xs line-through h-fit ${
+                    isOutOfStock ? 'text-zinc-300' : 'text-zinc-400'
+                  }`}
+                >
                   {cart.salePrice.toLocaleString()}₫
                 </span>
-                <Badge variant="destructive">{cart.discountPercent}%</Badge>
+                <Badge variant={isOutOfStock ? 'secondary' : 'destructive'}>
+                  {cart.discountPercent}%
+                </Badge>
               </div>
             ) : (
-              <span className="font-medium">{cart.salePrice.toLocaleString()}₫</span>
+              <span className={`font-medium ${isOutOfStock ? 'text-zinc-400' : ''}`}>
+                {cart.salePrice.toLocaleString()}₫
+              </span>
             )}
           </div>
         </div>
       </div>
       <div className="flex justify-end h-fit items-center gap-6 pl-4">
         <div className="flex items-center gap-2 mt-1">
-          <span className="hidden md:flex text-sm text-zinc-600">Số lượng</span>
+          <span
+            className={`hidden md:flex text-sm ${
+              isOutOfStock ? 'text-zinc-400' : 'text-zinc-600 '
+            }`}
+          >
+            Số lượng
+          </span>
           <div className="flex w-fit items-center border rounded-sm border-zinc-300">
             <button
-              className="p-1 hover:bg-muted cursor-pointer disabled:opacity-50"
+              className="p-1 hover:bg-muted cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleMinus}
+              disabled={isOutOfStock}
             >
               <Minus size={12} />
             </button>
-            <span className="min-w-fit w-10 px-2 text-center border-x border-zinc-300">
+            <span
+              className={`min-w-fit w-10 px-2 text-center border-x border-zinc-300 ${
+                isOutOfStock ? 'text-zinc-400' : ''
+              }`}
+            >
               {quantity}
             </span>
             <button
-              className="p-1 hover:bg-muted cursor-pointer disabled:opacity-50"
+              className="p-1 hover:bg-muted cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleAdd}
+              disabled={isOutOfStock}
             >
               <Plus size={12} />
             </button>
           </div>
         </div>
-        <span className="w-24 items-center flex-1 text-right">
+        <span
+          className={`w-24 items-center flex-1 text-right ${isOutOfStock ? 'text-zinc-400' : ''}`}
+        >
           {(cart.discountPrice * quantity).toLocaleString()}₫
         </span>
-        <Button size="sm" onClick={() => onRemove(cart.productId)}>
+        <Button size="sm" onClick={() => onRemove(cart.productId)} className="cursor-pointer">
           <Trash2 />
         </Button>
       </div>
