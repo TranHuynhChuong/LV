@@ -27,6 +27,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -47,6 +54,45 @@ import { useAuth } from '@/contexts/AuthContext';
 import Loader from '@/components/utils/Loader';
 import { Category } from '@/models/categories';
 
+function getAllChildrenIds(parentId: number, categories: Category[]): number[] {
+  const result: number[] = [];
+  const stack: number[] = [parentId];
+
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    result.push(current);
+
+    const children = categories.filter((cat) => cat.parentId === current);
+    for (const child of children) {
+      if (typeof child.id === 'number') {
+        stack.push(child.id);
+      }
+    }
+  }
+
+  return result;
+}
+
+interface RawCategory {
+  TL_id: number;
+  TL_ten: string;
+  TL_idTL: number;
+}
+
+function computeLevel(categoryId: number, categories: RawCategory[]) {
+  let level = 1;
+  let current = categories.find((c) => c.TL_id === categoryId);
+
+  while (current && current.TL_idTL !== null) {
+    const parent = categories.find((c) => c.TL_id === current?.TL_idTL);
+    if (parent) {
+      level++;
+      current = parent;
+    } else break;
+  }
+  return level;
+}
+
 export default function Categories() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +102,7 @@ export default function Categories() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [levelOptions, setLevelOptions] = useState<number[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<{
     open: boolean;
     id: number | null;
@@ -71,30 +118,34 @@ export default function Categories() {
     api
       .get('/categories')
       .then((res) => {
-        interface RawCategory {
-          TL_id: number;
-          TL_ten: string;
-          TL_idTL: number;
-        }
-
         const categoriesRaw: RawCategory[] = res.data;
 
-        setTotal(categoriesRaw.length);
-        const categoriesMapped: Category[] = categoriesRaw
-          .map((cat) => {
-            const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
-            return {
-              id: cat.TL_id,
-              name: cat.TL_ten,
-              parent: parentCategory ? parentCategory.TL_ten : '',
-            };
-          })
-          .sort((a, b) => {
-            if (a.parent === '' && b.parent !== '') return -1;
-            if (a.parent !== '' && b.parent === '') return 1;
-            return a.parent.localeCompare(b.parent);
-          });
+        if (!categoriesRaw) return;
 
+        setTotal(categoriesRaw.length);
+
+        const categoriesMapped: Category[] = categoriesRaw.map((cat) => {
+          const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
+          const childrenCount = categoriesRaw.filter((c) => c.TL_idTL === cat.TL_id).length;
+
+          return {
+            id: cat.TL_id,
+            name: cat.TL_ten,
+            parentId: cat.TL_idTL ?? null,
+            parent: parentCategory ? parentCategory.TL_ten : '',
+            childrenCount,
+            level: computeLevel(cat.TL_id, categoriesRaw),
+          };
+        });
+
+        const uniqueLevels = Array.from(
+          new Set(
+            categoriesMapped
+              .map((c) => c.level)
+              .filter((level): level is number => level !== undefined)
+          )
+        ).sort((a, b) => a - b);
+        setLevelOptions(uniqueLevels);
         setData(categoriesMapped);
       })
       .catch((error) => {
@@ -146,12 +197,32 @@ export default function Categories() {
       header: 'Mã',
       cell: ({ row }) => <div className="pl-3">{row.getValue('id')}</div>,
       enableHiding: false,
+      filterFn: (row, columnId, filterValue) => {
+        const value = row.getValue<number>('id');
+        if (Array.isArray(filterValue)) {
+          return filterValue.includes(value);
+        }
+        return true;
+      },
     },
     {
       accessorKey: 'name',
       header: 'Tên',
       enableHiding: false,
       enableColumnFilter: true,
+    },
+    {
+      accessorKey: 'level',
+      header: 'Cấp',
+      enableColumnFilter: true,
+      filterFn: 'equals',
+      cell: ({ row }) => <div className="text-center">{row.getValue('level')}</div>,
+    },
+    {
+      accessorKey: 'childrenCount',
+      header: 'SL thể loại con',
+      cell: ({ row }) => <div className="text-center">{row.getValue('childrenCount')}</div>,
+      enableHiding: false,
     },
     {
       accessorKey: 'parent',
@@ -228,7 +299,51 @@ export default function Categories() {
             </Button>
           </Link>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 flex gap-4">
+          <Select
+            onValueChange={(value) => {
+              table.getColumn('level')?.setFilterValue(value === 'all' ? undefined : Number(value));
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tất cả cấp" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả cấp</SelectItem>
+              {levelOptions.map((level) => (
+                <SelectItem key={level} value={String(level)}>
+                  Cấp {level}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            onValueChange={(value) => {
+              if (value === 'all') {
+                table.getColumn('id')?.setFilterValue(undefined);
+                return;
+              }
+
+              const selectedId = Number(value);
+              const allIds = getAllChildrenIds(selectedId, data);
+              console.log(allIds);
+              table.getColumn('id')?.setFilterValue(allIds);
+            }}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tất cả thể loại" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả thể loại</SelectItem>
+              {data.map((cat) => (
+                <SelectItem key={cat.id} value={String(cat.id)}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Input
             placeholder="Tìm theo tên thể loại..."
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
@@ -236,6 +351,7 @@ export default function Categories() {
             className="w-full max-w-sm"
           />
         </div>
+
         <div className="border rounded-md">
           <Table>
             <TableHeader>

@@ -1,5 +1,5 @@
 export type CategoryDto = {
   TL_ten: string;
-  TL_idTL: string | null;
+  TL_idTL: number | null;
   NV_id?: string;
 };
