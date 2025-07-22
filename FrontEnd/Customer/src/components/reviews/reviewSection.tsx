@@ -143,7 +143,7 @@ export default function ReviewsSection({ productId, rating }: Readonly<ReviewPro
         <div className="flex items-center mb-4 gap-6">
           <div className="flex flex-col items-center gap-1">
             <span>
-              <span className="text-4xl">{rating}</span>
+              <span className="text-4xl">{rating !== 0 ? rating : '--'}</span>
               <span className="text-lg">/5</span>
             </span>
             <div className="flex items-center gap-0.5 text-yellow-500">
