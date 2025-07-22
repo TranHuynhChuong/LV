@@ -44,6 +44,7 @@ export default function ProductDetail() {
     if (values.isbn) formData.append('SP_isbn', values.isbn);
     if (values.language) formData.append('SP_ngonNgu', values.language);
     if (values.translator) formData.append('SP_nguoiDich', values.translator);
+    if (values.size) formData.append('SP_kichThuoc', values.size);
     if (values.publishYear !== undefined && values.publishYear !== null)
       formData.append('SP_namXuatBan', values.publishYear.toString());
     if (values.page !== undefined && values.page !== null)
@@ -120,6 +121,7 @@ export default function ProductDetail() {
         author: product.SP_tacGia,
         publisher: product.SP_nhaXuatBan,
         publishYear: product.SP_namXuatBan,
+        size: product.SP_kichThuoc,
         page: product.SP_soTrang,
         isbn: product.SP_isbn,
         language: product.SP_ngonNgu,
@@ -181,9 +183,11 @@ export default function ProductDetail() {
           defaultValue={data}
           onDelete={data?.status === 'An' ? handleOnDelete : undefined}
         />
-        <div className=" absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
-        </div>
+        {authData.role && authData.userId && authData.role === 1 && (
+          <div className=" absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
+          </div>
+        )}
       </div>
     </div>
   );

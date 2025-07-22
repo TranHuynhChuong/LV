@@ -125,9 +125,11 @@ export default function ProductPromotionDetail() {
             isViewing={!!data?.from && data.from < new Date()}
             onDelete={onDelete}
           />
-          <div className=" absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
-          </div>
+          {authData.role && authData.userId && authData.role === 1 && (
+            <div className=" absolute top-6 right-6">
+              <ActionHistorySheet activityLogs={activityLogs} />
+            </div>
+          )}
         </div>
 
         {isSubmitting && <Loader />}

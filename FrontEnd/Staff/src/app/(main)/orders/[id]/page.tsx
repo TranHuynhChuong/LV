@@ -5,17 +5,17 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-
 import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
-
 import { mapOrderFromDto, Order } from '@/models/orders';
 import OrderDetail from '@/components/orders/orderDetail';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
 
+  const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
 
   const [data, setData] = useState<Order>();
@@ -61,9 +61,11 @@ export default function OrderDetailPage() {
     <div className="p-4">
       <div className="relative w-full mx-auto">
         {data && <OrderDetail data={data} />}
-        <div className=" absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={data.activityLogs} />
-        </div>
+        {authData.role && authData.userId && authData.role === 1 && (
+          <div className=" absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={data.activityLogs} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -105,9 +105,12 @@ export default function StaffDetailPage() {
           />
         )}
         {isSubmitting && <Loader />}
-        <div className=" absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
-        </div>
+
+        {authData.role && authData.userId && authData.role === 1 && (
+          <div className=" absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
+          </div>
+        )}
       </div>
     </div>
   );
