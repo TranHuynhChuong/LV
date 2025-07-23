@@ -45,8 +45,8 @@ export default function AddressSelect({
   useEffect(() => {
     async function fetchWards() {
       try {
-        if (!selectedProvinceId) return;
-        const res = await api.get(`/location/${selectedProvinceId}`);
+        if (!valueProvinceId) return;
+        const res = await api.get(`/location/${valueProvinceId}`);
         const data = res.data;
         const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
           code: item.X_id,
