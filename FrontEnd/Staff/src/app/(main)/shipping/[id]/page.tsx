@@ -5,18 +5,18 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import api from '@/lib/axios';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
+import { useAuth } from '@/contexts/auth-context';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 
-import Loader from '@/components/utils/Loader';
+import Loader from '@/components/utils/loader';
 import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
 import type { ShippingFee } from '@/models/shipping';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
-import ShippingFeeForm from '@/components/shipping/ShippingForm';
+import ShippingFeeForm from '@/components/shipping/shipping-form';
 
-export default function ShippingDetailPage() {
+export default function Page() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;

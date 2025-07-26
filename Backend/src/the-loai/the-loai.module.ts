@@ -6,14 +6,14 @@ import { TheLoaiRepository } from './repositories/the-loai.repository';
 import { TheLoai, TheLoaiSchema } from './schemas/the-loai.schema';
 import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
 
-import { SanPhamModule } from 'src/san-pham/san-pham.module';
+import { SachModule } from 'src/sach/sach.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: TheLoai.name, schema: TheLoaiSchema }]),
     NguoiDungModule,
 
-    forwardRef(() => SanPhamModule),
+    forwardRef(() => SachModule),
   ],
   controllers: [TheLoaiController],
   providers: [TheLoaiService, TheLoaiUtilService, TheLoaiRepository],

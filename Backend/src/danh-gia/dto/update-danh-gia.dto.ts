@@ -6,7 +6,7 @@ export class UpdateDanhGiaDto {
   NV_id: string;
 
   @IsNumber()
-  SP_id: number;
+  S_id: number;
 
   @IsString()
   DG_id: string;

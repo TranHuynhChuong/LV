@@ -2,12 +2,9 @@ import Image from 'next/image';
 
 export default function AboutUsPage() {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-6 text-zinc-800 bg-white rounded-md border shadow">
-      {/* Tiêu đề */}
+    <div className="max-w-5xl px-6 py-10 mx-auto space-y-6 bg-white border rounded-md shadow text-zinc-800">
       <h1 className="text-2xl font-bold text-center text-zinc-900">Dật Lạc</h1>
-
-      {/* Giới thiệu */}
-      <section className="space-y-4 text-justify text-sm">
+      <section className="space-y-4 text-sm text-justify">
         <h2 className="text-lg font-semibold ">Giới thiệu</h2>
         <div className="flex space-x-5">
           <div className="space-y-4">
@@ -28,18 +25,15 @@ export default function AboutUsPage() {
           <Image src="/logo/logoName1.png" alt="Logo" width={150} height={50} />
         </div>
       </section>
-      {/* Sứ mệnh - Tầm nhìn */}
       <section className="space-y-4 text-sm">
         <h2 className="text-lg font-semibold">Sứ mệnh & Tầm nhìn</h2>
-        <ul className="list-disc pl-6 space-y-1">
+        <ul className="pl-6 space-y-1 list-disc">
           <li>Lan tỏa tình yêu sách đến mọi miền đất nước.</li>
           <li>Trở thành địa chỉ mua sách trực tuyến đáng tin cậy.</li>
           <li>Hỗ trợ tác giả và nhà xuất bản lan tỏa giá trị tri thức.</li>
         </ul>
       </section>
-
-      {/* Lịch sử hình thành */}
-      <section className="space-y-4 text-justify text-sm">
+      <section className="space-y-4 text-sm text-justify">
         <h2 className="text-lg font-semibold">Hành trình phát triển</h2>
         <p>
           Dật Lạc bắt đầu từ một cửa hàng nhỏ vào năm 2020 với chỉ vài trăm đầu sách. Trải qua hành
@@ -51,11 +45,9 @@ export default function AboutUsPage() {
           khắp cả nước.
         </p>
       </section>
-
-      {/* Thông tin liên hệ */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-zinc-800">Liên hệ</h2>
-        <div className="text-zinc-600 space-y-1 text-sm">
+        <div className="space-y-1 text-sm text-zinc-600">
           <p>
             <strong>Địa chỉ:</strong> 123 Đường Sách, Quận 1, TP. Hồ Chí Minh
           </p>
@@ -72,10 +64,8 @@ export default function AboutUsPage() {
           </p>
         </div>
       </div>
-
-      {/* Lời cảm ơn */}
-      <section className="bg-zinc-100 p-6 rounded-lg shadow-sm text-center">
-        <h3 className="text-lg font-medium mb-2">Trân trọng cảm ơn quý khách hàng</h3>
+      <section className="p-6 text-center rounded-lg shadow-sm bg-zinc-100">
+        <h3 className="mb-2 text-lg font-medium">Trân trọng cảm ơn quý khách hàng</h3>
         <p>
           Cảm ơn bạn đã đồng hành cùng Dật Lạc trên hành trình lan tỏa tri thức. Chúng tôi cam kết
           luôn nỗ lực để mang lại giá trị thiết thực và trải nghiệm tuyệt vời cho từng khách hàng.

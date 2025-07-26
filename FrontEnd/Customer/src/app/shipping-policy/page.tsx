@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
 import { mapShippingFeeFromDto, ShippingFee } from '@/models/shipping';
+import { toast } from 'sonner';
 
 export default function ShippingPolicyPage() {
   const [shippingFees, setShippingFees] = useState<ShippingFee[]>([]);
@@ -12,13 +13,10 @@ export default function ShippingPolicyPage() {
       try {
         const res = await api.get('/shipping');
         const dtoList = res.data || [];
-
-        // mapShippingFeeFromDto là async nên cần Promise.all
         const mappedList = await Promise.all(dtoList.map(mapShippingFeeFromDto));
-
         setShippingFees(mappedList);
-      } catch (error) {
-        console.error('Lỗi khi lấy danh sách phí vận chuyển:', error);
+      } catch {
+        toast.error('Lỗi khi lấy danh sách phí vận chuyển');
       }
     };
 
@@ -26,10 +24,10 @@ export default function ShippingPolicyPage() {
   }, []);
 
   return (
-    <div className="w-full p-6 space-y-6  bg-white rounded-md shadoe border ">
+    <div className="w-full p-6 space-y-6 bg-white border rounded-md shadoe ">
       <div>
-        <h1 className="text-2xl font-semibold text-center mb-2">CHÍNH SÁCH VẬN CHUYỂN/ĐÓNG GÓI</h1>
-        <h2 className="text-sm font-semibold mb-6 text-center">
+        <h1 className="mb-2 text-2xl font-semibold text-center">CHÍNH SÁCH VẬN CHUYỂN/ĐÓNG GÓI</h1>
+        <h2 className="mb-6 text-sm font-semibold text-center">
           Áp dụng cho toàn bộ đơn hàng của Quý Khách tại Dật Lạc
         </h2>
       </div>
@@ -45,7 +43,7 @@ export default function ShippingPolicyPage() {
             đối tác vận chuyển. Nếu đơn hàng có sản phẩm sắp phát hành, Dật Lạc sẽ ưu tiên giao
             những sản phẩm có hàng trước cho Quý khách hàng.
           </p>
-          <ul className=" italic text-xs  space-y-2">
+          <ul className="space-y-2 text-xs italic ">
             <p className="font-semibold">*Lưu ý:</p>
             <li>
               Trong một số trường hợp, hàng nằm không có sẵn tại kho gần nhất, thời gian giao hàng
@@ -62,15 +60,15 @@ export default function ShippingPolicyPage() {
 
       <section className="space-y-4">
         <h3 className="font-semibold">2. Bảng giá phi vận chuyển</h3>
-        <div className="overflow-x-auto w-full pl-6">
-          <table className=" text-left border-zinc-700 rounded-md  w-fit">
-            <thead className=" text-sm uppercase font-medium border border-zinc-700">
+        <div className="w-full pl-6 overflow-x-auto">
+          <table className="text-left rounded-md border-zinc-700 w-fit">
+            <thead className="text-sm font-medium uppercase border border-zinc-700">
               <tr>
                 <th className="px-4 py-3">Khu vực giao</th>
                 <th className="px-4 py-3">Phí vận chuyển</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-zinc-700 border border-zinc-700">
+            <tbody className="text-sm border divide-y divide-zinc-700 border-zinc-700">
               {shippingFees.map((fee, index) => (
                 <tr key={fee.id ?? index}>
                   <td className="px-4 py-3">{fee.province}</td>
@@ -88,7 +86,7 @@ export default function ShippingPolicyPage() {
           </table>
 
           <div className="pl-6">
-            <p className="text-sm text-gray-600 mt-3">
+            <p className="mt-3 text-sm text-gray-600">
               * Quý khách kiểm tra phí vận chuyển tại bước <strong>“Thanh toán”</strong>.
             </p>
             <p className="text-sm text-gray-600">
@@ -99,7 +97,7 @@ export default function ShippingPolicyPage() {
       </section>
       <section className="space-y-2">
         <h3 className="font-semibold">3. Một số lưu ý khi nhận hàng:</h3>
-        <ul className="list-disc pl-12 text-sm">
+        <ul className="pl-12 text-sm list-disc">
           <li>
             Trước khi tiến hành giao hàng cho Quý khách, bưu tá của Đối tác vận chuyển sẽ liên hệ
             qua số điện thoại của Quý khách trước khoảng 3 đến 5 phút để xác nhận giao hàng.
@@ -155,11 +153,11 @@ export default function ShippingPolicyPage() {
       <section className="space-y-2">
         <h3 className="font-semibold">4. Tra cứu thông tin vận chuyển đơn hàng:</h3>
 
-        <p className="text-sm pl-4">
+        <p className="pl-4 text-sm">
           Quý khách hoàn toàn có thể tự tra cứu thông tin lộ trình vận chuyển Đơn hàng bằng 02 cách
           sau đây:
         </p>
-        <ul className="list-disc pl-12 text-sm">
+        <ul className="pl-12 text-sm list-disc">
           <li>Quý khách tự truy cập trang web nhập mã đơn hàng để tiến hành tra cứu.</li>
           <li>
             Quý khách liên hệ với bộ phận chăm sóc khách hàng của Dật Lạc qua hotline 1900 1234 để

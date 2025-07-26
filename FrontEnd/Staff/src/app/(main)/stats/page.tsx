@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
-import StatsOrderComposedChart from '@/components/stats/statsOrderComposedChart';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import StatsSummary from '@/components/stats/statsSumary';
-import RatioPieChart from '@/components/stats/statsRatioPieChart';
-import StatsBarChart from '@/components/stats/statsBarChart';
+import StatsOrderComposedChart from '@/components/stats/stats-composedchart';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
+import StatsSummary from '@/components/stats/stats-sumary';
+import RatioPieChart from '@/components/stats/stats-ratio-piechart';
+import StatsBarChart from '@/components/stats/stats-barchart';
 import { Stats } from '@/models/stats';
-import ExportStatsExcelButton from '@/components/stats/statsExportFile';
+import ExportStatsExcelButton from '@/components/stats/stats-export';
 import { DateRange } from 'react-day-picker';
 import { endOfDay, endOfMonth, startOfDay, startOfMonth } from 'date-fns';
-import DateRangePicker from '@/components/utils/DateRangePicker';
+import DateRangePicker from '@/components/utils/date-range-picker';
 
 function calculateOrderTotalsFromStats(orders: Stats['orders']): Stats['orders'][string]['total'] {
   return Object.values(orders).reduce(
@@ -33,12 +33,11 @@ export function getTimeUnitByRange(range: DateRange): TimeUnit {
   const end = range.to;
 
   if (!start || !end) return 'day';
-
   const diffInMonths =
     end.getFullYear() * 12 + end.getMonth() - (start.getFullYear() * 12 + start.getMonth());
 
-  if (diffInMonths > 12) return 'year';
-  if (diffInMonths > 2) return 'month';
+  if (diffInMonths > 2 && diffInMonths < 12) return 'month';
+  else if (diffInMonths > 12) return 'year';
   return 'day';
 }
 
@@ -95,7 +94,7 @@ export const getAllYearsInRange = (range: DateRange): string[] => {
   return result;
 };
 
-export default function StatsPage() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   useEffect(() => {
@@ -142,6 +141,7 @@ export default function StatsPage() {
     Promise.all([fetchOrders, fetchReviews])
       .then(([ordersRes, reviewsRes]) => {
         const ordersData = ordersRes.data.orders;
+
         let timeKeys: string[] = [];
 
         switch (timeUnit) {

@@ -1,9 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
+import * as React from 'react';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -14,6 +13,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface PlaceholderSet {
   select: string;
@@ -21,13 +21,13 @@ interface PlaceholderSet {
   empty: string;
 }
 
-interface ComboboxProps {
-  readonly data: { code: number; name: string }[] | null;
-  readonly onSelect: (id: number) => void;
-  readonly value?: number;
-  readonly placeholders?: PlaceholderSet;
-  readonly error?: boolean;
-}
+type ComboboxProps = {
+  data: { code: number; name: string }[] | null;
+  onSelect: (id: number) => void;
+  value?: number;
+  placeholders?: PlaceholderSet;
+  error?: boolean;
+};
 
 const defaultPlaceholders: PlaceholderSet = {
   select: 'Chọn...',
@@ -35,7 +35,13 @@ const defaultPlaceholders: PlaceholderSet = {
   empty: 'Không tìm thấy kết quả.',
 };
 
-export default function Combobox({ data, onSelect, value, placeholders, error }: ComboboxProps) {
+export default function Combobox({
+  data,
+  onSelect,
+  value,
+  placeholders,
+  error,
+}: Readonly<ComboboxProps>) {
   const [open, setOpen] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
 

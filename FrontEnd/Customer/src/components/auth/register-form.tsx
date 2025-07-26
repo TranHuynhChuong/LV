@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-
+import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios';
-import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function RegisterForm() {
@@ -19,10 +18,9 @@ export default function RegisterForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [otpCountdown, setOtpCountdown] = useState(0);
   const router = useRouter();
   const { loadAuth } = useAuth();
-
-  const [otpCountdown, setOtpCountdown] = useState(0);
 
   useEffect(() => {
     if (otpCountdown === 0) return;
@@ -44,9 +42,8 @@ export default function RegisterForm() {
       toast.success('Mã OTP đã được gửi đến email');
 
       setOtpCountdown(30);
-    } catch (err) {
+    } catch {
       setError('Không thể gửi mã OTP');
-      console.error('Gửi OTP lỗi:', err);
     }
   };
 
@@ -80,7 +77,7 @@ export default function RegisterForm() {
         password: password,
       });
       await loadAuth();
-      router.replace('/auth/login');
+      router.replace('/login');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err?.response?.status === 409) {
@@ -90,7 +87,6 @@ export default function RegisterForm() {
       } else {
         setError('Đăng ký thất bại');
       }
-      console.error('Register error:', err);
     } finally {
       setLoading(false);
     }
@@ -126,7 +122,7 @@ export default function RegisterForm() {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-end mt-2 text-zinc-600">
+            <p className="mt-2 text-xs text-end text-zinc-600">
               {otpCountdown > 0 ? `Gửi lại sau ${otpCountdown}s` : ''}
             </p>
           </div>
@@ -153,13 +149,13 @@ export default function RegisterForm() {
               type={showPassword ? 'text' : 'password'}
               placeholder="Nhập mật khẩu"
               required
-              className="mt-2 pr-10"
+              className="pr-10 mt-2"
               disabled={loading}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
+              className="absolute text-gray-500 right-3 top-8 hover:text-gray-800"
               disabled={loading}
             >
               {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -173,27 +169,27 @@ export default function RegisterForm() {
               type={showConfirmPassword ? 'text' : 'password'}
               placeholder="Nhập lại mật khẩu"
               required
-              className="mt-2 pr-10"
+              className="pr-10 mt-2"
               disabled={loading}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-8 text-gray-500 hover:text-gray-800"
+              className="absolute text-gray-500 right-3 top-8 hover:text-gray-800"
             >
               {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
           </div>
 
-          <div className="text-red-500 text-sm text-center mt-2 h-4">{error}</div>
+          <div className="h-4 mt-2 text-sm text-center text-red-500">{error}</div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
           <Button type="submit" disabled={loading}>
             {loading ? 'Đang đăng ký...' : 'Đăng ký'}
           </Button>
-          <div className="flex justify-center items-center text-sm gap-2 ">
+          <div className="flex items-center justify-center gap-2 text-sm ">
             <p>Đã có có tài khoản ? </p>
-            <Link href={'/auth/login'} className="hover:underline underline">
+            <Link href={'/login'} className="underline hover:underline">
               Đăng nhập
             </Link>
           </div>

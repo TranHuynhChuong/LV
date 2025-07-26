@@ -4,7 +4,7 @@ import * as React from 'react';
 import { NavMain } from '@/components/layout/nav-main';
 import { NavUser } from '@/components/layout/nav-user';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import {
   Sidebar,
   SidebarContent,
@@ -33,9 +33,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const fullNav = [
     { title: 'Trang chủ', url: '/', icon: Home },
     { title: 'Tài khoản', url: '/accounts', icon: UserCog },
-    { title: 'Sách', url: '/products', icon: Book },
     { title: 'Thể loại', url: '/categories', icon: ChartBar },
-    { title: 'Đơn hàng', url: '/orders', icon: Package },
+    { title: 'Sách', url: '/products', icon: Book },
+
     {
       title: 'Khuyến mãi',
       url: '/promotions',
@@ -45,6 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         { title: 'Mã giảm giá', url: '/promotions/voucher' },
       ],
     },
+    { title: 'Đơn hàng', url: '/orders', icon: Package },
     { title: 'Đánh giá', url: '/reviews', icon: Star },
     { title: 'Vận chuyển', url: '/shipping', icon: Truck },
     { title: 'Thống kê', url: '/stats', icon: FileChartLine },

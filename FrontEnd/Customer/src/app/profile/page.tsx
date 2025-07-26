@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -13,14 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/contexts/auth-context';
+import api from '@/lib/axios';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import api from '@/lib/axios';
-import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const [profile, setProfile] = useState({
@@ -33,8 +32,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const { authData } = useAuth();
 
-  // 🔄 Lấy dữ liệu người dùng từ API
   useEffect(() => {
+    if (!authData.userId) return;
     api
       .get(`/users/customer/${authData.userId}`)
       .then((res) => {
@@ -46,10 +45,9 @@ export default function Profile() {
           dob: data.KH_ngaySinh ? new Date(data.KH_ngaySinh) : null,
         });
       })
-      .catch((error) => console.log(error));
-  }, []);
+      .catch(() => router.back());
+  }, [authData.userId]);
 
-  // ✅ Gửi cập nhật
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -61,14 +59,15 @@ export default function Profile() {
       KH_ngaySinh: profile.dob ? profile.dob.toISOString() : null,
     };
 
+    if (!authData.userId) return;
+
     api
       .put(`/users/customer/${authData.userId}`, payload)
       .then(() => {
         toast.success('Cập nhật thành công');
         router.refresh();
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         toast.error('Có lỗi xảy ra khi cập nhật');
       })
       .finally(() => {
@@ -77,8 +76,7 @@ export default function Profile() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 w-full border p-6   rounded-md bg-white">
-      {/* Họ tên */}
+    <form onSubmit={handleSubmit} className="w-full p-6 space-y-6 bg-white border rounded-md">
       <div className="space-y-2">
         <Label>Họ tên</Label>
         <Input
@@ -86,16 +84,14 @@ export default function Profile() {
           onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
         />
       </div>
-
-      {/* Email + nút thay đổi */}
       <div className="space-y-2">
         <Label>Email</Label>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <Input value={profile.email} disabled className="flex-1" />
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/profile/changeEmail')}
+            onClick={() => router.push('/profile/change-email')}
             className="cursor-pointer"
           >
             Thay đổi
@@ -103,7 +99,6 @@ export default function Profile() {
         </div>
       </div>
       <div className="flex space-x-4">
-        {/* Giới tính */}
         <div className="space-y-2">
           <Label>Giới tính</Label>
           <Select
@@ -120,8 +115,6 @@ export default function Profile() {
             </SelectContent>
           </Select>
         </div>
-
-        {/* Ngày sinh */}
         <div className="space-y-2">
           <Label>Ngày sinh</Label>
           <Popover>
@@ -133,7 +126,7 @@ export default function Profile() {
                   !profile.dob && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="w-4 h-4 mr-2" />
                 {profile.dob ? format(profile.dob, 'dd/MM/yyyy') : 'Chọn ngày'}
               </Button>
             </PopoverTrigger>
@@ -149,7 +142,6 @@ export default function Profile() {
       </div>
 
       <div className="flex justify-end">
-        {/* Nút cập nhật */}
         <Button type="submit" disabled={loading} className="cursor-pointer">
           {loading ? 'Đang cập nhật...' : 'Cập nhật'}
         </Button>

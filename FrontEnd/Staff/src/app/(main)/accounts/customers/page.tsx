@@ -5,13 +5,13 @@ import api from '@/lib/axios';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import PagiantionControls from '@/components/utils/PaginationControls';
+import PagiantionControls from '@/components/utils/pagination-controls';
 import { useSearchParams, useRouter } from 'next/navigation';
-import CustomerTable from './customerTable';
-import SwitchTab from '../switchTab';
+import CustomerTable from '../../../../components/accounts/customer-table';
+import SwitchTab from '../../../../components/accounts/switchtab';
 import { Customer, mapCustomersFromDto } from '@/models/accounts';
 
-export default function Customers() {
+export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const [inputEmail, setInputEmail] = useState('');
   const [data, setData] = useState<Customer[]>([]);
@@ -39,8 +39,7 @@ export default function Customers() {
       setData(mapCustomersFromDto([data]));
       setPageNumbers(paginationInfo.pageNumbers);
       setTotalPage(paginationInfo.totalPages);
-    } catch (error) {
-      console.error(error);
+    } catch {
       setData([]);
       setPageNumbers([1]);
     } finally {

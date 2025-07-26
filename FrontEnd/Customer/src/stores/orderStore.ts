@@ -1,4 +1,4 @@
-import { Cart } from '@/models/carts';
+import { Cart } from '@/models/cart';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -14,11 +14,11 @@ export const useOrderStore = create<OrderState>()(
       orders: [],
 
       addOrder: (order) => {
-        const existing = get().orders.find((p) => p.productId === order.productId);
+        const existing = get().orders.find((o) => o.id === order.id);
         if (existing) {
           set({
-            orders: get().orders.map((p) =>
-              p.productId === order.productId ? { ...p, quantity: p.quantity + order.quantity } : p
+            orders: get().orders.map((o) =>
+              o.id === order.id ? { ...o, quantity: o.quantity + order.quantity } : o
             ),
           });
         } else {

@@ -6,7 +6,7 @@ import {
 import { CreateDanhGiaDto } from './dto/create-danh-gia.dto';
 import { DanhGiaRepository } from './repositories/danh-gia.repository';
 import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
-import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
+import { SachUtilService } from 'src/sach/sach.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
@@ -18,7 +18,7 @@ export class DanhGiaService {
     @InjectConnection() private readonly connection: Connection,
 
     private readonly DanhGiaRepo: DanhGiaRepository,
-    private readonly SanPhamService: SanPhamUtilService,
+    private readonly SachService: SachUtilService,
     private readonly NhanVienService: NhanVienUtilService
   ) {}
 
@@ -38,11 +38,11 @@ export class DanhGiaService {
 
             // Sau khi tạo thành công thì cập nhật điểm trung bình
 
-            const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
-              dto.SP_id,
+            const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
+              dto.S_id,
               session
             );
-            await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+            await this.SachService.updateScore(dto.S_id, newScore, session);
 
             createdDanhGias.push(created);
           }
@@ -63,8 +63,8 @@ export class DanhGiaService {
     }
   }
 
-  async findAllOfProduct(spId: number, page: number, limit = 24) {
-    return this.DanhGiaRepo.findAllOfProduct(spId, page, limit);
+  async findAllOfBook(spId: number, page: number, limit = 24) {
+    return this.DanhGiaRepo.findAllOfBook(spId, page, limit);
   }
 
   async findAll(option: {
@@ -104,7 +104,7 @@ export class DanhGiaService {
       await session.withTransaction(async () => {
         const current = await this.DanhGiaRepo.findOne(
           dto.DG_id,
-          dto.SP_id,
+          dto.S_id,
           dto.KH_id
         );
         if (!current) {
@@ -121,7 +121,7 @@ export class DanhGiaService {
 
         const updateResult = await this.DanhGiaRepo.update(
           dto.DG_id,
-          dto.SP_id,
+          dto.S_id,
           dto.KH_id,
           false,
           thaoTac,
@@ -135,11 +135,11 @@ export class DanhGiaService {
         }
         updated = updateResult;
 
-        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
-          dto.SP_id,
+        const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
+          dto.S_id,
           session
         );
-        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+        await this.SachService.updateScore(dto.S_id, newScore, session);
       });
 
       if (!updated) {
@@ -159,7 +159,7 @@ export class DanhGiaService {
       await session.withTransaction(async () => {
         const current = await this.DanhGiaRepo.findOne(
           dto.DG_id,
-          dto.SP_id,
+          dto.S_id,
           dto.KH_id
         );
         if (!current) {
@@ -176,7 +176,7 @@ export class DanhGiaService {
 
         const updateResult = await this.DanhGiaRepo.update(
           dto.DG_id,
-          dto.SP_id,
+          dto.S_id,
           dto.KH_id,
           true,
           thaoTac,
@@ -189,11 +189,11 @@ export class DanhGiaService {
 
         updated = updateResult;
 
-        const newScore = await this.DanhGiaRepo.getAverageRatingOfProduct(
-          dto.SP_id,
+        const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
+          dto.S_id,
           session
         );
-        await this.SanPhamService.updateScore(dto.SP_id, newScore, session);
+        await this.SachService.updateScore(dto.S_id, newScore, session);
       });
 
       if (!updated) {

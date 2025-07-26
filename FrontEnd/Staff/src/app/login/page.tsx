@@ -12,7 +12,7 @@ type LoginFormInputs = {
   password: string;
 };
 
-export default function LoginPage() {
+export default function Page() {
   const router = useRouter();
   const form = useForm<LoginFormInputs>({
     defaultValues: {

@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack -p 3002",
-    "prebuild": "node scripts/runOnBuild.mjs",
     "build": "next build",
     "start": "next start -p 3002",
     "lint": "next lint"

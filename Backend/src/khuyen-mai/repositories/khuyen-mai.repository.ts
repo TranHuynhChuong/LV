@@ -132,26 +132,26 @@ export class KhuyenMaiRepository {
       },
       {
         $set: {
-          SP_ids: {
+          S_ids: {
             $map: {
               input: '$chiTietKhuyenMai',
               as: 'ct',
-              in: '$$ct.SP_id',
+              in: '$$ct.S_id',
             },
           },
         },
       },
       {
         $lookup: {
-          from: 'sanphams',
-          let: { sp_ids: '$SP_ids' },
+          from: 'saches',
+          let: { s_ids: '$S_ids' },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $and: [
-                    { $in: ['$SP_id', '$$sp_ids'] },
-                    { $ne: ['$SP_trangThai', 0] },
+                    { $in: ['$S_id', '$$s_ids'] },
+                    { $ne: ['$S_trangThai', 0] },
                   ],
                 },
               },
@@ -159,18 +159,18 @@ export class KhuyenMaiRepository {
             {
               $project: {
                 _id: 0,
-                SP_id: 1,
-                SP_ten: 1,
-                SP_giaBan: 1,
-                SP_tonKho: 1,
-                SP_giaNhap: 1,
-                SP_anh: {
+                S_id: 1,
+                S_ten: 1,
+                S_giaBan: 1,
+                S_tonKho: 1,
+                S_giaNhap: 1,
+                S_anh: {
                   $arrayElemAt: [
                     {
                       $map: {
                         input: {
                           $filter: {
-                            input: '$SP_anh',
+                            input: '$S_anh',
                             as: 'anh',
                             cond: { $eq: ['$$anh.A_anhBia', true] },
                           },

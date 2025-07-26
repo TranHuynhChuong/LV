@@ -9,7 +9,7 @@ export class CreateDanhGiaDto {
   DG_noiDung?: string;
 
   @IsNumber()
-  SP_id: number;
+  S_id: number;
 
   @IsString()
   DG_id: string;

@@ -19,7 +19,7 @@ export class ChiTietKhuyenMaiRepository {
     return this.ChiTietKhuyenMaiModel.aggregate([
       {
         $match: {
-          SP_id: { $in: SPIds },
+          S_id: { $in: SPIds },
           CTKM_daXoa: false,
           CTKM_tamNgung: false,
         },
@@ -42,7 +42,7 @@ export class ChiTietKhuyenMaiRepository {
       {
         $project: {
           KM_id: 1,
-          SP_id: 1,
+          S_id: 1,
           CTKM_theoTyLe: 1,
           CTKM_giaTri: 1,
           CTKM_tamNgung: 1,
@@ -62,21 +62,21 @@ export class ChiTietKhuyenMaiRepository {
   }
 
   async update(
-    SP_id: number,
+    S_id: number,
     KM_id: number,
     update: Partial<ChiTietKhuyenMai>,
     session?: ClientSession
   ) {
     return this.ChiTietKhuyenMaiModel.findOneAndUpdate(
-      { SP_id, KM_id, CTKM_daXoa: false },
+      { S_id, KM_id, CTKM_daXoa: false },
       update,
       { new: true, session }
     );
   }
 
-  async remove(KM_id: number, SP_id: number, session?: ClientSession) {
+  async remove(KM_id: number, S_id: number, session?: ClientSession) {
     return this.ChiTietKhuyenMaiModel.updateOne(
-      { KM_id, SP_id },
+      { KM_id, S_id },
       { CTKM_daXoa: true },
       { session }
     );

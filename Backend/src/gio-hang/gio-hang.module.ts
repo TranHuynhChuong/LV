@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { GioHang, GioHangSchema } from './schemas/gioHang.schema';
+import { GioHang, GioHangSchema } from './schemas/gio-hang.schema';
 import { GioHangRepository } from './repositories/gio-hang.repository';
 import { GioHangService } from './gio-hang.service';
 import { GioHangController } from './gio-hang.controller';
-import { SanPhamModule } from 'src/san-pham/san-pham.module';
+import { SachModule } from 'src/sach/sach.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: GioHang.name, schema: GioHangSchema }]),
-    SanPhamModule,
+    SachModule,
   ],
   providers: [GioHangRepository, GioHangService],
   controllers: [GioHangController],

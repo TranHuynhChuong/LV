@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import HomePage from './_components/HomePage';
+import HomePage from '../../components/home/home';
 import api from '@/lib/axios';
 
 async function fetchHomeData() {
@@ -37,7 +37,7 @@ async function fetchHomeData() {
   }
 }
 
-export default async function Home() {
+export default async function Page() {
   const data = await fetchHomeData();
 
   return <HomePage data={data} />;

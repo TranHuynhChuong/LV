@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -50,8 +50,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/utils/Loader';
+import { useAuth } from '@/contexts/auth-context';
+import Loader from '@/components/utils/loader';
 import { Category } from '@/models/categories';
 
 function getAllChildrenIds(parentId: number, categories: Category[]): number[] {
@@ -93,7 +93,7 @@ function computeLevel(categoryId: number, categories: RawCategory[]) {
   return level;
 }
 
-export default function Categories() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<Category[]>([]);

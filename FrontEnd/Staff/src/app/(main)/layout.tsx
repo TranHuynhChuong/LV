@@ -13,8 +13,8 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 
-import { BreadcrumbProvider, useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { BreadcrumbProvider, useBreadcrumb } from '@/contexts/breadcrumb-context';
+import { AuthProvider } from '@/contexts/auth-context';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useRef, useState } from 'react';

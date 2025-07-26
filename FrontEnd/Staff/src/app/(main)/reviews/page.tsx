@@ -1,20 +1,20 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import PaginationControls from '@/components/utils/PaginationControls';
+import PaginationControls from '@/components/utils/pagination-controls';
 
 import { Review, mappedReviewFromDto } from '@/models/reviews';
-import { ReviewSearchBar } from '@/components/reviews/reviewSearchBar'; // dùng đúng cái bạn tạo
-import ReviewList from '@/components/reviews/reviewList';
-import eventBus from '@/lib/eventBus';
+import { ReviewSearchBar } from '@/components/reviews/review-searchbar'; // dùng đúng cái bạn tạo
+import ReviewList from '@/components/reviews/review-list';
+import eventBus from '@/lib/event-bus';
 import { startOfDay } from 'date-fns';
 
-export default function ReviewsPage() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   const router = useRouter();
   const searchParams = useSearchParams();

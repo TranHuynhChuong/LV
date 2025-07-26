@@ -6,7 +6,7 @@ import { NguoiDungModule } from './nguoi-dung/nguoi-dung.module';
 import { UtilModule } from './Util/util.module';
 import { XacThucModule } from './xac-thuc/xac-thuc.module';
 import { TheLoaiModule } from './the-loai/the-loai.module';
-import { SanPhamModule } from './san-pham/san-pham.module';
+import { SachModule } from './sach/sach.module';
 import { KhuyenMaiModule } from './khuyen-mai/khuyen-mai.module';
 import { GioHangModule } from './gio-hang/gio-hang.module';
 import { TTNhanHangModule } from './tt-nhan-hang/tt-nhan-hang.module';
@@ -34,7 +34,7 @@ import { DiaChiModule } from './dia-chi/dia-chi.module';
     UtilModule,
     PhiVanChuyenModule,
     TheLoaiModule,
-    SanPhamModule,
+    SachModule,
     KhuyenMaiModule,
     GioHangModule,
     TTNhanHangModule,

@@ -1,19 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useCallback, useEffect, useState } from 'react';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useRouter, useParams } from 'next/navigation';
 import api from '@/lib/axios';
-import { StaffForm } from '@/components/accounts/staffForm';
+import { StaffForm } from '@/components/accounts/staff-form';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
-import Loader from '@/components/utils/Loader';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
+import Loader from '@/components/utils/loader';
 import { mapStaffFormDto, mapStaffToDto, Staff } from '@/models/accounts';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 
-export default function StaffDetailPage() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   const params = useParams();
   const id = params?.id as string;
@@ -24,21 +24,21 @@ export default function StaffDetailPage() {
   const { authData } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function fetchStaffDetail() {
+  const fetchStaffDetail = useCallback(async () => {
+    if (!id) return;
     setIsLoading(true);
     try {
       const res = await api.get(`/users/staff/${id}`);
       const data = res.data;
       setStaffData(mapStaffFormDto([data])[0]);
       setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
-    } catch (error) {
-      console.error('Lỗi khi lấy thông tin nhân viên:', error);
+    } catch {
       toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
       router.back();
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [id, router]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -48,7 +48,7 @@ export default function StaffDetailPage() {
     ]);
 
     fetchStaffDetail();
-  }, [id]);
+  }, [fetchStaffDetail, setBreadcrumbs]);
 
   async function handleOnSubmit(data: Staff) {
     if (!authData.userId) return;
@@ -59,9 +59,8 @@ export default function StaffDetailPage() {
       await api.put(`/users/staff/${id}`, payload);
       toast.success('Cập nhật thành công!');
       router.back();
-    } catch (error) {
+    } catch {
       toast.error('Cập nhật thất bại!');
-      console.error('Lỗi khi cập nhật nhân viên:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,10 +74,8 @@ export default function StaffDetailPage() {
       await api.delete(`/users/staff/${id}?staffId=${authData.userId}`);
       toast.success('Xóa thành công!');
       router.back();
-    } catch (error) {
+    } catch {
       toast.error('Xóa thất bại!');
-
-      console.error('Lỗi khi xóa nhân viên:', error);
     } finally {
       setIsSubmitting(false);
     }

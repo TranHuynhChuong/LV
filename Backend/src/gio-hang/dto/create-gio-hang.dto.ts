@@ -5,7 +5,7 @@ export class CreateGioHangDto {
   KH_id: number;
 
   @IsNumber()
-  SP_id: number;
+  S_id: number;
 
   @IsNumber()
   GH_soLuong: number;

@@ -1,27 +1,27 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/axios';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-import PaginationControls from '@/components/utils/PaginationControls';
+import PaginationControls from '@/components/utils/pagination-controls';
 import {
   mapOrderOverviewListFromDto,
   OrderOverview,
   OrderOverviewDto,
   OrderStatus,
 } from '@/models/orders';
-import { OrderSearchBar } from '@/components/orders/orderSearchBar';
-import OrderList from '@/components/orders/orderList';
-import eventBus from '@/lib/eventBus';
+import { OrderSearchBar } from '@/components/orders/order-searchbar';
+import OrderList from '@/components/orders/order-list';
+import eventBus from '@/lib/event-bus';
 import { DateRange } from 'react-day-picker';
 import { endOfDay, startOfDay } from 'date-fns';
 import { RotateCcw, Search } from 'lucide-react';
-import DateRangePicker from '@/components/utils/DateRangePicker';
+import DateRangePicker from '@/components/utils/date-range-picker';
 
-export default function Orders() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   useEffect(() => {

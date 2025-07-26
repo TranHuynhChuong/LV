@@ -3,15 +3,15 @@
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 
-import Loader from '@/components/utils/Loader';
+import Loader from '@/components/utils/loader';
 import { Category, mapCategoryToDto } from '@/models/categories';
-import CategoryForm from '@/components/categories/categoryForm';
+import CategoryForm from '@/components/categories/category-form';
 
-export default function NewCategory() {
+export default function Page() {
   const router = useRouter();
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();

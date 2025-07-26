@@ -36,7 +36,7 @@ export class DanhGiaRepository {
   async findOne(orderId: string, productId: number, customerId: number) {
     return this.DanhGiaModel.findOne({
       DH_id: orderId,
-      SP_id: productId,
+      S_id: productId,
       KH_id: customerId,
     }).lean();
   }
@@ -87,8 +87,8 @@ export class DanhGiaRepository {
       {
         $lookup: {
           from: 'sanphams',
-          localField: 'SP_id',
-          foreignField: 'SP_id',
+          localField: 'S_id',
+          foreignField: 'S_id',
           as: 'sanPham',
         },
       },
@@ -98,14 +98,14 @@ export class DanhGiaRepository {
       {
         $addFields: {
           KH_hoTen: '$khachHang.KH_hoTen',
-          SP_ten: '$sanPham.SP_ten',
-          SP_anh: {
+          S_ten: '$sanPham.S_ten',
+          S_anh: {
             $arrayElemAt: [
               {
                 $map: {
                   input: {
                     $filter: {
-                      input: '$sanPham.SP_anh',
+                      input: '$sanPham.S_anh',
                       as: 'anh',
                       cond: { $eq: ['$$anh.A_anhBia', true] },
                     },
@@ -144,7 +144,7 @@ export class DanhGiaRepository {
     });
   }
 
-  async findAllOfProduct(
+  async findAllOfBook(
     spId: number,
     page: number,
     limit = 24
@@ -152,7 +152,7 @@ export class DanhGiaRepository {
     const skip = (page - 1) * limit;
 
     const matchStage: PipelineStage.Match = {
-      $match: { SP_id: spId, DG_daAn: false },
+      $match: { S_id: spId, DG_daAn: false },
     };
 
     const dataPipeline: PipelineStage[] = [
@@ -183,7 +183,7 @@ export class DanhGiaRepository {
       countPipeline,
     });
 
-    const rating = await this.countRatingOfProduct(spId);
+    const rating = await this.countRatingOfBook(spId);
 
     return {
       data: result.data as DanhGiaDocument[],
@@ -192,14 +192,14 @@ export class DanhGiaRepository {
     };
   }
 
-  async getAverageRatingOfProduct(
+  async getAverageRatingOfBook(
     spId: number,
     session?: ClientSession
   ): Promise<number> {
     type AvgRatingResult = { avgRating: number };
 
     const result = await this.DanhGiaModel.aggregate<AvgRatingResult>([
-      { $match: { SP_id: spId, DG_daAn: false } },
+      { $match: { S_id: spId, DG_daAn: false } },
       {
         $group: {
           _id: null,
@@ -211,7 +211,7 @@ export class DanhGiaRepository {
     return result[0]?.avgRating ?? 0;
   }
 
-  async countRatingOfProduct(spId: number): Promise<{
+  async countRatingOfBook(spId: number): Promise<{
     s1: number;
     s2: number;
     s3: number;
@@ -227,7 +227,7 @@ export class DanhGiaRepository {
     }>([
       {
         $match: {
-          SP_id: spId,
+          S_id: spId,
           DG_daAn: false,
         },
       },
@@ -372,7 +372,7 @@ export class DanhGiaRepository {
     return this.DanhGiaModel.findOneAndUpdate(
       {
         DH_id: orderId,
-        SP_id: productId,
+        S_id: productId,
         KH_id: customerId,
       },
       {

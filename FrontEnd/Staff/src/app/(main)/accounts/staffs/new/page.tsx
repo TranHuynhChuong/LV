@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast } from 'sonner';
-import { StaffForm } from '@/components/accounts/staffForm';
-import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/utils/Loader';
+import { StaffForm } from '@/components/accounts/staff-form';
+import { useAuth } from '@/contexts/auth-context';
+import Loader from '@/components/utils/loader';
 import { mapStaffToDto, Staff } from '@/models/accounts';
 
-export default function New() {
+export default function Page() {
   const router = useRouter();
   const { authData } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);

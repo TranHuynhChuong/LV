@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import { mapOrderFromDto, Order } from '@/models/orders';
-import OrderDetail from '@/components/orders/orderDetail';
-import { useAuth } from '@/contexts/AuthContext';
+import OrderDetail from '@/components/orders/order-detail';
+import { useAuth } from '@/contexts/auth-context';
 
-export default function OrderDetailPage() {
+export default function Page() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;

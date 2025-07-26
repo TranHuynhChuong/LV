@@ -1,30 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
-interface Props {
+type LoginFormProps = {
   onForgotPassword: () => void;
   onSubmit: (email: string, password: string) => void;
   loading?: boolean;
   error?: string;
-}
+};
 
 export default function LoginForm({
   onForgotPassword,
   onSubmit,
   loading = false,
   error = '',
-}: Readonly<Props>) {
+}: Readonly<LoginFormProps>) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(email, password);
@@ -36,7 +35,7 @@ export default function LoginForm({
         <CardHeader>
           <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 mt-6 mb-4">
+        <CardContent className="mt-6 mb-4 space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
@@ -55,7 +54,7 @@ export default function LoginForm({
               <Label htmlFor="password">Mật khẩu</Label>
               <button
                 type="button"
-                className="hover:underline text-sm text-muted-foreground cursor-pointer"
+                className="text-sm cursor-pointer hover:underline text-muted-foreground"
                 onClick={onForgotPassword}
               >
                 Quên mật khẩu?
@@ -82,15 +81,15 @@ export default function LoginForm({
             </button>
           </div>
 
-          <div className="text-red-500 text-sm text-center h-4">{error}</div>
+          <div className="h-4 text-sm text-center text-red-500">{error}</div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
           <Button type="submit" disabled={loading}>
             {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </Button>
-          <div className="flex justify-center items-center text-sm gap-2">
+          <div className="flex items-center justify-center gap-2 text-sm">
             <p>Chưa có tài khoản?</p>
-            <Link href="/auth/register" className="hover:underline underline">
+            <Link href="/register" className="underline hover:underline">
               Đăng ký
             </Link>
           </div>

@@ -27,7 +27,7 @@ export class TheLoaiUtilService {
 
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
+import { SachUtilService } from 'src/sach/sach.service';
 import { CreateTheLoaiDto } from './dto/create-the-loai.dto';
 import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
 @Injectable()
@@ -36,8 +36,8 @@ export class TheLoaiService {
     private readonly TheLoaiRepo: TheLoaiRepository,
     private readonly NhanVienService: NhanVienUtilService,
     @InjectConnection() private readonly connection: Connection,
-    @Inject(forwardRef(() => SanPhamUtilService))
-    private readonly SanPhamService: SanPhamUtilService
+    @Inject(forwardRef(() => SachUtilService))
+    private readonly SachService: SachUtilService
   ) {}
 
   // Tạo thể loại mới
@@ -155,7 +155,7 @@ export class TheLoaiService {
     const hasChild = await this.TheLoaiRepo.findAllChildren(id);
     if (hasChild && hasChild.length > 0) throw new ConflictException();
 
-    const hasProduct = await this.SanPhamService.findInCategories([
+    const hasProduct = await this.SachService.findInCategories([
       ...hasChild,
       id,
     ]);

@@ -2,11 +2,10 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="w-full h-fit bg-white border-t">
-      <div className="container mx-auto w-full h-fit">
-        <div className="  ">
-          <div className="px-4 pb-10 pt-6 grid grid-cols-2   gap-6">
-            {/* Cột 1: Giới thiệu + Logo */}
+    <footer className="w-full bg-white border-t h-fit">
+      <div className="container w-full mx-auto h-fit">
+        <div className="">
+          <div className="grid grid-cols-2 gap-6 px-4 pt-6 pb-10">
             <div className="space-y-2">
               <Link href="/" className="flex items-center gap-2">
                 <span className="text-3xl font-bold">DẬT LẠC</span>
@@ -15,14 +14,12 @@ export default function Footer() {
                 Nền tảng mua sắm thân thiện, tiện lợi và cam kết phục vụ khách hàng tận tâm.
               </p>
               <p className="text-sm ">
-                <strong>Địa chỉ:</strong> 387 – 389 Hai Bà Trưng, P. Võ Thị Sáu, Q.3, TP.HCM
+                <strong>Địa chỉ:</strong> 387 - 389 Hai Bà Trưng, P. Võ Thị Sáu, Q.3, TP.HCM
               </p>
             </div>
-
-            {/* Cột 2: Liên kết */}
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div>
-                <h3 className="font-semibold  mb-3">Hỗ trợ</h3>
+                <h3 className="mb-3 font-semibold">Hỗ trợ</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
                     <Link className="hover:underline" href="/about-us">
@@ -37,7 +34,7 @@ export default function Footer() {
                 </ul>
               </div>
               <div>
-                <h3 className="font-semibold  mb-3">Dịch vụ</h3>
+                <h3 className="mb-3 font-semibold">Dịch vụ</h3>
                 <ul className="space-y-2 text-sm">
                   <li>
                     <Link className="hover:underline" href="/terms-of-service">
@@ -51,13 +48,13 @@ export default function Footer() {
                   </li>
                 </ul>
               </div>
-              <div className="text-sm mt-10">
+              <div className="mt-10 text-sm">
                 <strong>Email:</strong>
                 <a href="mailto:cskh@datlac.vn" className="hover:underline">
                   cskh@datlac.vn
                 </a>
               </div>
-              <div className="text-sm mt-10">
+              <div className="mt-10 text-sm">
                 <strong>Hotline:</strong>
                 <a href="tel:19001234" className="hover:underline">
                   1900 1234
@@ -65,9 +62,7 @@ export default function Footer() {
               </div>
             </div>
           </div>
-
-          {/* Dòng bản quyền */}
-          <div className="text-center text-xs py-4 border-t">
+          <div className="py-4 text-xs text-center border-t">
             © {new Date().getFullYear()} Dật Lạc. Đã đăng ký bản quyền.
           </div>
         </div>

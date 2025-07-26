@@ -44,13 +44,13 @@ export class DanhGiaController {
     });
   }
 
-  @Get('/product/:productId')
-  getAllOfProduct(
-    @Param('productId') spId: string,
+  @Get('/book/:bookId')
+  getAllOfBook(
+    @Param('bookId') spId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '24'
   ) {
-    return this.DanhGiaService.findAllOfProduct(
+    return this.DanhGiaService.findAllOfBook(
       +spId,
       parseInt(page),
       parseInt(limit)

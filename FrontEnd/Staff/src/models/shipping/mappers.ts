@@ -2,11 +2,13 @@ import { ShippingFee, ShippingFeeDto } from '.';
 
 export function mapShippingFeeFromDto(dto: ShippingFeeDto): ShippingFee {
   return {
+    id: dto.PVC_id,
     fee: dto.PVC_phi,
     weight: dto.PVC_ntl,
     surcharge: dto.PVC_phuPhi,
     surchargeUnit: dto.PVC_dvpp,
     provinceId: dto.T_id,
+    province: dto.T_ten,
   };
 }
 

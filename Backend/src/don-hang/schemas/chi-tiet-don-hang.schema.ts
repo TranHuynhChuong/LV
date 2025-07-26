@@ -9,7 +9,7 @@ export class ChiTietDonHang {
   DH_id: string;
 
   @Prop({ type: Number, required: true })
-  SP_id: number;
+  S_id: number;
 
   @Prop({ type: Number, required: true })
   CTDH_soLuong: number;
@@ -26,4 +26,4 @@ export class ChiTietDonHang {
 
 export const ChiTietDonHangSchema =
   SchemaFactory.createForClass(ChiTietDonHang);
-ChiTietDonHangSchema.index({ DH_id: 1, SP_id: 1 }, { unique: true });
+ChiTietDonHangSchema.index({ DH_id: 1, S_id: 1 }, { unique: true });

@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 
-import StaffTable from '@/components/accounts/staffTable';
-import SwitchTab from '../switchTab';
-import Loader from '@/components/utils/Loader';
-import { useAuth } from '@/contexts/AuthContext';
+import StaffTable from '@/components/accounts/staff-table';
+import SwitchTab from '../../../../components/accounts/switchtab';
+import Loader from '@/components/utils/loader';
+import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { mapStaffFormDto, Staff } from '@/models/accounts';
 
-export default function Staffs() {
+export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const [data, setData] = useState<Staff[]>([]);

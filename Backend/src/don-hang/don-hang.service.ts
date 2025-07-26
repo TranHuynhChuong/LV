@@ -9,7 +9,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { ClientSession, Connection } from 'mongoose';
 import { MaGiamUtilService } from 'src/ma-giam/ma-giam.service';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
-import { SanPhamUtilService } from 'src/san-pham/san-pham.service';
+import { SachUtilService } from 'src/sach/sach.service';
 import { TTNhanHangDHService } from '../tt-nhan-hang/tt-nhan-hang.service';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import {
@@ -39,7 +39,7 @@ export class DonHangService {
     private readonly KhachHangService: KhachHangUtilService,
     @InjectConnection() private readonly connection: Connection,
 
-    private readonly SanPhamService: SanPhamUtilService,
+    private readonly SachService: SachUtilService,
     private readonly NhanVienService: NhanVienUtilService,
     private readonly MaGiamService: MaGiamUtilService,
     private readonly NhanHangDHService: TTNhanHangDHService,
@@ -54,31 +54,30 @@ export class DonHangService {
     products: any[];
     vouchers: any[];
   }> {
-    const ctSanPham = data.CTDH;
-    const spIds = ctSanPham.map((item) => item.SP_id);
+    const ctSach = data.CTDH;
+    const spIds = ctSach.map((item) => item.S_id);
     const magiamIds = data.MG?.map((item) => item.MG_id) || [];
 
-    const sanPhams = await this.SanPhamService.findByIds(spIds);
+    const Sachs = await this.SachService.findByIds(spIds);
     const maGiams = await this.MaGiamService.findValidByIds(magiamIds);
 
-    const spMap = new Map(sanPhams.map((sp) => [sp.SP_id, sp]));
+    const spMap = new Map(Sachs.map((sp) => [sp.S_id, sp]));
     const errorCodes = new Set<number>();
 
-    for (const item of ctSanPham) {
-      const sp = spMap.get(item.SP_id);
+    for (const item of ctSach) {
+      const sp = spMap.get(item.S_id);
 
       if (!sp) {
         errorCodes.add(1001); // SP không tồn tại hoặc ẩn
         continue;
       }
 
-      if (item.CTDH_soLuong > sp.SP_tonKho) {
+      if (item.CTDH_soLuong > sp.S_tonKho) {
         errorCodes.add(1002); // Không đủ tồn kho
       }
 
-      const giaBanThayDoi = item.CTDH_giaBan !== sp.SP_giaBan;
-      const giaMuaThayDoi =
-        item.CTDH_giaMua !== (sp.SP_giaGiam ?? sp.SP_giaBan); // nếu có giảm giá
+      const giaBanThayDoi = item.CTDH_giaBan !== sp.S_giaBan;
+      const giaMuaThayDoi = item.CTDH_giaMua !== (sp.S_giaGiam ?? sp.S_giaBan); // nếu có giảm giá
 
       if (giaBanThayDoi || giaMuaThayDoi) {
         errorCodes.add(1003); // Giá thay đổi
@@ -94,7 +93,7 @@ export class DonHangService {
 
     return {
       errors: [...errorCodes],
-      products: sanPhams, // Trả về danh sách sản phẩm đã fetch
+      products: Sachs, // Trả về danh sách sản phẩm đã fetch
       vouchers: maGiams,
     };
   }
@@ -268,10 +267,10 @@ export class DonHangService {
 
         // B9.  Cập nhật đã bán và tồn kho
         const updates = data.DH.CTDH.map((item) => ({
-          id: item.SP_id,
+          id: item.S_id,
           sold: item.CTDH_soLuong,
         }));
-        await this.SanPhamService.updateSold(updates, session);
+        await this.SachService.updateSold(updates, session);
 
         // B10. Gửi email thông báo đơn hàng đã tạo thành công
         let email = data.DH.KH_email;
@@ -352,12 +351,12 @@ export class DonHangService {
         if (newStatus === OrderStatus.Canceled) {
           const orderDetails = await this.ChiTietDonHangRepo.findByOrderId(id);
           const updates = orderDetails.map((item) => ({
-            id: item.SP_id,
+            id: item.S_id,
             sold: -item.CTDH_soLuong,
             stock: item.CTDH_soLuong,
           }));
 
-          await this.SanPhamService.updateSold(updates, session);
+          await this.SachService.updateSold(updates, session);
         }
 
         return result;

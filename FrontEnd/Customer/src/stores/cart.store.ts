@@ -1,4 +1,4 @@
-import { CartItem } from '@/models/carts';
+import { CartItem } from '@/models/cart';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -21,13 +21,13 @@ export const useCartStore = create<CartState>()(
 
       addToCart: (item) => {
         const now = new Date().toISOString();
-        const existing = get().carts.find((c) => c.productId === item.productId);
+        const existing = get().carts.find((c) => c.id === item.id);
 
         let updatedCarts: CartItem[];
 
         if (existing) {
           updatedCarts = get().carts.map((c) =>
-            c.productId === item.productId
+            c.id === item.id
               ? {
                   ...c,
                   quantity: c.quantity + item.quantity,
@@ -42,25 +42,24 @@ export const useCartStore = create<CartState>()(
         set({ carts: sortByTimeDesc(updatedCarts) });
       },
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (id, quantity) => {
         const now = new Date().toISOString();
         const updated = get().carts.map((c) =>
-          c.productId === productId ? { ...c, quantity, dateTime: now } : c
+          c.id === id ? { ...c, quantity, dateTime: now } : c
         );
         set({ carts: sortByTimeDesc(updated) });
       },
 
-      removeFromCart: (productId) =>
-        set({ carts: get().carts.filter((c) => c.productId !== productId) }),
+      removeFromCart: (id) => set({ carts: get().carts.filter((c) => c.id !== id) }),
 
-      removeFromCartByIds: (productIds: number[]) =>
+      removeFromCartByIds: (ids: number[]) =>
         set({
-          carts: get().carts.filter((c) => !productIds.includes(c.productId)),
+          carts: get().carts.filter((c) => !ids.includes(c.id)),
         }),
 
       replaceCart: (items: CartItem[]) =>
         set(() => ({
-          carts: items, // Ghi đè, đảm bảo cũ mất hoàn toàn
+          carts: items,
         })),
     }),
     {

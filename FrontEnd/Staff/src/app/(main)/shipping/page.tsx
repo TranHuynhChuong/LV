@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
 import {
@@ -47,8 +47,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import Loader from '@/components/utils/Loader';
-import { useAuth } from '@/contexts/AuthContext';
+import Loader from '@/components/utils/loader';
+import { useAuth } from '@/contexts/auth-context';
 import { mapShippingFeesFromDtoList, ShippingFee } from '@/models/shipping';
 
 export type Shipping = {
@@ -61,7 +61,7 @@ export type Shipping = {
   locationId: number;
 };
 
-export default function Shipments() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
   const [data, setData] = useState<ShippingFee[]>([]);
@@ -86,6 +86,7 @@ export default function Shipments() {
       .then(([shippingRes, locationRes]) => {
         const mapped = mapShippingFeesFromDtoList(shippingRes.data);
         setData(mapped);
+        console.log(shippingRes.data);
         setProvinces(locationRes.data);
       })
       .catch((error) => {
@@ -138,10 +139,10 @@ export default function Shipments() {
       enableHiding: false,
     },
     {
-      accessorKey: 'location',
+      accessorKey: 'province',
       header: 'Khu vực',
       enableColumnFilter: true,
-      cell: ({ row }) => <div className="pl-2">{row.getValue('location')}</div>,
+      cell: ({ row }) => <div className="pl-2">{row.getValue('province')}</div>,
       enableHiding: false,
     },
     {
@@ -168,7 +169,7 @@ export default function Shipments() {
       cell: ({ row }) => <div>{row.getValue('fee')}</div>,
     },
     {
-      accessorKey: 'level',
+      accessorKey: 'weight',
       header: () => (
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -188,6 +189,7 @@ export default function Shipments() {
         </HoverCard>
       ),
       enableHiding: false,
+      cell: ({ row }) => <div>{row.getValue('weight') ?? '-'}</div>,
     },
     {
       accessorKey: 'surcharge',
@@ -212,7 +214,7 @@ export default function Shipments() {
       cell: ({ row }) => <div>{row.getValue('surcharge') ?? '-'}</div>,
     },
     {
-      accessorKey: 'unit',
+      accessorKey: 'surchargeUnit',
       header: () => (
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -232,7 +234,7 @@ export default function Shipments() {
         </HoverCard>
       ),
       enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('unit') ?? '-'}</div>,
+      cell: ({ row }) => <div>{row.getValue('surchargeUnit') ?? '-'}</div>,
     },
     {
       id: 'actions',
@@ -307,7 +309,6 @@ export default function Shipments() {
         </div>
         <div className="flex items-center gap-4 mb-4">
           <div>
-            <label className="block mb-1 text-sm">Lọc theo tỉnh</label>
             <Select
               onValueChange={(value) =>
                 table.getColumn('location')?.setFilterValue(value === 'all' ? undefined : value)

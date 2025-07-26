@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { GioHangService, CartReturn } from './gio-hang.service';
-import { GioHang } from './schemas/gioHang.schema';
+import { GioHang } from './schemas/gio-hang.schema';
 import { parsePositiveInt } from 'src/Util/convert';
 import { CreateGioHangDto } from './dto/create-gio-hang.dto';
 import { UpdateGioHangDto } from './dto/update-gio-hang.dto';
@@ -34,15 +34,15 @@ export class GioHangController {
   @Delete()
   async delete(
     @Query('KH_id') KH_id: number,
-    @Query('SP_id') SP_id: number
+    @Query('S_id') S_id: number
   ): Promise<GioHang> {
-    return this.GioHangService.delete(KH_id, Number(SP_id));
+    return this.GioHangService.delete(KH_id, Number(S_id));
   }
 
   @Post('/delete')
-  async deleteMultipleItems(@Body() body: { KH_id: number; SP_id: number[] }) {
-    const { KH_id, SP_id } = body;
-    const deletedCount = await this.GioHangService.deleteMany(KH_id, SP_id);
+  async deleteMultipleItems(@Body() body: { KH_id: number; S_id: number[] }) {
+    const { KH_id, S_id } = body;
+    const deletedCount = await this.GioHangService.deleteMany(KH_id, S_id);
     return { deletedCount };
   }
 

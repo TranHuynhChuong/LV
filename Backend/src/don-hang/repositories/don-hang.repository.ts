@@ -87,15 +87,15 @@ export class DonHangRepository {
       // B2: Join sản phẩm
       {
         $lookup: {
-          from: 'sanphams',
-          localField: 'chiTietDonHang.SP_id',
-          foreignField: 'SP_id',
-          as: 'sanPham',
+          from: 'saches',
+          localField: 'chiTietDonHang.S_id',
+          foreignField: 'S_id',
+          as: 'sach',
         },
       },
       {
         $unwind: {
-          path: '$sanPham',
+          path: '$sach',
           preserveNullAndEmptyArrays: true,
         },
       },
@@ -151,19 +151,19 @@ export class DonHangRepository {
           // chi tiết sản phẩm
           chiTietDonHang: {
             $push: {
-              SP_id: '$chiTietDonHang.SP_id',
+              S_id: '$chiTietDonHang.S_id',
               CTDH_soLuong: '$chiTietDonHang.CTDH_soLuong',
               CTDH_giaMua: '$chiTietDonHang.CTDH_giaMua',
               CTDH_giaBan: '$chiTietDonHang.CTDH_giaBan',
               CTDH_giaNhap: '$chiTietDonHang.CTDH_giaNhap',
-              SP_ten: '$sanPham.SP_ten',
-              SP_anh: {
+              S_ten: '$sach.S_ten',
+              S_anh: {
                 $arrayElemAt: [
                   {
                     $map: {
                       input: {
                         $filter: {
-                          input: '$sanPham.SP_anh',
+                          input: '$sach.S_anh',
                           as: 'anh',
                           cond: { $eq: ['$$anh.A_anhBia', true] },
                         },
@@ -175,7 +175,7 @@ export class DonHangRepository {
                   0,
                 ],
               },
-              SP_trangThai: '$sanPham.SP_trangThai',
+              S_trangThai: '$sach.S_trangThai',
             },
           },
         },

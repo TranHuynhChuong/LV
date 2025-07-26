@@ -3,11 +3,11 @@ import './globals.css';
 import Header from '@/components/layout/header/header';
 import Footer from '@/components/layout/footer/footer';
 import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
-
+import { AuthProvider } from '@/contexts/auth-context';
 import { Roboto, Geist } from 'next/font/google';
-import RouteWatcher from '@/components/utils/RouteWatcher';
-import RasaWidget from '@/chatbot/rasaWidget';
+import RouteWatcher from '@/components/utils/route-watcher';
+import RasaWidget from '@/chatbot/rasa-widget';
+export const dynamic = 'force-dynamic';
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -39,7 +39,7 @@ export default function RootLayout({
         >
           <RouteWatcher />
           <Header />
-          <main className="container mx-auto flex-1 flex flex-col w-full p-4 min-h-screen">
+          <main className="container flex flex-col flex-1 w-full min-h-screen p-4 mx-auto">
             {children}
           </main>
           <Footer />

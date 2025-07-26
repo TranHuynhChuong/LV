@@ -34,7 +34,7 @@ export class DanhGia {
   DG_daAn: boolean;
 
   @Prop({ type: Number, required: true })
-  SP_id: number;
+  S_id: number;
 
   @Prop({ type: String, required: true })
   DH_id: string;
@@ -49,6 +49,6 @@ export class DanhGia {
 export type DanhGiaDocument = DanhGia & Document;
 export const DanhGiaSchema = SchemaFactory.createForClass(DanhGia);
 
-DanhGiaSchema.index({ KH_id: 1, DH_id: 1, SP_id: 1 }, { unique: true });
-DanhGiaSchema.index({ SP_id: 1 });
+DanhGiaSchema.index({ KH_id: 1, DH_id: 1, S_id: 1 }, { unique: true });
+DanhGiaSchema.index({ S_id: 1 });
 DanhGiaSchema.index({ KH_id: 1 });

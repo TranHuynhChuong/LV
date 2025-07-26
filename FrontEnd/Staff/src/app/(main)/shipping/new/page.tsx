@@ -4,14 +4,14 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import api from '@/lib/axios';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import Loader from '@/components/utils/Loader';
+import { useAuth } from '@/contexts/auth-context';
+import Loader from '@/components/utils/loader';
 import { mapShippingFeeToDto, ShippingFee } from '@/models/shipping';
-import ShippingFeeForm from '@/components/shipping/ShippingForm';
+import ShippingFeeForm from '@/components/shipping/shipping-form';
 
-export default function CreateShippingPage() {
+export default function Page() {
   const router = useRouter();
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();

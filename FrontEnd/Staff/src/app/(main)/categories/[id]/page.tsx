@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
+import { useAuth } from '@/contexts/auth-context';
 import Loading from './loading';
-import { ActionHistorySheet } from '@/components/utils/ActivityLogSheet';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 
-import Loader from '@/components/utils/Loader';
+import Loader from '@/components/utils/loader';
 import { Category, mapCategoryToDto } from '@/models/categories';
-import CategoryForm from '@/components/categories/categoryForm';
+import CategoryForm from '@/components/categories/category-form';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 
-export default function CategoryDetailPage() {
+export default function Page() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;

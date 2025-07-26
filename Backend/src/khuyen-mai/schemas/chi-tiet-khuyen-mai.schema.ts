@@ -9,7 +9,7 @@ export class ChiTietKhuyenMai {
   KM_id: number;
 
   @Prop({ type: Number, required: true })
-  SP_id: number;
+  S_id: number;
 
   @Prop({ type: Boolean, required: true })
   CTKM_theoTyLe: boolean;
@@ -29,7 +29,7 @@ export const ChiTietKhuyenMaiSchema =
 
 ChiTietKhuyenMaiSchema.index({ KM_id: 1 });
 ChiTietKhuyenMaiSchema.index({
-  SP_id: 1,
+  S_id: 1,
   CTKM_daXoa: 1,
   CTKM_tamNgung: 1,
   KM_id: 1,

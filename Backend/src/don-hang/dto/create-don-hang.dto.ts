@@ -10,7 +10,7 @@ import { Type } from 'class-transformer';
 
 export class CreateChiTietDonHangDto {
   @IsNumber()
-  SP_id: number;
+  S_id: number;
 
   @IsNumber()
   CTDH_soLuong: number;

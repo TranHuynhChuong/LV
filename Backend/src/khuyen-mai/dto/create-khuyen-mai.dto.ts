@@ -13,7 +13,7 @@ import { Transform, Type as TransformType } from 'class-transformer';
 
 export class ChiTietKmDto {
   @IsInt()
-  SP_id: number;
+  S_id: number;
 
   @IsBoolean()
   CTKM_theoTyLe: boolean;

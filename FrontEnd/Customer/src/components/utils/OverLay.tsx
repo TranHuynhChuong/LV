@@ -1,4 +1,3 @@
-// components/Overlay.tsx
 'use client';
 
 import { useEffect, useState } from 'react';

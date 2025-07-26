@@ -27,7 +27,7 @@ export class KhuyenMaiUtilService {
   constructor(
     private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository
   ) {}
-  // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách SP_id
+  // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách S_id
   async getValidChiTietKhuyenMai(SPIds: number[]) {
     return this.ChiTietKhuyenMaiRepo.findValidByProductIds(SPIds);
   }
@@ -232,14 +232,14 @@ export class KhuyenMaiService {
     session: ClientSession
   ): Promise<boolean> {
     const oldList = await this.ChiTietKhuyenMaiRepo.findAllByKMid(KM_id);
-    const oldMap = new Map(oldList.map((item) => [item.SP_id, item]));
-    const newMap = new Map(newList.map((item) => [item.SP_id, item]));
+    const oldMap = new Map(oldList.map((item) => [item.S_id, item]));
+    const newMap = new Map(newList.map((item) => [item.S_id, item]));
 
     const promises: Promise<any>[] = [];
     let changed = false;
 
     for (const newItem of newList) {
-      const oldItem = oldMap.get(newItem.SP_id);
+      const oldItem = oldMap.get(newItem.S_id);
       if (!oldItem) {
         changed = true;
         promises.push(
@@ -253,7 +253,7 @@ export class KhuyenMaiService {
         changed = true;
         promises.push(
           this.ChiTietKhuyenMaiRepo.update(
-            newItem.SP_id,
+            newItem.S_id,
             KM_id,
             {
               CTKM_theoTyLe: newItem.CTKM_theoTyLe,
@@ -267,10 +267,10 @@ export class KhuyenMaiService {
     }
 
     for (const oldItem of oldList) {
-      if (!newMap.has(oldItem.SP_id)) {
+      if (!newMap.has(oldItem.S_id)) {
         changed = true;
         promises.push(
-          this.ChiTietKhuyenMaiRepo.remove(KM_id, oldItem.SP_id, session)
+          this.ChiTietKhuyenMaiRepo.remove(KM_id, oldItem.S_id, session)
         );
       }
     }

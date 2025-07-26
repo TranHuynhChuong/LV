@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import api from '@/lib/axios';
-import { ProductSortType, mapProductOverviewListFromDto } from '@/models/products';
-import HomeComponent from '@/components/home/homeComponent';
+import { BookSortType, mapBookOverviewListFromDto } from '@/models/book';
+import HomeComponent from '@/components/home/home';
 
 export default async function HomePage() {
   const pageSize = 8;
 
-  const fetchProducts = async (sort: ProductSortType) => {
+  const fetchBooks = async (sort: BookSortType) => {
     try {
-      const res = await api.get('/products/search', {
+      const res = await api.get('/books/search', {
         params: {
           keyword: '',
           categoryId: '',
@@ -18,17 +18,16 @@ export default async function HomePage() {
           limit: pageSize,
         },
       });
-      return mapProductOverviewListFromDto(res.data.data);
-    } catch (error) {
-      console.error(`Error fetching products sorted by ${sort}:`, error);
+      return mapBookOverviewListFromDto(res.data.data);
+    } catch {
       return [];
     }
   };
 
   const [mostRated, latest, bestSelling] = await Promise.all([
-    fetchProducts(ProductSortType.MostRating),
-    fetchProducts(ProductSortType.Latest),
-    fetchProducts(ProductSortType.BestSelling),
+    fetchBooks(BookSortType.MostRating),
+    fetchBooks(BookSortType.Latest),
+    fetchBooks(BookSortType.BestSelling),
   ]);
 
   return (

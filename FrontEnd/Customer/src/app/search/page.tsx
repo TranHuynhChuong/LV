@@ -1,12 +1,11 @@
-// app/search/page.tsx
 'use client';
 
+import PaginationControls from '@/components/utils/pagination-controls';
+import api from '@/lib/axios';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import api from '@/lib/axios';
-import PaginationControls from '@/components/utils/PaginationControls';
 
-import { ProductList } from '@/components/products/productList';
+import { BookList } from '@/components/book/book-list';
 import {
   Select,
   SelectContent,
@@ -16,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mapProductOverviewListFromDto, ProductOverview, ProductSortType } from '@/models/products';
+import { BookOverview, BookSortType, mapBookOverviewListFromDto } from '@/models/book';
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -25,15 +24,15 @@ export default function SearchPage() {
   const category = searchParams.get('c') ?? '';
   const page = parseInt(searchParams.get('p') ?? '1', 10);
 
-  const rawSort = searchParams.get('s') ?? ProductSortType.MostRelevant;
-  const sort = Object.values(ProductSortType).includes(rawSort as ProductSortType)
-    ? (rawSort as ProductSortType)
-    : ProductSortType.MostRelevant;
+  const rawSort = searchParams.get('s') ?? BookSortType.MostRelevant;
+  const sort = Object.values(BookSortType).includes(rawSort as BookSortType)
+    ? (rawSort as BookSortType)
+    : BookSortType.MostRelevant;
 
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [products, setProducts] = useState<ProductOverview[] | []>([]);
+  const [books, setBooks] = useState<BookOverview[] | []>([]);
 
   const pageSize = 20;
 
@@ -46,17 +45,16 @@ export default function SearchPage() {
       filterType: 'show-all',
       limit: pageSize,
     };
-
     try {
-      const res = await api.get('/products/search', { params });
+      const res = await api.get('/books/search', { params });
       const data = res.data;
 
-      setProducts(mapProductOverviewListFromDto(data.data));
+      setBooks(mapBookOverviewListFromDto(data.data));
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
       setTotalPages(data.paginationInfo.totalPages);
     } catch {
-      setProducts([]);
+      setBooks([]);
       setPageNumbers([]);
       setTotalItems(0);
       setTotalPages(0);
@@ -71,30 +69,25 @@ export default function SearchPage() {
 
   const handlePageChange = (targetPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
-
-    params.set('p', targetPage.toString()); // cập nhật `p`
-    router.push(`?${params.toString()}`); // đẩy đường dẫn mới
+    params.set('p', targetPage.toString());
+    router.push(`?${params.toString()}`);
   };
 
   const handleSortChange = (sortType: string) => {
     const params = new URLSearchParams(searchParams.toString());
-
-    if (sortType === ProductSortType.MostRelevant) {
+    if (sortType === BookSortType.MostRelevant) {
       params.delete('s');
     } else {
       params.set('s', sortType);
     }
-
     params.set('p', '1');
-
-    // push tới URL mới
     router.push(`/search?${params.toString()}`);
   };
   return (
     <div>
-      <div className="w-full h-fit flex p-4 items-center bg-white rounded-md">
-        <h4 className="font-medium flex-1 ">Kết quả tìm kiếm: {totalItems} sản phẩm </h4>
-        <div className="h-fit justify-end flex">
+      <div className="flex items-center w-full p-4 bg-white rounded-md h-fit">
+        <h4 className="flex-1 font-medium ">Kết quả tìm kiếm: {totalItems} sản phẩm </h4>
+        <div className="flex justify-end h-fit">
           <Select value={sort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Chọn tiêu chí" />
@@ -102,19 +95,19 @@ export default function SearchPage() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Tiêu chí</SelectLabel>
-                <SelectItem value={ProductSortType.MostRelevant}>Liên quan</SelectItem>
-                <SelectItem value={ProductSortType.Latest}>Mới nhất</SelectItem>
-                <SelectItem value={ProductSortType.BestSelling}>Bán chạy</SelectItem>
-                <SelectItem value={ProductSortType.MostRating}>Đánh giá cao - thấp</SelectItem>
-                <SelectItem value={ProductSortType.PriceAsc}>Giá thấp - cao</SelectItem>
-                <SelectItem value={ProductSortType.PriceDesc}>Giá cao - thấp</SelectItem>
+                <SelectItem value={BookSortType.MostRelevant}>Liên quan</SelectItem>
+                <SelectItem value={BookSortType.Latest}>Mới nhất</SelectItem>
+                <SelectItem value={BookSortType.BestSelling}>Bán chạy</SelectItem>
+                <SelectItem value={BookSortType.MostRating}>Đánh giá cao - thấp</SelectItem>
+                <SelectItem value={BookSortType.PriceAsc}>Giá thấp - cao</SelectItem>
+                <SelectItem value={BookSortType.PriceDesc}>Giá cao - thấp</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
       </div>
-      <div className="space-y-6 mt-4">
-        <ProductList products={products} />
+      <div className="mt-4 space-y-6">
+        <BookList books={books} />
         <PaginationControls
           pageNumbers={pageNumbers}
           currentPage={page}

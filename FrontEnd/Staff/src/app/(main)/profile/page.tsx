@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext';
+import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 
 import api from '@/lib/axios';
 
 import { toast } from 'sonner';
 import Loading from './loading';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
-import { StaffForm } from '@/components/accounts/staffForm';
+import { StaffForm } from '@/components/accounts/staff-form';
 import { mapStaffFormDto, Staff } from '@/models/accounts';
 
-export default function StaffDetailPage() {
+export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
   const [isLoading, setIsLoading] = useState(true);

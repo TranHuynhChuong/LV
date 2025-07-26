@@ -4,7 +4,7 @@ import { DonHangController } from './don-hang.controller';
 import { DonHangRepository } from './repositories/don-hang.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DonHang, DonHangSchema } from './schemas/don-hang.schema';
-import { SanPhamModule } from 'src/san-pham/san-pham.module';
+import { SachModule } from 'src/sach/sach.module';
 import { TTNhanHangModule } from 'src/tt-nhan-hang/tt-nhan-hang.module';
 import { MaGiamModule } from 'src/ma-giam/ma-giam.module';
 import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
@@ -23,7 +23,7 @@ import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
       { name: ChiTietDonHang.name, schema: ChiTietDonHangSchema },
     ]),
 
-    SanPhamModule,
+    SachModule,
     TTNhanHangModule,
     MaGiamModule,
     NguoiDungModule,
