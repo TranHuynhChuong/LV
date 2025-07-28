@@ -27,8 +27,8 @@ export default function ExportStatsExcelButton({ range }: Readonly<Props>) {
 
       const res = await api.get(`/orders/stats/export`, {
         params: {
-          dateStart: fromDate,
-          dateEnd: toDate,
+          from: fromDate,
+          to: toDate,
           staffId: authData.userId,
         },
         responseType: 'blob',
@@ -51,8 +51,7 @@ export default function ExportStatsExcelButton({ range }: Readonly<Props>) {
       URL.revokeObjectURL(link.href);
 
       toast.success('Xuất file thành công', { id: toastId });
-    } catch (error) {
-      console.error('Lỗi xuất file:', error);
+    } catch {
       toast.error('Xuất file thất bại!', { id: toastId });
     } finally {
       setLoading(false);
