@@ -21,21 +21,18 @@ import { PromotionFilterType } from './repositories/khuyen-mai.repository';
 export class KhuyenMaiController {
   constructor(private readonly KhuyenMaiService: KhuyenMaiService) {}
 
-  // ======= [POST] /khuyen-mai - Tạo mới khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateKhuyenMaiDto) {
     return this.KhuyenMaiService.createKhuyenMai(data);
   }
 
-  // ======= [GET] /khuyen-mai - Lấy danh sách khuyến mãi (phân trang, status) =======
   @Get()
   findAll(
     @Query('page') page: string,
     @Query('limit') limit: string,
     @Query('filterType') filterType?: PromotionFilterType
   ) {
-    // Convert filterType to PromotionFilterType if defined
     return this.KhuyenMaiService.findAll({
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 10,
@@ -43,14 +40,11 @@ export class KhuyenMaiController {
     });
   }
 
-  // ======= [GET] /khuyen-mai - Lấy số lượng khuyến mãi hợp lệ =======
-
   @Get('/total')
   async count(): Promise<any> {
     return await this.KhuyenMaiService.countValid();
   }
 
-  // ======= [GET] /khuyen-mai/:id - Lấy chi tiết khuyến mãi theo ID =======
   @Get(':id')
   async findById(
     @Param('id', ParseIntPipe) id: number,
@@ -59,7 +53,6 @@ export class KhuyenMaiController {
     return this.KhuyenMaiService.findById(id, filterType);
   }
 
-  // ======= [PUT] /khuyen-mai/:id - Cập nhật khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Put(':id')
   update(
@@ -69,7 +62,6 @@ export class KhuyenMaiController {
     return this.KhuyenMaiService.update(id, data);
   }
 
-  // ======= [DELETE] Xóa khuyến mãi =======
   @UseGuards(XacThucGuard)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {

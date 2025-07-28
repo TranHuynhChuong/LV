@@ -43,6 +43,7 @@ export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
 }
 
 export function mapBookPromotionsFromDto(dto: BookPromotionOverviewDto[]): BookPromotionOverview[] {
+  console.log(dto);
   return dto.map((item) => ({
     id: item.KM_id,
     name: item.KM_ten,
@@ -61,7 +62,7 @@ export function mapBookPromotionDetailToDto(
     KM_batDau: data.from.toISOString(),
     KM_ketThuc: data.to.toISOString(),
     KM_chiTiet: data.details.map((detail) => ({
-      SP_id: detail.bookId,
+      S_id: detail.bookId,
       CTKM_theoTyLe: detail.isPercent,
       CTKM_giaTri: detail.value,
       CTKM_tamNgung: detail.isBlocked,

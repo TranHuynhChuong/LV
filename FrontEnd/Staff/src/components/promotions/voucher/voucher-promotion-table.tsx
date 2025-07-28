@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -10,31 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { VoucherPromotionOverview } from '@/models/promotionVoucher';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { TicketPercent } from 'lucide-react';
 import Link from 'next/link';
 
-import { TicketPercent } from 'lucide-react';
-import { VoucherPromotionOverview } from '@/models/promotionVoucher';
-
-interface VoucherPromotionsTableProps {
+type Props = {
   data: VoucherPromotionOverview[];
-  onDelete?: (code: number) => void;
-}
+};
 
-export default function VoucherPromotionsTable({
-  data,
-  onDelete,
-}: Readonly<VoucherPromotionsTableProps>) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
-
+export default function VoucherPromotionsTable({ data }: Readonly<Props>) {
   const columns: ColumnDef<VoucherPromotionOverview>[] = [
     {
       accessorKey: 'id',
@@ -42,7 +25,7 @@ export default function VoucherPromotionsTable({
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className=" rounded-md flex gap-2 items-center">
+          <div className="flex items-center gap-2 rounded-md ">
             <TicketPercent />
             <div className="text-sm">#{item.id}</div>
           </div>
@@ -68,7 +51,6 @@ export default function VoucherPromotionsTable({
         return <div>{date}</div>;
       },
     },
-
     {
       accessorKey: 'endAt',
       header: 'Kết thúc',
@@ -84,14 +66,12 @@ export default function VoucherPromotionsTable({
         const item = row.original;
         const now = new Date();
         const from = new Date(item.startAt);
-
         const canUpdate = from > now;
-
         return (
           <div className="flex flex-col space-y-1.5">
             <Link
               className="cursor-pointer hover:underline "
-              href={`/promotions/voucher/${item.id}`}
+              href={`/promotions/vouchers/${item.id}`}
             >
               {canUpdate ? 'Cập nhật' : 'Chi tiết'}
             </Link>
@@ -109,7 +89,7 @@ export default function VoucherPromotionsTable({
 
   return (
     <div>
-      <div className="border rounded-md mt-4 min-w-fit mb-2 overflow-hidden">
+      <div className="mt-4 mb-2 overflow-hidden border rounded-md min-w-fit">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -139,42 +119,13 @@ export default function VoucherPromotionsTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
+                <TableCell colSpan={columns.length} className="py-8 text-center">
                   Không có dữ liệu.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-
-        {/* Dialog xác nhận xóa */}
-        <Dialog
-          open={deleteDialogOpen !== null}
-          onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-            </DialogHeader>
-            <DialogDescription>Thao tác này sẽ không thể hoàn tác.</DialogDescription>
-            <DialogFooter className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
-                Hủy
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (deleteDialogOpen !== null) {
-                    onDelete?.(deleteDialogOpen);
-                    setDeleteDialogOpen(null);
-                  }
-                }}
-              >
-                Xóa
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

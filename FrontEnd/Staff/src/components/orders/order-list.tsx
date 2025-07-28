@@ -11,7 +11,6 @@ export default function OrderList({ orders }: Readonly<Props>) {
   if (orders.length === 0) {
     return null;
   }
-
   return (
     <div className="flex flex-col gap-2">
       {orders.map((order) => (

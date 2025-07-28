@@ -36,8 +36,6 @@ export class DanhGiaService {
               throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
             }
 
-            // Sau khi tạo thành công thì cập nhật điểm trung bình
-
             const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
               dto.S_id,
               session
@@ -63,8 +61,8 @@ export class DanhGiaService {
     }
   }
 
-  async findAllOfBook(spId: number, page: number, limit = 24) {
-    return this.DanhGiaRepo.findAllOfBook(spId, page, limit);
+  async findAllOfBook(bookId: number, page: number, limit = 24) {
+    return this.DanhGiaRepo.findAllOfBook(bookId, page, limit);
   }
 
   async findAll(option: {
@@ -103,7 +101,7 @@ export class DanhGiaService {
     try {
       await session.withTransaction(async () => {
         const current = await this.DanhGiaRepo.findOne(
-          dto.DG_id,
+          dto.DH_id,
           dto.S_id,
           dto.KH_id
         );
@@ -120,7 +118,7 @@ export class DanhGiaService {
         };
 
         const updateResult = await this.DanhGiaRepo.update(
-          dto.DG_id,
+          dto.DH_id,
           dto.S_id,
           dto.KH_id,
           false,
@@ -154,13 +152,13 @@ export class DanhGiaService {
   async hide(dto: UpdateDanhGiaDto): Promise<DanhGia> {
     const session = await this.connection.startSession();
     let updated: DanhGia | null = null;
-
     try {
       await session.withTransaction(async () => {
         const current = await this.DanhGiaRepo.findOne(
-          dto.DG_id,
+          dto.DH_id,
           dto.S_id,
-          dto.KH_id
+          dto.KH_id,
+          session
         );
         if (!current) {
           throw new NotFoundException(
@@ -175,7 +173,7 @@ export class DanhGiaService {
         };
 
         const updateResult = await this.DanhGiaRepo.update(
-          dto.DG_id,
+          dto.DH_id,
           dto.S_id,
           dto.KH_id,
           true,
@@ -183,7 +181,7 @@ export class DanhGiaService {
           session
         );
 
-        if (!updated) {
+        if (!updateResult) {
           throw new BadRequestException('Cập nhật đánh giá - Ẩn thất bại');
         }
 

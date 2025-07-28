@@ -1,9 +1,7 @@
 'use client';
 
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
+import ProductTab from '@/components/books/book-tab';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -13,19 +11,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
-
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-
-import BookDiscountTable from './book-discount-table';
-
-import { format } from 'date-fns';
-import { BookPromotionDetail } from '@/models/promotionBook';
 import { BookOverView } from '@/models/books';
-import ProductTab from '@/components/books/book-tab';
+import { BookPromotionDetail } from '@/models/promotionBook';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import BookDiscountTable from './book-discount-table';
 
 const BookPromotionSchema: z.Schema<BookPromotionDetail> = z
   .object({
@@ -61,7 +57,7 @@ const BookPromotionSchema: z.Schema<BookPromotionDetail> = z
     }
   });
 
-type BookPromotionFormProps = {
+type Props = {
   defaultValues?: BookPromotionDetail;
   availableBooks?: BookOverView[];
   onSubmit?: (data: BookPromotionDetail) => void;
@@ -82,7 +78,7 @@ export default function BookPromotionForm({
   onSubmit,
   onDelete,
   isViewing = false,
-}: Readonly<BookPromotionFormProps>) {
+}: Readonly<Props>) {
   const form = useForm<BookPromotionDetail>({
     resolver: zodResolver(BookPromotionSchema),
     defaultValues: {
@@ -95,7 +91,6 @@ export default function BookPromotionForm({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<BookPromotionDetail | null>(null);
-
   const [openProductTable, setOpenProductTable] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<BookOverView[]>(availableBooks ?? []);
   const [detail, setDetail] = useState<Detail[]>(defaultValues?.details ?? []);
@@ -119,19 +114,15 @@ export default function BookPromotionForm({
 
   const handleSelect = (selecData: BookOverView[]) => {
     const filteredNewBooks = selecData.filter((p) => !selectedData.some((sd) => sd.id === p.id));
-
     setSelectedData([...selectedData, ...filteredNewBooks]);
-
     const newDetails = filteredNewBooks.map((b) => ({
       bookId: b.id,
       isPercent: true,
       value: 0,
       isBlocked: false,
     }));
-
     const currentDetails = watch('details') || [];
     setValue('details', [...currentDetails, ...newDetails]);
-
     setDetail([...detail, ...newDetails]);
     setOpenProductTable(false);
   };
@@ -151,7 +142,6 @@ export default function BookPromotionForm({
           <fieldset disabled={isViewing} className="space-y-4">
             <section className="p-6 space-y-4 bg-white rounded-sm shadow">
               <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
-
               <FormField
                 control={control}
                 name="name"
@@ -237,16 +227,14 @@ export default function BookPromotionForm({
                 />
               </div>
             </section>
-
             <section className="p-6 space-y-6 bg-white rounded-sm shadow">
               <div className="flex justify-between flex-1">
                 <div>
-                  <h2 className="font-medium">Sản phẩm khuyến mãi</h2>
+                  <h2 className="font-medium">Sách khuyến mãi</h2>
                   <p className="text-xs">
-                    Tổng cộng <strong>{selectedData.length}</strong> sản phẩm
+                    Tổng cộng <strong>{selectedData.length}</strong> sách
                   </p>
                 </div>
-
                 <Button
                   className="font-normal cursor-pointer border-zinc-700"
                   variant="outline"
@@ -257,7 +245,6 @@ export default function BookPromotionForm({
                   <Plus className="w-4 h-4 mr-2" /> Thêm sách
                 </Button>
               </div>
-
               <BookDiscountTable
                 isViewing={isViewing}
                 books={selectedData}
@@ -280,7 +267,7 @@ export default function BookPromotionForm({
         </form>
       </Form>
       {openProductTable && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-500/50 py-12">
+        <div className="fixed inset-0 z-50 flex items-center justify-center py-12 bg-zinc-500/50">
           <div className="max-h-[90vh] max-w-full overflow-hidden rounded-lg bg-white shadow-lg">
             <div className="overflow-y-auto max-h-[90vh] p-6">
               <ProductTab
@@ -295,7 +282,6 @@ export default function BookPromotionForm({
         </div>
       )}
 
-      {/* Dialog xác nhận thêm/cập nhật */}
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}

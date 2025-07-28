@@ -12,7 +12,7 @@ type Props = {
 
 const DEFAULT_COLORS: [string, string] = ['#3f3f46', '#71717b'];
 
-export default function RatioPieChart({ title, data, labels, unit = '', colors }: Props) {
+export default function RatioPieChart({ title, data, labels, unit = '', colors }: Readonly<Props>) {
   const total = data[0] + data[1];
   const chartData = [
     { name: labels[0], value: data[0] },

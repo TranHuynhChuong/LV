@@ -3,15 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Download } from 'lucide-react';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { DateRange } from 'react-day-picker';
 import { endOfDay, startOfDay } from 'date-fns';
 import { useAuth } from '@/contexts/auth-context';
 import { useState } from 'react';
 
-interface Props {
+type Props = {
   range: DateRange | undefined;
-}
+};
 
 export default function ExportStatsExcelButton({ range }: Readonly<Props>) {
   const { authData } = useAuth();

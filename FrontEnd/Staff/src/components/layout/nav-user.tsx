@@ -1,7 +1,5 @@
 'use client';
 
-import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,24 +15,25 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function NavUser({
   user,
-}: {
-  readonly user: {
-    readonly role: number | null;
-    readonly code: string | null;
+}: Readonly<{
+  user: {
+    role: number | null;
+    code: string | null;
   };
-}) {
+}>) {
   const { isMobile } = useSidebar();
   const router = useRouter();
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
-
     router.replace('/login');
   };
+
   const roleText = (role: number | null) => {
     switch (role) {
       case 1:
@@ -57,11 +56,9 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer "
             >
-              <div></div>
-
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{roleText(user.role)}</span>
-                <span className="truncate text-xs">{user.code}</span>
+              <div className="grid flex-1 text-sm leading-tight text-left">
+                <span className="font-semibold truncate">{roleText(user.role)}</span>
+                <span className="text-xs truncate">{user.code}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -74,9 +71,9 @@ export function NavUser({
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <div className="grid flex-1 text-left text-sm leading-tight ml-4">
-                  <span className="truncate font-semibold">{roleText(user.role)}</span>
-                  <span className="truncate text-xs">{user.code}</span>
+                <div className="grid flex-1 ml-4 text-sm leading-tight text-left">
+                  <span className="font-semibold truncate">{roleText(user.role)}</span>
+                  <span className="text-xs truncate">{user.code}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

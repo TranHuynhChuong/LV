@@ -33,12 +33,19 @@ export class DanhGiaRepository {
     return created.save({ session });
   }
 
-  async findOne(orderId: string, productId: number, customerId: number) {
+  async findOne(
+    orderId: string,
+    bookId: number,
+    customerId: number,
+    session?: ClientSession
+  ) {
     return this.DanhGiaModel.findOne({
       DH_id: orderId,
-      S_id: productId,
+      S_id: bookId,
       KH_id: customerId,
-    }).lean();
+    })
+      .session(session ?? null)
+      .lean();
   }
 
   async findAll(
@@ -72,7 +79,6 @@ export class DanhGiaRepository {
     const dataPipeline: PipelineStage[] = [
       matchStage,
 
-      // Lookup khách hàng
       {
         $lookup: {
           from: 'khachhangs',
@@ -83,29 +89,27 @@ export class DanhGiaRepository {
       },
       { $unwind: { path: '$khachHang', preserveNullAndEmptyArrays: true } },
 
-      // Lookup sản phẩm
       {
         $lookup: {
-          from: 'sanphams',
+          from: 'saches',
           localField: 'S_id',
           foreignField: 'S_id',
-          as: 'sanPham',
+          as: 'sach',
         },
       },
-      { $unwind: { path: '$sanPham', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$sach', preserveNullAndEmptyArrays: true } },
 
-      // Add tên khách và thông tin sản phẩm
       {
         $addFields: {
           KH_hoTen: '$khachHang.KH_hoTen',
-          S_ten: '$sanPham.S_ten',
+          S_ten: '$sach.S_ten',
           S_anh: {
             $arrayElemAt: [
               {
                 $map: {
                   input: {
                     $filter: {
-                      input: '$sanPham.S_anh',
+                      input: '$sach.S_anh',
                       as: 'anh',
                       cond: { $eq: ['$$anh.A_anhBia', true] },
                     },
@@ -120,11 +124,10 @@ export class DanhGiaRepository {
         },
       },
 
-      // Xoá các mảng lookup thô
       {
         $project: {
           khachHang: 0,
-          sanPham: 0,
+          sach: 0,
         },
       },
 
@@ -145,14 +148,14 @@ export class DanhGiaRepository {
   }
 
   async findAllOfBook(
-    spId: number,
+    bookId: number,
     page: number,
     limit = 24
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
 
     const matchStage: PipelineStage.Match = {
-      $match: { S_id: spId, DG_daAn: false },
+      $match: { S_id: bookId, DG_daAn: false },
     };
 
     const dataPipeline: PipelineStage[] = [
@@ -183,7 +186,7 @@ export class DanhGiaRepository {
       countPipeline,
     });
 
-    const rating = await this.countRatingOfBook(spId);
+    const rating = await this.countRatingOfBook(bookId);
 
     return {
       data: result.data as DanhGiaDocument[],
@@ -193,13 +196,13 @@ export class DanhGiaRepository {
   }
 
   async getAverageRatingOfBook(
-    spId: number,
+    bookId: number,
     session?: ClientSession
   ): Promise<number> {
     type AvgRatingResult = { avgRating: number };
 
     const result = await this.DanhGiaModel.aggregate<AvgRatingResult>([
-      { $match: { S_id: spId, DG_daAn: false } },
+      { $match: { S_id: bookId, DG_daAn: false } },
       {
         $group: {
           _id: null,
@@ -211,7 +214,7 @@ export class DanhGiaRepository {
     return result[0]?.avgRating ?? 0;
   }
 
-  async countRatingOfBook(spId: number): Promise<{
+  async countRatingOfBook(bookId: number): Promise<{
     s1: number;
     s2: number;
     s3: number;
@@ -227,7 +230,7 @@ export class DanhGiaRepository {
     }>([
       {
         $match: {
-          S_id: spId,
+          S_id: bookId,
           DG_daAn: false,
         },
       },
@@ -363,7 +366,7 @@ export class DanhGiaRepository {
 
   async update(
     orderId: string,
-    productId: number,
+    bookId: number,
     customerId: number,
     status: boolean,
     history: any,
@@ -372,7 +375,7 @@ export class DanhGiaRepository {
     return this.DanhGiaModel.findOneAndUpdate(
       {
         DH_id: orderId,
-        S_id: productId,
+        S_id: bookId,
         KH_id: customerId,
       },
       {

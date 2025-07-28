@@ -1,8 +1,7 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,12 +20,12 @@ interface PlaceholderSet {
   empty: string;
 }
 
-interface ComboboxProps {
-  readonly data: { code: number; name: string }[] | null;
-  readonly onSelect: (id: number) => void;
-  readonly value?: number;
-  readonly placeholders?: PlaceholderSet; // prop placeholder truyền từ ngoài
-}
+type Props = {
+  data: { code: number; name: string }[] | null;
+  onSelect: (id: number) => void;
+  value?: number;
+  placeholders?: PlaceholderSet;
+};
 
 const defaultPlaceholders: PlaceholderSet = {
   select: 'Chọn...',
@@ -34,11 +33,11 @@ const defaultPlaceholders: PlaceholderSet = {
   empty: 'Không tìm thấy kết quả.',
 };
 
-export default function Combobox({ data, onSelect, value, placeholders }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedId, setSelectedId] = React.useState<number | null>(null);
+export default function Combobox({ data, onSelect, value, placeholders }: Readonly<Props>) {
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (value !== undefined) {
       setSelectedId(value);
     }
@@ -49,7 +48,7 @@ export default function Combobox({ data, onSelect, value, placeholders }: Combob
   const ph = placeholders ?? defaultPlaceholders;
 
   const isDisabled = !data || data.length === 0;
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

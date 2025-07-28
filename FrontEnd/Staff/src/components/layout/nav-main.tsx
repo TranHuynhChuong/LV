@@ -35,7 +35,6 @@ export function NavMain({
         {navMain.map((item) => {
           const isActive =
             item.url !== '/' ? pathname.includes(item.url) && !item.items : pathname === item.url;
-
           return (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
@@ -44,12 +43,11 @@ export function NavMain({
                   isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold' : ''
                 }`}
               >
-                <Link href={item.url} className="flex items-center gap-2 w-full  cursor-pointer">
+                <Link href={item.url} className="flex items-center w-full gap-2 cursor-pointer">
                   {item.icon && <item.icon className="w-4 h-4" />}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
-
               {item.items?.length ? (
                 <SidebarMenuSub className="pr-0 mr-0">
                   {item.items.map((sub) => {

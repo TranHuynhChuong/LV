@@ -3,17 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
-type FormFooterActionsProps = {
-  readonly isEditing?: boolean;
-  readonly isViewing?: boolean;
-  readonly onDelete?: () => void;
+type Props = {
+  isEditing?: boolean;
+  isViewing?: boolean;
+  onDelete?: () => void;
 };
 
 export default function FormFooterActions({
   isEditing = false,
   isViewing = false,
   onDelete,
-}: FormFooterActionsProps) {
+}: Props) {
   const router = useRouter();
 
   return (

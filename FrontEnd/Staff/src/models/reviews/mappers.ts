@@ -8,15 +8,11 @@ export function mappedReviewFromDto(dto: ReviewDto[]) {
     createdAt: item.DG_ngayTao.toString(),
     comment: item.DG_noiDung,
     isHidden: item.DG_daAn,
-
-    productId: item.SP_id,
-    productName: item.SP_ten,
-    productImage: item.SP_anh,
-
+    bookId: item.S_id,
+    bookName: item.S_ten,
+    bookImage: item.S_anh,
     orderId: item.DH_id,
-
     activityLogs: mapActivityLogsFromDto(item.lichSuThaoTac),
-
     customerId: item.KH_id,
   }));
 }

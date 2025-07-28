@@ -39,14 +39,14 @@ export interface Order {
   };
 
   orderDetails: {
-    productId: number;
+    bookId: number;
     quantity: number;
     priceBuy: number;
     priceSell: number;
     priceImport: number;
-    productName: string;
-    productImage: string;
-    productStatus: number;
+    bookName: string;
+    bookImage: string;
+    bookStatus: number;
   }[];
 }
 
@@ -59,13 +59,13 @@ export interface OrderOverview {
   shippingFee: number;
   requestInvoice: boolean;
   orderDetails: {
-    productId: number;
+    bookId: number;
     quantity: number;
     priceBuy: number;
     priceSell: number;
     priceImport: number;
-    productName: string;
-    productImage: string;
-    productStatus: number;
+    bookName: string;
+    bookImage: string;
+    bookStatus: number;
   }[];
 }

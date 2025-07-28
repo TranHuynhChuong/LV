@@ -6,14 +6,10 @@ export type ReviewDto = {
   DG_ngayTao: Date;
   DG_noiDung?: string;
   DG_daAn: boolean;
-
-  SP_ten: string;
-  SP_anh: string;
-  SP_id: number;
-
+  S_ten: string;
+  S_anh: string;
+  S_id: number;
   DH_id: string;
-
   lichSuThaoTac: ActivityLogsDto[];
-
   KH_id: number;
 };

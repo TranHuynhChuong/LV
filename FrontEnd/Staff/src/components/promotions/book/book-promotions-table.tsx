@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -10,31 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import Link from 'next/link';
-import { BadgePercent } from 'lucide-react';
 import { BookPromotionOverview } from '@/models/promotionBook';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { BadgePercent } from 'lucide-react';
+import Link from 'next/link';
 
-interface BookPromotionsTableProps {
+type Props = {
   data: BookPromotionOverview[];
   onDelete?: (code: number) => void;
-}
+};
 
-export default function BookPromotionsTable({
-  data,
-  onDelete,
-}: Readonly<BookPromotionsTableProps>) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
-
+export default function BookPromotionsTable({ data }: Readonly<Props>) {
   const columns: ColumnDef<BookPromotionOverview>[] = [
     {
       accessorKey: 'name',
@@ -42,8 +27,8 @@ export default function BookPromotionsTable({
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className=" rounded-md flex gap-4">
-            <div className="w-10 h-10 rounded-sm bg-muted flex items-center justify-center">
+          <div className="flex gap-4 rounded-md ">
+            <div className="flex items-center justify-center w-10 h-10 rounded-sm bg-muted">
               <BadgePercent />
             </div>
             <div className="text-sm">
@@ -73,7 +58,6 @@ export default function BookPromotionsTable({
         return <div>{row.original.totalBooks}</div>;
       },
     },
-
     {
       accessorKey: 'startAt',
       header: 'Bắt đầu',
@@ -82,7 +66,6 @@ export default function BookPromotionsTable({
         return <div>{date}</div>;
       },
     },
-
     {
       accessorKey: 'endAt',
       header: 'Kết thúc',
@@ -120,7 +103,7 @@ export default function BookPromotionsTable({
 
   return (
     <div>
-      <div className="border rounded-md mt-4 min-w-fit mb-2 overflow-hidden">
+      <div className="mt-4 mb-2 overflow-hidden border rounded-md min-w-fit">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -150,42 +133,13 @@ export default function BookPromotionsTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
+                <TableCell colSpan={columns.length} className="py-8 text-center">
                   Không có dữ liệu.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-
-        {/* Dialog xác nhận xóa */}
-        <Dialog
-          open={deleteDialogOpen !== null}
-          onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-            </DialogHeader>
-            <DialogDescription>Thao tác này sẽ không thể hoàn tác.</DialogDescription>
-            <DialogFooter className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
-                Hủy
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (deleteDialogOpen !== null) {
-                    onDelete?.(deleteDialogOpen);
-                    setDeleteDialogOpen(null);
-                  }
-                }}
-              >
-                Xóa
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

@@ -1,23 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import api from '@/lib/axios';
-import { toast } from 'sonner';
-import { useAuth } from '@/contexts/auth-context';
-import { useState } from 'react';
-import Loader from '../utils/loader';
-
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/auth-context';
+import api from '@/lib/axios-client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import Loader from '../utils/loader';
 
-interface ConfirmDialogProps {
+type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
@@ -26,7 +25,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
-}
+};
 
 export function ConfirmDialog({
   open,
@@ -37,7 +36,7 @@ export function ConfirmDialog({
   confirmLabel = 'Xác nhận',
   cancelLabel = 'Hủy',
   loading = false,
-}: Readonly<ConfirmDialogProps>) {
+}: Readonly<Props>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -128,12 +127,10 @@ export default function OrderActions({
   const { authData } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialog, setDialog] = useState<ActionStatus | null>(null);
-
   const canCancel = status === 'ChoXacNhan' || status === 'ChoVanChuyen' || status === 'YeuCauHuy';
 
   const handleSubmit = async () => {
     if (!dialog || !authData.userId) return;
-
     setIsSubmitting(true);
     setDialog(null);
     try {
@@ -141,10 +138,8 @@ export default function OrderActions({
       await api.patch(action.endpoint(id), { staffId: authData.userId });
       toast.success(action.successMsg);
       onSuccess?.();
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error(actionMap[dialog].errorMsg);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -154,53 +149,43 @@ export default function OrderActions({
       {isSubmitting && <Loader />}
       {canCancel && (
         <Button
-          variant="outline"
+          variant="destructive"
           onClick={() => setDialog('Huy')}
-          className="text-sm font-normal cursor-pointer border-red-600/30 text-red-600/80 hover:text-red-600/90"
+          className="text-sm font-normal cursor-pointer"
         >
           Hủy đơn
         </Button>
       )}
-
       {status === 'ChoXacNhan' && (
-        <Button
-          variant="outline"
-          onClick={() => setDialog('XacNhan')}
-          className="text-sm font-normal cursor-pointer"
-        >
+        <Button onClick={() => setDialog('XacNhan')} className="text-sm font-normal cursor-pointer">
           Xác nhận
         </Button>
       )}
-
       {status === 'ChoVanChuyen' && (
         <Button
-          variant="outline"
           onClick={() => setDialog('VanChuyen')}
           className="text-sm font-normal cursor-pointer"
         >
           Vận chuyển
         </Button>
       )}
-
       {status === 'DangVanChuyen' && (
         <>
           <Button
-            variant="outline"
-            onClick={() => setDialog('GiaoThanhCong')}
-            className="text-sm font-normal cursor-pointer"
-          >
-            Giao thành công
-          </Button>
-          <Button
-            variant="outline"
+            variant="destructive"
             onClick={() => setDialog('GiaoThatBai')}
             className="text-sm font-normal cursor-pointer"
           >
             Giao thất bại
           </Button>
+          <Button
+            onClick={() => setDialog('GiaoThanhCong')}
+            className="text-sm font-normal cursor-pointer"
+          >
+            Giao thành công
+          </Button>
         </>
       )}
-
       {showView && (
         <Link href={`/orders/${id}`}>
           <Button variant="outline" className="text-sm font-normal cursor-pointer">
@@ -208,7 +193,6 @@ export default function OrderActions({
           </Button>
         </Link>
       )}
-
       <ConfirmDialog
         open={!!dialog}
         onOpenChange={(open) => !open && setDialog(null)}

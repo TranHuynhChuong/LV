@@ -1,19 +1,6 @@
 'use client';
 
-import { FC, useState } from 'react';
-import Image from 'next/image';
-import { Review } from '@/models/reviews';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
-
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale/vi';
-import { ActionHistorySheet } from '../utils/activitylog-sheet';
-import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios';
-import eventBus from '@/lib/event-bus';
-import { toast } from 'sonner';
-
 import {
   Dialog,
   DialogContent,
@@ -22,6 +9,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/auth-context';
+import api from '@/lib/axios-client';
+import eventBus from '@/lib/event-bus';
+import { Review } from '@/models/reviews';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale/vi';
+import { Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+import { FC, useState } from 'react';
+import { toast } from 'sonner';
+import { ActionHistorySheet } from '../utils/activitylog-sheet';
 import Loader from '../utils/loader';
 
 type ConfirmToggleReviewDialogProps = {
@@ -76,8 +74,8 @@ const ReviewItem: FC<Props> = ({ review }) => {
     const endpoint = review.isHidden ? '/reviews/show' : '/reviews/hide';
 
     const body = {
-      DG_id: review.orderId,
-      SP_id: review.productId,
+      DH_id: review.orderId,
+      S_id: review.bookId,
       KH_id: review.customerId,
       NV_id: authData.userId,
     };
@@ -88,31 +86,29 @@ const ReviewItem: FC<Props> = ({ review }) => {
         toast.success(review.isHidden ? 'Hiện đánh giá thành công' : 'Đã ẩn đánh giá');
         eventBus.emit('review:refetch');
       })
-      .catch((err) => {
-        console.error(err);
+      .catch(() => {
         toast.error('Thao tác thất bại');
-      })
-      .finally(() => setIsSubmitting(false));
+        setIsSubmitting(false);
+      });
   };
 
   return (
-    <div className="p-4 border rounded-md bg-white flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col gap-4 p-4 bg-white border rounded-md md:flex-row">
       {isSubmitting && <Loader />}
       <div className="flex-col flex-1">
-        <h2 className="pl-4 pb-4 text-sm font-semibold">Mã đơn hàng: {review.orderId}</h2>
+        <h2 className="pb-4 pl-4 text-sm font-semibold">Mã đơn hàng: {review.orderId}</h2>
         <div className="flex">
-          <div className="w-24 h-24 relative shrink-0">
+          <div className="relative w-24 h-24 shrink-0">
             <Image
-              src={review.productImage}
-              alt={review.productName}
+              src={review.bookImage}
+              alt={review.bookName}
+              sizes="96px"
               fill
-              className="rounded-md object-cover"
+              className="object-cover rounded-md"
             />
           </div>
-
-          {/* Nội dung */}
           <div className="flex-1 space-y-1">
-            <div className="text-sm text-muted-foreground">{review.productName}</div>
+            <div className="text-sm text-muted-foreground">{review.bookName}</div>
             <div className="text-sm">
               Người đánh giá: <strong>{review.name}</strong>
             </div>
@@ -126,13 +122,10 @@ const ReviewItem: FC<Props> = ({ review }) => {
           </div>
         </div>
       </div>
-      {/* Ảnh sản phẩm */}
-
-      {/* Hành động */}
       <div className="flex justify-end">
         <div className="mr-12">
           <Button
-            variant={review.isHidden ? 'default' : 'outline'}
+            variant={review.isHidden ? 'outline' : 'default'}
             onClick={() => setOpenConfirm(true)}
             className="cursor-pointer"
           >
@@ -154,11 +147,9 @@ const ReviewItem: FC<Props> = ({ review }) => {
             isHidden={review.isHidden}
           />
         </div>
-        {authData.role && authData.userId && authData.role === 1 && (
-          <div className="relative">
-            <ActionHistorySheet activityLogs={review.activityLogs} />
-          </div>
-        )}
+        <div className="relative">
+          <ActionHistorySheet activityLogs={review.activityLogs} />
+        </div>
       </div>
     </div>
   );

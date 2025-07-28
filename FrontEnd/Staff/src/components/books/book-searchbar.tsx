@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import CategoryCombobox from '@/components/category/category-combobox';
 import { Button } from '@/components/ui/button';
-import CategoryCombobox from '@/components/categories/categories-combobox';
+import { Input } from '@/components/ui/input';
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { RotateCcw, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 type Props = {
   searchType: 'id' | 'keyword' | undefined;
@@ -84,27 +84,30 @@ export default function ProductSearchBar({
           defaultValue={type}
           onValueChange={(val) => setType(val as 'id' | 'keyword')}
         >
-          <SelectTrigger className="w-42 text-sm">
-            <SelectValue placeholder="Chọn tiêu chí" />
+          <SelectTrigger className="text-sm cursor-pointer w-42">
+            <SelectValue placeholder="Chọn tiêu chí" className="cursor-pointer" />
           </SelectTrigger>
           <SelectContent className="text-sm cursor-pointer">
-            <SelectItem value="id">Mã ISBN</SelectItem>
-            <SelectItem value="keyword">Từ khóa | Thể loại</SelectItem>
+            <SelectItem value="id" className="cursor-pointer">
+              Mã ISBN
+            </SelectItem>
+            <SelectItem value="keyword" className="cursor-pointer">
+              Từ khóa | Thể loại
+            </SelectItem>
           </SelectContent>
         </Select>
         <div className="flex gap-2 cursor-pointer">
           <Button onClick={handleApply} disabled={isSearching} className="cursor-pointer">
-            <Search className="mr-1 w-4 h-4" />
+            <Search className="w-4 h-4 mr-1" />
             Tìm kiếm
           </Button>
           <Button variant="outline" className="cursor-pointer" onClick={handleReset}>
-            <RotateCcw className="mr-1 w-4 h-4" />
+            <RotateCcw className="w-4 h-4 mr-1" />
             Đặt lại
           </Button>
         </div>
       </div>
-
-      <div className="flex items-center space-x-2 flex-1">
+      <div className="flex items-center flex-1 space-x-2">
         <Input
           placeholder={type === 'keyword' ? 'Nhập từ khóa ...' : 'Nhập mã isbn sản phẩm'}
           value={keyword}

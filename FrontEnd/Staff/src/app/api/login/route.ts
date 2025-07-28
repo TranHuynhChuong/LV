@@ -12,20 +12,15 @@ interface JwtPayload {
 export async function POST(request: Request) {
   try {
     const { code, pass } = await request.json();
-
     const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-staff`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, pass }),
     });
-
     if (!res.ok) {
       return NextResponse.json({ message: 'Đăng nhập thất bại' }, { status: res.status });
     }
-
     const { token } = await res.json();
-
-    // Giải mã token để lấy userId, role
     let userId = null;
     let role = null;
     try {
@@ -33,11 +28,11 @@ export async function POST(request: Request) {
       userId = payload.userId;
       role = payload.role;
     } catch {
-      // Có thể log lỗi nếu muốn
+      return NextResponse.json({ message: 'Đăng nhập thất bại' }, { status: res.status });
     }
 
     const response = NextResponse.json({
-      message: 'Login successful',
+      message: 'Đăng nhập thành công',
       userId,
       role,
     });
@@ -54,8 +49,7 @@ export async function POST(request: Request) {
     );
 
     return response;
-  } catch (error) {
-    console.log(error);
+  } catch {
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
   }
 }

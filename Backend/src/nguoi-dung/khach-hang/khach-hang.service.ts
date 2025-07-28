@@ -72,7 +72,6 @@ export class KhachHangService {
     limit?: number;
   }): Promise<CustomerListResults> {
     const { page = 1, limit = 24 } = options;
-
     return this.KhachHangRepo.findAll(page, limit);
   }
 

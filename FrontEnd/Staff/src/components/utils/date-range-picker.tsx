@@ -8,10 +8,10 @@ import { vi } from 'date-fns/locale';
 export default function DateRangePicker({
   date,
   onChange,
-}: {
+}: Readonly<{
   date: DateRange | undefined;
   onChange: (range: DateRange | undefined) => void;
-}) {
+}>) {
   return (
     <Popover>
       <PopoverTrigger asChild>

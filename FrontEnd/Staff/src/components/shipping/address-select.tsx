@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/combobox';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 
-interface AddressSelectProps {
-  readonly onChange: (provinceId: number) => void;
-  readonly value?: number;
-}
+type Props = {
+  onChange: (provinceId: number) => void;
+  value?: number;
+};
 
-export default function AddressSelect({ onChange, value }: AddressSelectProps) {
+export default function AddressSelect({ onChange, value }: Readonly<Props>) {
   const [provincesData, setProvincesData] = useState<{ code: number; name: string }[]>([]);
 
   useEffect(() => {

@@ -12,18 +12,18 @@ import { Button } from '@/components/ui/button';
 
 type Mode = 'delete' | 'submit';
 
-type ConfirmDialogProps = {
-  readonly open: boolean;
-  readonly onOpenChange: (open: boolean) => void;
-  readonly onConfirm: () => void;
-  readonly mode?: Mode;
-  readonly isEdit?: boolean;
+type Props = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
+  mode?: Mode;
+  isEdit?: boolean;
 };
 
 const defaultConfig = {
   delete: {
-    title: 'Bạn có chắc muốn xóa?',
-    description: 'Hành động này không thể hoàn tác.',
+    title: 'Xác nhận xóa?',
+    description: 'Bạn có chắc chắn muốn xóa dữ liệu này không? Hành động này không thể hoàn tác.',
     confirmText: 'Xóa',
     variant: 'destructive' as const,
   },
@@ -44,7 +44,7 @@ export default function ConfirmDialog({
   onConfirm,
   mode = 'submit',
   isEdit = false,
-}: ConfirmDialogProps) {
+}: Props) {
   const config = defaultConfig[mode];
   const title = typeof config.title === 'function' ? config.title(isEdit) : config.title;
   const description =
@@ -60,7 +60,7 @@ export default function ConfirmDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Hủy
           </Button>
           <Button
@@ -69,6 +69,7 @@ export default function ConfirmDialog({
               onConfirm();
               onOpenChange(false);
             }}
+            className="cursor-pointer"
           >
             {confirmText}
           </Button>

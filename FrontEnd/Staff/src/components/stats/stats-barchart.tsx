@@ -19,9 +19,9 @@ type Props = {
   colors?: string[];
   barSize?: number;
   unit?: string;
-  xKey?: string; // Giá trị (số)
-  yKey?: string; // Nhãn (tên)
-  vertical?: boolean; // ⬅️ Mới: để chuyển layout
+  xKey?: string;
+  yKey?: string;
+  vertical?: boolean;
 };
 
 const DEFAULT_COLORS = ['#71717a', '#3f3f46'];
@@ -34,15 +34,15 @@ export default function StatsBarChart({
   unit = '',
   xKey = 'value',
   yKey = 'name',
-  vertical = false, // ⬅️ mặc định là ngang
+  vertical = false,
 }: Readonly<Props>) {
   return (
     <div className="w-full h-[350px] pb-6">
-      <h2 className="text font-semibold text-center mb-2">{title}</h2>
+      <h2 className="mb-2 font-semibold text-center text">{title}</h2>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          layout={vertical ? 'vertical' : 'horizontal'} // ⬅️ chuyển layout
+          layout={vertical ? 'vertical' : 'horizontal'}
           margin={{ top: 20, right: 20, bottom: 20, left: 40 }}
         >
           <CartesianGrid strokeDasharray="3 3" />

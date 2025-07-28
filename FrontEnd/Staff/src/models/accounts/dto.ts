@@ -12,5 +12,4 @@ export type CustomerDto = {
   KH_email: string;
   KH_hoTen: string;
   KH_ngayTao: Date;
-  KH_trangThai: number;
 };

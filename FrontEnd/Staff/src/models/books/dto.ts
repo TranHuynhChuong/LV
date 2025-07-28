@@ -7,7 +7,7 @@ export type BookOverViewDto = {
   S_daBan?: number;
   S_tonKho: number;
   S_anh: string;
-  S_trangThai: number;
+  S_trangThai: string;
   S_diemDG?: number;
 };
 

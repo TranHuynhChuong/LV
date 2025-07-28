@@ -30,8 +30,12 @@ export class TransformService implements OnModuleInit {
     }
   }
 
-  async getTextEmbedding(input: string): Promise<number[]> {
-    const output = await this.generateEmbeddings(input, {
+  async getTextEmbedding(
+    input: string,
+    type: 'query' | 'passage' = 'query'
+  ): Promise<number[]> {
+    const formatted = `${type}: ${input}`;
+    const output = await this.generateEmbeddings(formatted, {
       pooling: 'mean',
       normalize: true,
     });

@@ -1,4 +1,3 @@
-// contexts/AuthContext.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -33,7 +32,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Không gọi lại ở trang login
     if (pathname === '/login') {
       setIsLoading(false);
       return;
@@ -55,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [pathname, router]);
 
   const contextValue = useMemo(
     () => ({ authData, setAuthData, isLoading }),

@@ -45,6 +45,7 @@ export class DonHangController {
     @Query('page') page: string,
     @Query('limit') limit: string,
     @Query('filterType') filterType: OrderStatus,
+    @Query('orderId') orderId?: string,
     @Query('from') from?: string,
     @Query('to') to?: string
   ) {
@@ -55,6 +56,7 @@ export class DonHangController {
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 24,
       filterType: filterType,
+      orderId: orderId,
       from: start,
       to: end,
     });

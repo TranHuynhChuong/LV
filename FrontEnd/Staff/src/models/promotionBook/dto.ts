@@ -33,7 +33,7 @@ export type BookPromotionDetailToDto = {
   KM_batDau: string;
   KM_ketThuc: string;
   KM_chiTiet: {
-    SP_id: number;
+    S_id: number;
     CTKM_theoTyLe: boolean;
     CTKM_giaTri: number;
     CTKM_tamNgung: boolean;

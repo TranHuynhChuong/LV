@@ -1,31 +1,31 @@
 'use client';
 
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { UseFormWatch, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import { BookPromotionDetail } from '@/models/promotionBook';
-import { BookOverView } from '@/models/books';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { BookOverView } from '@/models/books';
+import { BookPromotionDetail } from '@/models/promotionBook';
+import { Trash2 } from 'lucide-react';
+import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
-type BookDiscountTableProps = {
+type Props = {
   books?: BookOverView[];
   detail?: {
     bookId: number;
@@ -48,7 +48,7 @@ export default function BookDiscountTable({
   setValue,
   onRemove,
   isViewing = false,
-}: Readonly<BookDiscountTableProps>) {
+}: Readonly<Props>) {
   function calcFinalPrice(price: number, value: number, isPercent: boolean): number {
     if (isPercent) {
       return Math.max(0, price - (value / 100) * price);
@@ -65,11 +65,11 @@ export default function BookDiscountTable({
   if (mergedData?.length === 0) return null;
   else {
     return (
-      <div className="overflow-x-auto max-w-full bg-white rounded-sm border">
+      <div className="max-w-full overflow-x-auto bg-white border rounded-sm">
         <Table>
           <TableHeader>
             <TableRow className="text-center">
-              <TableHead>Sản phẩm</TableHead>
+              <TableHead>Sách</TableHead>
               <TableHead>Giá gốc</TableHead>
               <TableHead>Giá bán</TableHead>
               <TableHead>Giảm</TableHead>
@@ -87,7 +87,6 @@ export default function BookDiscountTable({
               const isPercent = watch(`details.${index}.isPercent`) ?? true;
               const rawValue = watch(`details.${index}.value`);
               const value = isNaN(Number(rawValue)) ? 0 : Number(rawValue);
-
               const valuePath = `details.${index}.value` as const;
               const blockedPath = `details.${index}.isBlocked` as const;
               const percentPath = `details.${index}.isPercent` as const;
@@ -97,7 +96,7 @@ export default function BookDiscountTable({
                 <TableRow key={item.bookId} className="align-middle">
                   <TableCell>
                     <input type="hidden" {...register(idPath)} value={item.bookId} />
-                    <div className="flex  gap-2 ">
+                    <div className="flex gap-2 ">
                       <Avatar className="w-10 h-10 rounded-sm">
                         <AvatarImage src={book.image} alt={book.name} />
                         <AvatarFallback>#{book.id}</AvatarFallback>
@@ -106,7 +105,7 @@ export default function BookDiscountTable({
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="text-xs cursor-default truncate">{book.name}</div>
+                              <div className="text-xs truncate cursor-default">{book.name}</div>
                             </TooltipTrigger>
                             <TooltipContent>
                               <p> {book.name}</p>
@@ -118,7 +117,6 @@ export default function BookDiscountTable({
                       </div>
                     </div>
                   </TableCell>
-
                   <TableCell>
                     <Input
                       type="number"
@@ -127,16 +125,14 @@ export default function BookDiscountTable({
                       className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
-
                   <TableCell>
                     <Input
                       type="number"
                       value={book.salePrice}
                       disabled
-                      className="max-w-32 min-w-24  disabled:opacity-80"
+                      className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
-
                   <TableCell>
                     <Input
                       type="number"
@@ -147,7 +143,6 @@ export default function BookDiscountTable({
                       className="max-w-32 min-w-24"
                     />
                   </TableCell>
-
                   <TableCell>
                     <Select
                       disabled={isBlocked || isViewing}
@@ -167,13 +162,12 @@ export default function BookDiscountTable({
                       </SelectContent>
                     </Select>
                   </TableCell>
-
                   <TableCell>
                     <Input
                       type="number"
                       disabled
                       value={calcFinalPrice(book.salePrice, value, isPercent)}
-                      className="max-w-32 min-w-24  disabled:opacity-80"
+                      className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
                   <TableCell>
@@ -184,7 +178,6 @@ export default function BookDiscountTable({
                       className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
-
                   <TableCell>
                     <div className="flex items-center ">
                       <Switch
@@ -195,7 +188,6 @@ export default function BookDiscountTable({
                       />
                     </div>
                   </TableCell>
-
                   <TableCell>
                     <Button
                       variant="outline"

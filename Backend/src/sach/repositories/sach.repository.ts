@@ -165,7 +165,6 @@ export class SachRepository {
     const now = new Date();
 
     const stages: PipelineStage[] = [
-      // B1: Lấy tất cả CTKM còn hiệu lực gắn với sản phẩm
       {
         $lookup: {
           from: 'chitietkhuyenmais',
@@ -192,7 +191,6 @@ export class SachRepository {
                       $expr: {
                         $and: [
                           { $eq: ['$KM_id', '$$km_id'] },
-
                           { $lte: ['$KM_batDau', now] },
                           { $gte: ['$KM_ketThuc', now] },
                         ],

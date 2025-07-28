@@ -12,19 +12,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface VoucherPromotionSearchBarProps {
+type Props = {
   initalcode: string;
   onApply: (type: string, code?: string) => void;
   onReset: () => void;
-}
+};
 
-export function VoucherPromotionSearchBar({
-  onApply,
-  onReset,
-  initalcode,
-}: Readonly<VoucherPromotionSearchBarProps>) {
+export function VoucherPromotionSearchBar({ onApply, onReset, initalcode }: Readonly<Props>) {
   const [code, setCode] = useState(initalcode);
-  const [type, setType] = useState('all'); // 'all' | 'shipping' | 'order'
+  const [type, setType] = useState('all');
 
   const handleApply = () => {
     if (code.trim() !== '') {
@@ -44,13 +40,19 @@ export function VoucherPromotionSearchBar({
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-1 gap-2 my-2">
         <Select value={type} onValueChange={setType}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Loại mã" />
+          <SelectTrigger className="w-40 cursor-pointer">
+            <SelectValue placeholder="Loại mã" className="cursor-pointer" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value="shipping">Mã vận chuyển</SelectItem>
-            <SelectItem value="order">Mã hóa đơn</SelectItem>
+            <SelectItem value="all" className="cursor-pointer">
+              Tất cả
+            </SelectItem>
+            <SelectItem value="vc" className="cursor-pointer">
+              Mã vận chuyển
+            </SelectItem>
+            <SelectItem value="hd" className="cursor-pointer">
+              Mã hóa đơn
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -62,14 +64,13 @@ export function VoucherPromotionSearchBar({
         />
       </div>
 
-      <div className="flex gap-2 justify-end my-2">
+      <div className="flex justify-end gap-2 my-2">
         <Button onClick={handleApply} className="cursor-pointer">
-          <Search className="mr-1 w-4 h-4 " />
+          <Search className="w-4 h-4 mr-1 " />
           Tìm kiếm
         </Button>
-
         <Button variant="outline" onClick={handleReset} className="cursor-pointer">
-          <RotateCcw className="mr-1 w-4 h-4" />
+          <RotateCcw className="w-4 h-4 mr-1" />
           Đặt lại
         </Button>
       </div>

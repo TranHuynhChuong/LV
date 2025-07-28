@@ -2,27 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/combobox';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 
-interface AddressSelectProps {
-  readonly onChange: (provinceId: number, wardId: number) => void;
-  readonly valueProvinceId?: number;
-  readonly valueWardId?: number;
-}
+type Props = {
+  onChange: (provinceId: number, wardId: number) => void;
+  valueProvinceId?: number;
+  valueWardId?: number;
+};
 
-export default function AddressSelect({
-  onChange,
-  valueProvinceId,
-  valueWardId,
-}: AddressSelectProps) {
+export default function AddressSelect({ onChange, valueProvinceId, valueWardId }: Readonly<Props>) {
   const [provincesData, setProvincesData] = useState<{ code: number; name: string }[]>([]);
   const [wardsData, setWardsData] = useState<{ code: number; name: string }[]>([]);
-
   const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
     valueProvinceId ?? null
   );
 
-  // Load danh sách tỉnh
   useEffect(() => {
     async function fetchProvinces() {
       const res = await api.get('/location/0');
@@ -36,21 +30,18 @@ export default function AddressSelect({
     fetchProvinces();
   }, []);
 
-  // Load xã nếu có tỉnh được chọn từ props ban đầu (dùng cho edit)
   useEffect(() => {
     if (!valueProvinceId) return;
-
     async function fetchWards() {
       try {
-        const res = await api.get(`/location/${selectedProvinceId}`);
+        const res = await api.get(`/location/${valueProvinceId}`);
         const data = res.data;
         const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
           code: item.X_id,
           name: item.X_ten,
         }));
         setWardsData(mapped);
-      } catch (err) {
-        console.error('Lỗi khi lấy dữ liệu xã/phường:', err);
+      } catch {
         setWardsData([]);
       }
     }
@@ -58,26 +49,23 @@ export default function AddressSelect({
     fetchWards();
   }, [valueProvinceId]);
 
-  // Khi chọn tỉnh
   const handleSelectProvince = async (provinceId: number) => {
     setSelectedProvinceId(provinceId);
     setWardsData([]);
 
     try {
-      const res = await api.get(`/location/${selectedProvinceId}`);
+      const res = await api.get(`/location/${provinceId}`);
       const data = res.data;
       const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
         code: item.X_id,
         name: item.X_ten,
       }));
       setWardsData(mapped);
-    } catch (err) {
-      console.error('Lỗi khi lấy dữ liệu xã/phường:', err);
+    } catch {
       setWardsData([]);
     }
   };
 
-  // Khi chọn xã
   const handleSelectWard = (wardId: number) => {
     const provinceId = selectedProvinceId ?? valueProvinceId;
     if (provinceId != null) {

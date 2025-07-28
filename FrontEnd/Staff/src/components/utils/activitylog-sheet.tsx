@@ -10,12 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Info } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ActivityLogs } from '@/models/activityLogs';
+import { useAuth } from '@/contexts/auth-context';
 
-interface ActionHistorySheetProps {
+type Props = {
   activityLogs: ActivityLogs[];
-}
+};
 
-export function ActionHistorySheet({ activityLogs }: Readonly<ActionHistorySheetProps>) {
+export function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
   function formatDate(date: string | Date) {
     return new Date(date).toLocaleString();
   }
@@ -64,10 +65,13 @@ export function ActionHistorySheet({ activityLogs }: Readonly<ActionHistorySheet
     );
   }
 
+  const { authData } = useAuth();
+
+  if (authData.userId && authData.role !== 1) return null;
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="absolute cursor-pointer top-0 right-0">
+        <Button variant="outline" className="absolute top-0 right-0 cursor-pointer">
           <Info />
         </Button>
       </SheetTrigger>

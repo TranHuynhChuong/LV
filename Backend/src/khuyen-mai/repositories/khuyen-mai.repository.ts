@@ -56,7 +56,7 @@ export class KhuyenMaiRepository {
       },
       {
         $addFields: {
-          KM_slspTong: {
+          KM_slTong: {
             $size: {
               $filter: {
                 input: '$chiTietList',
@@ -151,7 +151,7 @@ export class KhuyenMaiRepository {
                 $expr: {
                   $and: [
                     { $in: ['$S_id', '$$s_ids'] },
-                    { $ne: ['$S_trangThai', 0] },
+                    { $ne: ['$S_trangThai', 'daXoa'] },
                   ],
                 },
               },
@@ -185,7 +185,7 @@ export class KhuyenMaiRepository {
               },
             },
           ],
-          as: 'sanPhams',
+          as: 'saches',
         },
       },
       {
@@ -198,7 +198,7 @@ export class KhuyenMaiRepository {
           KM_ketThuc: 1,
           lichSuThaoTac: 1,
           chiTietKhuyenMai: 1,
-          sanPhams: 1,
+          saches: 1,
         },
       },
     ];
@@ -245,7 +245,6 @@ export class KhuyenMaiRepository {
 
   async countValid(): Promise<number> {
     const now = new Date();
-    // Assuming you are using Mongoose or similar ODM
     return this.KhuyenMaiModel.countDocuments({
       KM_batDau: { $lte: now },
       KM_ketThuc: { $gte: now },

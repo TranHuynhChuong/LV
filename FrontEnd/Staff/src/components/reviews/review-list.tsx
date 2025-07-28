@@ -5,14 +5,14 @@ import { Review } from '@/models/reviews';
 import ReviewItem from './review-items';
 
 type Props = {
-  reviews: Review[];
+  data: Review[];
 };
 
-const ReviewList: FC<Props> = ({ reviews }) => {
+const ReviewList: FC<Props> = ({ data }) => {
   return (
     <div className="space-y-2">
-      {reviews.map((review, index) => (
-        <ReviewItem key={`${review.orderId}-${review.productId}-${index}`} review={review} />
+      {data.map((review, index) => (
+        <ReviewItem key={`${review.orderId}-${review.bookId}-${index}`} review={review} />
       ))}
     </div>
   );

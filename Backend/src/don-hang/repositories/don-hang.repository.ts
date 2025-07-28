@@ -39,7 +39,6 @@ export class DonHangRepository {
   ) {}
 
   // ======================== Tạo đơn hàng ==================== //
-  // Tạo đơn hàng
   async create(data: Partial<DonHang>, session?: ClientSession) {
     return this.DonHangModel.create([{ ...data }], { session }).then(
       (res) => res[0]
@@ -47,7 +46,7 @@ export class DonHangRepository {
   }
 
   async findLastId(session: ClientSession): Promise<string | null> {
-    const lastDonHang = await this.DonHangModel.findOne({}, {}, { session }) // truyền session ở đây
+    const lastDonHang = await this.DonHangModel.findOne({}, {}, { session })
       .sort({ DH_id: -1 })
       .select('DH_id')
       .lean();
@@ -56,10 +55,8 @@ export class DonHangRepository {
   }
 
   // ================================================================= //
-
   // ==========================Lấy đơn hàng=========================== //
 
-  // => Lookup lấy thông tin đơn hàng, thông tin nhận hàng, chi tiết đơn hàng - thông tin sản phẩm - thông tin đã đánh giá hay chưa
   protected getOrderPipeline(filter?: Record<string, any>): PipelineStage[] {
     const pipeline: PipelineStage[] = [];
 
@@ -68,7 +65,6 @@ export class DonHangRepository {
     }
 
     pipeline.push(
-      // B1: Join chi tiết đơn hàng
       {
         $lookup: {
           from: 'chitietdonhangs',
@@ -84,7 +80,6 @@ export class DonHangRepository {
         },
       },
 
-      // B2: Join sản phẩm
       {
         $lookup: {
           from: 'saches',
@@ -100,7 +95,6 @@ export class DonHangRepository {
         },
       },
 
-      // 🔍 B3: Join thông tin nhận hàng từ ttnhanhangdhs
       {
         $lookup: {
           from: 'ttnhanhangdhs',
@@ -131,7 +125,6 @@ export class DonHangRepository {
         },
       },
 
-      // B4: Gom nhóm đơn hàng và đính kèm thông tin
       {
         $group: {
           _id: '$_id',
@@ -148,7 +141,6 @@ export class DonHangRepository {
           lichSuThaoTac: { $first: '$lichSuThaoTac' },
           thongTinNhanHang: { $first: '$nhanHang' },
 
-          // chi tiết sản phẩm
           chiTietDonHang: {
             $push: {
               S_id: '$chiTietDonHang.S_id',
@@ -187,6 +179,7 @@ export class DonHangRepository {
 
   protected getFilter(
     filterType?: OrderStatus,
+    orderId?: string,
     from?: Date,
     to?: Date,
     userId?: number
@@ -207,6 +200,9 @@ export class DonHangRepository {
         filter.DH_trangThai = status;
       }
     }
+    if (orderId) {
+      filter.DH_id = orderId;
+    }
 
     if (userId) {
       filter.KH_id = userId;
@@ -225,13 +221,14 @@ export class DonHangRepository {
     page: number;
     limit: number;
     filterType?: OrderStatus;
+    orderId?: string;
     from?: Date;
     to?: Date;
     userId?: number;
   }) {
-    const { page, limit = 12, filterType, from, to, userId } = options;
+    const { page, limit = 12, filterType, orderId, from, to, userId } = options;
 
-    const filter = this.getFilter(filterType, from, to, userId);
+    const filter = this.getFilter(filterType, orderId, from, to, userId);
     const pipeline = [...this.getOrderPipeline(filter)];
 
     const countPipeline = [...pipeline, { $count: 'count' }];
@@ -288,7 +285,7 @@ export class DonHangRepository {
 
     return this.DonHangModel.findOneAndUpdate({ DH_id }, updateOps, {
       new: true,
-      session, // Thêm session tại đây
+      session,
     });
   }
 
@@ -324,8 +321,6 @@ export class DonHangRepository {
         },
       },
     ]);
-
-    // Biến kết quả thành object dễ truy cập
     const stats: Record<string, number> = {};
     result.forEach((r) => {
       stats[r._id] = r.count;
@@ -406,7 +401,7 @@ export class DonHangRepository {
         },
       },
       {
-        $sort: { _id: 1 }, // sắp xếp tăng dần theo ngày
+        $sort: { _id: 1 },
       },
     ]);
 
@@ -544,7 +539,6 @@ export class DonHangRepository {
       },
     ]);
 
-    // Mặc định kết quả
     const result: Record<'member' | 'guest', number> = {
       member: 0,
       guest: 0,

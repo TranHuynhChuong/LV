@@ -14,7 +14,7 @@ import {
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
 import { OrderStats } from '@/models/stats';
-import { TimeUnit } from '@/app/(main)/stats/page';
+type TimeUnit = 'day' | 'month' | 'year';
 
 type Props = {
   detail: OrderStats;

@@ -6,7 +6,7 @@ export type BookOverView = {
   inventory: number;
   costPrice: number;
   image: string;
-  status: number;
+  status: string;
   sold?: number;
   score?: number;
 };

@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { RotateCcw, Search } from 'lucide-react';
+import { useState } from 'react';
 
-interface OrderSearchBarProps {
+type Props = {
   initalcode: string;
   onApply: (code: string) => void;
   onReset: () => void;
-}
+};
 
-export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<OrderSearchBarProps>) {
+export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<Props>) {
   const [code, setCode] = useState(initalcode);
 
   const handleApply = () => {
@@ -23,7 +23,6 @@ export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<OrderS
 
   const handleReset = () => {
     setCode('');
-
     onReset();
   };
 
@@ -37,16 +36,13 @@ export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<OrderS
           className="flex-1 min-w-54"
         />
       </div>
-
-      {/* Nút hành động */}
-      <div className="flex gap-2 justify-end ml-8 my-2">
+      <div className="flex justify-end gap-2 my-2 ml-8">
         <Button onClick={handleApply}>
-          <Search className="mr-1 w-4 h-4" />
+          <Search className="w-4 h-4 mr-1" />
           Tìm kiếm
         </Button>
-
         <Button variant="outline" onClick={handleReset}>
-          <RotateCcw className="mr-1 w-4 h-4" />
+          <RotateCcw className="w-4 h-4 mr-1" />
           Đặt lại
         </Button>
       </div>

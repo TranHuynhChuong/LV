@@ -6,13 +6,10 @@ export type Review = {
   rating: number;
   createdAt: string;
   isHidden: boolean;
-
   activityLogs: ActivityLogs[];
-  productName: string;
-  productImage: string;
-  productId: number;
-
+  bookName: string;
+  bookImage: string;
+  bookId: number;
   orderId: string;
-
   customerId: number;
 };

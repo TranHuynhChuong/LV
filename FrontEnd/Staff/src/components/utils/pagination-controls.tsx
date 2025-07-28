@@ -8,25 +8,30 @@ import {
   PaginationEllipsis,
 } from '@/components/ui/pagination';
 
-interface PaginationControlsProps {
+type Props = {
   pageNumbers: number[];
   currentPage: number;
   totalPages: number;
-  onPageChange: (targetPage: number) => void;
-}
+  onPageChange?: (targetPage: number) => void;
+};
 
 export default function PaginationControls({
   pageNumbers,
   currentPage,
   totalPages,
   onPageChange,
-}: Readonly<PaginationControlsProps>) {
+}: Readonly<Props>) {
   const pages = pageNumbers || [];
+
+  const handlePageChange = (targetPage: number) => {
+    if (onPageChange) {
+      onPageChange(targetPage);
+    }
+  };
 
   return (
     <Pagination>
       <PaginationContent>
-        {/* Hiện trang 1 nếu thiếu */}
         {pages.length > 0 && pages[0] !== 1 && (
           <>
             <PaginationItem>
@@ -34,7 +39,7 @@ export default function PaginationControls({
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  onPageChange(1);
+                  handlePageChange(1);
                 }}
                 isActive={currentPage === 1}
               >
@@ -42,7 +47,6 @@ export default function PaginationControls({
               </PaginationLink>
             </PaginationItem>
 
-            {/* Ellipsis nếu pages[0] > 2 (tức bỏ qua trang 2) */}
             {pages[0] > 2 && (
               <PaginationItem>
                 <PaginationEllipsis />
@@ -51,14 +55,13 @@ export default function PaginationControls({
           </>
         )}
 
-        {/* Render các trang hiện tại */}
         {pages.map((page) => (
           <PaginationItem key={page}>
             <PaginationLink
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                if (page !== currentPage) onPageChange(page);
+                if (page !== currentPage) handlePageChange(page);
               }}
               isActive={page === currentPage}
               aria-current={page === currentPage ? 'page' : undefined}
@@ -68,21 +71,19 @@ export default function PaginationControls({
           </PaginationItem>
         ))}
 
-        {/* Ellipsis nếu còn khoảng cách phía sau */}
         {pages.length > 0 && pages[pages.length - 1] < totalPages - 1 && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
 
-        {/* Hiện trang totalPage nếu bị thiếu */}
         {pages.length > 0 && pages[pages.length - 1] !== totalPages && (
           <PaginationItem>
             <PaginationLink
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                onPageChange(totalPages);
+                handlePageChange(totalPages);
               }}
               isActive={currentPage === totalPages}
             >

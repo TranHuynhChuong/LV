@@ -1,9 +1,5 @@
 'use client';
 
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import {
   Form,
   FormControl,
@@ -13,12 +9,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
-
-import ConfirmDialog from '@/components/utils/confirm-dialog';
-import FormFooterActions from '@/components/utils/form-footer-actions';
-
-import { format } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -27,7 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import ConfirmDialog from '@/components/utils/confirm-dialog';
+import FormFooterActions from '@/components/utils/form-footer-actions';
 import { VoucherPromotionDetail } from '@/models/promotionVoucher';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const VoucherPromotionSchema: z.Schema<VoucherPromotionDetail> = z
   .object({
@@ -40,7 +37,7 @@ const VoucherPromotionSchema: z.Schema<VoucherPromotionDetail> = z
       .number({ required_error: 'Không được để trống' })
       .min(0, 'Giá trị giảm phải >= 0'),
     minOrderValue: z.number().min(0).optional(),
-    maxDiscount: z.number().min(0).optional(), // nếu là phần trăm
+    maxDiscount: z.number().min(0).optional(),
   })
   .superRefine((data, ctx) => {
     const now = new Date();
@@ -62,7 +59,7 @@ const VoucherPromotionSchema: z.Schema<VoucherPromotionDetail> = z
     }
   });
 
-type VoucherPromotionFormProps = {
+type Props = {
   defaultValues?: VoucherPromotionDetail;
   onSubmit?: (data: VoucherPromotionDetail) => void;
   onDelete?: () => void;
@@ -74,7 +71,7 @@ export default function VoucherPromotionForm({
   onSubmit,
   onDelete,
   isViewing = false,
-}: Readonly<VoucherPromotionFormProps>) {
+}: Readonly<Props>) {
   const form = useForm<VoucherPromotionDetail>({
     resolver: zodResolver(VoucherPromotionSchema),
     defaultValues: {
@@ -198,7 +195,6 @@ export default function VoucherPromotionForm({
             </section>
 
             <section className="p-6 space-y-6 bg-white rounded-sm shadow">
-              {/* Loại mã giảm */}
               <FormField
                 control={control}
                 name="type"
@@ -231,7 +227,7 @@ export default function VoucherPromotionForm({
                 control={control}
                 name="isPercentage"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col sm:flex-row items-center">
+                  <FormItem className="flex flex-col items-center sm:flex-row">
                     <FormLabel className="w-32 mt-2">Giảm theo %</FormLabel>
                     <FormControl>
                       <Switch
@@ -244,7 +240,6 @@ export default function VoucherPromotionForm({
                 )}
               />
 
-              {/* Giá trị giảm */}
               <FormField
                 control={control}
                 name="discountValue"
@@ -265,7 +260,6 @@ export default function VoucherPromotionForm({
                 )}
               />
 
-              {/* Đơn hàng tối thiểu */}
               <FormField
                 control={control}
                 name="minOrderValue"
@@ -286,7 +280,6 @@ export default function VoucherPromotionForm({
                 )}
               />
 
-              {/* Giảm tối đa (chỉ hiện khi isPercentage là true) */}
               {form.watch('isPercentage') && (
                 <FormField
                   control={control}
@@ -321,7 +314,6 @@ export default function VoucherPromotionForm({
         </form>
       </Form>
 
-      {/* Dialog xác nhận thêm/cập nhật */}
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}

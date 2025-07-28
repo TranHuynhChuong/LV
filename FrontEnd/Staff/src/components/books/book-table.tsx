@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -10,25 +12,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Link from 'next/link';
-
-import { Checkbox } from '@/components/ui/checkbox';
 import PaginationControls from '@/components/utils/pagination-controls';
 import { BookOverView } from '@/models/books';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import DeleteActionCell from '../utils/delete-action-cell';
 
-type BookTableProps = {
+type Props = {
   data: BookOverView[];
   loading?: boolean;
   onDelete?: (code: number) => void;
@@ -56,8 +48,7 @@ export default function BookTable({
   onPageChange,
   onClose,
   onConfirmSelect,
-}: Readonly<BookTableProps>) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null);
+}: Readonly<Props>) {
   const [rowSelection, setRowSelection] = useState({});
   const [selectData, setSelectData] = useState<BookOverView[]>([]);
 
@@ -68,8 +59,8 @@ export default function BookTable({
       cell: ({ row }) => {
         const book = row.original;
         return (
-          <div className=" rounded-sm flex gap-4">
-            <Avatar className="w-fit h-12 rounded-xs">
+          <div className="flex gap-4 rounded-sm ">
+            <Avatar className="h-12 w-fit rounded-xs">
               <AvatarImage src={book.image} alt={book.name} />
               <AvatarFallback>#{book.id}</AvatarFallback>
             </Avatar>
@@ -86,8 +77,7 @@ export default function BookTable({
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
-              <div className="text-xs text-muted-foreground mt-1">#{book.isbn}</div>
+              <div className="mt-1 text-xs text-muted-foreground">#{book.isbn}</div>
             </div>
           </div>
         );
@@ -121,7 +111,6 @@ export default function BookTable({
       enableHiding: false,
       cell: ({ row }) => {
         if (!isComponent) return undefined;
-
         const value = row.getValue<number>('costPrice');
         return (
           <div>
@@ -133,7 +122,6 @@ export default function BookTable({
         );
       },
     },
-
     {
       id: 'actions',
       header: isComponent ? undefined : 'Thao tác',
@@ -141,20 +129,17 @@ export default function BookTable({
         if (isComponent) return undefined;
         const book = row.original;
         return (
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col items-start space-y-1">
             <Link className="cursor-pointer hover:underline" href={`/books/${book.id}`}>
               Cập nhật
             </Link>
-
-            {book.status === 2 && (
-              <button
-                className="cursor-pointer hover:underline w-fit"
-                onClick={() => {
-                  setDeleteDialogOpen(book.id ?? null);
+            {book.status === 'An' && (
+              <DeleteActionCell
+                resourceId={book.id?.toString()}
+                onDelete={async (id) => {
+                  onDelete?.(Number(id));
                 }}
-              >
-                Xóa
-              </button>
+              />
             )}
           </div>
         );
@@ -171,7 +156,6 @@ export default function BookTable({
           const book = row.original;
           const selectedIds = new Set(selectedData?.map((b) => b.id) || []);
           const isPreSelected = selectedIds.has(book.id);
-
           return (
             <Checkbox
               checked={row.getIsSelected()}
@@ -198,13 +182,10 @@ export default function BookTable({
     getRowId: (row) => row.id.toString(),
     onRowSelectionChange: (updater) => {
       const newRowSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
-
       setRowSelection(newRowSelection);
-
       const selected = Object.keys(newRowSelection).map((rowId) =>
         [...data, ...selectData].find((item) => item.id.toString() === rowId)
       );
-
       setSelectData(selected.filter(Boolean) as BookOverView[]);
     },
     state: {
@@ -214,17 +195,15 @@ export default function BookTable({
 
   useEffect(() => {
     const defaultRowSelection: Record<string, boolean> = {};
-
     [...(selectedData || [])].forEach((item) => {
       defaultRowSelection[item.id.toString()] = true;
     });
-
     setRowSelection(defaultRowSelection);
   }, [selectedData]);
 
   return (
     <div>
-      <div className="border rounded-md mt-4 min-w-fit mb-2 overflow-hidden">
+      <div className="mt-4 mb-2 overflow-hidden border rounded-md min-w-fit">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -247,7 +226,7 @@ export default function BookTable({
                 <TableRow key={index}>
                   {columns.map((_, colIndex) => (
                     <TableCell key={colIndex}>
-                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="w-full h-4" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -267,44 +246,14 @@ export default function BookTable({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
+                <TableCell colSpan={columns.length} className="py-8 text-center">
                   Không có dữ liệu.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-
-        {/* Dialog xác nhận xóa */}
-        <Dialog
-          open={deleteDialogOpen !== null}
-          onOpenChange={(open) => !open && setDeleteDialogOpen(null)}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Bạn có chắc muốn xóa?</DialogTitle>
-            </DialogHeader>
-            <DialogDescription>Thao tác này sẽ không thể hoàn tác.</DialogDescription>
-            <DialogFooter className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(null)}>
-                Hủy
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (deleteDialogOpen !== null) {
-                    onDelete?.(deleteDialogOpen);
-                    setDeleteDialogOpen(null);
-                  }
-                }}
-              >
-                Xóa
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
-
       <div className="my-4">
         <PaginationControls
           pageNumbers={pageNumbers}
@@ -314,8 +263,8 @@ export default function BookTable({
         />
       </div>
       {isComponent && (
-        <div className="flex flex-1 items-center justify-between">
-          <div className="text-muted-foreground flex-1 text-sm pl-2">
+        <div className="flex items-center justify-between flex-1">
+          <div className="flex-1 pl-2 text-sm text-muted-foreground">
             {(selectedData?.length ?? 0) +
               selectData.filter((item) => !new Set(selectedData?.map((b) => b.id)).has(item.id))
                 .length}
@@ -324,22 +273,21 @@ export default function BookTable({
           <div className="space-x-2">
             <Button
               onClick={() => {
-                // Loại bỏ những sản phẩm đã được chọn sẵn (selectedData) khỏi selectData
                 const selectedIds = new Set(selectedData?.map((b) => b.id));
                 const newSelected = selectData.filter((item) => !selectedIds.has(item.id));
-
                 onConfirmSelect?.(newSelected);
               }}
+              className="cursor-pointer"
             >
               Xác nhận
             </Button>
-
             <Button
               variant="outline"
               onClick={() => {
                 setSelectData([]);
                 onClose?.();
               }}
+              className="cursor-pointer"
             >
               Hủy
             </Button>

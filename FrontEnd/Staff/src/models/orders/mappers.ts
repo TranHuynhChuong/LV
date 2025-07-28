@@ -30,23 +30,23 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
     },
     orderDetails: (dto.chiTietDonHang ?? []).map(
       (item: {
-        SP_id: number;
+        S_id: number;
         CTDH_soLuong: number;
         CTDH_giaMua: number;
         CTDH_giaBan: number;
         CTDH_giaNhap: number;
-        SP_ten: string;
-        SP_anh: string;
-        SP_trangThai: number;
+        S_ten: string;
+        S_anh: string;
+        S_trangThai: number;
       }) => ({
-        productId: item.SP_id ?? 0,
+        bookId: item.S_id ?? 0,
         quantity: item.CTDH_soLuong ?? 0,
         priceBuy: item.CTDH_giaMua ?? 0,
         priceSell: item.CTDH_giaBan ?? 0,
         priceImport: item.CTDH_giaNhap ?? 0,
-        productName: item.SP_ten ?? '',
-        productImage: item.SP_anh ?? '',
-        productStatus: item.SP_trangThai ?? 0,
+        bookName: item.S_ten ?? '',
+        bookImage: item.S_anh ?? '',
+        bookStatus: item.S_trangThai ?? 0,
       })
     ),
   };
@@ -68,14 +68,14 @@ export function mapOrderOverviewListFromDto(dtos: OrderOverviewDto[]) {
       dto.DH_HD?.HD_email
     ),
     orderDetails: (dto.chiTietDonHang ?? []).map((item) => ({
-      productId: item.SP_id ?? 0,
+      bookId: item.S_id ?? 0,
       quantity: item.CTDH_soLuong ?? 0,
       priceBuy: item.CTDH_giaMua ?? 0,
       priceSell: item.CTDH_giaBan ?? 0,
       priceImport: item.CTDH_giaNhap ?? 0,
-      productName: item.SP_ten ?? '',
-      productImage: item.SP_anh ?? '',
-      productStatus: item.SP_trangThai ?? 0,
+      bookName: item.S_ten ?? '',
+      bookImage: item.S_anh ?? '',
+      bookStatus: item.S_trangThai ?? 0,
     })),
   }));
 }

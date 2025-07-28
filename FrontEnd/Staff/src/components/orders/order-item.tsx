@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import Image from 'next/image';
-import { ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { OrderOverview } from '@/models/orders';
-import OrderActions from './order-actions';
+'use client';
+
 import eventBus from '@/lib/event-bus';
+import { OrderOverview } from '@/models/orders';
+import { format } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 import { Badge } from '../ui/badge';
+import OrderActions from './order-actions';
 
 export const statusMap: Record<string, string> = {
   ChoXacNhan: 'Chờ xác nhận',
@@ -19,8 +22,7 @@ export const statusMap: Record<string, string> = {
 
 export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>) {
   const [expanded, setExpanded] = useState(false);
-  const displayedProducts = expanded ? order.orderDetails : order.orderDetails.slice(0, 1);
-
+  const displayedBooks = expanded ? order.orderDetails : order.orderDetails.slice(0, 1);
   const total =
     order.orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0) -
     order.discountInvoice -
@@ -30,23 +32,25 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
   return (
     <div className="bg-white border rounded-md ">
       <div className="px-4">
-        {/* Tiêu đề */}
-        <div className="flex items-center justify-between gap-4 py-4">
-          <div className="text-sm font-medium whitespace-nowrap flex gap-2">
-            <p>Mã đơn: {order.orderId}</p>
-            {order.requestInvoice && <Badge variant="outline">Yêu cầu xuất hóa đơn</Badge>}
+        <div className="flex items-start justify-between gap-4 py-4">
+          <div className="flex flex-col gap-2 text-sm ">
+            <p className="font-medium whitespace-nowrap">Mã đơn: {order.orderId}</p>
+            <p>{format(new Date(order.createdAt), 'dd/MM/yyyy')}</p>
           </div>
-          <span className="text-sm whitespace-nowrap">
-            {statusMap[order.status] || 'Không xác định'}
-          </span>
+          <div className="flex flex-col items-end gap-2 text-sm">
+            <span className="whitespace-nowrap">{statusMap[order.status] || 'Không xác định'}</span>
+            {order.requestInvoice && (
+              <Badge variant="outline" className="whitespace-nowrap">
+                Yêu cầu xuất hóa đơn
+              </Badge>
+            )}
+          </div>
         </div>
-
-        {/* Danh sách sản phẩm */}
         <div className="text-sm divide-y">
           <AnimatePresence initial={false}>
-            {displayedProducts.map((item) => (
+            {displayedBooks.map((item) => (
               <motion.div
-                key={item.productId}
+                key={item.bookId}
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -55,8 +59,8 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
               >
                 <div className="flex items-center gap-2 py-2">
                   <Image
-                    src={item.productImage}
-                    alt={item.productName}
+                    src={item.bookImage}
+                    alt={item.bookName}
                     width={56}
                     height={56}
                     priority
@@ -64,10 +68,8 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
                   />
                   <div className="flex flex-col justify-between flex-1 h-14">
                     <div className="flex justify-between ">
-                      <div className="line-clamp-2 ">{item.productName}</div>
-                      <div className="flex-shrink-0 text-sm text-muted-foreground">
-                        x {item.quantity}
-                      </div>
+                      <div className=" line-clamp-2">{item.bookName}</div>
+                      <div className="text-sm text-muted-foreground">x {item.quantity}</div>
                     </div>
                     <div className="flex items-end justify-end gap-1">
                       {item.priceSell !== item.priceBuy ? (
@@ -91,8 +93,6 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
             ))}
           </AnimatePresence>
         </div>
-
-        {/* Nút xem thêm/ẩn bớt */}
         {order.orderDetails.length > 1 && (
           <button
             className="flex items-center justify-center w-full gap-1 text-xs cursor-pointer text-muted-foreground hover:underline"
@@ -107,8 +107,6 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
             />
           </button>
         )}
-
-        {/* Tổng tiền và hành động */}
         <div className="py-4 space-y-6 ">
           <div className="flex items-end justify-end gap-1 text-xs text-muted-foreground">
             Tổng tiền số tiền ({order.orderDetails.length} sản phẩm):

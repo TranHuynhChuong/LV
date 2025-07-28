@@ -23,7 +23,6 @@ export function mapShippingFeeToDto(data: ShippingFee, staffId: string): Shippin
     PVC_phuPhi: data.surcharge ?? 0,
     PVC_dvpp: data.surchargeUnit ?? 0,
     T_id: data.provinceId ?? 0,
-    T_ten: data.province ?? '',
     NV_id: staffId,
   };
 }

@@ -57,15 +57,12 @@ export class NguoiDungController {
       page: parsePositiveInt(page),
       limit: parsePositiveInt(limit),
     };
-
-    console.log(params);
-
     return this.KhachHangService.findAll(params);
   }
 
-  @Get('customer/:id')
-  async getCustomerByEmail(@Param('id', ParseIntPipe) id: number) {
-    return await this.KhachHangService.findById(id);
+  @Get('customer/:email')
+  async getCustomerByEmail(@Param('email') email: string) {
+    return await this.KhachHangService.findByEmail(email);
   }
 
   @Put('customer/:id')

@@ -410,17 +410,18 @@ export class DonHangService {
     page: number;
     limit: number;
     filterType?: OrderStatus;
+    orderId?: string;
     from?: Date;
     to?: Date;
     userId?: number;
   }) {
-    const { page, limit = 12, filterType, from, to, userId } = options;
-    // Nếu không có dateStart và dateEnd thì mặc định là hôm nay
+    const { page, limit = 12, filterType, orderId, from, to, userId } = options;
 
     const result = await this.DonHangRepo.findAll({
       page: page,
       limit: limit,
       filterType: filterType,
+      orderId,
       from,
       to,
       userId: userId,

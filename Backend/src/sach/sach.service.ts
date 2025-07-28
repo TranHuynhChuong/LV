@@ -101,7 +101,8 @@ export class SachService {
       let finalResult: Sach;
       await session.withTransaction(async () => {
         const vector = await this.TransformService.getTextEmbedding(
-          data.S_tomTat
+          data.S_tomTat,
+          'passage'
         );
         const lastId = await this.SachRepo.findLastId(session);
         nextId = lastId + 1;
@@ -168,7 +169,7 @@ export class SachService {
 
     const vector =
       data.S_tomTat && data.S_tomTat !== existing.S_tomTat
-        ? await this.TransformService.getTextEmbedding(data.S_tomTat)
+        ? await this.TransformService.getTextEmbedding(data.S_tomTat, 'passage')
         : existing.S_eTomTat;
 
     let newImages: Anh[] = [];
@@ -376,7 +377,10 @@ export class SachService {
 
   // Tìm sản phẩm tương tự theo embedding vector
   async findByVector(queryText: string, limit: number) {
-    const queryVector = await this.TransformService.getTextEmbedding(queryText);
+    const queryVector = await this.TransformService.getTextEmbedding(
+      queryText,
+      'query'
+    );
     return this.SachRepo.findByVector(queryVector, limit);
   }
 

@@ -1,5 +1,10 @@
-import { redirect } from 'next/navigation';
+import BookPanel from '@/components/books/book-panel';
+import { Suspense } from 'react';
 
 export default function Page() {
-  redirect('/books/list/all?status=all');
+  return (
+    <Suspense>
+      <BookPanel />
+    </Suspense>
+  );
 }

@@ -27,7 +27,6 @@ export class KhuyenMaiUtilService {
   constructor(
     private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository
   ) {}
-  // Tìm các chi tiết khuyến mãi hợp lệ theo danh sách S_id
   async getValidChiTietKhuyenMai(SPIds: number[]) {
     return this.ChiTietKhuyenMaiRepo.findValidByProductIds(SPIds);
   }
@@ -44,13 +43,11 @@ export class KhuyenMaiService {
     @InjectConnection() private readonly connection: Connection
   ) {}
 
-  //=========================== Tạo khuyến mãi mới=======================================
   async createKhuyenMai(data: CreateKhuyenMaiDto) {
-    const session = await this.connection.startSession(); // BẮT ĐẦU session
+    const session = await this.connection.startSession();
 
     try {
       const result = await session.withTransaction(async () => {
-        // Kiểm tra mã khuyến mãi đã tồn tại chưa
         const lastId = await this.KhuyenMaiRepo.findLastId(session);
         const newId = lastId + 1;
 
@@ -62,7 +59,6 @@ export class KhuyenMaiService {
 
         const { KM_chiTiet, ...KhuyenMaiData } = data;
 
-        // Tạo khuyến mãi chính
         const created = await this.KhuyenMaiRepo.create(
           {
             ...KhuyenMaiData,
@@ -78,7 +74,6 @@ export class KhuyenMaiService {
           );
         }
 
-        // Tạo chi tiết khuyến mãi nếu có
         if (KM_chiTiet && KM_chiTiet.length > 0) {
           const chiTietWithKMId = KM_chiTiet.map((ct) => ({
             ...ct,
@@ -96,11 +91,10 @@ export class KhuyenMaiService {
       if (error instanceof Error) throw error;
       throw new BadRequestException(`Tạo khuyến mãi - ${error?.message}`);
     } finally {
-      await session.endSession(); // KẾT THÚC session
+      await session.endSession();
     }
   }
 
-  //=========== Lấy danh sách khuyến mãi phân trang và theo trạng thái (0: đã kết thúc, 1: chưa kết thúc) ==============
   async findAll(params: {
     page: number;
     limit: number;
@@ -109,7 +103,6 @@ export class KhuyenMaiService {
     return this.KhuyenMaiRepo.findAll(params);
   }
 
-  // =======================Lấy chi tiết khuyến mãi theo id==========================
   async findById(
     KM_id: number,
     filterType?: PromotionFilterType
@@ -130,7 +123,6 @@ export class KhuyenMaiService {
     return result;
   }
 
-  // ==================== Cập nhật khuyến mãi =======================================
   async update(id: number, newData: UpdateKhuyenMaiDto): Promise<KhuyenMai> {
     const session = await this.connection.startSession();
 
@@ -196,7 +188,6 @@ export class KhuyenMaiService {
     }
   }
 
-  // Xác định loại cập nhật
   private getUpdateFields(
     newData: any,
     oldData: any
@@ -225,7 +216,6 @@ export class KhuyenMaiService {
     return { updatePayload, fieldsChange };
   }
 
-  // Kiểm tra cập nhật các chi tiết khuyến mãi
   private async processChiTietKhuyenMai(
     KM_id: number,
     newList: any[],
@@ -279,7 +269,6 @@ export class KhuyenMaiService {
     return changed;
   }
 
-  // Thêm lịch sử thao tác cập nhật
   private addLichSuThaoTac(
     updatePayload: any,
     existing: any,
@@ -288,7 +277,12 @@ export class KhuyenMaiService {
     NV_id: string
   ) {
     const thaoTac = {
-      thaoTac: `Cập nhật: ${fieldsChange.join(', ')}${isUpdateChiTiet ? ', Chi tiết' : ''}`,
+      thaoTac: `Cập nhật: ${[
+        ...fieldsChange,
+        isUpdateChiTiet ? 'Thông tin khuyến mãi sách' : '',
+      ]
+        .filter(Boolean)
+        .join(', ')}`,
       NV_id,
       thoiGian: new Date(),
     };
@@ -301,12 +295,10 @@ export class KhuyenMaiService {
   }
 
   async delete(id: number): Promise<void> {
-    // Bắt đầu session
     const session: ClientSession = await this.connection.startSession();
 
     try {
       await session.withTransaction(async () => {
-        // Tìm bản ghi
         const current = await this.KhuyenMaiRepo.findById(id, session);
         if (!current) {
           throw new NotFoundException(
@@ -322,7 +314,6 @@ export class KhuyenMaiService {
           );
         }
 
-        // Xóa khuyến mãi & chi tiết khuyến mãi trong cùng session
         await this.KhuyenMaiRepo.delete(id, session);
         await this.ChiTietKhuyenMaiRepo.delete(id, session);
       });

@@ -6,4 +6,5 @@ export type ShippingFee = {
   weight?: number;
   surcharge?: number;
   surchargeUnit?: number;
+  level?: string;
 };

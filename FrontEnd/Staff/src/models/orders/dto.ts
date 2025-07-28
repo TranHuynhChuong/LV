@@ -26,14 +26,14 @@ export interface OrderDto {
     NH_ghiChu: string;
   };
   chiTietDonHang: {
-    SP_id: number;
+    S_id: number;
     CTDH_soLuong: number;
     CTDH_giaMua: number;
     CTDH_giaBan: number;
     CTDH_giaNhap: number;
-    SP_ten: string;
-    SP_anh: string;
-    SP_trangThai: number;
+    S_ten: string;
+    S_anh: string;
+    S_trangThai: number;
   }[];
 }
 
@@ -52,13 +52,13 @@ export interface OrderOverviewDto {
     _id: string;
   };
   chiTietDonHang: {
-    SP_id: number;
+    S_id: number;
     CTDH_soLuong: number;
     CTDH_giaMua: number;
     CTDH_giaBan: number;
     CTDH_giaNhap: number;
-    SP_ten: string;
-    SP_anh: string;
-    SP_trangThai: number;
+    S_ten: string;
+    S_anh: string;
+    S_trangThai: number;
   }[];
 }

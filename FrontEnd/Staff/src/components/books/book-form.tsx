@@ -1,10 +1,6 @@
 'use client';
 
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Image from 'next/image';
-import CurrencyInput from 'react-currency-input-field';
+import CategoryCombobox from '@/components/category/category-combobox';
 import {
   Form,
   FormControl,
@@ -14,13 +10,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useMemo, useState } from 'react';
-import CategoryCombobox from '@/components/categories/categories-combobox';
-import { ImagePlus, Trash2 } from 'lucide-react';
-
-import ConfirmDialog from '@/components/utils/confirm-dialog';
-import FormFooterActions from '@/components/utils/form-footer-actions';
 import {
   Select,
   SelectContent,
@@ -28,6 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import ConfirmDialog from '@/components/utils/confirm-dialog';
+import FormFooterActions from '@/components/utils/form-footer-actions';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ImagePlus, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
+import CurrencyInput from 'react-currency-input-field';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const MAX_PRODUCT_IMAGES = 14;
 let IS_EDITING = false;
@@ -101,13 +100,13 @@ export type BookFormType = {
   images: string[] | null;
 };
 
-interface BookFormProps {
+type Props = {
   defaultValue?: BookFormType | null;
   onSubmit?: (newData: BookFormValues, images?: string[]) => void;
   onDelete?: () => void;
-}
+};
 
-export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<BookFormProps>) {
+export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<Props>) {
   const form = useForm<BookFormValues>({
     resolver: zodResolver(BookSchema),
     defaultValues: {
@@ -152,11 +151,9 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
 
   useEffect(() => {
     if (!defaultValue) return;
-
     setCoverImage(defaultValue.coverImage ?? null);
     setimages(defaultValue.images || []);
     const summary = defaultValue.summary ?? '';
-
     if (summary && autoSummary && summary.startsWith(autoSummary)) {
       const extracted = summary.slice(autoSummary.length).trimStart();
       setManualSummary(extracted);
@@ -220,21 +217,20 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full" noValidate>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="w-full space-y-4" noValidate>
           <section className="p-8 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin cơ bản</h3>
-            {/* Cover Image */}
             <FormField
               control={control}
               name="coverImageFile"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Ảnh bìa
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
-                      <div className="relative overflow-hidden rounded-md aspect-square w-40 bg-gray-50 group">
+                      <div className="relative w-40 overflow-hidden rounded-md aspect-square bg-gray-50 group">
                         {!coverImageFile && !coverImage ? (
                           <label
                             className={`absolute inset-0 flex items-center justify-center transition-colors border-2 border-dashed rounded-md cursor-pointer hover:border-blue-500 ${
@@ -251,13 +247,13 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                                 field.onChange(file);
                               }}
                             />
-                            <div className="text-xs flex flex-col items-center justify-center text-gray-400">
+                            <div className="flex flex-col items-center justify-center text-xs text-gray-400">
                               <ImagePlus />
                               (0/1)
                             </div>
                           </label>
                         ) : (
-                          <div className="relative aspect-square w-40 overflow-hidden border border-gray-300 rounded-md group">
+                          <div className="relative w-40 overflow-hidden border border-gray-300 rounded-md aspect-square group">
                             <Image
                               src={getPreviewUrl(coverImageFile) ?? coverImage ?? ''}
                               alt="Ảnh bìa"
@@ -292,20 +288,18 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="imageFiles"
               render={() => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26  sm:text-end  mt-2">
-                    Ảnh sản phẩm
-                  </FormLabel>
+                  <FormLabel className="items-start mt-2 w-26 sm:text-end">Ảnh sách</FormLabel>
                   <FormControl>
                     <div className="flex flex-wrap max-w-md space-x-2 space-y-2">
                       {images.map((url, idx) => {
                         return url ? (
                           <div
                             key={idx}
-                            className="relative aspect-square w-20 overflow-hidden border border-gray-300 rounded-md group"
+                            className="relative w-20 overflow-hidden border border-gray-300 rounded-md aspect-square group"
                           >
                             <Image
                               src={url}
-                              alt={`Ảnh sản phẩm ${idx + 1}`}
+                              alt={`Ảnh ${idx + 1}`}
                               fill
                               sizes="80px"
                               className="object-contain"
@@ -327,14 +321,9 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                         return url ? (
                           <div
                             key={idx}
-                            className="relative aspect-square w-20 overflow-hidden border border-gray-300 rounded-md group"
+                            className="relative w-20 overflow-hidden border border-gray-300 rounded-md aspect-square group"
                           >
-                            <Image
-                              src={url}
-                              alt={`Ảnh sản phẩm ${idx + 1}`}
-                              fill
-                              className="object-cover"
-                            />
+                            <Image src={url} alt={`Ảnh ${idx + 1}`} fill className="object-cover" />
                             <div className="absolute inset-0 transition-opacity opacity-0 bg-black/20 group-hover:opacity-100" />
                             <button
                               type="button"
@@ -347,12 +336,11 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                           </div>
                         ) : null;
                       })}
-
                       {images.length + imageFiles.length < MAX_PRODUCT_IMAGES && (
                         <label
                           htmlFor="add-product-images"
                           className="relative flex items-center justify-center w-20 h-20 overflow-hidden transition-colors border-2 border-gray-400 border-dashed rounded-md cursor-pointer bg-gray-50 hover:border-blue-500"
-                          title="Thêm ảnh sản phẩm"
+                          title="Thêm ảnh"
                         >
                           <input
                             id="add-product-images"
@@ -362,7 +350,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             onChange={handleAddimages}
                           />
-                          <div className="text-xs flex flex-col items-center justify-center text-gray-400">
+                          <div className="flex flex-col items-center justify-center text-xs text-gray-400">
                             <ImagePlus />({images.length}/14)
                           </div>
                         </label>
@@ -373,13 +361,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="name"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Tên sách
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -388,7 +375,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                     </FormControl>
                     <div className="flex justify-between">
                       <FormMessage />
-                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                      <div className="flex justify-end flex-1 text-sm text-right text-muted-foreground whitespace-nowrap">
                         {field.value?.length || 0} / 128
                       </div>
                     </div>
@@ -396,13 +383,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="category"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Thể loại
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -424,13 +410,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="status"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Trạng thái
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -451,16 +436,14 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               )}
             />
           </section>
-          {/* Detail */}
           <section className="p-6 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin chi tiết</h3>
-
             <FormField
               control={control}
               name="summary"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Tóm tắt
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -484,7 +467,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                     </FormControl>
                     <div className="flex justify-between mx-1">
                       <FormMessage />
-                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                      <div className="flex justify-end flex-1 text-sm text-right text-muted-foreground whitespace-nowrap">
                         {field.value?.length ?? 0} / 800
                       </div>
                     </div>
@@ -492,13 +475,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="description"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Mô tả</FormLabel>
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">Mô tả</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Textarea
@@ -510,7 +492,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                     </FormControl>
                     <div className="flex justify-between mx-1">
                       <FormMessage />
-                      <div className="text-sm text-right text-muted-foreground whitespace-nowrap flex flex-1 justify-end">
+                      <div className="flex justify-end flex-1 text-sm text-right text-muted-foreground whitespace-nowrap">
                         {field.value?.length ?? 0} / 3000
                       </div>
                     </div>
@@ -518,13 +500,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="author"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Tác giả
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -536,13 +517,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="publisher"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Nhà xuất bản
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -554,13 +534,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 </FormItem>
               )}
             />
-
             <FormField
               control={control}
               name="isbn"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>ISBN
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -577,7 +556,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="language"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Ngôn ngữ
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -594,7 +573,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="translator"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">Người dịch</FormLabel>
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">Người dịch</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Input value={field.value ?? ''} onChange={field.onChange} />
@@ -609,7 +588,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="size"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                     <span className="text-red-500">*</span>Kích thước
                   </FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
@@ -631,7 +610,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 name="publishYear"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                    <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                       <span className="text-red-500">*</span>Năm xuất bản
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -643,13 +622,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={control}
                 name="page"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-26 sm:justify-end mt-2">
+                    <FormLabel className="items-start mt-2 w-26 sm:justify-end">
                       <span className="text-red-500">*</span>Số trang
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -670,14 +648,13 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
           </section>
           <section className="p-6 space-y-6 bg-white rounded-sm shadow">
             <h3 className="font-medium">Thông tin bán hàng</h3>
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={control}
                 name="salePrice"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
+                    <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Giá bán
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -701,13 +678,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={control}
                 name="costPrice"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
+                    <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Giá nhập
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -736,7 +712,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                 name="inventory"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
+                    <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Tồn kho
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -753,13 +729,12 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={control}
                 name="weight"
                 render={({ field }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-24 sm:justify-end  mt-2">
+                    <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Trọng lượng
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
@@ -772,8 +747,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                             value={field.value ?? ''}
                             onChange={field.onChange}
                           />
-
-                          <div className="h-full w-fit absolute top-0 left-2 flex items-center">
+                          <div className="absolute top-0 flex items-center h-full w-fit left-2">
                             <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
                               Gram
                             </span>
@@ -787,21 +761,18 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               />
             </div>
           </section>
-
           <FormFooterActions
             isEditing={IS_EDITING}
             onDelete={onDelete ? () => setDeleteDialogOpen(true) : undefined}
           />
         </form>
       </Form>
-
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleConfirmDelete}
         mode="delete"
       />
-
       <ConfirmDialog
         open={confirmDialogOpen}
         onOpenChange={setConfirmDialogOpen}

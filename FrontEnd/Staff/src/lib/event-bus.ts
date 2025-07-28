@@ -1,8 +1,7 @@
-// lib/eventBus.ts
 type Callback = (...args: unknown[]) => void;
 
 class EventBus {
-  private events: Map<string, Set<Callback>> = new Map();
+  private readonly events: Map<string, Set<Callback>> = new Map();
 
   on(event: string, callback: Callback) {
     if (!this.events.has(event)) this.events.set(event, new Set());
