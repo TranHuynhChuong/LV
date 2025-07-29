@@ -19,8 +19,7 @@ export default async function HomePage() {
         },
       });
       return mapBookOverviewListFromDto(res.data.data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       return [];
     }
   };
