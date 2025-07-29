@@ -171,64 +171,6 @@ export class SachService {
 
     const session = await this.connection.startSession();
     session.startTransaction();
-
-    // const vector =
-    //   data.S_tomTat && data.S_tomTat !== existing.S_tomTat
-    //     ? await this.TransformService.getTextEmbedding(data.S_tomTat, 'passage')
-    //     : existing.S_eTomTat;
-
-    // let newImages: Anh[] = [];
-
-    // if (images || coverImage) {
-    //   try {
-    //     newImages = await this.handleImageUploads(id, coverImage, images);
-    //   } catch {
-    //     throw new BadRequestException(
-    //       'Cập nhật sản phẩm - Không thể cập nhật ảnh'
-    //     );
-    //   }
-    // }
-
-    // const imagesToDelete = data.imagesToDelete ?? [];
-    // const remainingImages = existing.S_anh.filter(
-    //   (img) => !imagesToDelete.includes(img.A_url)
-    // );
-
-    // const allImages = [...remainingImages, ...newImages];
-
-    // const { fieldsChange, updatePayload } = this.detectChangedFields(
-    //   data,
-    //   existing
-    // );
-    // if (vector !== existing.S_eTomTat) updatePayload.S_eTomTat = vector;
-    // if (newImages.length) {
-    //   updatePayload.S_anh = allImages;
-    //   fieldsChange.push('Cập nhật hình ảnh');
-    // }
-
-    // if (fieldsChange.length > 0 && data.NV_id) {
-    //   updatePayload.lichSuThaoTac = [
-    //     ...existing.lichSuThaoTac,
-    //     {
-    //       thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-    //       NV_id: data.NV_id,
-    //       thoiGian: new Date(),
-    //     },
-    //   ];
-    // }
-
-    // if (Object.keys(updatePayload).length === 0) return existing as Sach;
-
-    // try {
-    //   const updated = await this.SachRepo.update(id, updatePayload);
-    //   if (!updated) throw new Error();
-    //   return updated;
-    // } catch {
-    //   await this.rollbackUploadedImages(newImages);
-    //   throw new BadRequestException(
-    //     'Cập nhật sản phẩm - Cập nhật sản phẩm thất bại'
-    //   );
-    // }
     let newImages: Anh[] = [];
     try {
       const vector =
@@ -452,12 +394,12 @@ export class SachService {
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
-  async findByVector(queryText: string, limit: number) {
+  async findByVector(queryText: string, limit?: number, minScore?: number) {
     const queryVector = await this.TransformService.getTextEmbedding(
       queryText,
       'query'
     );
-    return this.SachRepo.findByVector(queryVector, limit);
+    return this.SachRepo.findByVector(queryVector, limit, minScore);
   }
 
   async findByIsbn(id: string, filterType?: BookFilterType): Promise<any> {

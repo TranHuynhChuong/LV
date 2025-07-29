@@ -217,40 +217,14 @@ export class SachRepository {
         S_giaGiam: {
           $cond: {
             if: { $gt: [{ $size: '$khuyenMai' }, 0] },
-            // then: {
-            //   $let: {
-            //     vars: {
-            //       goc: '$S_giaBan',
-            //     },
-            //     in: {
-            //       $subtract: [
-            //         '$$goc',
-            //         {
-            //           $max: {
-            //             $map: {
-            //               input: '$khuyenMai',
-            //               as: 'km',
-            //               in: {
-            //                 $cond: {
-            //                   if: '$$km.CTKM_theoTyLe',
-            //                   then: {
-            //                     $multiply: [
-            //                       '$$goc',
-            //                       { $divide: ['$$km.CTKM_giaTri', 100] },
-            //                     ],
-            //                   },
-            //                   else: '$$km.CTKM_giaTri',
-            //                 },
-            //               },
-            //             },
-            //           },
-            //         },
-            //       ],
-            //     },
-            //   },
-            // },
             then: {
-              $min: '$khuyenMai.CTKM_giaSauGiam',
+              $min: {
+                $map: {
+                  input: '$khuyenMai',
+                  as: 'ctkm',
+                  in: '$$ctkm.CTKM_giaSauGiam',
+                },
+              },
             },
             else: '$S_giaBan',
           },
@@ -629,7 +603,11 @@ export class SachRepository {
     return result.map((item) => item.suggestion);
   }
 
-  async findByVector(queryVector: number[], limit = 5): Promise<any[]> {
+  async findByVector(
+    queryVector: number[],
+    limit = 5,
+    minScore = 0
+  ): Promise<any[]> {
     const project = this.getProject();
     const discountStages = this.buildPromotionStages();
 
@@ -639,7 +617,7 @@ export class SachRepository {
           index: 'vector_index',
           path: 'S_eTomTat',
           queryVector,
-          numCandidates: 100,
+          numCandidates: 50,
           limit,
         },
       },
@@ -652,6 +630,14 @@ export class SachRepository {
         $addFields: {
           vectorScore: { $meta: 'vectorSearchScore' },
         },
+      },
+      {
+        $match: {
+          vectorScore: { $gte: minScore },
+        },
+      },
+      {
+        $sort: { vectorScore: -1 },
       },
       {
         $lookup: {
