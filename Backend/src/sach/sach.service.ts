@@ -290,7 +290,8 @@ export class SachService {
       if (!updated) throw new Error();
       await session.commitTransaction();
       return updated;
-    } catch {
+    } catch (error) {
+      console.log(error);
       await session.abortTransaction();
       await this.rollbackUploadedImages(newImages);
       throw new BadRequestException(

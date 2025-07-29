@@ -26,27 +26,36 @@ const typeOfChange: Record<string, string> = {
 export class KhuyenMaiUtilService {
   constructor(
     private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository,
-    private readonly KhuyenMaiRepo: KhuyenMaiRepository,
-    @InjectConnection() private readonly connection: Connection
+    private readonly KhuyenMaiRepo: KhuyenMaiRepository
   ) {}
   async getValidChiTietKhuyenMai(Ids: number[]) {
     return this.ChiTietKhuyenMaiRepo.findValidByBookIds(Ids);
   }
 
-  async updatePromotionOfBook(
-    S_id: number,
-    S_giaBan: number,
-    session
-  ): Promise<number> {
+  async updatePromotionOfBook(S_id: number, S_giaBan: number, session) {
     const KM_ids = await this.KhuyenMaiRepo.findAllNotEndedIds(session);
-    const result = await this.ChiTietKhuyenMaiRepo.updateSalePriceForBooks(
-      S_id,
-      KM_ids,
-      S_giaBan,
-      session
-    );
+    for (const KM_id of KM_ids) {
+      const CTKMs = await this.ChiTietKhuyenMaiRepo.findAllByKMid(
+        KM_id,
+        session
+      );
 
-    return result;
+      const CTKM = CTKMs.find((ct) => ct.S_id === S_id);
+      if (!CTKM) continue;
+
+      const { CTKM_giaTri, CTKM_theoTyLe } = CTKM;
+      let giaSauGiam;
+      if (CTKM_theoTyLe)
+        giaSauGiam = Math.max(0, S_giaBan - (CTKM_giaTri / 100) * S_giaBan);
+      else giaSauGiam = Math.max(0, S_giaBan - CTKM_giaTri);
+
+      await this.ChiTietKhuyenMaiRepo.updateSalePriceForBooks(
+        S_id,
+        KM_id,
+        giaSauGiam,
+        session
+      );
+    }
   }
 }
 

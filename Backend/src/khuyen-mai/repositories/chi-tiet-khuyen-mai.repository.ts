@@ -52,8 +52,12 @@ export class ChiTietKhuyenMaiRepository {
     ]);
   }
 
-  async findAllByKMid(KM_id: number): Promise<ChiTietKhuyenMai[]> {
+  async findAllByKMid(
+    KM_id: number,
+    session?: ClientSession
+  ): Promise<ChiTietKhuyenMai[]> {
     return this.ChiTietKhuyenMaiModel.find({ KM_id, CTKM_daXoa: false })
+      .session(session ?? null)
       .lean()
       .exec();
   }
@@ -77,24 +81,19 @@ export class ChiTietKhuyenMaiRepository {
 
   async updateSalePriceForBooks(
     S_id: number,
-    KM_ids: number[],
+    KM_id: number,
     giaSauGiam: number,
     session?: ClientSession
-  ): Promise<number> {
-    const result = await this.ChiTietKhuyenMaiModel.updateMany(
-      {
-        S_id,
-        KM_id: { $in: KM_ids },
-        CTKM_daXoa: false,
-      },
+  ) {
+    return this.ChiTietKhuyenMaiModel.findOneAndUpdate(
+      { S_id, KM_id, CTKM_daXoa: false },
       {
         $set: {
           CTKM_giaSauGiam: giaSauGiam,
         },
       },
-      { session }
+      { new: true, session }
     );
-    return result.modifiedCount;
   }
 
   async remove(KM_id: number, S_id: number, session?: ClientSession) {
