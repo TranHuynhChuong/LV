@@ -24,6 +24,7 @@ import { BookOverView } from '@/models/books';
 import { BookPromotionDetail } from '@/models/promotionBook';
 import { Trash2 } from 'lucide-react';
 import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import CurrencyInput from 'react-currency-input-field';
 
 type Props = {
   books?: BookOverView[];
@@ -51,12 +52,10 @@ export default function BookDiscountTable({
   isViewing = false,
 }: Readonly<Props>) {
   function calcFinalPrice(price: number, value: number, isPercent: boolean): number {
-    let salePrice: number;
     if (isPercent) {
-      salePrice = Math.max(0, price - (value / 100) * price);
+      return Math.max(0, price - (value / 100) * price);
     }
-    salePrice = Math.max(0, price - value);
-    return salePrice;
+    return Math.max(0, price - value);
   }
   const mergedData = detail?.map((item) => {
     const book = books?.find((p) => p.id === item.bookId);
@@ -123,36 +122,58 @@ export default function BookDiscountTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
+                    <CurrencyInput
+                      className=" w-26 pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                      decimalsLimit={0}
+                      groupSeparator="."
+                      decimalSeparator=","
+                      prefix="₫"
+                      readOnly
                       value={book.costPrice}
-                      disabled
-                      className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
+                    <CurrencyInput
+                      className=" w-26 pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                      decimalsLimit={0}
+                      groupSeparator="."
+                      decimalSeparator=","
+                      prefix="₫"
+                      readOnly
                       value={book.salePrice}
-                      disabled
-                      className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      disabled={isBlocked || isViewing}
-                      min={0}
-                      value={rawValue ?? 0}
-                      onChange={(e) => {
-                        setValue(valuePath, Number(e.target.value));
-                        setValue(
-                          salePricePath,
-                          calcFinalPrice(book.salePrice, Number(e.target.value), isPercent)
-                        );
-                      }}
-                      className="max-w-32 min-w-24"
-                    />
+                    {isPercent ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        readOnly={isBlocked || isViewing}
+                        value={rawValue ?? 0}
+                        onChange={(e) => {
+                          const parsed = Number(e.target.value);
+                          setValue(valuePath, parsed);
+                          setValue(salePricePath, calcFinalPrice(book.salePrice, parsed, true));
+                        }}
+                        className="w-26"
+                      />
+                    ) : (
+                      <CurrencyInput
+                        className="w-26 pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                        decimalsLimit={0}
+                        groupSeparator="."
+                        decimalSeparator=","
+                        prefix="₫"
+                        readOnly={isBlocked || isViewing}
+                        value={rawValue ?? 0}
+                        onValueChange={(value) => {
+                          const parsed = Number(value ?? 0);
+                          setValue(valuePath, parsed);
+                          setValue(salePricePath, calcFinalPrice(book.salePrice, parsed, false));
+                        }}
+                      />
+                    )}
                   </TableCell>
                   <TableCell>
                     <Select
@@ -180,19 +201,22 @@ export default function BookDiscountTable({
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      disabled
+                    <CurrencyInput
+                      className=" w-26 pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                      decimalsLimit={0}
+                      groupSeparator="."
+                      decimalSeparator=","
+                      prefix="₫"
+                      readOnly
                       value={calcFinalPrice(book.salePrice, value, isPercent)}
-                      className="max-w-32 min-w-24 disabled:opacity-80"
                     />
                   </TableCell>
                   <TableCell>
                     <Input
                       type="number"
                       value={book.inventory}
-                      disabled
-                      className="max-w-32 min-w-24 disabled:opacity-80"
+                      readOnly
+                      className="w-18 disabled:opacity-80"
                     />
                   </TableCell>
                   <TableCell>

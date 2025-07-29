@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import CurrencyInput from 'react-currency-input-field';
 
 const VoucherPromotionSchema: z.Schema<VoucherPromotionDetail> = z
   .object({
@@ -106,7 +107,7 @@ export default function VoucherPromotionForm({
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" noValidate>
-          <fieldset disabled={isViewing} className="space-y-4">
+          <fieldset className="space-y-4">
             <section className="p-6 space-y-4 bg-white rounded-sm shadow">
               <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
               <FormField
@@ -125,7 +126,7 @@ export default function VoucherPromotionForm({
                             onChange={field.onChange}
                             maxLength={7}
                             className="pr-12"
-                            disabled={isEditing}
+                            readOnly={isEditing ?? isViewing}
                           />
                           <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                             {String(field.value ?? '').length} / 7
@@ -157,7 +158,7 @@ export default function VoucherPromotionForm({
                                 : ''
                             }
                             onChange={(e) => field.onChange(new Date(e.target.value))}
-                            disabled={isEditing && field.value && field.value < new Date()}
+                            readOnly={isViewing}
                           />
                         </FormControl>
                         <FormMessage />
@@ -184,6 +185,7 @@ export default function VoucherPromotionForm({
                                 : ''
                             }
                             onChange={(e) => field.onChange(new Date(e.target.value))}
+                            readOnly={isViewing}
                           />
                         </FormControl>
                         <FormMessage />
@@ -207,6 +209,7 @@ export default function VoucherPromotionForm({
                           value={String(field.value ?? '')}
                           onValueChange={field.onChange}
                           defaultValue={field.value?.toString()}
+                          disabled={isViewing}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Chọn loại mã" />
@@ -234,6 +237,7 @@ export default function VoucherPromotionForm({
                         className="cursor-pointer"
                         checked={field.value ?? false}
                         onCheckedChange={field.onChange}
+                        disabled={isViewing}
                       />
                     </FormControl>
                   </FormItem>
@@ -248,10 +252,15 @@ export default function VoucherPromotionForm({
                     <FormLabel className="w-32 mt-2">Giá trị giảm</FormLabel>
                     <div className="flex flex-col flex-1">
                       <FormControl>
-                        <Input
-                          type="number"
+                        <CurrencyInput
                           value={field.value ?? ''}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onValueChange={(value) => field.onChange(Number(value))}
+                          className="w-full pl-2.5 py-1.5 border border-gray-300 rounded-md"
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          prefix="₫"
+                          readOnly={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -268,10 +277,15 @@ export default function VoucherPromotionForm({
                     <FormLabel className="w-32 mt-2">Đơn tối thiểu</FormLabel>
                     <div className="flex flex-col flex-1">
                       <FormControl>
-                        <Input
-                          type="number"
+                        <CurrencyInput
                           value={field.value ?? ''}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onValueChange={(value) => field.onChange(Number(value))}
+                          className="w-full pl-2.5 py-1.5 border border-gray-300 rounded-md"
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          prefix="₫"
+                          readOnly={isViewing}
                         />
                       </FormControl>
                       <FormMessage />
@@ -289,10 +303,15 @@ export default function VoucherPromotionForm({
                       <FormLabel className="w-32 mt-2">Giảm tối đa</FormLabel>
                       <div className="flex flex-col flex-1">
                         <FormControl>
-                          <Input
-                            type="number"
+                          <CurrencyInput
                             value={field.value ?? ''}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onValueChange={(value) => field.onChange(Number(value))}
+                            className="w-full pl-2.5 py-1.5 border border-gray-300 rounded-md"
+                            decimalsLimit={0}
+                            groupSeparator="."
+                            decimalSeparator=","
+                            prefix="₫"
+                            readOnly={isViewing}
                           />
                         </FormControl>
                         <FormMessage />

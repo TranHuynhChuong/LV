@@ -142,7 +142,7 @@ export default function BookPromotionForm({
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" noValidate>
-          <fieldset disabled={isViewing} className="space-y-4">
+          <fieldset className="space-y-4">
             <section className="p-6 space-y-4 bg-white rounded-sm shadow">
               <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
               <FormField
@@ -161,6 +161,7 @@ export default function BookPromotionForm({
                             maxLength={128}
                             onChange={field.onChange}
                             className="pr-18"
+                            readOnly={isViewing}
                           />
                           <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
                             {field.value?.length ?? 0} / 48
@@ -194,7 +195,7 @@ export default function BookPromotionForm({
                                 : ''
                             }
                             onChange={(e) => field.onChange(new Date(e.target.value))}
-                            disabled={isEditing && field.value && field.value < new Date()}
+                            readOnly={isViewing}
                           />
                         </FormControl>
                         <FormMessage />
@@ -221,6 +222,7 @@ export default function BookPromotionForm({
                                 : ''
                             }
                             onChange={(e) => field.onChange(new Date(e.target.value))}
+                            readOnly={isViewing}
                           />
                         </FormControl>
                         <FormMessage />
