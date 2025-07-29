@@ -1,12 +1,12 @@
 import { Suspense } from 'react';
-import api from '@/lib/axios-client';
+import { AxiosServer } from '@/lib/axios-server';
 import { BookSortType, mapBookOverviewListFromDto } from '@/models/book';
 import HomeComponent from '@/components/home/home';
 
 export default async function HomePage() {
   const pageSize = 8;
-
   const fetchBooks = async (sort: BookSortType) => {
+    const api = await AxiosServer();
     try {
       const res = await api.get('/books/search', {
         params: {
@@ -19,11 +19,11 @@ export default async function HomePage() {
         },
       });
       return mapBookOverviewListFromDto(res.data.data);
-    } catch {
+    } catch (error) {
+      console.error(error);
       return [];
     }
   };
-
   const [mostRated, latest, bestSelling] = await Promise.all([
     fetchBooks(BookSortType.MostRating),
     fetchBooks(BookSortType.Latest),
