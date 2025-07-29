@@ -1,6 +1,5 @@
 import { BookOverview } from '@/models/book';
-
-import HomeSection from './home-cection';
+import HomeSection from './home-section';
 import HomeSlidingBanner from './home-sliding-banner';
 
 type HomeComponentProps = {
