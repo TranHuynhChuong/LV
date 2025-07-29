@@ -1,7 +1,7 @@
 'use client';
 
-import BookForm, { BookFormType, BookFormValues } from '@/components/books/book-form';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
+import type { BookFormType, BookFormValues } from '@/components/books/book-form';
+
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -12,6 +12,9 @@ import { ImageDto } from '@/models/books';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import BookFormLoading from './book-form-loading';
+import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
+import BookForm from '@/components/books/book-form';
 
 export default function BookDetail() {
   const params = useParams();
@@ -151,22 +154,18 @@ export default function BookDetail() {
       setIsSubmitting(false);
     }
   }
-  if (!data) return null;
+  if (!data) return <BookFormLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="relative w-full max-w-4xl mx-auto h-fit">
-          {isSubmitting && <Loader />}
-
-          <BookForm
-            onSubmit={onSubmit}
-            defaultValue={data}
-            onDelete={data?.status === 'An' ? handleOnDelete : undefined}
-          />
-
-          <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
-          </div>
+      <div>
+        {isSubmitting && <Loader />}
+        <BookForm
+          onSubmit={onSubmit}
+          defaultValue={data}
+          onDelete={data?.status === 'An' ? handleOnDelete : undefined}
+        />
+        <div className="absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
         </div>
       </div>
     );

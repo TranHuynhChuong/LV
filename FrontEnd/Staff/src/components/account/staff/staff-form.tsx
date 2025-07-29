@@ -41,7 +41,12 @@ type Props = {
   isViewing?: boolean;
 };
 
-export function StaffForm({ defaultValues, onSubmit, onDelete, isViewing }: Readonly<Props>) {
+export default function StaffForm({
+  defaultValues,
+  onSubmit,
+  onDelete,
+  isViewing,
+}: Readonly<Props>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState<boolean>(false);

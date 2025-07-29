@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { BookSortType, mapBookOverviewListFromDto } from '@/models/book';
 import HomeComponent from '@/components/home/home';
 
@@ -31,7 +31,7 @@ export default async function HomePage() {
   ]);
 
   return (
-    <Suspense fallback={<></>}>
+    <Suspense>
       <HomeComponent mostRated={mostRated} latest={latest} bestSelling={bestSelling} />
     </Suspense>
   );

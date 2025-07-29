@@ -2,12 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { subscribeToCartChange } from '@/lib/cart-events';
 import { useCartStore } from '@/stores/cart.store';
 import { ShoppingCart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function CartButton() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function CartButton() {
   const guestCartLength = useCartStore((state) => state.carts.length);
   const [quantity, setQuantity] = useState(0);
 
-  const updateQuantity = () => {
+  const updateQuantity = useCallback(() => {
     if (!authData.userId) {
       setQuantity(guestCartLength);
     } else {
@@ -24,7 +24,7 @@ export default function CartButton() {
         .then((res) => setQuantity(res.data.length))
         .catch(() => setQuantity(0));
     }
-  };
+  }, [authData.userId, guestCartLength]);
 
   useEffect(() => {
     updateQuantity();
@@ -32,7 +32,7 @@ export default function CartButton() {
     return () => {
       unsubscribe();
     };
-  }, [authData.userId, guestCartLength]);
+  }, [authData.userId, guestCartLength, updateQuantity]);
 
   return (
     <Button

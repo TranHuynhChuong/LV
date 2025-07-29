@@ -6,11 +6,12 @@ import api from '@/lib/axios-client';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
-import CategoryForm from '@/components/category/category-form';
 import Loader from '@/components/utils/loader';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { Category, mapCategoryToDto } from '@/models/categories';
+import CategoryFormLoading from './category-form-loading';
+import CategoryForm from './category-form';
+import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 
 export default function CategoryDetail() {
   const router = useRouter();
@@ -85,19 +86,15 @@ export default function CategoryDetail() {
         setIsSubmitting(false);
       });
   };
-  if (!data) return null;
+  if (!data) return <CategoryFormLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="relative w-full max-w-xl mx-auto h-fit min-w-md">
-          {isSubmitting && <Loader />}
-
-          <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
-
-          <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
-          </div>
+      <>
+        {isSubmitting && <Loader />}
+        <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
+        <div className="absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
         </div>
-      </div>
+      </>
     );
 }

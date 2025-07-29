@@ -7,11 +7,8 @@ import { useRouter } from 'next/navigation';
 
 export default function AuthButtons() {
   const router = useRouter();
-
   const { authData, loadAuth } = useAuth();
-
   const isAuthenticated = !!authData.userId;
-
   const logOut = async () => {
     await fetch('/api/logout', { method: 'POST' });
     await loadAuth();

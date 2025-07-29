@@ -14,7 +14,7 @@ export default function RouteWatcher() {
       clearOrder();
       prevPath.current = pathname;
     }
-  }, [pathname]);
+  }, [pathname, clearOrder]);
 
   return null;
 }

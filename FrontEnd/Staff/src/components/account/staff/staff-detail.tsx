@@ -1,7 +1,5 @@
 'use client';
 
-import { StaffForm } from '@/components/account/staff/staff-form';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -12,6 +10,9 @@ import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import StaffFormLoading from './staff-form-loading';
+import StaffForm from './staff-form';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet-dynamic-import';
 
 export default function StaffDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -77,7 +78,7 @@ export default function StaffDetail() {
       setIsSubmitting(false);
     }
   }
-  if (!data) return null;
+  if (!data) return <StaffFormLoading />;
   else
     return (
       <>

@@ -17,6 +17,9 @@ export class ChiTietKhuyenMai {
   @Prop({ type: Number, required: true })
   CTKM_giaTri: number;
 
+  @Prop({ type: Number, required: true })
+  CTKM_giaSauGiam: number;
+
   @Prop({ type: Boolean, required: true, default: false })
   CTKM_tamNgung: boolean;
 

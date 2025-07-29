@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Combobox from '@/components/utils/combobox';
 import clsx from 'clsx';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 
 interface AddressSelectProps {
   readonly onSelectProvince: (provinceId: number) => void;

@@ -207,6 +207,20 @@ export class KhuyenMaiRepository {
     return (result[0] ?? null) as KhuyenMaiDocument | null;
   }
 
+  async findAllNotEndedIds(session?: ClientSession): Promise<number[]> {
+    const now = new Date();
+
+    const result = await this.KhuyenMaiModel.find(
+      { KM_ketThuc: { $gte: now } },
+      { _id: 0, KM_id: 1 }
+    )
+      .session(session ?? null)
+      .lean()
+      .exec();
+
+    return result.map((item) => item.KM_id);
+  }
+
   async create(data: Partial<KhuyenMai>, session?: ClientSession) {
     return this.KhuyenMaiModel.create([{ ...data }], { session }).then(
       (res) => res[0]

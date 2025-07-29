@@ -5,9 +5,15 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import { mapOrderFromDto, Order } from '@/models/orders';
-import OrderInf from '@/components/orders/order-inf';
+import OrderInfLoading from './order-inf-loading';
+import dynamic from 'next/dynamic';
+import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
+
+const OrderInf = dynamic(() => import('./order-inf'), {
+  loading: () => <OrderInfLoading />,
+  ssr: false,
+});
 
 export default function OrderDetail() {
   const router = useRouter();
@@ -44,16 +50,14 @@ export default function OrderDetail() {
     getData(id);
   }, [id, getData]);
 
-  if (!data) return null;
+  if (!data) return <OrderInfLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="relative w-full mx-auto">
-          <OrderInf data={data} />
-          <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={data.activityLogs} />
-          </div>
+      <>
+        <OrderInf data={data} />
+        <div className="absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={data.activityLogs} />
         </div>
-      </div>
+      </>
     );
 }

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import Overlay from '@/components/utils/overLay';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { cn } from '@/lib/utils';
 import { mapVouchersFromDto, Voucher } from '@/models/voucher';
 import { BadgePercent, Ticket, Truck, X } from 'lucide-react';

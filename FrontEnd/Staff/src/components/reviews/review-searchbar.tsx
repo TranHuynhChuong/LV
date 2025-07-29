@@ -4,9 +4,15 @@ import { Button } from '@/components/ui/button';
 import { RotateCcw, Search } from 'lucide-react';
 import { FC, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import DateRangePicker from '../utils/date-range-picker';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import DateRangePicker from '@/components/utils/date-range-picker';
 
 type Props = {
   initialRating?: number;

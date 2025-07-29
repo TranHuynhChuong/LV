@@ -23,6 +23,7 @@ export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
       isPercent: d.CTKM_theoTyLe,
       value: d.CTKM_giaTri,
       isBlocked: d.CTKM_tamNgung,
+      salePrice: d.CTKM_giaSauGiam,
     })),
   };
 
@@ -43,7 +44,6 @@ export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
 }
 
 export function mapBookPromotionsFromDto(dto: BookPromotionOverviewDto[]): BookPromotionOverview[] {
-  console.log(dto);
   return dto.map((item) => ({
     id: item.KM_id,
     name: item.KM_ten,
@@ -66,6 +66,7 @@ export function mapBookPromotionDetailToDto(
       CTKM_theoTyLe: detail.isPercent,
       CTKM_giaTri: detail.value,
       CTKM_tamNgung: detail.isBlocked,
+      CTKM_giaSauGiam: detail.salePrice,
     })),
     NV_id: staffId,
   };

@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/auth-context';
 import EventBus from '@/lib/event-bus';
 import Loader from '@/components/utils/loader';
 import { Category, mapCategoryToDto } from '@/models/categories';
-import CategoryForm from '@/components/category/category-form';
+import CategoryForm from './category-form';
 
 export default function CategoryNew() {
   const router = useRouter();

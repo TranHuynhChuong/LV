@@ -1,3 +1,4 @@
+'use client';
 import BookItem from './book-item';
 import { BookOverview } from '@/models/book';
 import clsx from 'clsx';

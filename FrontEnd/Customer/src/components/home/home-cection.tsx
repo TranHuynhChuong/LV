@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { BookList } from '@/components/book/book-list';
 import { BookOverview } from '@/models/book';

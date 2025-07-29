@@ -1,16 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import api from '@/lib/axios';
-import { useAuth } from '@/contexts/auth-context';
-
 import { Button } from '@/components/ui/button';
-
-import { cn } from '@/lib/utils'; // nếu bạn dùng tailwind helper để gộp class
+import { useAuth } from '@/contexts/auth-context';
+import api from '@/lib/axios-client';
+import { cn } from '@/lib/utils';
+import { Address, mapAddressListFromDto } from '@/models/address';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Badge } from '../../ui/badge';
-import { Address, mapAddressListFromDto } from '@/models/address';
 
 type AddressItemProps = {
   address: Address;

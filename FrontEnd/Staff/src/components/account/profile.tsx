@@ -1,18 +1,22 @@
 'use client';
 
-import { StaffForm } from '@/components/account/staff/staff-form';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
 import { mapStaffFormDto, Staff } from '@/models/accounts';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-
+import StaffFormLoading from './staff/staff-form-loading';
+const StaffForm = dynamic(() => import('@/components/account/staff/staff-form'), {
+  loading: () => <StaffFormLoading />,
+  ssr: false,
+});
 export default function Profile() {
   const { setBreadcrumbs } = useBreadcrumb();
   const { authData } = useAuth();
-  const [staffData, setStaffData] = useState<Staff>();
+  const [data, setData] = useState<Staff>();
   const router = useRouter();
   useEffect(() => {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Hồ sơ' }]);
@@ -24,7 +28,7 @@ export default function Profile() {
       try {
         const res = await api.get(`/users/staff/${authData.userId}`);
         const staff = res.data;
-        setStaffData(mapStaffFormDto([staff])[0]);
+        setData(mapStaffFormDto([staff])[0]);
       } catch {
         toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
         router.back();
@@ -33,12 +37,6 @@ export default function Profile() {
 
     getData();
   }, [authData.userId, router]);
-
-  return (
-    <div className="p-4">
-      <div className="w-full max-w-xl mx-auto ">
-        {staffData && <StaffForm defaultValues={staffData} isViewing={true} />}
-      </div>
-    </div>
-  );
+  if (!data) return <StaffFormLoading />;
+  else return <>{data && <StaffForm defaultValues={data} isViewing={true} />}</>;
 }

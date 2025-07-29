@@ -1,7 +1,5 @@
 'use client';
 
-import BookPromotionForm from '@/components/promotions/book/book-promotion-form';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -13,6 +11,9 @@ import { mapBookPromotionDetailFromDto, mapBookPromotionDetailToDto } from '@/mo
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import BookPromotionFormLoading from './book-promotion-form-loading';
+import BookPromotionForm from './book-promotion-form';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet-dynamic-import';
 
 export default function BookPromotionDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -89,26 +90,24 @@ export default function BookPromotionDetail() {
       setIsSubmitting(false);
     }
   }
-  if (!data) return null;
+  if (!data) return <BookPromotionFormLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="w-full max-w-6xl mx-auto ">
-          <div className="relative ">
-            <BookPromotionForm
-              onSubmit={onSubmit}
-              defaultValues={data}
-              availableBooks={books}
-              isViewing={!!data?.from && data.from < new Date()}
-              onDelete={onDelete}
-            />
-            <div className="absolute top-6 right-6">
-              <ActionHistorySheet activityLogs={activityLogs} />
-            </div>
+      <>
+        <div className="relative ">
+          <BookPromotionForm
+            onSubmit={onSubmit}
+            defaultValues={data}
+            availableBooks={books}
+            isViewing={!!data?.from && data.from < new Date()}
+            onDelete={onDelete}
+          />
+          <div className="absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
           </div>
-
-          {isSubmitting && <Loader />}
         </div>
-      </div>
+
+        {isSubmitting && <Loader />}
+      </>
     );
 }

@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { ChevronRight, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';

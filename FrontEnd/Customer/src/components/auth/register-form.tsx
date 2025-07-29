@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -40,7 +40,6 @@ export default function RegisterForm() {
       await api.post('/auth/send-otp', { email });
       setError('');
       toast.success('Mã OTP đã được gửi đến email');
-
       setOtpCountdown(30);
     } catch {
       setError('Không thể gửi mã OTP');

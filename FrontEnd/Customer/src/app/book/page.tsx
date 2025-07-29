@@ -1,4 +1,4 @@
 import { redirect } from 'next/navigation';
-export default function BookPage() {
+export default function Page() {
   redirect('/');
 }

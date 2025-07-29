@@ -2,9 +2,8 @@
 
 import { Star } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
 import PaginationControls from '@/components/utils/pagination-controls';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { ReviewOverview, ReviewOverviewDto, mappedReviewOverviewFromDto } from '@/models/review';
 
 type ReviewsSection = {
@@ -40,12 +39,9 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
         page: currentPage,
         limit: pageSize,
       };
-
       const res = await api.get(`/reviews/book/${bookId}`, { params });
       const data = res.data;
-
       const reviews: ReviewOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
-
       setReviews(mappedReviewOverviewFromDto(reviews));
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
@@ -70,7 +66,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
         s5: 0,
       });
     }
-  }, [currentPage]);
+  }, [currentPage, bookId]);
 
   useEffect(() => {
     fetchData();
@@ -150,12 +146,9 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
               {Array.from({ length: 5 }).map((_, i) => {
                 const starFill =
                   rating >= i + 1 ? '100%' : rating > i ? `${(rating - i) * 100}%` : '0%';
-
                 return (
                   <div key={i} className="relative w-4 h-4">
-                    {/* Nền sao viền xám */}
                     <Star size={16} strokeWidth={1} className="absolute top-0 left-0" />
-                    {/* Sao màu vàng đè lên */}
                     <div
                       className="absolute top-0 left-0 z-0 overflow-hidden"
                       style={{ width: starFill }}
@@ -198,8 +191,6 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
           </div>
         </div>
       </div>
-
-      {/* Danh sách bình luận */}
       <div className="space-y-4">
         {reviews.map((review, index) => (
           <div key={index} className="py-4 border-t">

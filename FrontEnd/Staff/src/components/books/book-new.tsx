@@ -1,6 +1,7 @@
 'use client';
 
-import BookForm, { BookFormValues } from '@/components/books/book-form';
+import type { BookFormValues } from '@/components/books/book-form';
+import BookForm from '@/components/books/book-form';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';

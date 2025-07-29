@@ -217,37 +217,40 @@ export class SachRepository {
         S_giaGiam: {
           $cond: {
             if: { $gt: [{ $size: '$khuyenMai' }, 0] },
+            // then: {
+            //   $let: {
+            //     vars: {
+            //       goc: '$S_giaBan',
+            //     },
+            //     in: {
+            //       $subtract: [
+            //         '$$goc',
+            //         {
+            //           $max: {
+            //             $map: {
+            //               input: '$khuyenMai',
+            //               as: 'km',
+            //               in: {
+            //                 $cond: {
+            //                   if: '$$km.CTKM_theoTyLe',
+            //                   then: {
+            //                     $multiply: [
+            //                       '$$goc',
+            //                       { $divide: ['$$km.CTKM_giaTri', 100] },
+            //                     ],
+            //                   },
+            //                   else: '$$km.CTKM_giaTri',
+            //                 },
+            //               },
+            //             },
+            //           },
+            //         },
+            //       ],
+            //     },
+            //   },
+            // },
             then: {
-              $let: {
-                vars: {
-                  goc: '$S_giaBan',
-                },
-                in: {
-                  $subtract: [
-                    '$$goc',
-                    {
-                      $max: {
-                        $map: {
-                          input: '$khuyenMai',
-                          as: 'km',
-                          in: {
-                            $cond: {
-                              if: '$$km.CTKM_theoTyLe',
-                              then: {
-                                $multiply: [
-                                  '$$goc',
-                                  { $divide: ['$$km.CTKM_giaTri', 100] },
-                                ],
-                              },
-                              else: '$$km.CTKM_giaTri',
-                            },
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
+              $min: '$khuyenMai.CTKM_giaSauGiam',
             },
             else: '$S_giaBan',
           },

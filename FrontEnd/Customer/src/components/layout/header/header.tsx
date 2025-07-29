@@ -1,8 +1,10 @@
+'use client';
 import AuthButtons from '@/components/layout/header/auth-buttons';
 import CartButton from '@/components/layout/header/cart-button';
 import Link from 'next/link';
 import CategoryList from './category-list-button';
 import SearchInput from './search-input';
+import { Suspense } from 'react';
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow md:static">
@@ -17,7 +19,9 @@ export default function Header() {
           <div className="flex flex-1 h-full">
             <CategoryList />
             <div className="w-full h-full mx-2 md:mx-4 md:pb-4">
-              <SearchInput />
+              <Suspense>
+                <SearchInput />
+              </Suspense>
             </div>
           </div>
           <CartButton />

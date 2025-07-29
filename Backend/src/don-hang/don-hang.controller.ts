@@ -62,17 +62,19 @@ export class DonHangController {
     });
   }
 
-  @Get('/user/:userId')
+  @Get('/user')
   async findAllUser(
     @Query('page') page: string,
     @Query('limit') limit: string,
     @Query('filterType') filterType: OrderStatus,
-    @Param('userId') userId: number
+    @Query('userId') userId: number,
+    @Query('orderId') orderId?: string
   ) {
     return this.DonHangService.findAll({
       page: parsePositiveInt(page) ?? 1,
       limit: parsePositiveInt(limit) ?? 24,
       filterType: filterType,
+      orderId: orderId,
       userId: userId,
     });
   }

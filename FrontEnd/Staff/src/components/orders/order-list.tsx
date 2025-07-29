@@ -1,7 +1,13 @@
 'use client';
 
 import { OrderOverview } from '@/models/orders';
-import OrderItem from './order-item';
+import OrderItemLoading from './order-item-loading';
+import dynamic from 'next/dynamic';
+
+const OrderItem = dynamic(() => import('./order-item'), {
+  loading: () => <OrderItemLoading />,
+  ssr: false,
+});
 
 type Props = {
   orders: OrderOverview[];

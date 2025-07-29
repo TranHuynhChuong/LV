@@ -13,7 +13,7 @@ export class ChiTietKhuyenMaiRepository {
     private readonly ChiTietKhuyenMaiModel: Model<ChiTietKhuyenMaiDocument>
   ) {}
 
-  async findValidByProductIds(SPIds: number[]) {
+  async findValidByBookIds(SPIds: number[]) {
     const now = new Date();
 
     return this.ChiTietKhuyenMaiModel.aggregate([
@@ -46,6 +46,7 @@ export class ChiTietKhuyenMaiRepository {
           CTKM_theoTyLe: 1,
           CTKM_giaTri: 1,
           CTKM_tamNgung: 1,
+          CTKM_giaSauGiam: 1,
         },
       },
     ]);
@@ -72,6 +73,28 @@ export class ChiTietKhuyenMaiRepository {
       update,
       { new: true, session }
     );
+  }
+
+  async updateSalePriceForBooks(
+    S_id: number,
+    KM_ids: number[],
+    giaSauGiam: number,
+    session?: ClientSession
+  ): Promise<number> {
+    const result = await this.ChiTietKhuyenMaiModel.updateMany(
+      {
+        S_id,
+        KM_id: { $in: KM_ids },
+        CTKM_daXoa: false,
+      },
+      {
+        $set: {
+          CTKM_giaSauGiam: giaSauGiam,
+        },
+      },
+      { session }
+    );
+    return result.modifiedCount;
   }
 
   async remove(KM_id: number, S_id: number, session?: ClientSession) {

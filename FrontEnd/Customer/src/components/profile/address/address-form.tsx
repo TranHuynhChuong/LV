@@ -32,13 +32,13 @@ export type AddressFormHandle = {
   submit: () => Promise<AddressFormData | null>;
 };
 
-type AddressFormProps = {
+type Props = {
   defaultValue?: Address;
   isComponent?: boolean;
   onProvinceChange?: (provinceId: number) => void;
 };
 
-const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
+const AddressForm = forwardRef<AddressFormHandle, Props>(
   ({ defaultValue, isComponent = false, onProvinceChange }, ref) => {
     const form = useForm<AddressFormData>({
       resolver: zodResolver(formSchema),
@@ -54,7 +54,6 @@ const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
 
     useEffect(() => {
       if (!defaultValue) return;
-
       form.reset({
         name: defaultValue.name ?? '',
         phone: defaultValue.phone ?? '',
@@ -67,7 +66,7 @@ const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
       if (defaultValue.provinceId) {
         onProvinceChange?.(defaultValue.provinceId);
       }
-    }, [defaultValue, form]);
+    }, [defaultValue, form, onProvinceChange]);
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
@@ -110,8 +109,6 @@ const AddressForm = forwardRef<AddressFormHandle, AddressFormProps>(
               </FormItem>
             )}
           />
-
-          {/* Địa chỉ chọn từ dropdown */}
           <FormField
             control={form.control}
             name="wardId"

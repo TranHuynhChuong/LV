@@ -32,6 +32,7 @@ type Props = {
     isPercent: boolean;
     value: number;
     isBlocked: boolean;
+    salePrice?: number;
   }[];
   watch: UseFormWatch<BookPromotionDetail>;
   register: UseFormRegister<BookPromotionDetail>;
@@ -50,10 +51,12 @@ export default function BookDiscountTable({
   isViewing = false,
 }: Readonly<Props>) {
   function calcFinalPrice(price: number, value: number, isPercent: boolean): number {
+    let salePrice: number;
     if (isPercent) {
-      return Math.max(0, price - (value / 100) * price);
+      salePrice = Math.max(0, price - (value / 100) * price);
     }
-    return Math.max(0, price - value);
+    salePrice = Math.max(0, price - value);
+    return salePrice;
   }
   const mergedData = detail?.map((item) => {
     const book = books?.find((p) => p.id === item.bookId);
@@ -86,7 +89,9 @@ export default function BookDiscountTable({
               const isBlocked = watch(`details.${index}.isBlocked`) ?? false;
               const isPercent = watch(`details.${index}.isPercent`) ?? true;
               const rawValue = watch(`details.${index}.value`);
+
               const value = isNaN(Number(rawValue)) ? 0 : Number(rawValue);
+              const salePricePath = `details.${index}.salePrice` as const;
               const valuePath = `details.${index}.value` as const;
               const blockedPath = `details.${index}.isBlocked` as const;
               const percentPath = `details.${index}.isPercent` as const;
@@ -139,14 +144,26 @@ export default function BookDiscountTable({
                       disabled={isBlocked || isViewing}
                       min={0}
                       value={rawValue ?? 0}
-                      onChange={(e) => setValue(valuePath, Number(e.target.value))}
+                      onChange={(e) => {
+                        setValue(valuePath, Number(e.target.value));
+                        setValue(
+                          salePricePath,
+                          calcFinalPrice(book.salePrice, Number(e.target.value), isPercent)
+                        );
+                      }}
                       className="max-w-32 min-w-24"
                     />
                   </TableCell>
                   <TableCell>
                     <Select
                       disabled={isBlocked || isViewing}
-                      onValueChange={(val) => setValue(percentPath, val === 'percent')}
+                      onValueChange={(val) => {
+                        setValue(percentPath, val === 'percent');
+                        setValue(
+                          salePricePath,
+                          calcFinalPrice(book.salePrice, value, val === 'percent')
+                        );
+                      }}
                       value={isPercent ? 'percent' : 'amount'}
                     >
                       <SelectTrigger className="w-16 cursor-pointer">

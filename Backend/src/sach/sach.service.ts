@@ -20,6 +20,7 @@ import { ClientSession, Connection } from 'mongoose';
 
 import { CreateSachDto } from './dto/create-sach.dto';
 import { UpdateSachDto } from './dto/update-sach.dto';
+import { KhuyenMaiUtilService } from 'src/khuyen-mai/khuyen-mai.service';
 
 const folderPrefix = 'Books';
 
@@ -84,6 +85,7 @@ export class SachService {
     private readonly TransformService: TransformService,
     private readonly CloudinaryService: CloudinaryService,
     private readonly NhanVienService: NhanVienUtilService,
+    private readonly KhuyenMaiService: KhuyenMaiUtilService,
 
     @Inject(forwardRef(() => TheLoaiUtilService))
     private readonly TheLoai: TheLoaiUtilService,
@@ -167,62 +169,135 @@ export class SachService {
     if (!existing)
       throw new NotFoundException('Cập nhật sản phẩm - Không tồn tại sản phẩm');
 
-    const vector =
-      data.S_tomTat && data.S_tomTat !== existing.S_tomTat
-        ? await this.TransformService.getTextEmbedding(data.S_tomTat, 'passage')
-        : existing.S_eTomTat;
+    const session = await this.connection.startSession();
+    session.startTransaction();
 
+    // const vector =
+    //   data.S_tomTat && data.S_tomTat !== existing.S_tomTat
+    //     ? await this.TransformService.getTextEmbedding(data.S_tomTat, 'passage')
+    //     : existing.S_eTomTat;
+
+    // let newImages: Anh[] = [];
+
+    // if (images || coverImage) {
+    //   try {
+    //     newImages = await this.handleImageUploads(id, coverImage, images);
+    //   } catch {
+    //     throw new BadRequestException(
+    //       'Cập nhật sản phẩm - Không thể cập nhật ảnh'
+    //     );
+    //   }
+    // }
+
+    // const imagesToDelete = data.imagesToDelete ?? [];
+    // const remainingImages = existing.S_anh.filter(
+    //   (img) => !imagesToDelete.includes(img.A_url)
+    // );
+
+    // const allImages = [...remainingImages, ...newImages];
+
+    // const { fieldsChange, updatePayload } = this.detectChangedFields(
+    //   data,
+    //   existing
+    // );
+    // if (vector !== existing.S_eTomTat) updatePayload.S_eTomTat = vector;
+    // if (newImages.length) {
+    //   updatePayload.S_anh = allImages;
+    //   fieldsChange.push('Cập nhật hình ảnh');
+    // }
+
+    // if (fieldsChange.length > 0 && data.NV_id) {
+    //   updatePayload.lichSuThaoTac = [
+    //     ...existing.lichSuThaoTac,
+    //     {
+    //       thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+    //       NV_id: data.NV_id,
+    //       thoiGian: new Date(),
+    //     },
+    //   ];
+    // }
+
+    // if (Object.keys(updatePayload).length === 0) return existing as Sach;
+
+    // try {
+    //   const updated = await this.SachRepo.update(id, updatePayload);
+    //   if (!updated) throw new Error();
+    //   return updated;
+    // } catch {
+    //   await this.rollbackUploadedImages(newImages);
+    //   throw new BadRequestException(
+    //     'Cập nhật sản phẩm - Cập nhật sản phẩm thất bại'
+    //   );
+    // }
     let newImages: Anh[] = [];
+    try {
+      const vector =
+        data.S_tomTat && data.S_tomTat !== existing.S_tomTat
+          ? await this.TransformService.getTextEmbedding(
+              data.S_tomTat,
+              'passage'
+            )
+          : existing.S_eTomTat;
 
-    if (images || coverImage) {
-      try {
-        newImages = await this.handleImageUploads(id, coverImage, images);
-      } catch {
-        throw new BadRequestException(
-          'Cập nhật sản phẩm - Không thể cập nhật ảnh'
+      if (images || coverImage) {
+        try {
+          newImages = await this.handleImageUploads(id, coverImage, images);
+        } catch {
+          throw new BadRequestException(
+            'Cập nhật sản phẩm - Không thể cập nhật ảnh'
+          );
+        }
+      }
+
+      const imagesToDelete = data.imagesToDelete ?? [];
+      const remainingImages = existing.S_anh.filter(
+        (img) => !imagesToDelete.includes(img.A_url)
+      );
+
+      const allImages = [...remainingImages, ...newImages];
+
+      const { fieldsChange, updatePayload } = this.detectChangedFields(
+        data,
+        existing
+      );
+      if (vector !== existing.S_eTomTat) updatePayload.S_eTomTat = vector;
+      if (newImages.length) {
+        updatePayload.S_anh = allImages;
+        fieldsChange.push('Cập nhật hình ảnh');
+      }
+
+      if (fieldsChange.length > 0 && data.NV_id) {
+        updatePayload.lichSuThaoTac = [
+          ...existing.lichSuThaoTac,
+          {
+            thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
+            NV_id: data.NV_id,
+            thoiGian: new Date(),
+          },
+        ];
+      }
+      const giaBanChanged =
+        data.S_giaBan !== undefined && data.S_giaBan !== existing.S_giaBan;
+      if (giaBanChanged && data.S_giaBan) {
+        await this.KhuyenMaiService.updatePromotionOfBook(
+          id,
+          data.S_giaBan,
+          session
         );
       }
-    }
-
-    const imagesToDelete = data.imagesToDelete ?? [];
-    const remainingImages = existing.S_anh.filter(
-      (img) => !imagesToDelete.includes(img.A_url)
-    );
-
-    const allImages = [...remainingImages, ...newImages];
-
-    const { fieldsChange, updatePayload } = this.detectChangedFields(
-      data,
-      existing
-    );
-    if (vector !== existing.S_eTomTat) updatePayload.S_eTomTat = vector;
-    if (newImages.length) {
-      updatePayload.S_anh = allImages;
-      fieldsChange.push('Cập nhật hình ảnh');
-    }
-
-    if (fieldsChange.length > 0 && data.NV_id) {
-      updatePayload.lichSuThaoTac = [
-        ...existing.lichSuThaoTac,
-        {
-          thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-          NV_id: data.NV_id,
-          thoiGian: new Date(),
-        },
-      ];
-    }
-
-    if (Object.keys(updatePayload).length === 0) return existing as Sach;
-
-    try {
-      const updated = await this.SachRepo.update(id, updatePayload);
+      if (Object.keys(updatePayload).length === 0) return existing as Sach;
+      const updated = await this.SachRepo.update(id, updatePayload, session);
       if (!updated) throw new Error();
+      await session.commitTransaction();
       return updated;
     } catch {
+      await session.abortTransaction();
       await this.rollbackUploadedImages(newImages);
       throw new BadRequestException(
         'Cập nhật sản phẩm - Cập nhật sản phẩm thất bại'
       );
+    } finally {
+      await session.endSession();
     }
   }
 

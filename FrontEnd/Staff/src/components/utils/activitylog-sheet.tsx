@@ -16,7 +16,7 @@ type Props = {
   activityLogs: ActivityLogs[];
 };
 
-export function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
+export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
   function formatDate(date: string | Date) {
     return new Date(date).toLocaleString();
   }

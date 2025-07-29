@@ -1,6 +1,6 @@
 'use client';
 
-import BookTab from '@/components/books/book-tab';
+import { BookTab } from '@/components/books/book-tab-dynamic-import';
 import { Button } from '@/components/ui/button';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';

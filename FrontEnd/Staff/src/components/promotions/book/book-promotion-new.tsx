@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/utils/loader';
 import { mapBookPromotionDetailToDto, BookPromotionDetail } from '@/models/promotionBook';
-import BookPromotionForm from '@/components/promotions/book/book-promotion-form';
+import BookPromotionForm from './book-promotion-form';
 
 export default function BookPromotionNew() {
   const { setBreadcrumbs } = useBreadcrumb();

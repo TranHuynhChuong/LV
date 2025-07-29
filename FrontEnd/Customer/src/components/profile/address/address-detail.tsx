@@ -1,28 +1,26 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { ChevronLeft } from 'lucide-react';
-
+import AddressForm, { AddressFormHandle } from '@/components/profile/address/address-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogFooter,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-import api from '@/lib/axios';
-import { toast } from 'sonner';
 import { useAuth } from '@/contexts/auth-context';
-import AddressForm, { AddressFormHandle } from '@/components/profile/address/address-form';
+import api from '@/lib/axios-client';
 import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/address';
+import { ChevronLeft } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
-export default function AddressDetailPage() {
+export default function AddressDetail() {
   const router = useRouter();
-  const { addressId } = useParams();
+  const { id } = useParams();
   const formRef = useRef<AddressFormHandle>(null);
   const [defaultData, setDefaultData] = useState<Address>();
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -30,10 +28,10 @@ export default function AddressDetailPage() {
   const { authData } = useAuth();
 
   useEffect(() => {
-    if (!authData.userId) return;
-    if (addressId) {
+    if (!authData.userId || !id) return;
+    if (id) {
       api
-        .get(`/addresses/${authData.userId}/${addressId}`)
+        .get(`/addresses/${authData.userId}/${id}`)
         .then(async (res) => {
           const mapped = await mapAddressListFromDto([res.data]);
           setDefaultData(mapped[0] || null);
@@ -43,16 +41,15 @@ export default function AddressDetailPage() {
           router.back();
         });
     }
-  }, [addressId, authData.userId]);
+  }, [id, authData.userId, router]);
 
-  // Handle update
   const handleUpdate = async () => {
     const data = await formRef.current?.submit();
     if (data) {
       const mapped = mapAddressToDto(data, authData.userId ?? undefined);
 
       api
-        .put(`/addresses/${authData.userId}/${addressId}`, mapped)
+        .put(`/addresses/${authData.userId}/${id}`, mapped)
         .then(() => {
           toast.success('Cập nhật thành công');
           router.back();
@@ -63,10 +60,9 @@ export default function AddressDetailPage() {
     }
   };
 
-  // Handle delete
   const handleDelete = () => {
     api
-      .delete(`/addresses/${authData.userId}/${addressId}`)
+      .delete(`/addresses/${authData.userId}/${id}`)
       .then(() => {
         toast.success('Xóa thành công');
         router.back();
@@ -84,9 +80,7 @@ export default function AddressDetailPage() {
         </Button>
         <h1 className="text-lg font-semibold">Chi tiết thông tin nhận hàng</h1>
       </div>
-
       {defaultData && <AddressForm ref={formRef} defaultValue={defaultData} />}
-
       <div className="flex justify-end pt-4 border-t">
         <div className="flex gap-2">
           <Button onClick={() => setOpenDeleteDialog(true)}>Xóa</Button>
@@ -96,7 +90,6 @@ export default function AddressDetailPage() {
           </Button>
         </div>
       </div>
-
       <Dialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -113,7 +106,6 @@ export default function AddressDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Confirm Update Dialog */}
       <Dialog open={openUpdateDialog} onOpenChange={setOpenUpdateDialog}>
         <DialogContent>
           <DialogHeader>

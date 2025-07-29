@@ -23,6 +23,9 @@ export class ChiTietKmDto {
 
   @IsInt()
   CTKM_giaTri: number;
+
+  @IsInt()
+  CTKM_giaSauGiam: number;
 }
 
 export class CreateKhuyenMaiDto {

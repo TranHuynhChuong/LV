@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';

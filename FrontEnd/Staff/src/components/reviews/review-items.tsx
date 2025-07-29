@@ -1,14 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import eventBus from '@/lib/event-bus';
@@ -19,45 +11,13 @@ import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import { FC, useState } from 'react';
 import { toast } from 'sonner';
-import { ActionHistorySheet } from '../utils/activitylog-sheet';
-import Loader from '../utils/loader';
+import Loader from '@/components/utils/loader';
+import dynamic from 'next/dynamic';
+import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 
-type ConfirmToggleReviewDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
-  submitting?: boolean;
-  isHidden: boolean;
-};
-
-export function ConfirmToggleReviewDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  submitting,
-  isHidden,
-}: Readonly<ConfirmToggleReviewDialogProps>) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Xác nhận {isHidden ? 'hiện' : 'ẩn'} đánh giá</DialogTitle>
-          <DialogDescription>
-            Bạn có chắc chắn muốn {isHidden ? 'hiển thị' : 'ẩn'} đánh giá này không?
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Hủy
-          </Button>
-          <Button onClick={onConfirm} disabled={submitting}>
-            Xác nhận
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+const ConfirmToggleReviewDialog = dynamic(() => import('./review-confirm-dialog'), {
+  ssr: false,
+});
 
 type Props = {
   review: Review;

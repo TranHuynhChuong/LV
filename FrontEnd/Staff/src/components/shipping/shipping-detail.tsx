@@ -6,13 +6,14 @@ import { toast } from 'sonner';
 import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useAuth } from '@/contexts/auth-context';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import EventBus from '@/lib/event-bus';
 import Loader from '@/components/utils/loader';
 import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
 import type { ShippingFee } from '@/models/shipping';
-import ShippingFeeForm from '@/components/shipping/shipping-form';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
+import ShippingFeeForm from './shipping-form';
+import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
+import ShippingFeeFormLoading from './shipping-form-loading';
 
 export default function ShippingDetail() {
   const router = useRouter();
@@ -84,18 +85,16 @@ export default function ShippingDetail() {
       setIsSubmitting(false);
     }
   }
-  if (!data) return null;
+  if (!data) return <ShippingFeeFormLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="relative w-full max-w-xl mx-auto min-w-fit">
-          {isSubmitting && <Loader />}
-          <ShippingFeeForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
+      <>
+        {isSubmitting && <Loader />}
+        <ShippingFeeForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
 
-          <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
-          </div>
+        <div className="absolute top-6 right-6">
+          <ActionHistorySheet activityLogs={activityLogs} />
         </div>
-      </div>
+      </>
     );
 }

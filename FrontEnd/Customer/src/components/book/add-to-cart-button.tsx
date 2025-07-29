@@ -2,9 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { emitCartChange } from '@/lib/cart-events';
-import eventBus from '@/lib/event-bus';
 import { mapCartFronDto, mapCartToDto } from '@/models/cart';
 import { useCartStore } from '@/stores/cart.store';
 import clsx from 'clsx';
@@ -75,7 +74,6 @@ export default function AddToCartButton({ inventory, id }: Readonly<Props>) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const status = error?.response?.status;
-      console.error(error);
       switch (status) {
         case 404:
           toast.error('Sách không tồn tại');
@@ -88,7 +86,7 @@ export default function AddToCartButton({ inventory, id }: Readonly<Props>) {
           toast.error('Thêm giỏ hàng thất bại');
       }
     } finally {
-      eventBus.emit('reloadProduct');
+      router.refresh();
       emitCartChange();
     }
   };

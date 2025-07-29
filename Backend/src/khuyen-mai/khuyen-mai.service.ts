@@ -25,10 +25,28 @@ const typeOfChange: Record<string, string> = {
 @Injectable()
 export class KhuyenMaiUtilService {
   constructor(
-    private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository
+    private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository,
+    private readonly KhuyenMaiRepo: KhuyenMaiRepository,
+    @InjectConnection() private readonly connection: Connection
   ) {}
-  async getValidChiTietKhuyenMai(SPIds: number[]) {
-    return this.ChiTietKhuyenMaiRepo.findValidByProductIds(SPIds);
+  async getValidChiTietKhuyenMai(Ids: number[]) {
+    return this.ChiTietKhuyenMaiRepo.findValidByBookIds(Ids);
+  }
+
+  async updatePromotionOfBook(
+    S_id: number,
+    S_giaBan: number,
+    session
+  ): Promise<number> {
+    const KM_ids = await this.KhuyenMaiRepo.findAllNotEndedIds(session);
+    const result = await this.ChiTietKhuyenMaiRepo.updateSalePriceForBooks(
+      S_id,
+      KM_ids,
+      S_giaBan,
+      session
+    );
+
+    return result;
   }
 }
 
@@ -36,7 +54,6 @@ export class KhuyenMaiUtilService {
 export class KhuyenMaiService {
   constructor(
     private readonly NhanVienService: NhanVienUtilService,
-
     private readonly KhuyenMaiRepo: KhuyenMaiRepository,
     private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository,
 
@@ -45,7 +62,6 @@ export class KhuyenMaiService {
 
   async createKhuyenMai(data: CreateKhuyenMaiDto) {
     const session = await this.connection.startSession();
-
     try {
       const result = await session.withTransaction(async () => {
         const lastId = await this.KhuyenMaiRepo.findLastId(session);
@@ -56,9 +72,7 @@ export class KhuyenMaiService {
           NV_id: data.NV_id,
           thoiGian: new Date(),
         };
-
         const { KM_chiTiet, ...KhuyenMaiData } = data;
-
         const created = await this.KhuyenMaiRepo.create(
           {
             ...KhuyenMaiData,
@@ -67,25 +81,20 @@ export class KhuyenMaiService {
           },
           session
         );
-
         if (!created) {
           throw new BadRequestException(
             'Tạo khuyến mãi - Tạo khuyến mãi thất bại'
           );
         }
-
         if (KM_chiTiet && KM_chiTiet.length > 0) {
           const chiTietWithKMId = KM_chiTiet.map((ct) => ({
             ...ct,
             KM_id: newId,
           }));
-
           await this.ChiTietKhuyenMaiRepo.create(chiTietWithKMId, session);
         }
-
         return created;
       });
-
       return result;
     } catch (error) {
       if (error instanceof Error) throw error;
@@ -125,10 +134,8 @@ export class KhuyenMaiService {
 
   async update(id: number, newData: UpdateKhuyenMaiDto): Promise<KhuyenMai> {
     const session = await this.connection.startSession();
-
     try {
       let updated: KhuyenMai;
-
       await session.withTransaction(async () => {
         const existing = await this.KhuyenMaiRepo.findById(id);
         if (!existing) {
@@ -136,19 +143,16 @@ export class KhuyenMaiService {
             'Cập nhật khuyến mãi - Khuyến mãi không tồn tại'
           );
         }
-
         const { KM_chiTiet, ...khuyenMaiData } = newData;
         const { updatePayload, fieldsChange } = this.getUpdateFields(
           khuyenMaiData,
           existing
         );
-
         const isUpdateChiTiet = await this.processChiTietKhuyenMai(
           id,
           KM_chiTiet || [],
           session
         );
-
         if ((fieldsChange.length > 0 || isUpdateChiTiet) && newData.NV_id) {
           this.addLichSuThaoTac(
             updatePayload,
@@ -158,12 +162,10 @@ export class KhuyenMaiService {
             newData.NV_id
           );
         }
-
         if (Object.keys(updatePayload).length === 0) {
           updated = existing;
           return;
         }
-
         const updateResult = await this.KhuyenMaiRepo.update(
           id,
           updatePayload,
@@ -176,7 +178,6 @@ export class KhuyenMaiService {
         }
         updated = updateResult as KhuyenMai;
       });
-
       return updated!;
     } catch (error) {
       if (error instanceof Error) throw error;
@@ -249,13 +250,13 @@ export class KhuyenMaiService {
               CTKM_theoTyLe: newItem.CTKM_theoTyLe,
               CTKM_giaTri: newItem.CTKM_giaTri,
               CTKM_tamNgung: newItem.CTKM_tamNgung,
+              CTKM_giaSauGiam: newItem.CTKM_giaSauGiam,
             },
             session
           )
         );
       }
     }
-
     for (const oldItem of oldList) {
       if (!newMap.has(oldItem.S_id)) {
         changed = true;

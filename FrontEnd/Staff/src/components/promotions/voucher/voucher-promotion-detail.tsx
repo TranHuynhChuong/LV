@@ -1,7 +1,5 @@
 'use client';
 
-import VoucherPromotionForm from '@/components/promotions/voucher/voucher-promotion-form';
-import { ActionHistorySheet } from '@/components/utils/activitylog-sheet';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -15,6 +13,9 @@ import {
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import VoucherPromotionFormLoading from './voucher-promotion-form-loading';
+import VoucherPromotionForm from './voucher-promotion-form';
+import { ActionHistorySheet } from '@/components/utils/activitylog-sheet-dynamic-import';
 
 export default function VoucherPromotionDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -91,26 +92,23 @@ export default function VoucherPromotionDetail() {
   useEffect(() => {
     getData();
   }, [getData]);
-  if (!data) return null;
+  if (!data) return <VoucherPromotionFormLoading />;
   else
     return (
-      <div className="p-4">
-        <div className="w-full max-w-6xl mx-auto ">
-          <div className="relative ">
-            <VoucherPromotionForm
-              onSubmit={onSubmit}
-              defaultValues={data}
-              onDelete={onDelete}
-              isViewing={!!data?.startAt && data.startAt < new Date()}
-            />
+      <>
+        <div className="relative ">
+          <VoucherPromotionForm
+            onSubmit={onSubmit}
+            defaultValues={data}
+            onDelete={onDelete}
+            isViewing={!!data?.startAt && data.startAt < new Date()}
+          />
 
-            <div className="absolute top-6 right-6">
-              <ActionHistorySheet activityLogs={activityLogs} />
-            </div>
+          <div className="absolute top-6 right-6">
+            <ActionHistorySheet activityLogs={activityLogs} />
           </div>
-
-          {isSubmitting && <Loader />}
         </div>
-      </div>
+        {isSubmitting && <Loader />}
+      </>
     );
 }

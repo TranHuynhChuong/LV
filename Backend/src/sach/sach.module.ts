@@ -6,12 +6,14 @@ import { SachRepository } from './repositories/sach.repository';
 import { Sach, SachSchema } from './schemas/sach.schema';
 import { TheLoaiModule } from 'src/the-loai/the-loai.module';
 import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
+import { KhuyenMaiModule } from 'src/khuyen-mai/khuyen-mai.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Sach.name, schema: SachSchema }]),
     forwardRef(() => TheLoaiModule),
     NguoiDungModule,
+    KhuyenMaiModule,
   ],
   controllers: [SachController],
   providers: [SachService, SachUtilService, SachRepository],

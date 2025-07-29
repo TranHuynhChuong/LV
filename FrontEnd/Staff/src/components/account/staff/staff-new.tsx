@@ -1,6 +1,5 @@
 'use client';
 
-import { StaffForm } from '@/components/account/staff/staff-form';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -10,6 +9,7 @@ import { mapStaffToDto, Staff } from '@/models/accounts';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import StaffForm from './staff-form';
 
 export default function StaffNew() {
   const { setBreadcrumbs } = useBreadcrumb();

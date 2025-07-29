@@ -1,6 +1,6 @@
 'use client';
 
-import ProductTab from '@/components/books/book-tab';
+import { BookTab } from '@/components/books/book-tab-dynamic-import';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -34,6 +34,7 @@ const BookPromotionSchema: z.Schema<BookPromotionDetail> = z
         isPercent: z.boolean(),
         value: z.number(),
         isBlocked: z.boolean(),
+        salePrice: z.number().optional(),
       })
     ),
   })
@@ -68,6 +69,7 @@ type Props = {
 type Detail = {
   value: number;
   bookId: number;
+  salePrice?: number;
   isPercent: boolean;
   isBlocked: boolean;
 };
@@ -91,7 +93,7 @@ export default function BookPromotionForm({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<BookPromotionDetail | null>(null);
-  const [openProductTable, setOpenProductTable] = useState<boolean>(false);
+  const [openBookTable, setOpenBookTable] = useState<boolean>(false);
   const [selectedData, setSelectedData] = useState<BookOverView[]>(availableBooks ?? []);
   const [detail, setDetail] = useState<Detail[]>(defaultValues?.details ?? []);
 
@@ -119,12 +121,13 @@ export default function BookPromotionForm({
       bookId: b.id,
       isPercent: true,
       value: 0,
+      salePrice: undefined,
       isBlocked: false,
     }));
     const currentDetails = watch('details') || [];
     setValue('details', [...currentDetails, ...newDetails]);
     setDetail([...detail, ...newDetails]);
-    setOpenProductTable(false);
+    setOpenBookTable(false);
   };
 
   const handleRemove = (id: number) => {
@@ -239,7 +242,7 @@ export default function BookPromotionForm({
                   className="font-normal cursor-pointer border-zinc-700"
                   variant="outline"
                   type="button"
-                  onClick={() => setOpenProductTable(true)}
+                  onClick={() => setOpenBookTable(true)}
                   disabled={isViewing}
                 >
                   <Plus className="w-4 h-4 mr-2" /> Thêm sách
@@ -266,15 +269,15 @@ export default function BookPromotionForm({
           />
         </form>
       </Form>
-      {openProductTable && (
+      {openBookTable && (
         <div className="fixed inset-0 z-50 flex items-center justify-center py-12 bg-zinc-500/50">
           <div className="max-h-[90vh] max-w-full overflow-hidden rounded-lg bg-white shadow-lg">
             <div className="overflow-y-auto max-h-[90vh] p-6">
-              <ProductTab
+              <BookTab
                 status="noPromotion"
                 currentPage={1}
                 selectedData={selectedData}
-                onClose={() => setOpenProductTable(false)}
+                onClose={() => setOpenBookTable(false)}
                 onConfirmSelect={handleSelect}
               />
             </div>

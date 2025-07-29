@@ -7,7 +7,6 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { Roboto, Geist } from 'next/font/google';
 import RouteWatcher from '@/components/utils/route-watcher';
 import RasaWidget from '@/chatbot/rasa-widget';
-export const dynamic = 'force-dynamic';
 
 const geistSans = Geist({
   subsets: ['latin'],

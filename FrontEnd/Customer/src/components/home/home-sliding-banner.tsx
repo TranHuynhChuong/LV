@@ -52,27 +52,25 @@ export default function HomeSlidingBanner() {
         ))}
       </div>
 
-      {/* Nút trái/phải */}
       {loaded && instanceRef.current && (
         <>
           <button
             onClick={() => instanceRef.current?.prev()}
-            className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/70 hover:bg-white text-black p-2 rounded-full shadow"
+            className="absolute p-2 text-black -translate-y-1/2 rounded-full shadow top-1/2 left-2 bg-white/70 hover:bg-white"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={() => instanceRef.current?.next()}
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/70 hover:bg-white text-black p-2 rounded-full shadow"
+            className="absolute p-2 text-black -translate-y-1/2 rounded-full shadow top-1/2 right-2 bg-white/70 hover:bg-white"
           >
             <ChevronRight size={20} />
           </button>
         </>
       )}
 
-      {/* Dấu chấm */}
       {loaded && instanceRef.current && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute flex gap-2 -translate-x-1/2 bottom-2 left-1/2">
           {banners.map((_, idx) => (
             <button
               key={idx}

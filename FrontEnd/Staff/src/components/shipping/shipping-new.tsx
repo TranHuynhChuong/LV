@@ -1,6 +1,5 @@
 'use client';
 
-import ShippingFeeForm from '@/components/shipping/shipping-form';
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
@@ -10,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import EventBus from '@/lib/event-bus';
+import ShippingFeeForm from './shipping-form';
 
 export default function ShippingNew() {
   const router = useRouter();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import api from '@/lib/axios';
+import api from '@/lib/axios-client';
 import { mapShippingFeeFromDto, ShippingFee } from '@/models/shipping';
 import { toast } from 'sonner';
 
