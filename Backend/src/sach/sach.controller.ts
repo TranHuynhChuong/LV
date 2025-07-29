@@ -35,7 +35,6 @@ export class SachController {
   ) {
     const coverImage = files.find((f) => f.fieldname === 'coverImageFile');
     const images = files.filter((f) => f.fieldname === 'imageFiles');
-
     return this.SachService.create(body, coverImage, images);
   }
 
@@ -50,7 +49,6 @@ export class SachController {
   ) {
     const coverImage = files.find((f) => f.fieldname === 'coverImageFile');
     const images = files.filter((f) => f.fieldname === 'ImageFiles');
-    console.log(id, body, coverImage, images);
     return this.SachService.update(id, body, coverImage, images);
   }
 
