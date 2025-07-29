@@ -78,28 +78,33 @@ export default function SearchPanel() {
     params.set('p', '1');
     router.replace(`/search?${params.toString()}`);
   };
+
+  const showSort = keyword !== '' || category !== '';
+
   return (
     <div>
       <div className="flex items-center w-full p-4 bg-white rounded-md h-fit">
         <h4 className="flex-1 font-medium ">Kết quả tìm kiếm: {totalItems} sản phẩm </h4>
-        <div className="flex justify-end h-fit">
-          <Select value={sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Chọn tiêu chí" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Tiêu chí</SelectLabel>
-                <SelectItem value={BookSortType.MostRelevant}>Liên quan</SelectItem>
-                <SelectItem value={BookSortType.Latest}>Mới nhất</SelectItem>
-                <SelectItem value={BookSortType.BestSelling}>Bán chạy</SelectItem>
-                <SelectItem value={BookSortType.MostRating}>Đánh giá cao - thấp</SelectItem>
-                <SelectItem value={BookSortType.PriceAsc}>Giá thấp - cao</SelectItem>
-                <SelectItem value={BookSortType.PriceDesc}>Giá cao - thấp</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        {showSort && (
+          <div className="flex justify-end h-fit">
+            <Select value={sort} onValueChange={handleSortChange}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Chọn tiêu chí" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Tiêu chí</SelectLabel>
+                  <SelectItem value={BookSortType.MostRelevant}>Liên quan</SelectItem>
+                  <SelectItem value={BookSortType.Latest}>Mới nhất</SelectItem>
+                  <SelectItem value={BookSortType.BestSelling}>Bán chạy</SelectItem>
+                  <SelectItem value={BookSortType.MostRating}>Đánh giá cao - thấp</SelectItem>
+                  <SelectItem value={BookSortType.PriceAsc}>Giá thấp - cao</SelectItem>
+                  <SelectItem value={BookSortType.PriceDesc}>Giá cao - thấp</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
       <div className="mt-4 space-y-6">
         <BookList books={books} />
