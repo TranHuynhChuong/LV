@@ -84,7 +84,7 @@ export default function CartPanel() {
     };
 
     getData();
-  }, [authData.userId, hydrated, localCarts, replaceCart, router, searchParams]);
+  }, [authData.userId, hydrated, router, searchParams]);
 
   const toggleSelect = (id: number) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((spid) => spid !== id) : [...prev, id]));
@@ -177,7 +177,7 @@ export default function CartPanel() {
       </motion.div>
     );
 
-  if (!carts.length)
+  if (!carts.length && carts.length === 0)
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}

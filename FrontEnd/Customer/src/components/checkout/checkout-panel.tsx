@@ -142,7 +142,7 @@ export default function CheckOutPanel() {
         KH_id: authData.userId ?? undefined,
         KH_email: authData.userId ? undefined : guestEmail,
         CTDH: books.map((c) => ({
-          SP_id: c.id,
+          S_id: c.id,
           CTDH_soLuong: c.quantity,
           CTDH_giaNhap: c.costPrice,
           CTDH_giaBan: c.salePrice,
@@ -162,9 +162,8 @@ export default function CheckOutPanel() {
     setIsSubmitting(true);
     api
       .post('/orders', payload)
-      .then((res) => {
+      .then(() => {
         setCreateSuccess(true);
-        console.log(res.data);
       })
       .catch((error) => {
         const errorCodes = error?.response?.data?.message?.message;
@@ -198,7 +197,7 @@ export default function CheckOutPanel() {
       }, 3500);
       return () => clearTimeout(timer);
     }
-  }, [errorMessages, clearOrder, router]);
+  }, [errorMessages, router]);
 
   useEffect(() => {
     async function handleCartUpdate() {
@@ -222,7 +221,7 @@ export default function CheckOutPanel() {
       }
     }
     handleCartUpdate();
-  }, [createSuccess, removeFromCartByIds, clearOrder, authData.userId, books, router]);
+  }, [createSuccess, authData.userId, books, router]);
 
   if (!orders.length) return null;
 
