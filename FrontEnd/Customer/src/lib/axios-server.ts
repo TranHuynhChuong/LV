@@ -6,7 +6,7 @@ export async function AxiosServer() {
   const cookie = cookieStore.toString();
 
   const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API,
+    baseURL: process.env.NEXT_PUBLIC_BE_API,
     headers: {
       Cookie: cookie,
     },
