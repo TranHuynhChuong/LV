@@ -394,11 +394,7 @@ export class SachService {
   }
 
   // Tìm sản phẩm tương tự theo embedding vector
-  async findByVector(queryText: string, limit?: number, minScore?: number) {
-    const queryVector = await this.TransformService.getTextEmbedding(
-      queryText,
-      'query'
-    );
+  async findByVector(queryVector: number[], limit?: number, minScore?: number) {
     return this.SachRepo.findByVector(queryVector, limit, minScore);
   }
 

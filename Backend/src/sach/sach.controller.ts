@@ -55,10 +55,10 @@ export class SachController {
   // Tìm sản phẩm tương tự (vector search)
   @Post('/find')
   findByVectorViaPost(
-    @Body() body: { content: string; limit?: number; minScore?: number }
+    @Body() body: { vector: number[]; limit?: number; minScore?: number }
   ) {
-    const { content, limit, minScore } = body;
-    return this.SachService.findByVector(content, limit, minScore);
+    const { vector, limit, minScore } = body;
+    return this.SachService.findByVector(vector, limit, minScore);
   }
 
   // Đếm tổng số sản phẩm
