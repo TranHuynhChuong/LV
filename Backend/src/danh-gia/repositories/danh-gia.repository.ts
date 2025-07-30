@@ -8,6 +8,7 @@ import {
   paginateRawAggregate,
 } from 'src/Util/paginateWithFacet';
 
+// Kết quả trả về khi truy vấn danh sách đánh giá
 export type DanhGiaListResults = PaginateResult<DanhGiaDocument> & {
   rating?: {
     s1: number;
@@ -25,6 +26,12 @@ export class DanhGiaRepository {
     private readonly DanhGiaModel: Model<DanhGiaDocument>
   ) {}
 
+  /**
+   * Tạo mới một đánh giá
+   *
+   * @param data Dữ liệu đánh giá cần tạo
+   * @param session Phiên giao dịch MongoDB (tùy chọn)
+   */
   async create(
     data: Partial<DanhGia>,
     session?: ClientSession
@@ -33,6 +40,15 @@ export class DanhGiaRepository {
     return created.save({ session });
   }
 
+  /**
+   * Tìm một đánh giá dựa trên mã đơn hàng, mã sách và mã khách hàng
+   *
+   * @param orderId Mã đơn hàng (DH_id)
+   * @param bookId Mã sách (S_id)
+   * @param customerId Mã khách hàng (KH_id)
+   * @param session Phiên giao dịch MongoDB (tùy chọn)
+   * @returns Đánh giá tương ứng
+   */
   async findOne(
     orderId: string,
     bookId: number,
@@ -48,6 +64,17 @@ export class DanhGiaRepository {
       .lean();
   }
 
+  /**
+   * Lấy danh sách đánh giá có phân trang, kèm theo các bộ lọc nâng cao như điểm đánh giá, ngày tạo và trạng thái hiển thị.
+   *
+   * @param page Trang cần lấy đánh giá
+   * @param limit Số lượng đánh giá trên mỗi trang (mặc định 24)
+   * @param rating Điểm đánh giá cần lọc (tùy chọn)
+   * @param from Ngày bắt đầu để lọc theo ngày tạo (tùy chọn)
+   * @param to Ngày kết thúc để lọc theo ngày tạo (tùy chọn)
+   * @param status Trạng thái hiển thị của đánh giá: 'all' (tất cả), 'visible' (hiển thị), 'hidden' (đã ẩn) (tùy chọn)
+   * @returns Danh sách đánh giá phù hợp, có phân trang, kèm tổng số lượng
+   */
   async findAll(
     page: number,
     limit = 24,
@@ -59,26 +86,27 @@ export class DanhGiaRepository {
     const skip = (page - 1) * limit;
     const matchConditions: any = {};
 
+    // Lọc theo điểm đánh giá
     if (rating) {
       matchConditions.DG_diem = rating;
     }
 
+    // Lọc theo ngày tạo
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
-
       matchConditions.DG_ngayTao = { $gte: from, $lte: to };
     }
 
+    // Lọc theo trạng thái hiển thị
     if (status && status !== 'all') {
       matchConditions.DG_daAn = status === 'hidden';
     }
 
     const matchStage: PipelineStage.Match = { $match: matchConditions };
-
     const dataPipeline: PipelineStage[] = [
       matchStage,
-
+      // Tham chiếu thông tin khách hàng
       {
         $lookup: {
           from: 'khachhangs',
@@ -88,7 +116,7 @@ export class DanhGiaRepository {
         },
       },
       { $unwind: { path: '$khachHang', preserveNullAndEmptyArrays: true } },
-
+      // Tham chiếu thông tin sách
       {
         $lookup: {
           from: 'saches',
@@ -98,7 +126,7 @@ export class DanhGiaRepository {
         },
       },
       { $unwind: { path: '$sach', preserveNullAndEmptyArrays: true } },
-
+      // Thêm trường thông tin phụ trợ
       {
         $addFields: {
           KH_hoTen: '$khachHang.KH_hoTen',
@@ -123,21 +151,17 @@ export class DanhGiaRepository {
           },
         },
       },
-
       {
         $project: {
           khachHang: 0,
           sach: 0,
         },
       },
-
       { $sort: { DG_ngayTao: -1 } },
       { $skip: skip },
       { $limit: limit },
     ];
-
     const countPipeline: PipelineStage[] = [matchStage, { $count: 'count' }];
-
     return paginateRawAggregate({
       model: this.DanhGiaModel,
       page,
@@ -147,17 +171,23 @@ export class DanhGiaRepository {
     });
   }
 
+  /**
+   * Lấy danh sách đánh giá của một quyển sách cụ thể
+   *
+   * @param bookId Mã sách cần lấy đánh giá
+   * @param page Số trang hiện tại (bắt đầu từ 1)
+   * @param limit Số lượng đánh giá trên mỗi trang (mặc định 24)
+   * @returns Danh sách đánh giá, thông tin phân trang và tổng điểm đánh giá
+   */
   async findAllOfBook(
     bookId: number,
     page: number,
     limit = 24
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
-
     const matchStage: PipelineStage.Match = {
       $match: { S_id: bookId, DG_daAn: false },
     };
-
     const dataPipeline: PipelineStage[] = [
       matchStage,
       {
@@ -175,9 +205,7 @@ export class DanhGiaRepository {
       { $skip: skip },
       { $limit: limit },
     ];
-
     const countPipeline: PipelineStage[] = [matchStage, { $count: 'count' }];
-
     const result = await paginateRawAggregate({
       model: this.DanhGiaModel,
       page,
@@ -185,9 +213,7 @@ export class DanhGiaRepository {
       dataPipeline,
       countPipeline,
     });
-
     const rating = await this.countRatingOfBook(bookId);
-
     return {
       data: result.data as DanhGiaDocument[],
       rating,
@@ -195,12 +221,18 @@ export class DanhGiaRepository {
     };
   }
 
+  /**
+   * Tính điểm đánh giá trung bình của một quyển sách (chỉ tính các đánh giá đang hiển thị).
+   *
+   * @param bookId Mã sách cần tính điểm trung bình
+   * @param session Phiên giao dịch MongoDB (tùy chọn)
+   * @returns Điểm trung bình đánh giá (0 nếu không có đánh giá nào)
+   */
   async getAverageRatingOfBook(
     bookId: number,
     session?: ClientSession
   ): Promise<number> {
     type AvgRatingResult = { avgRating: number };
-
     const result = await this.DanhGiaModel.aggregate<AvgRatingResult>([
       { $match: { S_id: bookId, DG_daAn: false } },
       {
@@ -210,10 +242,24 @@ export class DanhGiaRepository {
         },
       },
     ]).session(session ?? null);
-
     return result[0]?.avgRating ?? 0;
   }
 
+  /**
+   * Thống kê số lượng đánh giá theo từng mức điểm (từ 1 đến 5 sao) của một quyển sách.
+   *
+   * @param bookId Mã sách cần thống kê đánh giá
+   * @returns Một đối tượng chứa số lượng đánh giá ứng với từng điểm từ 1 đến 5.
+   *
+   * Ví dụ kết quả:
+   * {
+   *   s1: 2, // 2 lượt đánh giá 1 sao
+   *   s2: 0,
+   *   s3: 5,
+   *   s4: 10,
+   *   s5: 8
+   * }
+   */
   async countRatingOfBook(bookId: number): Promise<{
     s1: number;
     s2: number;
@@ -275,7 +321,6 @@ export class DanhGiaRepository {
         },
       },
     ]);
-
     return (
       result ?? {
         s1: 0,
@@ -287,7 +332,31 @@ export class DanhGiaRepository {
     );
   }
 
-  async countRating(
+  /**
+   * Thống kê tổng hợp các đánh giá trong khoảng thời gian chỉ định.
+   *
+   * Bao gồm:
+   * - Số lượng đánh giá từ 1 đến 5 sao.
+   * - Số lượng đơn hàng duy nhất có đánh giá (`totalOrders`).
+   * - Số lượng đánh giá ẩn (`hidden`) và hiện (`visible`).
+   *
+   * @param from Ngày bắt đầu thống kê.
+   * @param to Ngày kết thúc thống kê.
+   * @returns Một đối tượng thống kê tổng hợp theo cấu trúc:
+   * ```ts
+   * {
+   *   s1: number,         // số đánh giá 1 sao
+   *   s2: number,         // số đánh giá 2 sao
+   *   s3: number,         // số đánh giá 3 sao
+   *   s4: number,         // số đánh giá 4 sao
+   *   s5: number,         // số đánh giá 5 sao
+   *   totalOrders: number, // tổng số đơn hàng có đánh giá (không trùng)
+   *   hidden: number,      // số đánh giá đang bị ẩn (DG_daAn = true)
+   *   visible: number      // số đánh giá hiển thị (DG_daAn = false)
+   * }
+   * ```
+   */
+  async getRatingStats(
     from: Date,
     to: Date
   ): Promise<{
@@ -304,7 +373,6 @@ export class DanhGiaRepository {
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
-
       matchConditions.DG_ngayTao = { $gte: from, $lte: to };
     }
     const [result] = await this.DanhGiaModel.aggregate<{
@@ -349,7 +417,6 @@ export class DanhGiaRepository {
         },
       },
     ]);
-
     return (
       result ?? {
         s1: 0,
@@ -364,6 +431,24 @@ export class DanhGiaRepository {
     );
   }
 
+  /**
+   * Cập nhật trạng thái ẩn/hiện của một đánh giá cụ thể và ghi lại lịch sử thao tác.
+   *
+   * Tìm đánh giá theo bộ ba khóa chính:
+   * - Mã đơn hàng (`orderId`)
+   * - Mã sách (`bookId`)
+   * - Mã khách hàng (`customerId`)
+   *
+   * Cập nhật trạng thái hiển thị (`DG_daAn`) và thêm một bản ghi mới vào trường lịch sử thao tác (`lichSuThaoTac`).
+   *
+   * @param orderId Mã đơn hàng gắn với đánh giá.
+   * @param bookId Mã sách được đánh giá.
+   * @param customerId Mã khách hàng đã thực hiện đánh giá.
+   * @param status Trạng thái ẩn/hiện của đánh giá (`true` nếu ẩn, `false` nếu hiển thị).
+   * @param history Thông tin lịch sử thao tác cần ghi lại (bao gồm người thao tác, thời gian, hành động...).
+   * @param session Phiên giao dịch MongoDB tùy chọn (sử dụng cho transaction).
+   * @returns Đối tượng đánh giá sau khi được cập nhật, hoặc `null` nếu không tìm thấy đánh giá.
+   */
   async update(
     orderId: string,
     bookId: number,

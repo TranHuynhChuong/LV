@@ -25,7 +25,12 @@ import { UpdateSachDto } from './dto/update-sach.dto';
 export class SachController {
   constructor(private readonly SachService: SachService) {}
 
-  // Tạo sản phẩm
+  /**
+   * Tạo mới sách kèm theo upload ảnh bìa và ảnh khác
+   * @param files Mảng file upload, có thể bao gồm coverImageFile và imageFiles
+   * @param body Dữ liệu sách
+   * @returns Thông tin sách vừa tạo
+   */
   @UseGuards(XacThucGuard)
   @Post()
   @UseInterceptors(AnyFilesInterceptor())
@@ -38,7 +43,13 @@ export class SachController {
     return this.SachService.create(body, coverImage, images);
   }
 
-  // Cập nhật sản phẩm
+  /**
+   * Cập nhật sách theo id, có thể kèm upload ảnh mới
+   * @param id Id sách cần cập nhật
+   * @param files Mảng file upload, có thể bao gồm coverImageFile và imageFiles
+   * @param body Dữ liệu cập nhật sách
+   * @returns Thông tin sách đã cập nhật
+   */
   @UseGuards(XacThucGuard)
   @Put('/:id')
   @UseInterceptors(AnyFilesInterceptor())
@@ -52,7 +63,11 @@ export class SachController {
     return this.SachService.update(id, body, coverImage, images);
   }
 
-  // Tìm sản phẩm tương tự (vector search)
+  /**
+   * Tìm sách bằng vector embedding qua POST
+   * @param body Chứa vector truy vấn, giới hạn kết quả và điểm tối thiểu
+   * @returns Danh sách sách tìm được
+   */
   @Post('/find')
   findByVectorViaPost(
     @Body() body: { vector: number[]; limit?: number; minScore?: number }
@@ -61,12 +76,21 @@ export class SachController {
     return this.SachService.findByVector(vector, limit, minScore);
   }
 
-  // Đếm tổng số sản phẩm
+  /**
+   * Đếm tổng số sách theo trạng thái
+   * @returns Thống kê tổng số sách
+   */
   @Get('/total')
   countAll() {
     return this.SachService.countAll();
   }
 
+  /**
+   * Lấy danh sách đề xuất autocomplete theo từ khóa
+   * @param keyword Từ khóa tìm kiếm
+   * @param limit Số lượng kết quả trả về (chuỗi, sẽ chuyển thành số)
+   * @returns Danh sách đề xuất
+   */
   @Get('/suggestions')
   getAutocomplete(
     @Query('keyword') keyword: string,
@@ -78,6 +102,11 @@ export class SachController {
     );
   }
 
+  /**
+   * Tìm sách theo các tiêu chí tìm kiếm (trang, lọc, sắp xếp, từ khóa, thể loại)
+   * @param query Các tham số tìm kiếm
+   * @returns Danh sách sách phù hợp
+   */
   @Get('/search')
   search(
     @Query()
@@ -109,6 +138,11 @@ export class SachController {
     return this.SachService.search(params);
   }
 
+  /**
+   * Lấy danh sách sách theo phân trang, sắp xếp, lọc
+   * @param query Tham số phân trang, lọc, sắp xếp
+   * @returns Danh sách sách
+   */
   @Get()
   findAll(
     @Query()
@@ -129,6 +163,12 @@ export class SachController {
     return this.SachService.findAll(params);
   }
 
+  /**
+   * Tìm sách theo mã ISBN
+   * @param id Mã ISBN sách
+   * @param filterType Loại lọc sách
+   * @returns Thông tin sách nếu tìm thấy
+   */
   @Get('/isbn/:id')
   findByIsbn(
     @Param('id') id: string,
@@ -137,7 +177,12 @@ export class SachController {
     return this.SachService.findByIsbn(id, filterType);
   }
 
-  // Chi tiết sản phẩm
+  /**
+   * Lấy chi tiết sách theo ID với chế độ mặc định hoặc đầy đủ
+   * @param id ID sách
+   * @param mode Chế độ trả về 'default' hoặc 'full'
+   * @returns Thông tin sách
+   */
   @Get('/:id')
   findById(
     @Param('id', ParseIntPipe) id: number,
@@ -146,7 +191,12 @@ export class SachController {
     return this.SachService.findById(id, mode);
   }
 
-  // Xóa sản phẩm (ẩn - soft delete)
+  /**
+   * Xóa sách theo ID
+   * @param id ID sách cần xóa
+   * @param staffId ID nhân viên thực hiện thao tác xóa
+   * @returns Thông tin sách sau khi xóa (đánh dấu xóa)
+   */
   @Delete('/:id')
   delete(
     @Param('id', ParseIntPipe) id: number,

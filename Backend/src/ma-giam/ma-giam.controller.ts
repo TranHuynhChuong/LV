@@ -23,14 +23,23 @@ import {
 export class MaGiamController {
   constructor(private readonly MaGiamService: MaGiamService) {}
 
-  // ======= [POST] /Tạo mới mã giảm =======
+  /**
+   * Tạo mới mã giảm giá.
+   * @param data Dữ liệu tạo mã giảm giá
+   */
   @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateMaGiamDto) {
     return this.MaGiamService.create(data);
   }
 
-  // ======= [GET] /Lấy danh sách mã giảm (phân trang, status) =======
+  /**
+   * Lấy danh sách mã giảm giá có phân trang và lọc tùy chọn.
+   * @param page Trang cần lấy
+   * @param limit Số lượng mỗi trang
+   * @param filterType Kiểu lọc hiệu lực (hiện tại, sắp tới, đã hết hạn...)
+   * @param type Kiểu mã giảm (theo % hoặc số tiền)
+   */
   @Get()
   findAll(
     @Query('page') page: string,
@@ -46,19 +55,28 @@ export class MaGiamController {
     });
   }
 
-  @Get('/allValid')
+  /**
+   * Lấy toàn bộ mã giảm giá đang còn hiệu lực (không phân trang).
+   */
+  @Get('/all-valid')
   findAllvalid() {
     return this.MaGiamService.getAllValid();
   }
 
-  // ======= [GET] /Lấy số lượng mã giảm hợp lệ =======
-
+  /**
+   * Đếm số lượng mã giảm giá đang còn hiệu lực.
+   */
   @Get('/total')
   async count(): Promise<any> {
     return await this.MaGiamService.countValid();
   }
 
-  // ======= [GET] Lấy chi tiết mã giảm theo ID =======
+  /**
+   * Lấy chi tiết mã giảm giá theo ID kèm tùy chọn lọc.
+   * @param id Mã ID của mã giảm
+   * @param filterType Kiểu lọc hiệu lực (tuỳ chọn)
+   * @param type Kiểu mã giảm (tuỳ chọn)
+   */
   @Get(':id')
   async findById(
     @Param('id') id: string,
@@ -68,14 +86,21 @@ export class MaGiamController {
     return this.MaGiamService.getById(id, filterType, type);
   }
 
-  // ======= [PUT] Cập nhật mã giảm =======
+  /**
+   * Cập nhật thông tin mã giảm giá theo ID.
+   * @param id ID mã giảm
+   * @param data Dữ liệu cập nhật
+   */
   @UseGuards(XacThucGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateMaGiamDto) {
     return this.MaGiamService.update(id, data);
   }
 
-  // ======= [DELETE] Xóa mã giảm =======
+  /**
+   * Xóa mã giảm giá theo ID.
+   * @param id ID mã giảm
+   */
   @UseGuards(XacThucGuard)
   @Delete(':id')
   delete(@Param('id') id: string) {

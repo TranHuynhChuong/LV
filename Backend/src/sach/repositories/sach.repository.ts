@@ -9,27 +9,58 @@ import {
 import type { ClientSession, PipelineStage } from 'mongoose';
 export type BookListResults = PaginateResult<SachDocument>;
 
+/**
+ * Các loại bộ lọc cho sách, dùng để phân loại trạng thái hiển thị và tồn kho.
+ */
 export enum BookFilterType {
+  /** Hiển thị tất cả sách đang hiển thị (Show = Hiện) */
   ShowAll = 'show-all',
+
+  /** Hiển thị sách đang hiển thị và còn trong kho */
   ShowInStock = 'show-in-stock',
+
+  /** Hiển thị sách đang hiển thị nhưng đã hết hàng */
   ShowOutOfStock = 'show-out-of-stock',
 
+  /** Hiển thị tất cả sách đang ẩn (Hidden = Ẩn) */
   HiddenAll = 'hidden-all',
+
+  /** Hiển thị sách đang ẩn và còn trong kho */
   HiddenInStock = 'hidden-in-stock',
+
+  /** Hiển thị sách đang ẩn nhưng đã hết hàng */
   HiddenOutOfStock = 'hidden-out-of-stock',
 
+  /** Hiển thị tất cả sách bất kể trạng thái (Hiện/Ẩn) */
   AllAll = 'all-all',
+
+  /** Hiển thị tất cả sách còn trong kho bất kể trạng thái */
   AllInStock = 'all-in-stock',
+
+  /** Hiển thị tất cả sách đã hết hàng bất kể trạng thái */
   AllOutOfStock = 'all-out-of-stock',
 
+  /** Loại trừ sách đang áp dụng khuyến mãi (Active Promotion) */
   ExcludeActivePromotion = 'excludeActivePromotion',
 }
 
+/**
+ * Các kiểu sắp xếp sách trong danh sách.
+ */
 export enum BookSortType {
+  /** Sắp xếp theo sách mới nhất (theo ngày hoặc mã sách giảm dần) */
   Latest = 'latest',
+
+  /** Sắp xếp theo sách bán chạy nhất (số lượng đã bán giảm dần) */
   BestSelling = 'best-selling',
+
+  /** Sắp xếp theo sách được đánh giá nhiều nhất (điểm đánh giá giảm dần) */
   MostRating = 'most-rating',
+
+  /** Sắp xếp theo giá tăng dần */
   PriceAsc = 'price-asc',
+
+  /** Sắp xếp theo giá giảm dần */
   PriceDesc = 'price-desc',
 }
 
@@ -40,6 +71,12 @@ export class SachRepository {
     private readonly SachModel: Model<SachDocument>
   ) {}
 
+  /**
+   * Tạo mới một bản ghi sách trong cơ sở dữ liệu.
+   * @param data Dữ liệu một phần của sách cần tạo
+   * @param session (Tuỳ chọn) Phiên làm việc của MongoDB để hỗ trợ transaction
+   * @returns Promise trả về đối tượng sách vừa được tạo
+   */
   async create(data: Partial<Sach>, session?: ClientSession): Promise<Sach> {
     const created = await this.SachModel.create(
       [data],
@@ -48,6 +85,12 @@ export class SachRepository {
     return created[0];
   }
 
+  /**
+   * Cập nhật số lượng đã bán và tồn kho của nhiều sách đồng thời.
+   * @param updates Mảng đối tượng chứa id sách và số lượng đã bán tương ứng
+   * @param session (Tuỳ chọn) Phiên làm việc của MongoDB để hỗ trợ transaction
+   * @returns Kết quả của thao tác bulkWrite từ Mongoose
+   */
   async updateSold(
     updates: { id: number; sold: number }[],
     session?: ClientSession
@@ -63,22 +106,34 @@ export class SachRepository {
         },
       },
     }));
-
     const result = await this.SachModel.bulkWrite(operations, { session });
-
     return result;
   }
 
-  async updateScore(spId: number, diem: number, session?: ClientSession) {
+  /**
+   * Cập nhật điểm đánh giá của một sách theo ID.
+   * @param id ID sách cần cập nhật điểm
+   * @param score Điểm đánh giá mới
+   * @param session (Tuỳ chọn) Phiên làm việc MongoDB hỗ trợ transaction
+   * @returns Kết quả của thao tác updateOne từ Mongoose
+   */
+  async updateScore(id: number, score: number, session?: ClientSession) {
     return this.SachModel.updateOne(
-      { S_id: spId },
+      { S_id: id },
       {
-        $set: { S_diemDG: diem },
+        $set: { S_diemDG: score },
       },
       { session }
     );
   }
 
+  /**
+   * Cập nhật thông tin sách theo ID, chỉ cập nhật những sách chưa bị xoá mềm.
+   * @param id ID sách cần cập nhật
+   * @param data Dữ liệu cần cập nhật (có thể là một phần của đối tượng Sach)
+   * @param session (Tuỳ chọn) Phiên làm việc MongoDB hỗ trợ transaction
+   * @returns Đối tượng sách đã được cập nhật hoặc null nếu không tìm thấy
+   */
   async update(
     id: number,
     data: Partial<Sach>,
@@ -94,10 +149,29 @@ export class SachRepository {
     ).lean();
   }
 
+  /**
+   * Xóa sách theo ID khỏi cơ sở dữ liệu (xóa cứng).
+   * @param id ID của sách cần xóa
+   * @returns Đối tượng sách vừa bị xóa hoặc null nếu không tìm thấy
+   */
   async remove(id: number): Promise<Sach | null> {
     return this.SachModel.findOneAndDelete({ S_id: id }).lean();
   }
 
+  /**
+   * Xây dựng các pipeline cho truy vấn phân trang, lọc, sắp xếp sách.
+   *
+   * @param params Tham số truy vấn bao gồm:
+   * - page: Trang cần lấy
+   * - limit: Số bản ghi mỗi trang (mặc định 24)
+   * - sortType: Kiểu sắp xếp (tuỳ chọn)
+   * - filterType: Kiểu lọc sách (tuỳ chọn)
+   * - categoryIds: Danh sách ID thể loại (tuỳ chọn)
+   * - keyword: Từ khóa tìm kiếm (tuỳ chọn)
+   * @returns Đối tượng gồm hai pipeline:
+   * - dataPipeline: pipeline lấy dữ liệu sách theo điều kiện, phân trang, sắp xếp, lọc,...
+   * - countPipeline: pipeline tính tổng số bản ghi phù hợp với điều kiện lọc
+   */
   protected buildSplitPipelines({
     page,
     limit = 24,
@@ -117,53 +191,38 @@ export class SachRepository {
       filterType === BookFilterType.ExcludeActivePromotion;
     const search = this.getSearch(keyword);
     const filter = this.getFilter(filterType, categoryIds);
-
     const sort = this.getSort(sortType);
     const skip = (page - 1) * limit;
     const project = this.getProject();
-
     const needDiscountEarly =
       sortType === BookSortType.PriceAsc || sortType === BookSortType.PriceDesc;
-
     const preStages: PipelineStage[] = [];
     if (search) preStages.push({ $search: search });
-
     preStages.push({ $match: filter });
-
     const dataPipeline: PipelineStage[] = [...preStages];
-
     if (ExcludeUnexpiredPromotion) {
       dataPipeline.push(...this.buildExcludeUnexpiredPromotionStage());
     } else if (needDiscountEarly) {
       dataPipeline.push(...this.buildPromotionStages());
     }
-
     if (sort && Object.keys(sort).length > 0) {
       dataPipeline.push({ $sort: sort });
     }
-
     const countPipeline: PipelineStage[] = [...preStages];
-
     if (ExcludeUnexpiredPromotion) {
       countPipeline.push(...this.buildExcludeUnexpiredPromotionStage());
     }
-
     countPipeline.push(...this.buildPromotionStages(), { $count: 'count' });
-
     dataPipeline.push({ $skip: skip }, { $limit: limit });
-
     if (!ExcludeUnexpiredPromotion && !needDiscountEarly) {
       dataPipeline.push(...this.buildPromotionStages());
     }
-
     dataPipeline.push({ $project: project });
-
     return { dataPipeline, countPipeline };
   }
 
   protected buildPromotionStages(): PipelineStage[] {
     const now = new Date();
-
     const stages: PipelineStage[] = [
       {
         $lookup: {
@@ -211,7 +270,6 @@ export class SachRepository {
         },
       },
     ];
-
     stages.push({
       $addFields: {
         S_giaGiam: {
@@ -231,13 +289,22 @@ export class SachRepository {
         },
       },
     });
-
     return stages;
   }
 
+  /**
+   * Xây dựng các stage cho pipeline MongoDB để lấy thông tin khuyến mãi áp dụng cho sách.
+   *
+   * Cụ thể:
+   * - $lookup chi tiết khuyến mãi (chitietkhuyenmais) theo S_id sách, lọc chi tiết chưa xóa và chưa tạm ngừng.
+   * - $lookup khuyến mãi (khuyenmais) theo KM_id, chỉ lấy khuyến mãi còn hiệu lực theo ngày hiện tại.
+   * - Lọc chỉ giữ chi tiết khuyến mãi có khuyến mãi hiệu lực.
+   * - Thêm trường mới S_giaGiam là giá thấp nhất sau khi giảm nếu có khuyến mãi, ngược lại là giá bán gốc.
+   *
+   * @returns Mảng các PipelineStage phục vụ cho aggregation trong MongoDB.
+   */
   protected buildExcludeUnexpiredPromotionStage(): PipelineStage[] {
     const now = new Date();
-
     return [
       {
         $lookup: {
@@ -294,6 +361,12 @@ export class SachRepository {
     ];
   }
 
+  /**
+   * Lấy cấu trúc sắp xếp (sort) cho truy vấn MongoDB dựa trên loại sắp xếp được chọn.
+   *
+   * @param sortType Kiểu sắp xếp sách (BookSortType)
+   * @returns Đối tượng chứa các trường và hướng sắp xếp, hoặc undefined nếu không xác định
+   */
   protected getSort(sortType?: BookSortType): Record<string, any> | undefined {
     switch (sortType) {
       case BookSortType.Latest:
@@ -311,12 +384,18 @@ export class SachRepository {
     }
   }
 
+  /**
+   * Tạo bộ lọc (filter) cho truy vấn sách dựa trên loại lọc và danh sách thể loại.
+   *
+   * @param filterType Kiểu lọc sách (BookFilterType), mặc định là lọc tất cả (AllAll)
+   * @param categoryIds Mảng ID thể loại để lọc (nếu có)
+   * @returns Đối tượng filter MongoDB dùng trong truy vấn
+   */
   protected getFilter(
     filterType: BookFilterType = BookFilterType.AllAll,
     categoryIds?: number[]
   ): Record<string, any> {
     const filter: Record<string, any> = {};
-
     // Trạng thái
     if (filterType.startsWith('show')) {
       filter.S_trangThai = BookStatus.Show;
@@ -325,14 +404,12 @@ export class SachRepository {
     } else if (filterType.startsWith('all')) {
       filter.S_trangThai = { $in: [BookStatus.Show, BookStatus.Hidden] };
     }
-
     // Tồn kho
     if (filterType.endsWith('in-stock')) {
       filter.S_tonKho = { $gt: 0 };
     } else if (filterType.endsWith('out-of-stock')) {
       filter.S_tonKho = 0;
     }
-
     if (filterType === BookFilterType.ExcludeActivePromotion) {
       filter.S_trangThai = BookStatus.Show;
     }
@@ -340,10 +417,15 @@ export class SachRepository {
     if (Array.isArray(categoryIds) && categoryIds.length > 0) {
       filter.TL_id = { $in: categoryIds };
     }
-
     return filter;
   }
 
+  /**
+   * Tạo cấu trúc tìm kiếm full-text sử dụng MongoDB Atlas Search.
+   *
+   * @param keyword Từ khóa tìm kiếm (chuỗi)
+   * @returns Đối tượng cấu hình pipeline $search hoặc undefined nếu không có từ khóa
+   */
   protected getSearch(keyword?: string) {
     if (!keyword || keyword === '') return undefined;
     return {
@@ -359,6 +441,13 @@ export class SachRepository {
     };
   }
 
+  /**
+   * Xây dựng đối tượng projection cho pipeline Aggregation,
+   * chỉ chọn ra các trường cần thiết khi truy vấn sách,
+   * bao gồm ảnh bìa đầu tiên (nếu có).
+   *
+   * @returns Đối tượng projection cho MongoDB Aggregation Pipeline
+   */
   protected getProject() {
     return {
       S_id: 1,
@@ -396,6 +485,15 @@ export class SachRepository {
     };
   }
 
+  /**
+   * Tìm tất cả sách theo phân trang, lọc và sắp xếp tùy chọn.
+   *
+   * @param page - Trang cần lấy
+   * @param sortType - Loại sắp xếp sách (mới nhất, bán chạy, đánh giá, giá)
+   * @param filterType - Loại lọc sách (trạng thái, tồn kho, khuyến mãi, ...)
+   * @param limit - Số bản ghi tối đa mỗi trang, mặc định 24
+   * @returns Kết quả phân trang gồm danh sách sách và tổng số bản ghi
+   */
   async findAll(
     page: number,
     sortType?: BookSortType,
@@ -408,7 +506,6 @@ export class SachRepository {
       sortType,
       filterType,
     });
-
     return paginateRawAggregate({
       model: this.SachModel,
       page,
@@ -418,6 +515,17 @@ export class SachRepository {
     });
   }
 
+  /**
+   * Tìm kiếm sách theo từ khóa, phân trang, lọc và sắp xếp tùy chọn.
+   *
+   * @param page - Trang cần lấy
+   * @param sortType - Loại sắp xếp sách (mới nhất, bán chạy, đánh giá, giá)
+   * @param filterType - Loại lọc sách (trạng thái, tồn kho, khuyến mãi, ...)
+   * @param limit - Số bản ghi tối đa mỗi trang, mặc định 24
+   * @param keyword - Từ khóa tìm kiếm (tên sách, tác giả, nhà xuất bản)
+   * @param categoryIds - Danh sách ID thể loại để lọc sách
+   * @returns Kết quả phân trang gồm danh sách sách thỏa mãn tìm kiếm và tổng số bản ghi
+   */
   async search(
     page: number,
     sortType?: BookSortType,
@@ -434,7 +542,6 @@ export class SachRepository {
       categoryIds,
       keyword,
     });
-
     return paginateRawAggregate({
       model: this.SachModel,
       page,
@@ -444,6 +551,12 @@ export class SachRepository {
     });
   }
 
+  /**
+   * Lấy danh sách sách đang hiển thị (Show) theo danh sách ID truyền vào.
+   *
+   * @param ids - Mảng các ID sách cần tìm
+   * @returns Mảng đối tượng sách (Sach) đang ở trạng thái Show và thuộc các ID đã cho
+   */
   async findAllShowByIds(ids: number[]): Promise<Sach[]> {
     const project = this.getProject();
     const filter = this.getFilter(BookFilterType.ShowAll);
@@ -468,6 +581,14 @@ export class SachRepository {
 
     return result?.S_id ?? 0;
   }
+
+  /**
+   * Tìm sách theo mã ISBN với tùy chọn lọc trạng thái sách.
+   *
+   * @param id - Mã ISBN của sách cần tìm
+   * @param filterType - Kiểu lọc trạng thái sách (mặc định có thể không truyền)
+   * @returns Đối tượng sách đầu tiên tìm được hoặc null nếu không có
+   */
   async findByIsbn(id: string, filterType?: BookFilterType): Promise<any> {
     const discountStages = this.buildPromotionStages();
     const searchFilter = {
@@ -482,12 +603,20 @@ export class SachRepository {
     ]).then((result: Sach[]) => result[0] ?? null);
   }
 
+  /**
+   * Tìm sách theo ID với hai chế độ lấy dữ liệu:
+   * - 'default': lấy thông tin cơ bản, loại bỏ sách đã xóa và trường tóm tắt mở rộng.
+   * - 'full': lấy đầy đủ thông tin, bao gồm cả thể loại và tính khuyến mãi.
+   *
+   * @param id - ID của sách cần tìm
+   * @param mode - Chế độ lấy dữ liệu: 'default' hoặc 'full' (mặc định là 'default')
+   * @returns Đối tượng sách hoặc null nếu không tìm thấy
+   */
   async findById(
     id: number,
     mode: 'default' | 'full' = 'default'
   ): Promise<any> {
     const discountStages = this.buildPromotionStages();
-
     if (mode === 'full') {
       const filter = this.getFilter(BookFilterType.ShowAll);
       return this.SachModel.aggregate([
@@ -529,7 +658,6 @@ export class SachRepository {
         },
       ]).then((result: Sach[]) => result[0] ?? null);
     }
-
     // mode === 'default'
     return this.SachModel.findOne({
       S_id: id,
@@ -540,6 +668,15 @@ export class SachRepository {
       .exec();
   }
 
+  /**
+   * Tìm kiếm gợi ý autocomplete dựa trên từ khóa nhập vào,
+   * ưu tiên tìm kiếm trên các trường: tên sách, tác giả, nhà xuất bản.
+   * Kết quả trả về là danh sách chuỗi gợi ý có độ dài tối đa limit.
+   *
+   * @param keyword - Từ khóa tìm kiếm autocomplete
+   * @param limit - Số lượng kết quả tối đa trả về (mặc định 10)
+   * @returns Mảng chuỗi gợi ý autocomplete
+   */
   async searchAutocomplete(keyword: string, limit = 10): Promise<string[]> {
     const pipelineForField = (field: string, priority: number) => [
       {
@@ -568,7 +705,6 @@ export class SachRepository {
         },
       },
     ];
-
     const result: { suggestion: string }[] = await this.SachModel.aggregate([
       ...pipelineForField('S_ten', 1),
       {
@@ -599,10 +735,19 @@ export class SachRepository {
         $limit: limit,
       },
     ]);
-
     return result.map((item) => item.suggestion);
   }
 
+  /**
+   * Tìm sách dựa trên truy vấn vector embedding (tương tự tìm kiếm theo ngữ nghĩa).
+   * Sử dụng MongoDB $vectorSearch để tìm kiếm các sách có vector gần nhất với queryVector.
+   * Kết quả trả về là danh sách sách cùng điểm số vector (vectorScore), đã lọc theo trạng thái hiển thị.
+   *
+   * @param queryVector - Vector truy vấn (mảng số) để so sánh với vector tóm tắt sách
+   * @param limit - Số lượng sách tối đa trả về (mặc định 5)
+   * @param minScore - Ngưỡng điểm số vector tối thiểu để lọc kết quả (mặc định 0)
+   * @returns Mảng các sách phù hợp kèm điểm số vectorScore
+   */
   async findByVector(
     queryVector: number[],
     limit = 5,
@@ -610,7 +755,6 @@ export class SachRepository {
   ): Promise<any[]> {
     const project = this.getProject();
     const discountStages = this.buildPromotionStages();
-
     return this.SachModel.aggregate([
       {
         $vectorSearch: {
@@ -658,7 +802,6 @@ export class SachRepository {
           },
         },
       },
-
       ...discountStages,
       {
         $project: {
@@ -670,6 +813,13 @@ export class SachRepository {
     ]).exec();
   }
 
+  /**
+   * Đếm tổng số sách theo trạng thái hiển thị và tình trạng tồn kho.
+   * Trả về đối tượng chứa thông tin số lượng sách đang hiển thị (live) và ẩn (hidden),
+   * mỗi loại phân chia thành tổng số, số sách còn hàng (in stock) và hết hàng (out of stock).
+   *
+   * @returns Promise<{ live: { total: number; in: number; out: number }; hidden: { total: number; in: number; out: number } }>
+   */
   async countAll(): Promise<{
     live: { total: number; in: number; out: number };
     hidden: { total: number; in: number; out: number };
@@ -685,7 +835,6 @@ export class SachRepository {
           S_trangThai: BookStatus.Show,
           S_tonKho: 0,
         }),
-
         this.SachModel.countDocuments({
           S_trangThai: BookStatus.Hidden,
         }),
@@ -698,16 +847,23 @@ export class SachRepository {
           S_tonKho: 0,
         }),
       ]);
-
     return {
       live: { total: liveTotal, in: liveIn, out: liveOut },
       hidden: { total: hiddenTotal, in: hiddenIn, out: hiddenOut },
     };
   }
 
+  /**
+   * Đếm số lượng sách theo trạng thái lọc.
+   * Nếu filterType là 'Show' thì đếm sách đang hiển thị,
+   * nếu là 'Hidden' thì đếm sách đang ẩn,
+   * nếu là 'all' hoặc không truyền thì đếm cả sách hiển thị và ẩn.
+   *
+   * @param filterType Trạng thái lọc: BookStatus.Show | BookStatus.Hidden | 'all' (mặc định là 'all')
+   * @returns Promise<number> Tổng số sách thỏa mãn điều kiện lọc
+   */
   async count(filterType?: BookStatus | 'all'): Promise<number> {
     const filter: any = {};
-
     if (filterType === BookStatus.Show) {
       filter.S_trangThai = BookStatus.Show;
     } else if (filterType === BookStatus.Hidden) {
@@ -715,10 +871,15 @@ export class SachRepository {
     } else {
       filter.S_trangThai = { $in: [BookStatus.Show, BookStatus.Hidden] };
     }
-
     return this.SachModel.countDocuments(filter);
   }
 
+  /**
+   * Tìm tất cả sách thuộc các thể loại có trong danh sách `ids`.
+   *
+   * @param ids Mảng ID thể loại cần tìm sách
+   * @returns Promise<Sach[]> Danh sách sách thuộc các thể loại đã cho
+   */
   async findInCategories(ids: number[]) {
     return this.SachModel.find({
       TL_id: { $in: ids },

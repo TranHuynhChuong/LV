@@ -9,6 +9,7 @@ import {
 } from '../schemas/don-hang.schema';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
 
+// Enum trạng thái đơn hàng để sử dụng lọc và phân tích
 export enum OrderStatus {
   All = 'all',
   Pending = 'pending',
@@ -20,6 +21,7 @@ export enum OrderStatus {
   Canceled = 'canceled',
 }
 
+// Mapping OrderStatus => TrangThaiDonHang thực tế
 const OrderStatusMap: Record<OrderStatus, TrangThaiDonHang | undefined> = {
   [OrderStatus.All]: undefined,
   [OrderStatus.Pending]: TrangThaiDonHang.ChoXacNhan,
@@ -38,15 +40,26 @@ export class DonHangRepository {
     private readonly DonHangModel: Model<DonHangDocument>
   ) {}
 
-  // ======================== Tạo đơn hàng ==================== //
+  /**
+   * Tạo một đơn hàng mới trong cơ sở dữ liệu.
+   *
+   * @param {Partial<DonHang>} data - Dữ liệu đơn hàng cần tạo. Có thể thiếu một số trường vì là Partial.
+   * @param {ClientSession} [session] - Phiên giao dịch MongoDB (transaction) nếu có.
+   * @returns {Promise<DonHangDocument>} Đơn hàng mới vừa được tạo.
+   */
   async create(data: Partial<DonHang>, session?: ClientSession) {
     return this.DonHangModel.create([{ ...data }], { session }).then(
       (res) => res[0]
     );
   }
 
-  async findLastId(session: ClientSession): Promise<string | null> {
-    const lastDonHang = await this.DonHangModel.findOne({}, {}, { session })
+  /**
+   * Tìm ID đơn hàng gần nhất (có giá trị DH_id lớn nhất) từ cơ sở dữ liệu.
+   *
+   * @returns {Promise<string | null>} DH_id của đơn hàng gần nhất, hoặc null nếu không tìm thấy.
+   */
+  async findLastId(): Promise<string | null> {
+    const lastDonHang = await this.DonHangModel.findOne()
       .sort({ DH_id: -1 })
       .select('DH_id')
       .lean();
@@ -54,16 +67,26 @@ export class DonHangRepository {
     return lastDonHang?.DH_id ?? null;
   }
 
-  // ================================================================= //
-  // ==========================Lấy đơn hàng=========================== //
-
+  /**
+   * Tạo pipeline MongoDB để truy vấn và tổng hợp thông tin đơn hàng kèm các thông tin liên quan:
+   * chi tiết đơn hàng, sách, trạng thái giao hàng và đánh giá.
+   *
+   * @protected
+   * @param {Record<string, any>} [filter] - Điều kiện lọc `$match`,  theo `DH_id`, `KH_id`, `DH_trangThai`, v.v.
+   * @returns {PipelineStage[]} Mảng pipeline phục vụ cho aggregation MongoDB.
+   *
+   * Các thao tác chính trong pipeline:
+   * - `$match`: Lọc theo điều kiện truyền vào (nếu có).
+   * - `$lookup`: Join với các bảng phụ như `chitietdonhangs`, `saches`, `ttnhanhangdhs`, `danhgias`.
+   * - `$unwind`: Tách các mảng đã join để truy cập từng phần tử.
+   * - `$addFields`: Thêm trường `daDanhGia` để xác định đã đánh giá hay chưa.
+   * - `$group`: Gom nhóm lại theo đơn hàng gốc, đưa dữ liệu về cấu trúc chuẩn.
+   */
   protected getOrderPipeline(filter?: Record<string, any>): PipelineStage[] {
     const pipeline: PipelineStage[] = [];
-
     if (filter && Object.keys(filter).length > 0) {
       pipeline.push({ $match: filter });
     }
-
     pipeline.push(
       {
         $lookup: {
@@ -79,7 +102,6 @@ export class DonHangRepository {
           preserveNullAndEmptyArrays: true,
         },
       },
-
       {
         $lookup: {
           from: 'saches',
@@ -94,7 +116,6 @@ export class DonHangRepository {
           preserveNullAndEmptyArrays: true,
         },
       },
-
       {
         $lookup: {
           from: 'ttnhanhangdhs',
@@ -124,7 +145,6 @@ export class DonHangRepository {
           },
         },
       },
-
       {
         $group: {
           _id: '$_id',
@@ -140,7 +160,6 @@ export class DonHangRepository {
           KH_email: { $first: '$KH_email' },
           lichSuThaoTac: { $first: '$lichSuThaoTac' },
           thongTinNhanHang: { $first: '$nhanHang' },
-
           chiTietDonHang: {
             $push: {
               S_id: '$chiTietDonHang.S_id',
@@ -173,10 +192,25 @@ export class DonHangRepository {
         },
       }
     );
-
     return pipeline;
   }
 
+  /**
+   * Tạo điều kiện lọc cho truy vấn đơn hàng trong MongoDB Aggregation Pipeline.
+   *
+   * @protected
+   * @param {OrderStatus} [filterType] - Loại trạng thái đơn hàng (hoàn tất, chờ xử lý, v.v.).
+   * @param {string} [orderId] - Mã đơn hàng cụ thể để lọc.
+   * @param {Date} [from] - Ngày bắt đầu của khoảng thời gian lọc.
+   * @param {Date} [to] - Ngày kết thúc của khoảng thời gian lọc.
+   * @param {number} [userId] - ID khách hàng cần lọc.
+   * @returns {Record<string, any>} Điều kiện lọc phù hợp với yêu cầu đầu vào.
+   *
+   * @remarks
+   * - Nếu `filterType` là `Complete` hoặc `InComplete`, lọc theo trạng thái giao thành công hoặc giao thất bại.
+   * - Nếu có `from` và `to`, lọc theo ngày tạo đơn hàng nằm trong khoảng đó.
+   * - Các trạng thái đơn hàng được ánh xạ thông qua `OrderStatusMap` và `TrangThaiDonHang`.
+   */
   protected getFilter(
     filterType?: OrderStatus,
     orderId?: string,
@@ -185,9 +219,7 @@ export class DonHangRepository {
     userId?: number
   ): Record<string, any> {
     const filter: Record<string, any> = {};
-
     const status = filterType ? OrderStatusMap[filterType] : undefined;
-
     if (status) {
       if (
         filterType === OrderStatus.Complete ||
@@ -203,20 +235,37 @@ export class DonHangRepository {
     if (orderId) {
       filter.DH_id = orderId;
     }
-
     if (userId) {
       filter.KH_id = userId;
     }
-
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
       filter.DH_ngayTao = { $gte: from, $lte: to };
     }
-
     return filter;
   }
 
+  /**
+   * Truy vấn danh sách đơn hàng với phân trang, lọc theo trạng thái, khoảng thời gian, mã đơn và người dùng.
+   *
+   * @async
+   * @param {Object} options - Tuỳ chọn truy vấn đơn hàng.
+   * @param {number} options.page - Số trang hiện tại (bắt đầu từ 1).
+   * @param {number} options.limit - Số lượng đơn hàng mỗi trang (mặc định là 12).
+   * @param {OrderStatus} [options.filterType] - Trạng thái đơn hàng cần lọc.
+   * @param {string} [options.orderId] - Mã đơn hàng cụ thể cần truy vấn.
+   * @param {Date} [options.from] - Ngày bắt đầu của khoảng thời gian lọc.
+   * @param {Date} [options.to] - Ngày kết thúc của khoảng thời gian lọc.
+   * @param {number} [options.userId] - ID của khách hàng cần lọc.
+   *
+   * @returns {Promise<PaginatedResult<any>>} Kết quả truy vấn phân trang từ MongoDB aggregation pipeline.
+   *
+   * @remarks
+   * - Sử dụng `getFilter` để tạo điều kiện lọc từ các tuỳ chọn.
+   * - Dùng pipeline với `$lookup`, `$group`, `$sort`, `$skip`, `$limit` để lấy dữ liệu chính xác theo yêu cầu.
+   * - Phù hợp cho trang quản lý hoặc khách hàng xem lịch sử đơn hàng.
+   */
   async findAll(options: {
     page: number;
     limit: number;
@@ -227,16 +276,13 @@ export class DonHangRepository {
     userId?: number;
   }) {
     const { page, limit = 12, filterType, orderId, from, to, userId } = options;
-
     const filter = this.getFilter(filterType, orderId, from, to, userId);
     const pipeline = [...this.getOrderPipeline(filter)];
-
     const countPipeline = [...pipeline, { $count: 'count' }];
     const dataPipeline: PipelineStage[] = [...pipeline];
     const skip = (page - 1) * limit;
     dataPipeline.push({ $sort: { DH_ngayTao: -1 } });
     dataPipeline.push({ $skip: skip }, { $limit: limit });
-
     return paginateRawAggregate({
       model: this.DonHangModel,
       page,
@@ -246,23 +292,63 @@ export class DonHangRepository {
     });
   }
 
+  /**
+   * Truy vấn chi tiết đơn hàng theo mã đơn hàng và trạng thái (nếu có).
+   *
+   * @async
+   * @param {string} orderId - Mã định danh của đơn hàng cần tìm.
+   * @param {OrderStatus} [filterType] - Trạng thái đơn hàng cần lọc (nếu có).
+   *
+   * @returns {Promise<any>} Trả về thông tin chi tiết đơn hàng nếu tìm thấy, ngược lại trả về `null`.
+   *
+   * @remarks
+   * - Sử dụng aggregation pipeline kết hợp `$match` và pipeline bổ sung từ `getOrderPipeline`.
+   * - Có thể truyền `filterType` để giới hạn trạng thái đơn hàng cần truy vấn.
+   * - Dữ liệu trả về có thể bao gồm thông tin liên kết như sản phẩm, khách hàng, vận chuyển (tuỳ thuộc `getOrderPipeline`).
+   */
   async findById(orderId: string, filterType?: OrderStatus): Promise<any> {
     const filter = this.getFilter(filterType);
     const pipeline: PipelineStage[] = [
       { $match: { DH_id: orderId } },
       ...this.getOrderPipeline(filter),
     ];
-
     const result = await this.DonHangModel.aggregate(pipeline).exec();
     return result && result.length > 0 ? result[0] : null;
   }
 
+  /**
+   * Truy vấn đơn hàng theo mã đơn hàng (DH_id) mà không lấy các bảng liên quan.
+   *
+   * @async
+   * @param {string} id - Mã định danh của đơn hàng cần truy vấn.
+   *
+   * @returns {Promise<DonHang | null>} Trả về đối tượng đơn hàng nếu tìm thấy, ngược lại trả về `null`.
+   *
+   * @remarks
+   * - Hàm này sử dụng `findOne` trực tiếp trên model `DonHangModel`.
+   * - Không thực hiện liên kết (`lookup`) hay tổng hợp (`aggregate`) với các bảng khác như chi tiết đơn hàng, sách, vận chuyển, đánh giá,...
+   * - Phù hợp cho các tác vụ nội bộ cần truy cập nhanh thông tin cơ bản của đơn hàng.
+   */
   async getById(id: string): Promise<DonHang | null> {
     return this.DonHangModel.findOne({ DH_id: id }).exec();
   }
-  // ================================================================= //
-  // ============================Cập nhật============================= //
 
+  /**
+   * Cập nhật trạng thái đơn hàng và ghi lại lịch sử thao tác (nếu có).
+   *
+   * @async
+   * @param {string} DH_id - Mã định danh của đơn hàng cần cập nhật.
+   * @param {OrderStatus} status - Trạng thái mới của đơn hàng (được ánh xạ từ enum OrderStatus sang giá trị trong DB).
+   * @param {any} [activityLog] - (Tuỳ chọn) Nhật ký thao tác sẽ được thêm vào mảng `lichSuThaoTac` của đơn hàng.
+   * @param {ClientSession} [session] - (Tuỳ chọn) Phiên giao dịch MongoDB dùng để đảm bảo tính nhất quán khi thực hiện cập nhật.
+   *
+   * @returns {Promise<DonHang | null>} Trả về đơn hàng sau khi cập nhật nếu tồn tại, ngược lại trả về `null`.
+   *
+   * @remarks
+   * - Sử dụng `findOneAndUpdate` để cập nhật đơn hàng và trả về bản ghi mới nhất (`{ new: true }`).
+   * - Nếu có `activityLog`, thông tin đó sẽ được đẩy vào mảng `lichSuThaoTac`.
+   * - Có thể sử dụng trong transaction khi cần đảm bảo tính nguyên tử (nếu truyền `session`).
+   */
   async update(
     DH_id: string,
     status: OrderStatus,
@@ -272,23 +358,51 @@ export class DonHangRepository {
     const updateQuery: any = {
       DH_trangThai: OrderStatusMap[status],
     };
-
     const updateOps: any = {
       $set: updateQuery,
     };
-
     if (activityLog) {
       updateOps.$push = {
         lichSuThaoTac: activityLog,
       };
     }
-
     return this.DonHangModel.findOneAndUpdate({ DH_id }, updateOps, {
       new: true,
       session,
     });
   }
 
+  /**
+   * Đếm tổng số đơn hàng theo từng trạng thái trong khoảng thời gian chỉ định (nếu có).
+   *
+   * @async
+   * @param {Date} [from] - (Tuỳ chọn) Ngày bắt đầu để lọc các đơn hàng theo thời gian tạo.
+   * @param {Date} [to] - (Tuỳ chọn) Ngày kết thúc để lọc các đơn hàng theo thời gian tạo.
+   *
+   * @returns {Promise<{
+   *   total: number;
+   *   pending: number;
+   *   toShip: number;
+   *   shipping: number;
+   *   complete: number;
+   *   inComplete: number;
+   *   cancelRequest: number;
+   *   canceled: number;
+   * }>} - Trả về thống kê số lượng đơn hàng theo từng trạng thái:
+   *   - `total`: Tổng số đơn hàng.
+   *   - `pending`: Đơn hàng chờ xác nhận.
+   *   - `toShip`: Đơn hàng chờ vận chuyển.
+   *   - `shipping`: Đơn hàng đang được vận chuyển.
+   *   - `complete`: Đơn hàng giao thành công.
+   *   - `inComplete`: Đơn hàng giao thất bại.
+   *   - `cancelRequest`: Đơn hàng có yêu cầu huỷ.
+   *   - `canceled`: Đơn hàng đã huỷ.
+   *
+   * @remarks
+   * - Sử dụng aggregation pipeline để nhóm đơn hàng theo `DH_trangThai` và đếm số lượng từng nhóm.
+   * - Nếu có truyền `from` và `to`, sẽ lọc đơn hàng theo mốc thời gian `DH_ngayTao`.
+   * - Các trạng thái không có đơn hàng sẽ được trả về là `0`.
+   */
   async countAll(
     from?: Date,
     to?: Date
@@ -303,15 +417,12 @@ export class DonHangRepository {
     canceled: number;
   }> {
     const match: any = {};
-
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
       match.DH_ngayTao = { $gte: from, $lte: to };
     }
-
     type GroupResult = { _id: string; count: number };
-
     const result: GroupResult[] = await this.DonHangModel.aggregate([
       { $match: match },
       {
@@ -325,9 +436,7 @@ export class DonHangRepository {
     result.forEach((r) => {
       stats[r._id] = r.count;
     });
-
     const total = result.reduce((sum, r) => sum + r.count, 0);
-
     return {
       total,
       pending: stats[TrangThaiDonHang.ChoXacNhan] || 0,
@@ -340,8 +449,42 @@ export class DonHangRepository {
     };
   }
 
-  //================================================ THỐNG KÊ =====================================================//
-
+  /**
+   * Thống kê đơn hàng theo từng mốc thời gian (ngày, tháng hoặc năm) và trạng thái đơn hàng.
+   *
+   * @param from - Ngày bắt đầu khoảng thời gian cần thống kê.
+   * @param to - Ngày kết thúc khoảng thời gian cần thống kê.
+   * @param groupBy - Đơn vị thống kê theo thời gian: 'day', 'month' hoặc 'year'.
+   * @returns Thống kê số lượng đơn hàng, đơn hoàn tất, đơn thất bại và đơn bị hủy theo từng mốc thời gian.
+   *
+   * Cấu trúc trả về:
+   * {
+   *   'YYYY-MM-DD' | 'YYYY-MM' | 'YYYY': {
+   *     total: {
+   *       all: Tổng số đơn hàng,
+   *       complete: Số đơn giao thành công,
+   *       inComplete: Số đơn giao thất bại,
+   *       canceled: Số đơn đã hủy
+   *     },
+   *     complete: {
+   *       orderIds: Mảng ID đơn hàng hoàn tất,
+   *       stats: {
+   *         totalBillSale: Tổng tiền giảm giá hóa đơn,
+   *         totalShipSale: Tổng tiền giảm phí vận chuyển,
+   *         totalShipPrice: Tổng phí vận chuyển gốc
+   *       }
+   *     },
+   *     inComplete: {
+   *       orderIds: Mảng ID đơn hàng thất bại,
+   *       stats: {
+   *         totalBillSale: Tổng tiền giảm giá hóa đơn,
+   *         totalShipSale: Tổng tiền giảm phí vận chuyển,
+   *         totalShipPrice: Tổng phí vận chuyển gốc
+   *       }
+   *     }
+   *   }
+   * }
+   */
   async getOrderStatsByStatus(
     from: Date,
     to: Date,
@@ -377,10 +520,8 @@ export class DonHangRepository {
   > {
     from.setHours(0, 0, 0, 0);
     to.setHours(23, 59, 59, 999);
-
     const dateFormat =
       groupBy === 'year' ? '%Y' : groupBy === 'month' ? '%Y-%m' : '%Y-%m-%d';
-
     const allRaw = await this.DonHangModel.aggregate([
       {
         $match: {
@@ -404,7 +545,6 @@ export class DonHangRepository {
         $sort: { _id: 1 },
       },
     ]);
-
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
@@ -435,9 +575,7 @@ export class DonHangRepository {
         },
       },
     ]);
-
     const result: Record<string, any> = {};
-
     for (const item of allRaw) {
       const date = item._id;
       result[date] = {
@@ -457,11 +595,9 @@ export class DonHangRepository {
         },
       };
     }
-
     for (const item of raw) {
       const date = item._id.date;
       const status = item._id.status;
-
       result[date] ??= {
         total: {
           all: 0,
@@ -478,7 +614,6 @@ export class DonHangRepository {
           stats: { totalBillSale: 0, totalShipSale: 0, totalShipPrice: 0 },
         },
       };
-
       switch (status) {
         case 'GiaoThanhCong':
           result[date].total.complete = item.total;
@@ -503,10 +638,19 @@ export class DonHangRepository {
           break;
       }
     }
-
     return result;
   }
 
+  /**
+   * Thống kê số lượng đơn hàng theo loại khách hàng (thành viên hoặc khách vãng lai)
+   * trong khoảng thời gian được chỉ định và có trạng thái là giao thành công hoặc thất bại.
+   *
+   * @param from - Ngày bắt đầu tính thống kê (sẽ được đặt về đầu ngày: 00:00:00).
+   * @param to - Ngày kết thúc tính thống kê (sẽ được đặt về cuối ngày: 23:59:59).
+   * @returns Đối tượng chứa số lượng đơn hàng phân theo loại khách hàng:
+   *  - 'member': khách hàng có KH_id (đã đăng ký thành viên).
+   *  - 'guest': khách hàng không có KH_id (mua hàng không đăng nhập).
+   */
   async getOrderStatsByCustomerType(
     from: Date,
     to: Date
@@ -538,20 +682,24 @@ export class DonHangRepository {
         },
       },
     ]);
-
     const result: Record<'member' | 'guest', number> = {
       member: 0,
       guest: 0,
     };
-
     for (const item of raw) {
       const type = item._id as 'member' | 'guest';
       result[type] = item.total;
     }
-
     return result;
   }
 
+  /**
+   * Truy vấn danh sách mã đơn hàng (DH_id) được tạo trong khoảng thời gian chỉ định.
+   *
+   * @param from - Ngày bắt đầu của khoảng thời gian (sẽ được đặt về đầu ngày: 00:00:00).
+   * @param to - Ngày kết thúc của khoảng thời gian (sẽ được đặt về cuối ngày: 23:59:59).
+   * @returns Mảng chuỗi gồm các mã đơn hàng (DH_id) thỏa điều kiện thời gian.
+   */
   async getOrderIdsByDate(from: Date, to: Date): Promise<string[]> {
     from.setHours(0, 0, 0, 0);
     to.setHours(23, 59, 59, 999);
@@ -568,7 +716,6 @@ export class DonHangRepository {
         },
       },
     ]);
-
     return raw.map((item: { DH_id: string }) => item.DH_id);
   }
 }

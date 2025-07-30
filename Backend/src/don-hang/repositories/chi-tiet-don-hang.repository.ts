@@ -14,23 +14,39 @@ export class ChiTietDonHangRepository {
     private readonly ChiTietDonHangModel: Model<ChiTietDonHangDocument>
   ) {}
 
-  // Tạo chi tiết đơn hàng
+  /**
+   * Tạo mới các chi tiết đơn hàng cho một đơn hàng cụ thể.
+   * @param orderId - Mã đơn hàng liên kết với các chi tiết.
+   * @param detail - Danh sách các chi tiết đơn hàng.
+   * @param session - Phiên giao dịch MongoDB (nếu có).
+   * @returns Promise chứa danh sách chi tiết đơn hàng đã được tạo.
+   */
   async create(
-    dhId: string,
-    chiTiet: Partial<ChiTietDonHang>[],
+    orderId: string,
+    detail: Partial<ChiTietDonHang>[],
     session?: ClientSession
   ) {
-    const data = chiTiet.map((ct) => ({
-      DH_id: dhId,
+    const data = detail.map((ct) => ({
+      DH_id: orderId,
       ...ct,
     }));
     return this.ChiTietDonHangModel.insertMany(data, { session });
   }
 
+  /**
+   * Tìm tất cả chi tiết đơn hàng theo ID đơn hàng.
+   * @param orderId - Mã đơn hàng.
+   * @returns Danh sách chi tiết đơn hàng dưới dạng plain object.
+   */
   async findByOrderId(orderId: string) {
     return this.ChiTietDonHangModel.find({ DH_id: orderId }).lean();
   }
 
+  /**
+   * Tính toán thống kê chi tiết sản phẩm cho danh sách đơn hàng.
+   * @param orderIds - Mảng mã đơn hàng.
+   * @returns Tổng giá bán, giá nhập, giá mua và số lượng sản phẩm.
+   */
   async getOrderDetailsStats(orderIds: string[]): Promise<{
     totalSalePrice: number;
     totalCostPrice: number;
@@ -64,7 +80,6 @@ export class ChiTietDonHangRepository {
         },
       },
     ]);
-
     return (
       raw[0] ?? {
         totalSalePrice: 0,
@@ -75,7 +90,12 @@ export class ChiTietDonHangRepository {
     );
   }
 
-  async getDiscountedProductStats(dhIds: string[]): Promise<{
+  /**
+   * Thống kê số lượng sản phẩm đã giảm giá và tổng số lượng sản phẩm trong đơn hàng.
+   * @param orderId - Mảng mã đơn hàng cần thống kê.
+   * @returns Tổng số sản phẩm và số sản phẩm có giá mua thấp hơn giá bán.
+   */
+  async getDiscountedProductStats(orderId: string[]): Promise<{
     totalProducts: number;
     discountedProducts: number;
   }> {
@@ -85,7 +105,7 @@ export class ChiTietDonHangRepository {
     }[] = await this.ChiTietDonHangModel.aggregate([
       {
         $match: {
-          DH_id: { $in: dhIds },
+          DH_id: { $in: orderId },
         },
       },
       {
@@ -127,7 +147,6 @@ export class ChiTietDonHangRepository {
         },
       },
     ]);
-
     return (
       raw[0] || {
         totalProducts: 0,

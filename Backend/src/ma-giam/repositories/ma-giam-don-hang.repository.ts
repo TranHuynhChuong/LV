@@ -14,19 +14,38 @@ export class MaGiamDonHangRepository {
     private readonly MaGiamDonHangModel: Model<MaGiamDonHangDocument>
   ) {}
 
-  // Tạo mã giảm giá đơn hàng
-  async create(dhId: string, mgIds: string[], session?: ClientSession) {
-    const data = mgIds.map((mgId) => ({
-      DH_id: dhId,
-      MG_id: mgId,
+  /**
+   * Tạo bản ghi liên kết giữa một đơn hàng và các mã giảm giá đã áp dụng.
+   *
+   * @param dhId Mã định danh của đơn hàng.
+   * @param mgIds Mảng mã định danh của các mã giảm giá.
+   * @param session (Tùy chọn) Phiên làm việc MongoDB để hỗ trợ transaction.
+   * @returns Danh sách các bản ghi đã được thêm vào.
+   */
+  async create(orderId: string, voucherIds: string[], session?: ClientSession) {
+    const data = voucherIds.map((voucherId) => ({
+      DH_id: orderId,
+      MG_id: voucherId,
     }));
     return this.MaGiamDonHangModel.insertMany(data, { session });
   }
 
-  async getVoucherStats(dhIds: string[]) {
+  /**
+   * Thống kê số lượng đơn hàng đã sử dụng mã giảm giá và thống kê theo loại mã giảm giá.
+   *
+   * - Truy vấn thực hiện hai pipeline song song:
+   *   - Pipeline 1: Join với collection `magiams`, nhóm theo `MG_loai`, đếm số lượng từng loại.
+   *   - Pipeline 2: Nhóm theo `DH_id` duy nhất để biết số đơn hàng có dùng mã giảm.
+   *
+   * @param orderIds Danh sách mã đơn hàng cần thống kê.
+   * @returns
+   * - `orderUsed`: số lượng đơn hàng có sử dụng ít nhất một mã giảm giá.
+   * - `typeStats`: đối tượng thống kê số lượng mã giảm giá theo loại (vd: `order`, `shipping`).
+   */
+  async getVoucherStats(orderIds: string[]) {
     const [typeResult, usedResult] = await Promise.all([
       this.MaGiamDonHangModel.aggregate([
-        { $match: { DH_id: { $in: dhIds } } },
+        { $match: { DH_id: { $in: orderIds } } },
         {
           $lookup: {
             from: 'magiams',
@@ -36,7 +55,6 @@ export class MaGiamDonHangRepository {
           },
         },
         { $unwind: { path: '$maGiam', preserveNullAndEmptyArrays: false } },
-
         {
           $group: {
             _id: '$maGiam.MG_loai',
@@ -51,9 +69,8 @@ export class MaGiamDonHangRepository {
           },
         },
       ]),
-
       this.MaGiamDonHangModel.aggregate([
-        { $match: { DH_id: { $in: dhIds } } },
+        { $match: { DH_id: { $in: orderIds } } },
         {
           $group: {
             _id: '$DH_id',
@@ -64,18 +81,15 @@ export class MaGiamDonHangRepository {
         },
       ]),
     ]);
-
     const TYPE_LABELS: Record<string, string> = {
       vc: 'shipping',
       hd: 'order',
     };
-
     const typeStats: Record<string, number> = {};
     for (const item of typeResult) {
       const key = TYPE_LABELS[item.type] ?? item.type;
       typeStats[key] = item.count;
     }
-
     return {
       orderUsed: usedResult[0]?.orderUsed ?? 0,
       typeStats,

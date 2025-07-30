@@ -17,13 +17,30 @@ import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
 export class DanhGiaController {
   constructor(private readonly DanhGiaService: DanhGiaService) {}
 
+  /**
+   * Tạo một hoặc nhiều đánh giá cho sản phẩm.
+   *
+   * @param dto - Mảng đánh giá cần tạo
+   * @returns Danh sách đánh giá đã tạo
+   */
   @Post()
   create(@Body() dto: CreateDanhGiaDto[]) {
     return this.DanhGiaService.create(dto);
   }
 
+  /**
+   * Lấy danh sách đánh giá (tùy chọn lọc theo đánh giá, thời gian, trạng thái).
+   *
+   * @param page - Trang cần lấy đánh giá
+   * @param limit - Số đánh giá mỗi trang (mặc định: 24)
+   * @param rating - Điểm đánh giá cụ thể (tuỳ chọn)
+   * @param from - Ngày bắt đầu (tuỳ chọn, định dạng ISO)
+   * @param to - Ngày kết thúc (tuỳ chọn, định dạng ISO)
+   * @param status - Trạng thái đánh giá: all, visible, hidden
+   * @returns Danh sách đánh giá đã lọc và phân trang
+   */
   @Get('all')
-  async getAllReviews(
+  async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(24), ParseIntPipe) limit: number,
     @Query('rating') rating?: number,
@@ -33,7 +50,6 @@ export class DanhGiaController {
   ): Promise<unknown> {
     const start = from ? new Date(from) : undefined;
     const end = to ? new Date(to) : undefined;
-
     return this.DanhGiaService.findAll({
       page: page,
       limit: limit,
@@ -44,8 +60,16 @@ export class DanhGiaController {
     });
   }
 
+  /**
+   * Lấy danh sách đánh giá của một sách cụ thể theo phân trang.
+   *
+   * @param bookId - ID của sách
+   * @param page - Trang cần lấy
+   * @param limit - Số đánh giá mỗi trang (mặc định: 24)
+   * @returns Danh sách đánh giá của sách
+   */
   @Get('/book/:bookId')
-  getAllOfBook(
+  findAllOfBook(
     @Param('bookId') spId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '24'
@@ -57,23 +81,39 @@ export class DanhGiaController {
     );
   }
 
+  /**
+   * Thống kê số lượng đánh giá trong khoảng thời gian.
+   *
+   * @param from - Ngày bắt đầu (ISO format)
+   * @param to - Ngày kết thúc (ISO format)
+   * @returns Dữ liệu thống kê đánh giá
+   */
   @Get('/stats')
-  async countRatingOfMonth(
-    @Query('from') from: string,
-    @Query('to') to: string
-  ) {
+  async getRatingStats(@Query('from') from: string, @Query('to') to: string) {
     const start = new Date(from);
     const end = new Date(to);
-    return this.DanhGiaService.countRating(start, end);
+    return this.DanhGiaService.getRatingStats(start, end);
   }
 
+  /**
+   * Ẩn một đánh giá khỏi danh sách hiển thị.
+   *
+   * @param dto - Thông tin đánh giá cần ẩn
+   * @returns Đánh giá đã được cập nhật
+   */
   @Patch('/hide')
-  async hideReview(@Body() dto: UpdateDanhGiaDto) {
+  async hide(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.hide(dto);
   }
 
+  /**
+   * Hiển thị một đánh giá đã bị ẩn trước đó.
+   *
+   * @param dto - Thông tin đánh giá cần hiển thị lại
+   * @returns Đánh giá đã được cập nhật
+   */
   @Patch('/show')
-  async showReview(@Body() dto: UpdateDanhGiaDto) {
+  async show(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.show(dto);
   }
 }

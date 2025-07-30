@@ -30,6 +30,13 @@ export class TransformService implements OnModuleInit {
     }
   }
 
+  /**
+   * Tính embedding cho chuỗi văn bản đầu vào bằng mô hình E5.
+   *
+   * @param input - Chuỗi văn bản cần chuyển thành vector embedding.
+   * @param type - Loại embedding cần tính: `'query'` (câu truy vấn) hoặc `'passage'` (đoạn văn).
+   * @returns Vector embedding dưới dạng mảng số thực (float).
+   */
   async getTextEmbedding(
     input: string,
     type: 'query' | 'passage' = 'query'
@@ -39,14 +46,18 @@ export class TransformService implements OnModuleInit {
       pooling: 'mean',
       normalize: true,
     });
-
     if (output?.data && ArrayBuffer.isView(output.data)) {
       return Array.from(output.data);
     }
-
     throw new BadRequestException();
   }
 
+  /**
+   * Đếm số lượng token trong chuỗi văn bản đầu vào.
+   *
+   * @param input - Chuỗi văn bản cần phân tích.
+   * @returns Số lượng token sau khi mã hóa theo tokenizer của mô hình.
+   */
   async countTokens(input: string): Promise<number> {
     if (!this.tokenizer) {
       throw new BadRequestException('Tokenizer chưa được khởi tạo');

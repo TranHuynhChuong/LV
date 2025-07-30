@@ -18,6 +18,13 @@ export class TTNhanHangDHService {
     private readonly DiaChiService: DiaChiService
   ) {}
 
+  /**
+   * Tạo mới thông tin nhận hàng cho đơn hàng.
+   *
+   * @param data - Dữ liệu thông tin nhận hàng của đơn hàng (có thể thiếu một số trường).
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB dùng để thực hiện trong transaction.
+   * @returns Thông tin vừa được tạo sau khi lưu vào cơ sở dữ liệu.
+   */
   async create(data: Partial<TTNhanHangDH>, session?: ClientSession) {
     const result = await this.TTNhanHangDHRepo.createDH(data, session);
     if (!result) {
@@ -28,22 +35,33 @@ export class TTNhanHangDHService {
     return result;
   }
 
-  async findByDHId(DH_id: string) {
-    const result = await this.TTNhanHangDHRepo.findByDHId(DH_id);
+  /**
+   * Tìm thông tin nhận hàng tương ứng với mã đơn hàng.
+   *
+   * @param orderId - Mã đơn hàng cần tra cứu.
+   * @returns Thông tin nhận hàng nếu tồn tại, ngược lại trả về null.
+   */
+  async findByDHId(orderId: string) {
+    const result = await this.TTNhanHangDHRepo.findByDHId(orderId);
     if (!result) return null;
     const NH_diaChi = await this.DiaChiService.getFullAddressText(
       result.T_id,
       result.X_id
     );
-
     return {
       ...result,
       NH_diaChi,
     };
   }
 
-  async getStatsByProvince(dhIds: string[]) {
-    return this.TTNhanHangDHRepo.getStatsByProvince(dhIds);
+  /**
+   * Thống kê số lượng đơn hàng theo tỉnh/thành dựa trên danh sách mã đơn hàng.
+   *
+   * @param orderIds - Mảng chứa các mã đơn hàng cần thống kê.
+   * @returns Mảng đối tượng gồm `provinceId` (mã tỉnh) và `count` (số lượng đơn hàng tương ứng).
+   */
+  async getStatsByProvince(orderIds: string[]) {
+    return this.TTNhanHangDHRepo.getStatsByProvince(orderIds);
   }
 }
 
@@ -55,16 +73,19 @@ export class TTNhanHangKHService {
     @InjectConnection() private readonly connection: Connection
   ) {}
 
-  // Tạo mới thông tin nhận hàng
+  /**
+   * Tạo mới một địa chỉ nhận hàng cho khách hàng.
+   *
+   * @param data - Dữ liệu thông tin nhận hàng cần tạo, bao gồm các trường như họ tên, số điện thoại, mã tỉnh, mã huyện,...
+   * @returns Đối tượng thông tin nhận hàng vừa được tạo.
+   */
   async create(data: any): Promise<TTNhanHangKH> {
     const session = await this.connection.startSession();
     session.startTransaction();
-
     try {
       // Kiểm tra khách hàng đã có địa chỉ chưa
       const existingAddresses = await this.TTNhanHangKHRepo.findAll(data.KH_id);
       const isFirstAddress = existingAddresses.length === 0;
-
       const shouldBeDefault = isFirstAddress || data.NH_macDinh;
       // Nếu địa chỉ mới được đặt là mặc định, unset các địa chỉ mặc định khác
       if (shouldBeDefault && !isFirstAddress) {
@@ -76,13 +97,11 @@ export class TTNhanHangKHService {
         session
       );
       const newId = lastId + 1;
-
       const newData = {
         ...data,
         NH_id: newId,
         NH_macDinh: shouldBeDefault,
       };
-
       const result = await this.TTNhanHangKHRepo.create(newData, session);
       if (!result)
         throw new BadRequestException(
@@ -92,21 +111,23 @@ export class TTNhanHangKHService {
       return result;
     } catch (error) {
       await session.abortTransaction();
-
       if (error.code === 11000) {
         throw new ConflictException();
       }
-
       throw error;
     } finally {
       await session.endSession();
     }
   }
 
-  // Lấy danh sách theo KH
-  async findAll(KH_id: number) {
-    const results = await this.TTNhanHangKHRepo.findAll(KH_id);
-
+  /**
+   * Lấy toàn bộ danh sách địa chỉ nhận hàng của một khách hàng cụ thể.
+   *
+   * @param userId - ID của khách hàng cần lấy danh sách địa chỉ nhận hàng.
+   * @returns Danh sách các địa chỉ nhận hàng của khách hàng dưới dạng mảng.
+   */
+  async findAll(userId: number) {
+    const results = await this.TTNhanHangKHRepo.findAll(userId);
     // Thêm trường NH_diaChi cho từng kết quả
     const resultsWithAddress = await Promise.all(
       results.map(async (item) => {
@@ -114,20 +135,24 @@ export class TTNhanHangKHService {
           item.T_id,
           item.X_id
         );
-
         return {
           ...item,
           NH_diaChi,
         };
       })
     );
-
     return resultsWithAddress;
   }
 
-  // Lấy 1 bản ghi theo NH_id
-  async findOne(NH_id: number, KH_id: number) {
-    const data = await this.TTNhanHangKHRepo.findById(NH_id, KH_id);
+  /**
+   * Lấy thông tin chi tiết một địa chỉ nhận hàng của khách hàng.
+   *
+   * @param id - ID của địa chỉ nhận hàng cần tìm.
+   * @param userId - ID của khách hàng sở hữu địa chỉ nhận hàng.
+   * @returns Đối tượng địa chỉ nhận hàng nếu tìm thấy, ngược lại trả về null.
+   */
+  async findOne(id: number, userId: number) {
+    const data = await this.TTNhanHangKHRepo.findById(id, userId);
     if (!data) {
       throw new NotFoundException();
     }
@@ -135,22 +160,28 @@ export class TTNhanHangKHService {
       data.T_id,
       data.X_id
     );
-
     return {
       ...data,
       NH_diaChi,
     };
   }
 
-  // Cập nhật
+  /**
+   * Cập nhật thông tin địa chỉ nhận hàng của khách hàng.
+   *
+   * @param id - ID của địa chỉ nhận hàng cần cập nhật.
+   * @param userId - ID của khách hàng sở hữu địa chỉ nhận hàng.
+   * @param data - Dữ liệu cần cập nhật cho địa chỉ nhận hàng.
+   * @returns Đối tượng địa chỉ nhận hàng sau khi cập nhật.
+   */
   async update(
-    NH_id: number,
-    KH_id: number,
+    id: number,
+    userId: number,
     data: Partial<TTNhanHangKH>
   ): Promise<TTNhanHangKH> {
     // Nếu không đặt mặc định thì chỉ cần update đơn giản
     if (data.NH_macDinh !== true) {
-      const updated = await this.TTNhanHangKHRepo.update(NH_id, KH_id, data);
+      const updated = await this.TTNhanHangKHRepo.update(id, userId, data);
       if (!updated) {
         throw new BadRequestException(
           'Cập nhật thông tin nhận hàng khách hàng - Không tồn tại'
@@ -158,19 +189,16 @@ export class TTNhanHangKHService {
       }
       return updated;
     }
-
     // Nếu có đặt mặc định, cần dùng transaction
     const session = await this.connection.startSession();
     session.startTransaction();
-
     try {
       // Hủy mặc định các bản ghi khác
-      await this.TTNhanHangKHRepo.unsetDefaultOthers(NH_id, KH_id, session);
-
+      await this.TTNhanHangKHRepo.unsetDefaultOthers(id, userId, session);
       // Cập nhật bản ghi hiện tại
       const updated = await this.TTNhanHangKHRepo.update(
-        NH_id,
-        KH_id,
+        id,
+        userId,
         data,
         session
       );
@@ -179,7 +207,6 @@ export class TTNhanHangKHService {
           'Cập nhật thông tin nhận hàng khách hàng - Không tồn tại'
         );
       }
-
       await session.commitTransaction();
       return updated;
     } catch (error) {
@@ -190,43 +217,44 @@ export class TTNhanHangKHService {
     }
   }
 
-  // Xóa
-  async delete(NH_id: number, KH_id: number) {
+  /**
+   * Xóa địa chỉ nhận hàng của khách hàng theo ID.
+   *
+   * @param id - ID của địa chỉ nhận hàng cần xóa.
+   * @param userId - ID của khách hàng sở hữu địa chỉ.
+   * @returns Kết quả xóa (thường là đối tượng xác nhận từ MongoDB, ví dụ: { acknowledged: true, deletedCount: 1 }).
+   */
+  async delete(id: number, userId: number) {
     const session = await this.connection.startSession();
     session.startTransaction();
-
     try {
       // Lấy thông tin địa chỉ cần xóa để kiểm tra có phải mặc định không
-      const address = await this.TTNhanHangKHRepo.findById(NH_id, KH_id);
+      const address = await this.TTNhanHangKHRepo.findById(id, userId);
       if (!address) {
         throw new BadRequestException(
           'Xóa thông tin nhận hàng khách hàng - Không tìm thấy địa chỉ cần xóa'
         );
       }
-
       // Xóa địa chỉ
-      const result = await this.TTNhanHangKHRepo.delete(NH_id, KH_id, session);
+      const result = await this.TTNhanHangKHRepo.delete(id, userId, session);
       if (result.deletedCount === 0) {
         throw new BadRequestException('Xóa thất bại');
       }
-
       // Nếu địa chỉ bị xóa là mặc định → kiểm tra các địa chỉ còn lại
       if (address.NH_macDinh) {
-        const remaining = await this.TTNhanHangKHRepo.findAll(KH_id);
-
+        const remaining = await this.TTNhanHangKHRepo.findAll(userId);
         const hasMacDinh = remaining.some((item) => item.NH_macDinh);
         if (!hasMacDinh && remaining.length > 0) {
           // Không còn địa chỉ mặc định nào → đặt cái đầu tiên làm mặc định
           const first = remaining[0];
           await this.TTNhanHangKHRepo.update(
-            first.NH_id,
-            KH_id,
+            first.id,
+            userId,
             { NH_macDinh: true },
             session
           );
         }
       }
-
       await session.commitTransaction();
       return { deleted: true };
     } catch (error) {

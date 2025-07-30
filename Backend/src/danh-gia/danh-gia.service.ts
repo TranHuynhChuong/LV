@@ -12,30 +12,35 @@ import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 
+/**
+ * Service xử lý logic nghiệp vụ liên quan đến đánh giá sách
+ */
 @Injectable()
 export class DanhGiaService {
   constructor(
     @InjectConnection() private readonly connection: Connection,
-
     private readonly DanhGiaRepo: DanhGiaRepository,
     private readonly SachService: SachUtilService,
     private readonly NhanVienService: NhanVienUtilService
   ) {}
 
+  /**
+   * Tạo mới nhiều đánh giá sách, cập nhật điểm trung bình từng sách trong cùng transaction
+   * @param dtos Mảng dữ liệu đánh giá cần tạo
+   * @returns Mảng các đánh giá đã được tạo
+   * @throws BadRequestException nếu không thể tạo hoặc không có đánh giá nào được tạo
+   */
   async create(dtos: CreateDanhGiaDto[]): Promise<DanhGia[]> {
     const session = await this.connection.startSession();
-
     try {
       const result = await session.withTransaction(
         async (): Promise<DanhGia[]> => {
           const createdDanhGias: DanhGia[] = [];
-
           for (const dto of dtos) {
             const created = await this.DanhGiaRepo.create(dto, session);
             if (!created) {
               throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
             }
-
             const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
               dto.S_id,
               session
@@ -44,27 +49,36 @@ export class DanhGiaService {
 
             createdDanhGias.push(created);
           }
-
           return createdDanhGias;
         }
       );
-
       if (!result || result.length === 0) {
         throw new BadRequestException(
           'Tạo đánh giá - Không có đánh giá nào được tạo'
         );
       }
-
       return result;
     } finally {
       await session.endSession();
     }
   }
 
+  /**
+   * Lấy tất cả đánh giá của một quyển sách (phân trang)
+   * @param bookId ID sách cần lấy đánh giá
+   * @param page Trang hiện tại
+   * @param limit Số lượng đánh giá mỗi trang (mặc định 24)
+   * @returns Danh sách đánh giá tương ứng
+   */
   async findAllOfBook(bookId: number, page: number, limit = 24) {
     return this.DanhGiaRepo.findAllOfBook(bookId, page, limit);
   }
 
+  /**
+   * Lọc tất cả đánh giá theo nhiều tiêu chí
+   * @param option Các tùy chọn lọc như trang, điểm, ngày, trạng thái
+   * @returns Danh sách đánh giá và tổng số
+   */
   async findAll(option: {
     page: number;
     limit: number;
@@ -82,7 +96,6 @@ export class DanhGiaService {
       to,
       status
     );
-
     for (const item of result.data) {
       const lichSu = item.lichSuThaoTac ?? [];
       item.lichSuThaoTac =
@@ -90,14 +103,19 @@ export class DanhGiaService {
           ? await this.NhanVienService.mapActivityLog(lichSu)
           : [];
     }
-
     return result;
   }
 
+  /**
+   * Hiển thị (bỏ ẩn) một đánh giá và cập nhật điểm sách
+   * @param dto Dữ liệu cập nhật bao gồm ID đơn hàng, sách, khách hàng và nhân viên
+   * @returns Đánh giá đã được cập nhật
+   * @throws NotFoundException nếu không tìm thấy đánh giá
+   * @throws BadRequestException nếu cập nhật thất bại
+   */
   async show(dto: UpdateDanhGiaDto): Promise<DanhGia> {
     const session = await this.connection.startSession();
     let updated: DanhGia | null = null;
-
     try {
       await session.withTransaction(async () => {
         const current = await this.DanhGiaRepo.findOne(
@@ -110,13 +128,11 @@ export class DanhGiaService {
             'Cập nhật đánh giá - Không tìm thấy đánh giá'
           );
         }
-
         const thaoTac = {
           thaoTac: 'Hiển thị đánh giá',
           NV_id: dto.NV_id,
           thoiGian: new Date(),
         };
-
         const updateResult = await this.DanhGiaRepo.update(
           dto.DH_id,
           dto.S_id,
@@ -125,21 +141,18 @@ export class DanhGiaService {
           thaoTac,
           session
         );
-
         if (!updateResult) {
           throw new BadRequestException(
             'Cập nhật đánh giá - Hiển thị thất bại'
           );
         }
         updated = updateResult;
-
         const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
           dto.S_id,
           session
         );
         await this.SachService.updateScore(dto.S_id, newScore, session);
       });
-
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
       }
@@ -149,6 +162,13 @@ export class DanhGiaService {
     }
   }
 
+  /**
+   * Ẩn một đánh giá và cập nhật lại điểm sách
+   * @param dto Dữ liệu cập nhật bao gồm ID đơn hàng, sách, khách hàng và nhân viên
+   * @returns Đánh giá đã được cập nhật
+   * @throws NotFoundException nếu không tìm thấy đánh giá
+   * @throws BadRequestException nếu cập nhật thất bại
+   */
   async hide(dto: UpdateDanhGiaDto): Promise<DanhGia> {
     const session = await this.connection.startSession();
     let updated: DanhGia | null = null;
@@ -165,13 +185,11 @@ export class DanhGiaService {
             'Cập nhật đánh giá - Không tìm thấy đánh giá'
           );
         }
-
         const thaoTac = {
           thaoTac: 'Ẩn đánh giá',
           NV_id: dto.NV_id,
           thoiGian: new Date(),
         };
-
         const updateResult = await this.DanhGiaRepo.update(
           dto.DH_id,
           dto.S_id,
@@ -180,20 +198,16 @@ export class DanhGiaService {
           thaoTac,
           session
         );
-
         if (!updateResult) {
           throw new BadRequestException('Cập nhật đánh giá - Ẩn thất bại');
         }
-
         updated = updateResult;
-
         const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
           dto.S_id,
           session
         );
         await this.SachService.updateScore(dto.S_id, newScore, session);
       });
-
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
       }
@@ -203,7 +217,14 @@ export class DanhGiaService {
     }
   }
 
-  async countRating(from: Date, to: Date) {
-    return this.DanhGiaRepo.countRating(from, to);
+  /**
+   * Lấy thống kê số lượng đánh giá trong khoảng thời gian chỉ định.
+   *
+   * @param from - Ngày bắt đầu (tính từ 00:00:00).
+   * @param to - Ngày kết thúc (tính đến 23:59:59).
+   * @returns Thống kê đánh giá trong khoảng thời gian.
+   */
+  async getRatingStats(from: Date, to: Date) {
+    return this.DanhGiaRepo.getRatingStats(from, to);
   }
 }

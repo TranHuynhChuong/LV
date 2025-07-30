@@ -19,6 +19,13 @@ const typeOfChange: Record<string, string> = {
 export class TheLoaiUtilService {
   constructor(private readonly TheLoaiRepo: TheLoaiRepository) {}
 
+  /**
+   * Tìm tất cả ID các thể loại con (đệ quy) của thể loại theo ID cha.
+   * Nếu không truyền ID, trả về mảng rỗng.
+   *
+   * @param id ID thể loại cha cần tìm các thể loại con (có thể không truyền)
+   * @returns Promise trả về mảng ID các thể loại con, hoặc mảng rỗng nếu không truyền id hoặc không tìm thấy
+   */
   async findAllChildren(id?: number): Promise<number[]> {
     if (!id) return [];
     return this.TheLoaiRepo.findAllChildren(id);
@@ -40,23 +47,24 @@ export class TheLoaiService {
     private readonly SachService: SachUtilService
   ) {}
 
-  // Tạo thể loại mới
+  /**
+   * Tạo mới một thể loại sách.
+   *
+   * @param newData Dữ liệu thể loại mới cần tạo (theo DTO CreateTheLoaiDto)
+   * @returns Promise trả về đối tượng thể loại vừa được tạo (TheLoai)
+   */
   async create(newData: CreateTheLoaiDto): Promise<TheLoai> {
     const session = await this.connection.startSession();
-
     try {
       let result: TheLoai;
-
       await session.withTransaction(async () => {
         const thaoTac = {
           thaoTac: 'Tạo mới',
           NV_id: newData.NV_id,
           thoiGian: new Date(),
         };
-
         const lastId = await this.TheLoaiRepo.findLastId(session);
         const newId = lastId + 1;
-
         const created = await this.TheLoaiRepo.create(
           {
             ...newData,
@@ -65,20 +73,27 @@ export class TheLoaiService {
           },
           session
         );
-
         if (!created) {
           throw new BadRequestException('Tạo thể loại - Tạo thất bại');
         }
-
         result = created;
       });
-
       return result!;
+    } catch {
+      await session.abortTransaction();
+      throw new BadRequestException('Tạo thể loại - Tạo thể loại thất bại');
     } finally {
-      await session.endSession(); // Gọi trong finally để đảm bảo luôn end
+      await session.endSession();
     }
   }
 
+  /**
+   * Cập nhật thông tin thể loại sách theo `id`.
+   *
+   * @param id ID của thể loại cần cập nhật
+   * @param newData Dữ liệu cập nhật cho thể loại (theo DTO UpdateTheLoaiDto)
+   * @returns Promise trả về đối tượng thể loại sau khi cập nhật (TheLoai)
+   */
   async update(id: number, newData: UpdateTheLoaiDto): Promise<TheLoai> {
     // Tìm bản ghi hiện tại theo id
     const current = await this.TheLoaiRepo.findById(id);
@@ -87,11 +102,9 @@ export class TheLoaiService {
         'Cập nhật thể loại - Không tìm thấy thể loại'
       );
     }
-
     // Xác định trường thay đổi
     const fieldsChange: string[] = [];
     const updatePayload: any = {};
-
     for (const key of Object.keys(newData)) {
       if (
         newData[key] !== undefined &&
@@ -103,7 +116,6 @@ export class TheLoaiService {
         updatePayload[key] = newData[key];
       }
     }
-
     // Thêm lịch sử thao tác nếu có thay đổi
     if (fieldsChange.length > 0 && newData.NV_id) {
       const thaoTac = {
@@ -113,48 +125,58 @@ export class TheLoaiService {
       };
       updatePayload.lichSuThaoTac = [...current.lichSuThaoTac, thaoTac];
     }
-
     // Không có thay đổi thì trả về bản ghi cũ
     if (Object.keys(updatePayload).length === 0) {
       return current;
     }
-
     const updated = await this.TheLoaiRepo.update(id, updatePayload);
     if (!updated) {
       throw new BadRequestException('Cập nhật thể loại - Cập nhật thất bại');
     }
-
     return updated;
   }
 
-  // Lấy tất cả thể loại cơ bản
+  /**
+   * Lấy danh sách tất cả thể loại sách chưa bị xoá.
+   *
+   * @returns Promise trả về mảng các thể loại (dưới dạng Partial, chỉ chứa một số trường)
+   */
   async findAll(): Promise<Partial<TheLoai>[]> {
     return this.TheLoaiRepo.findAll();
   }
 
+  /**
+   * Tìm thể loại theo ID và chưa bị xoá.
+   *
+   * @param {number} id - ID của thể loại cần tìm
+   * @returns {Promise<TheLoai | null>} Promise trả về thể loại nếu tìm thấy, ngược lại null
+   */
   async findById(id: number): Promise<any> {
     const result: any = await this.TheLoaiRepo.findById(id);
     if (!result) {
       throw new NotFoundException();
     }
-
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
       lichSu.length > 0
         ? await this.NhanVienService.mapActivityLog(lichSu)
         : [];
-
     return result;
   }
 
+  /**
+   * Đánh dấu thể loại là đã xoá (soft delete) theo ID.
+   *
+   * @param {number} id - ID của thể loại cần xoá
+   * @param {string} NV_id - ID nhân viên thực hiện xoá
+   * @returns {Promise<TheLoai>} Promise trả về thể loại đã được cập nhật trạng thái xoá
+   */
   async delete(id: number, NV_id: string): Promise<TheLoai> {
     const existing = await this.TheLoaiRepo.findById(id);
     if (!existing)
       throw new NotFoundException('Xóa thể loại - Thể loại không tồn tại');
-
     const hasChild = await this.TheLoaiRepo.findAllChildren(id);
     if (hasChild && hasChild.length > 0) throw new ConflictException();
-
     const hasProduct = await this.SachService.findInCategories([
       ...hasChild,
       id,
@@ -163,15 +185,12 @@ export class TheLoaiService {
       throw new ConflictException(
         'Xóa thể loại - Không thể xóa do ràng buộc dữ liệu'
       );
-
     const thaoTac = {
       thaoTac: 'Xóa dữ liệu',
       NV_id: NV_id,
       thoiGian: new Date(),
     };
-
     const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-
     const deleted = await this.TheLoaiRepo.update(id, {
       TL_daXoa: true,
       lichSuThaoTac: lichSuThaoTac,
@@ -182,7 +201,11 @@ export class TheLoaiService {
     return deleted;
   }
 
-  // Đếm tổng số thể loại chưa xóa
+  /**
+   * Đếm tổng số thể loại chưa bị xoá.
+   *
+   * @returns {Promise<number>} Tổng số thể loại còn hoạt động (chưa xoá)
+   */
   async countAll(): Promise<number> {
     return this.TheLoaiRepo.countAll();
   }

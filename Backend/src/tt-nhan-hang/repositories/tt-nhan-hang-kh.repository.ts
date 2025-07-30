@@ -13,47 +13,88 @@ export class TTNhanHangKHRepository {
     private readonly NHkhachHangModel: Model<TTNhanHangKHDocument>
   ) {}
 
-  // ========== TTNhanHangKH ==========
-
+  /**
+   * Tạo mới thông tin nhận hàng cho khách hàng.
+   *
+   * @param data - Dữ liệu thông tin nhận hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB để sử dụng trong transaction.
+   * @returns Thông tin nhận hàng vừa được tạo.
+   */
   async create(data: Partial<TTNhanHangKH>, session?: ClientSession) {
     return this.NHkhachHangModel.create([{ ...data }], { session }).then(
       (res) => res[0]
     );
   }
 
-  async findAll(KH_id: number, session?: ClientSession) {
-    return this.NHkhachHangModel.find({ KH_id })
+  /**
+   * Lấy tất cả địa chỉ nhận hàng của một khách hàng.
+   *
+   * @param id - Mã khách hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Danh sách thông tin nhận hàng của khách hàng.
+   */
+  async findAll(id: number, session?: ClientSession) {
+    return this.NHkhachHangModel.find({ KH_id: id })
       .session(session ?? null)
       .lean();
   }
 
-  async findById(NH_id: number, KH_id: number, session?: ClientSession) {
-    return this.NHkhachHangModel.findOne({ NH_id, KH_id })
+  /**
+   * Tìm địa chỉ nhận hàng theo mã địa chỉ và mã khách hàng.
+   *
+   * @param id - Mã địa chỉ nhận hàng.
+   * @param userId - Mã khách hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Thông tin địa chỉ nhận hàng tương ứng, hoặc null nếu không tìm thấy.
+   */
+  async findById(id: number, userId: number, session?: ClientSession) {
+    return this.NHkhachHangModel.findOne({ NH_id: id, KH_id: userId })
       .session(session ?? null)
       .lean();
   }
 
+  /**
+   * Cập nhật thông tin địa chỉ nhận hàng của khách hàng.
+   *
+   * @param id - Mã địa chỉ nhận hàng.
+   * @param userId - Mã khách hàng.
+   * @param data - Dữ liệu cần cập nhật.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Thông tin sau khi cập nhật.
+   */
   async update(
-    NH_id: number,
-    KH_id: number,
+    id: number,
+    userId: number,
     data: Partial<TTNhanHangKH>,
     session?: ClientSession
   ) {
-    return this.NHkhachHangModel.findOneAndUpdate({ NH_id, KH_id }, data, {
-      new: true,
-      session,
-    });
+    return this.NHkhachHangModel.findOneAndUpdate(
+      { NH_id: id, KH_id: userId },
+      data,
+      {
+        new: true,
+        session,
+      }
+    );
   }
 
+  /**
+   * Bỏ đánh dấu mặc định của các địa chỉ khác thuộc cùng một khách hàng.
+   *
+   * @param id - Mã địa chỉ không bị ảnh hưởng (ngoại trừ).
+   * @param userId - Mã khách hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Kết quả cập nhật (số lượng bản ghi bị ảnh hưởng).
+   */
   async unsetDefaultOthers(
-    NH_id: number,
-    KH_id: number,
+    id: number,
+    userId: number,
     session?: ClientSession
   ) {
     return this.NHkhachHangModel.updateMany(
       {
-        KH_id,
-        NH_id: { $ne: NH_id },
+        KH_id: userId,
+        NH_id: { $ne: id },
       },
       {
         $set: { NH_macDinh: false },
@@ -62,12 +103,30 @@ export class TTNhanHangKHRepository {
     );
   }
 
-  async delete(NH_id: number, KH_id: number, session?: ClientSession) {
-    return this.NHkhachHangModel.deleteOne({ NH_id, KH_id }, { session });
+  /**
+   * Xoá địa chỉ nhận hàng theo mã địa chỉ và mã khách hàng.
+   *
+   * @param id - Mã địa chỉ nhận hàng.
+   * @param userId - Mã khách hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Kết quả xoá (số lượng bản ghi bị xoá).
+   */
+  async delete(id: number, userId: number, session?: ClientSession) {
+    return this.NHkhachHangModel.deleteOne(
+      { NH_id: id, KH_id: userId },
+      { session }
+    );
   }
 
-  async findLastId(KH_id: number, session?: ClientSession) {
-    const last = await this.NHkhachHangModel.findOne({ KH_id: KH_id })
+  /**
+   * Tìm mã địa chỉ nhận hàng lớn nhất của một khách hàng.
+   *
+   * @param userId - Mã khách hàng.
+   * @param session - (Tùy chọn) Phiên giao dịch MongoDB.
+   * @returns Mã địa chỉ lớn nhất, hoặc 0 nếu chưa có địa chỉ nào.
+   */
+  async findLastId(userId: number, session?: ClientSession) {
+    const last = await this.NHkhachHangModel.findOne({ KH_id: userId })
       .sort({ NH_id: -1 })
       .select('NH_id')
       .session(session ?? null)

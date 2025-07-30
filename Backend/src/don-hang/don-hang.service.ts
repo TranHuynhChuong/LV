@@ -30,6 +30,7 @@ import {
   OrderDetailStats,
 } from './interfaces/don-hang-thong-ke.interface';
 import { DiaChiService } from 'src/dia-chi/dia-chi.service';
+import { getNextSequence } from 'src/Util/counter.service';
 
 @Injectable()
 export class DonHangService {
@@ -38,88 +39,121 @@ export class DonHangService {
     private readonly EmailService: EmailService,
     private readonly KhachHangService: KhachHangUtilService,
     @InjectConnection() private readonly connection: Connection,
-
     private readonly SachService: SachUtilService,
     private readonly NhanVienService: NhanVienUtilService,
     private readonly MaGiamService: MaGiamUtilService,
     private readonly NhanHangDHService: TTNhanHangDHService,
     private readonly DiaChiService: DiaChiService,
-
     private readonly DonHangRepo: DonHangRepository,
     private readonly ChiTietDonHangRepo: ChiTietDonHangRepository
   ) {}
 
+  /**
+   * Kiểm tra tính hợp lệ của đơn hàng.
+   * @param data - Dữ liệu đơn hàng để kiểm tra.
+   * @param session - Phiên giao dịch MongoDB sử dụng để đảm bảo tính nhất quán khi đọc dữ liệu.
+   * @returns Kết quả kiểm tra hợp lệ.
+   */
   async checkValid(data: CheckDto): Promise<{
     errors: number[];
     products: any[];
     vouchers: any[];
   }> {
-    const ctSach = data.CTDH;
-    const spIds = ctSach.map((item) => item.S_id);
-    const magiamIds = data.MG?.map((item) => item.MG_id) || [];
-
-    const Sachs = await this.SachService.findByIds(spIds);
-    const maGiams = await this.MaGiamService.findValidByIds(magiamIds);
-
-    const spMap = new Map(Sachs.map((sp) => [sp.S_id, sp]));
+    const detail = data.CTDH;
+    const ids = detail.map((item) => item.S_id);
+    const voucherIds = data.MG?.map((item) => item.MG_id) || [];
+    const books = await this.SachService.findByIds(ids);
+    const vouchers = await this.MaGiamService.findValidByIds(voucherIds);
+    const booksMap = new Map(books.map((b) => [b.S_id, b]));
     const errorCodes = new Set<number>();
 
-    for (const item of ctSach) {
-      const sp = spMap.get(item.S_id);
-
-      if (!sp) {
-        errorCodes.add(1001); // SP không tồn tại hoặc ẩn
+    for (const item of detail) {
+      const b = booksMap.get(item.S_id);
+      if (!b) {
+        errorCodes.add(1001); // Sách không tồn tại hoặc ẩn
         continue;
       }
-
-      if (item.CTDH_soLuong > sp.S_tonKho) {
+      if (item.CTDH_soLuong > b.S_tonKho) {
         errorCodes.add(1002); // Không đủ tồn kho
       }
-
-      const giaBanThayDoi = item.CTDH_giaBan !== sp.S_giaBan;
-      const giaMuaThayDoi = item.CTDH_giaMua !== (sp.S_giaGiam ?? sp.S_giaBan); // nếu có giảm giá
-
-      if (giaBanThayDoi || giaMuaThayDoi) {
+      const priceHasChange = item.CTDH_giaMua !== (b.S_giaGiam ?? b.S_giaBan); // nếu có giảm giá
+      if (priceHasChange) {
         errorCodes.add(1003); // Giá thay đổi
       }
     }
-
-    const validMGSet = new Set(maGiams.map((m) => m.MG_id));
-    const invalidMG = magiamIds.filter((id) => !validMGSet.has(id));
-
+    const validVoucherSet = new Set(vouchers.map((m) => m.MG_id));
+    const invalidMG = voucherIds.filter((id) => !validVoucherSet.has(id));
     if (invalidMG.length > 0) {
       errorCodes.add(2001); // Mã giảm không hợp lệ
     }
-
     return {
       errors: [...errorCodes],
-      products: Sachs, // Trả về danh sách sản phẩm đã fetch
-      vouchers: maGiams,
+      products: books, // Trả về danh sách sản phẩm đã fetch
+      vouchers: vouchers,
     };
   }
 
-  private async generateNextDHId(session: ClientSession): Promise<string> {
-    const lastId = await this.DonHangRepo.findLastId(session);
-
+  /**
+   * Sinh mã đơn hàng tiếp theo dựa trên mã cuối cùng hiện có trong cơ sở dữ liệu.
+   * Mã có định dạng: <PREFIX><SỐ>, ví dụ: "AAA000000001"
+   * Nếu đã đạt đến "ZZZ999999999" → ném lỗi.
+   *
+   * @returns Mã đơn hàng mới.
+   * @throws Error nếu không thể sinh tiếp mã đơn hàng vì đã vượt giới hạn định dạng.
+   */
+  private async generateNextOrderId(session?: ClientSession): Promise<string> {
+    const lastId = await this.DonHangRepo.findLastId();
     // Nếu chưa có đơn hàng nào → bắt đầu từ đầu
     if (!lastId) return 'AAA000000001';
-
     const prefix = lastId.slice(0, 3); // 'AAA'
     const numberPart = lastId.slice(3); // '000000001'
-
     const nextNumber = parseInt(numberPart, 10) + 1;
-
     if (nextNumber > 999999999) {
       // Nếu vượt quá 9 chữ số thì tăng prefix
       const nextPrefix = this.incrementPrefix(prefix);
       if (!nextPrefix)
-        throw new Error('Tạo đơn hành - Đã vượt quá giới hạn mã đơn hàng');
+        throw new Error('Tạo đơn hàng - Đã vượt quá giới hạn mã đơn hàng');
       return `${nextPrefix}000000001`;
     }
-
     return `${prefix}${nextNumber.toString().padStart(9, '0')}`;
   }
 
+  // private async generateNextOrderId(session?: ClientSession): Promise<string> {
+  //   if (!this.connection.db) {
+  //     throw new Error('Không thể kết nối cơ sở dữ liệu');
+  //   }
+  //   // Lấy giá trị seq tự tăng từ MongoDB
+  //   const seq = await getNextSequence(this.connection.db, 'orderId', session);
+  //   // Giới hạn seq nằm trong khoảng cho phép
+  //   const maxPerPrefix = 999_999_999;
+  //   const maxSeq = 26 * 26 * 26 * maxPerPrefix; // = 17,575,999,982,424
+  //   if (seq < 1 || seq > maxSeq) {
+  //     throw new Error('Giá trị seq vượt quá giới hạn cho phép.');
+  //   }
+  //   // Tính chỉ số prefix (AAA → ZZZ)
+  //   const prefixIndex = Math.floor((seq - 1) / maxPerPrefix);
+  //   const numberPart = ((seq - 1) % maxPerPrefix) + 1;
+  //   const aCode = 'A'.charCodeAt(0);
+  //   const firstChar = String.fromCharCode(
+  //     aCode + Math.floor(prefixIndex / (26 * 26))
+  //   );
+  //   const secondChar = String.fromCharCode(
+  //     aCode + Math.floor((prefixIndex % (26 * 26)) / 26)
+  //   );
+  //   const thirdChar = String.fromCharCode(aCode + (prefixIndex % 26));
+  //   const prefix = `${firstChar}${secondChar}${thirdChar}`;
+  //   const numberStr = numberPart.toString().padStart(9, '0');
+  //   // Trả về mã đơn hàng có dạng như AAA000000001
+  //   return `${prefix}${numberStr}`;
+  // }
+
+  /**
+   * Tăng dần phần prefix theo thứ tự bảng chữ cái (A-Z).
+   * Ví dụ: AAA → AAB, AAZ → ABA, ZZZ → null.
+   *
+   * @param prefix - Chuỗi 3 ký tự chữ cái cần tăng.
+   * @returns Prefix mới nếu có thể tăng, ngược lại trả về null nếu đã đạt "ZZZ".
+   */
   private incrementPrefix(prefix: string): string | null {
     const chars = prefix.split('');
     for (let i = 2; i >= 0; i--) {
@@ -133,19 +167,37 @@ export class DonHangService {
     return null; // nếu đến ZZZ thì không tăng được nữa
   }
 
-  private validateCustomerInf(KH_email?: string, KH_id?: number) {
-    if (!KH_id && !KH_email) {
+  /**
+   * Kiểm tra tính hợp lệ của thông tin khách hàng khi tạo đơn hàng.
+   *
+   * - Nếu không có cả `id` và `email` → ném lỗi vì đơn hàng không có chủ sở hữu.
+   * - Nếu có đồng thời cả `id` và `email` → ném lỗi vì đơn hàng có nhiều chủ sở hữu.
+   *
+   * @param email - Email của khách (nếu là khách vãng lai).
+   * @param id - ID khách hàng thành viên (nếu đã đăng ký).
+   * @throws ConflictException nếu thông tin khách hàng không hợp lệ.
+   */
+  private validateCustomerInf(email?: string, id?: number) {
+    if (!id && !email) {
       throw new ConflictException(
         'Tạo đơn hàng - Đơn hàng không có chủ sở hữu'
       );
     }
-    if (KH_id && KH_email) {
+    if (id && email) {
       throw new ConflictException(
         'Tạo đơn hàng - Đơn hàng có nhiều chủ sở hữu'
       );
     }
   }
 
+  /**
+   * Tính tổng tiền đơn hàng dựa trên danh sách chi tiết đơn hàng.
+   *
+   * Tổng tiền được tính bằng cách cộng dồn (giá mua × số lượng) của từng sản phẩm trong đơn hàng.
+   *
+   * @param data - Dữ liệu đầu vào để tạo đơn hàng, bao gồm danh sách chi tiết đơn hàng (`CTDH`).
+   * @returns Tổng số tiền của đơn hàng (đơn vị: số nguyên, thường là VNĐ).
+   */
   private calculateTotalAmount(data: CreateDto): number {
     return data.DH.CTDH.reduce(
       (sum, item) => sum + item.CTDH_giaMua * item.CTDH_soLuong,
@@ -153,19 +205,32 @@ export class DonHangService {
     );
   }
 
-  private async calculateDiscount(data: CreateDto, tongTienSP: number) {
+  /**
+   * Tính tổng số tiền giảm giá cho đơn hàng bao gồm:
+   * - Giảm trên tổng hóa đơn (DH_giamHD)
+   * - Giảm phí vận chuyển (DH_giamVC)
+   *
+   * Hàm sẽ lọc ra các mã giảm giá hợp lệ và áp dụng theo điều kiện từng loại:
+   * - Nếu là loại `'hd'` (hóa đơn), giảm theo tỷ lệ (%) hoặc số tiền cố định nếu tổng tiền sản phẩm thỏa điều kiện.
+   * - Nếu là loại `'vc'` (vận chuyển), giảm theo phí vận chuyển của đơn hàng.
+   *
+   * @param data - Dữ liệu tạo đơn hàng chứa thông tin mã giảm giá và đơn hàng.
+   * @param totalProductPrice - Tổng tiền của tất cả sản phẩm trong đơn hàng (chưa giảm giá).
+   * @returns Một đối tượng gồm hai giá trị:
+   * - `DH_giamHD`: Tổng tiền giảm trên hóa đơn.
+   * - `DH_giamVC`: Tổng tiền giảm trên phí vận chuyển.
+   */
+  private async calculateDiscount(data: CreateDto, totalProductPrice: number) {
     const validMGs = await this.MaGiamService.findValidByIds(
       data.MG?.map((m) => m.MG_id) || []
     );
-
     let DH_giamHD = 0;
     let DH_giamVC = 0;
-
     for (const mg of validMGs) {
       if (mg.MG_loai === 'hd') {
-        if (tongTienSP >= (mg.MG_toiThieu || 0)) {
+        if (totalProductPrice >= (mg.MG_toiThieu || 0)) {
           const giam = mg.MG_theoTyLe
-            ? (tongTienSP * mg.MG_giaTri) / 100
+            ? (totalProductPrice * mg.MG_giaTri) / 100
             : mg.MG_giaTri;
           DH_giamHD += mg.MG_toiDa ? Math.min(giam, mg.MG_toiDa) : giam;
         }
@@ -176,10 +241,13 @@ export class DonHangService {
         DH_giamVC += mg.MG_toiDa ? Math.min(giam, mg.MG_toiDa) : giam;
       }
     }
-
     return { DH_giamHD, DH_giamVC };
   }
 
+  /**
+   * Tạo mới một đơn hàng
+   * @param data Dữ liệu tạo đơn hàng
+   */
   private async createOrder(
     data: CreateDto,
     context: {
@@ -213,6 +281,10 @@ export class DonHangService {
     return result;
   }
 
+  /**
+   * Quy trình tạo đơn hàng
+   * @param data Dữ liệu tạo đơn hàng
+   */
   async create(data: CreateDto) {
     const session = await this.connection.startSession();
     try {
@@ -227,16 +299,16 @@ export class DonHangService {
         }
 
         // B2 Tạo mã đơn hàng
-        const DH_id = await this.generateNextDHId(session);
+        const DH_id = await this.generateNextOrderId(session);
         const now = new Date();
 
         // B3 Tính tổng tiền sản phẩm - để tính giá giảm nếu có dùng mã giảm
-        const tongTienSP = this.calculateTotalAmount(data);
+        const totalProductPrice = this.calculateTotalAmount(data);
 
         // B4 Tính giá giảm khi dùng mã giảm
         const { DH_giamHD, DH_giamVC } = await this.calculateDiscount(
           data,
-          tongTienSP
+          totalProductPrice
         );
 
         // B5 Check KH_id/KH_email và tạo đơn hàng;
@@ -292,6 +364,16 @@ export class DonHangService {
     }
   }
 
+  /**
+   * Gửi email thông báo cho khách hàng dựa trên trạng thái đơn hàng.
+   *
+   * - Nếu đơn hàng hoàn tất → Gửi email thông báo vận chuyển.
+   * - Nếu đơn hàng bị hủy → Gửi email xác nhận hủy đơn.
+   *
+   * @param status - Trạng thái hiện tại của đơn hàng (Complete, Canceled, ...)
+   * @param email - Địa chỉ email của khách hàng cần gửi thông báo
+   * @param orderId - Mã đơn hàng liên quan đến thông báo
+   */
   private notifyEmailStatus(
     status: OrderStatus,
     email: string,
@@ -307,6 +389,17 @@ export class DonHangService {
     }
   }
 
+  /**
+   * Cập nhật trạng thái của đơn hàng, ghi nhận thao tác, gửi email và cập nhật tồn kho khi hủy.
+   *
+   * @param id - Mã đơn hàng cần cập nhật
+   * @param newStatus - Trạng thái đơn hàng mới (ví dụ: Shipping, Complete, Canceled,...)
+   * @param staffId - (Tùy chọn) ID nhân viên thực hiện thao tác cập nhật
+   * @returns Đơn hàng đã được cập nhật
+   * @throws NotFoundException nếu không tìm thấy đơn hàng hoặc khách hàng
+   * @throws BadRequestException nếu cập nhật không thành công
+   * @throws InternalServerErrorException nếu có lỗi khác xảy ra trong quá trình xử lý
+   */
   async update(id: string, newStatus: OrderStatus, staffId?: string) {
     const statusActionMap: Record<string, string> = {
       [OrderStatus.ToShip]: 'Xác nhận đơn hàng',
@@ -316,24 +409,23 @@ export class DonHangService {
       [OrderStatus.CancelRequest]: 'Yêu cầu hủy đơn hàng',
       [OrderStatus.Canceled]: 'Đơn hàng đã được hủy',
     };
-
     const thaoTac = statusActionMap[newStatus];
     if (!thaoTac) return null;
-
     const session = await this.connection.startSession();
     try {
       const result = await session.withTransaction(async () => {
+        // Tìm đơn hàng theo ID
         const order = await this.DonHangRepo.getById(id);
         if (!order) throw new NotFoundException('Đơn hàng không tồn tại');
-
+        // Lấy email khách hàng từ đơn hàng hoặc từ thông tin khách hàng liên kết
         let email = order.KH_email;
         if (!email && order.KH_id) {
           email = await this.KhachHangService.getEmail(order.KH_id);
         }
         if (!email) throw new NotFoundException('Khách hàng không tồn tại');
-
+        // Gửi email thông báo theo trạng thái mới
         this.notifyEmailStatus(newStatus, email, order.DH_id);
-
+        // Cập nhật trạng thái đơn hàng và ghi lịch sử thao tác
         const result = await this.DonHangRepo.update(
           id,
           newStatus,
@@ -344,10 +436,9 @@ export class DonHangService {
           },
           session
         );
-
         if (!result)
           throw new BadRequestException('Cập nhật đơn hàng thất bại');
-
+        // Nếu trạng thái là "Đã hủy" thì cập nhật lại tồn kho và số lượng bán
         if (newStatus === OrderStatus.Canceled) {
           const orderDetails = await this.ChiTietDonHangRepo.findByOrderId(id);
           const updates = orderDetails.map((item) => ({
@@ -355,13 +446,10 @@ export class DonHangService {
             sold: -item.CTDH_soLuong,
             stock: item.CTDH_soLuong,
           }));
-
           await this.SachService.updateSold(updates, session);
         }
-
         return result;
       });
-
       return result;
     } catch (error) {
       if (error instanceof Error) throw error;
@@ -373,39 +461,69 @@ export class DonHangService {
     }
   }
 
+  /**
+   * Tìm đơn hàng theo ID và (tùy chọn) trạng thái lọc.
+   * Đồng thời bổ sung lịch sử thao tác nhân viên, thông tin người nhận, và email khách hàng nếu thiếu.
+   *
+   * @param id - Mã đơn hàng cần tìm
+   * @param filterType - (Tùy chọn) Trạng thái đơn hàng cần lọc
+   * @returns Thông tin đơn hàng đầy đủ
+   * @throws NotFoundException nếu không tìm thấy đơn hàng
+   */
   async findById(id: string, filterType?: OrderStatus): Promise<any> {
     const result: any = await this.DonHangRepo.findById(id, filterType);
     if (!result) {
       throw new NotFoundException('Tìm đơn hàng - Đơn hàng không tồn tại');
     }
-
+    // Xử lý lịch sử thao tác (nếu có), ánh xạ nhân viên thực hiện
     const lichSu = result.lichSuThaoTac ?? [];
     result.lichSuThaoTac =
       lichSu.length > 0
         ? await this.NhanVienService.mapActivityLog(lichSu)
         : [];
-
+    // Nếu email khách hàng bị thiếu, cố gắng truy vấn bằng KH_id
     if ((!result.KH_email || result.KH_email === '') && result.KH_id) {
       result.KH_email = await this.KhachHangService.getEmail(result.KH_id);
     }
+    // Lấy thông tin người nhận hàng theo đơn hàng
     result.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
       result.DH_id
     );
     return result;
   }
 
+  /**
+   * Tìm kiếm đơn hàng theo mã đơn hàng.
+   * Loại bỏ các trường không cần thiết và bổ sung thông tin người nhận hàng.
+   *
+   * @param id - Mã đơn hàng cần tìm
+   * @returns Thông tin đơn hàng rút gọn hoặc null nếu không tìm thấy
+   */
   async searchOrder(id: string): Promise<any> {
     const order = await this.DonHangRepo.findById(id);
     if (!order) return null;
     delete order.lichSuThaoTac;
     delete order.DH_HD;
-
     order.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
       order.DH_id
     );
     return order;
   }
 
+  /**
+   * Truy vấn danh sách đơn hàng với phân trang và các tùy chọn lọc.
+   *
+   * @param options - Các tùy chọn lọc và phân trang:
+   * - page: Trang cần lấy
+   * - limit: Số lượng bản ghi mỗi trang (mặc định là 12)
+   * - filterType: Trạng thái đơn hàng cần lọc (nếu có)
+   * - orderId: Mã đơn hàng cần tìm (nếu có)
+   * - from: Ngày bắt đầu (lọc theo thời gian tạo đơn, nếu có)
+   * - to: Ngày kết thúc (lọc theo thời gian tạo đơn, nếu có)
+   * - userId: ID khách hàng (nếu có)
+   *
+   * @returns Danh sách đơn hàng phù hợp theo trang và tiêu chí lọc, đã loại bỏ lịch sử thao tác và thông tin nhận hàng
+   */
   async findAll(options: {
     page: number;
     limit: number;
@@ -416,7 +534,6 @@ export class DonHangService {
     userId?: number;
   }) {
     const { page, limit = 12, filterType, orderId, from, to, userId } = options;
-
     const result = await this.DonHangRepo.findAll({
       page: page,
       limit: limit,
@@ -426,15 +543,29 @@ export class DonHangService {
       to,
       userId: userId,
     });
-
     for (const order of result.data as any[]) {
       delete order?.lichSuThaoTac;
       delete order?.thongTinNhanHang;
     }
-
     return result;
   }
 
+  /**
+   * Đếm số lượng đơn hàng theo từng trạng thái trong khoảng thời gian chỉ định.
+   *
+   * @param from - Ngày bắt đầu (tùy chọn). Nếu không cung cấp, sẽ tính từ thời điểm sớm nhất.
+   * @param to - Ngày kết thúc (tùy chọn). Nếu không cung cấp, sẽ tính đến thời điểm hiện tại.
+   *
+   * @returns Một đối tượng chứa tổng số đơn hàng và số lượng đơn hàng theo từng trạng thái:
+   * - total: Tổng số đơn hàng
+   * - pending: Chờ xử lý
+   * - toShip: Đã xác nhận, chờ giao hàng
+   * - shipping: Đang vận chuyển
+   * - complete: Giao hàng thành công
+   * - inComplete: Giao hàng thất bại
+   * - cancelRequest: Đơn hàng có yêu cầu hủy
+   * - canceled: Đã hủy
+   */
   async countAll(
     from?: Date,
     to?: Date
@@ -452,16 +583,24 @@ export class DonHangService {
   }
 
   // ===================== Thống kê =========================//
-  // Xác định kiểu thời gian thống kê
+  /**
+   * Xác định đơn vị thời gian phù hợp (day, month, year) dựa trên khoảng thời gian.
+   *
+   * - Nếu chênh lệch lớn hơn 12 tháng → trả về `'year'`
+   * - Nếu chênh lệch lớn hơn 2 tháng → trả về `'month'`
+   * - Ngược lại → trả về `'day'`
+   *
+   * @param from - Ngày bắt đầu của khoảng thời gian
+   * @param to - Ngày kết thúc của khoảng thời gian
+   * @returns Đơn vị thời gian tương ứng: `'day'` | `'month'` | `'year'`
+   */
   getTimeUnitByRange(from: Date, to: Date): 'day' | 'month' | 'year' {
     const start = new Date(from);
     const end = new Date(to);
-
     const diffInMonths =
       end.getFullYear() * 12 +
       end.getMonth() -
       (start.getFullYear() * 12 + start.getMonth());
-
     if (diffInMonths > 12) {
       return 'year';
     } else if (diffInMonths > 2) {
@@ -471,38 +610,47 @@ export class DonHangService {
     }
   }
 
+  /**
+   * Truy vấn và tổng hợp thống kê đơn hàng trong khoảng thời gian được chỉ định.
+   *
+   * Bao gồm các thông tin:
+   * - Số lượng đơn hàng theo trạng thái và theo mốc thời gian (ngày/tháng/năm)
+   * - Danh sách ID đơn hàng hoàn tất và thất bại để phân tích giảm giá
+   * - Thống kê khuyến mãi, voucher được sử dụng
+   * - Phân loại người mua (thành viên / khách vãng lai)
+   * - Thống kê đơn hàng theo tỉnh thành
+   *
+   * @param from - Ngày bắt đầu thống kê (định dạng `Date`)
+   * @param to - Ngày kết thúc thống kê (định dạng `Date`)
+   * @returns Thống kê tổng hợp theo kiểu `StatsResult`
+   *
+   * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong quá trình xử lý.
+   */
   public async getStatsByDateRange(from: Date, to: Date): Promise<StatsResult> {
     const groupBy = this.getTimeUnitByRange(from, to);
-
     const orderStats = await this.DonHangRepo.getOrderStatsByStatus(
       from,
       to,
       groupBy
     );
-
     const {
       detail: ordersDetail,
       completeOrderIds,
       inCompleteOrderIds,
     } = await this.processOrderStats(orderStats);
-
     const totalDiscountStats = await this.calculateDiscountStats(
       completeOrderIds,
       inCompleteOrderIds
     );
-
     const vouchers = await this.getVoucherStats([
       ...completeOrderIds,
       ...inCompleteOrderIds,
     ]);
-
     const buyerStats = await this.DonHangRepo.getOrderStatsByCustomerType(
       from,
       to
     );
-
     const orderIds = await this.DonHangRepo.getOrderIdsByDate(from, to);
-
     const provincesStats =
       await this.NhanHangDHService.getStatsByProvince(orderIds);
     const result = await Promise.all(
@@ -511,7 +659,6 @@ export class DonHangService {
           item.provinceId !== undefined
             ? await this.DiaChiService.getProvinceInfo(item.provinceId)
             : undefined;
-
         return {
           ...item,
           provinceName: province?.T_ten ? province?.T_ten : 'Không xác định',
@@ -530,6 +677,27 @@ export class DonHangService {
     };
   }
 
+  /**
+   * Xử lý thống kê đơn hàng theo từng mốc thời gian (ngày/tháng/năm),
+   * phân loại đơn hoàn tất và chưa hoàn tất, đồng thời tổng hợp các thống kê chi tiết cho từng nhóm.
+   *
+   * @param orderStats - Dữ liệu đơn hàng theo trạng thái được nhóm theo ngày/tháng/năm.
+   * Cấu trúc:
+   * {
+   *   [date: string]: {
+   *     complete?: { orderIds: string[], stats: { totalBillSale, totalShipSale, totalShipPrice } },
+   *     inComplete?: { orderIds: string[], stats: { totalBillSale, totalShipSale, totalShipPrice } },
+   *     total?: { all: number, complete: number, inComplete: number, canceled: number }
+   *   }
+   * }
+   *
+   * @returns Một object chứa:
+   * - `detail`: Thống kê chi tiết theo từng ngày gồm tổng số đơn, đơn hoàn tất, đơn chưa hoàn tất, đơn huỷ.
+   * - `completeOrderIds`: Tập hợp các `orderId` của đơn hoàn tất.
+   * - `inCompleteOrderIds`: Tập hợp các `orderId` của đơn chưa hoàn tất.
+   *
+   * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong quá trình truy vấn chi tiết đơn hàng.
+   */
   private async processOrderStats(orderStats: Record<string, any>): Promise<{
     detail: Record<string, OrderStatsByDate>;
     completeOrderIds: string[];
@@ -538,35 +706,28 @@ export class DonHangService {
     const detail: Record<string, OrderStatsByDate> = {};
     const completeOrderIds: string[] = [];
     const inCompleteOrderIds: string[] = [];
-
     for (const [date, stats] of Object.entries(orderStats)) {
       const complete = stats.complete ?? { orderIds: [], stats: {} };
       const inComplete = stats.inComplete ?? {
         orderIds: [],
         stats: {},
       };
-
       const total = stats.total ?? {
         all: 0,
         complete: 0,
         inComplete: 0,
         canceled: 0,
       };
-
       const completeIds = complete.orderIds ?? [];
       const inCompleteIds = inComplete.orderIds ?? [];
-
       completeOrderIds.push(...completeIds);
       inCompleteOrderIds.push(...inCompleteIds);
-
       const completeStats = completeIds.length
         ? await this.ChiTietDonHangRepo.getOrderDetailsStats(completeIds)
         : this.emptyStats();
-
       const inCompleteStats = inCompleteIds.length
         ? await this.ChiTietDonHangRepo.getOrderDetailsStats(inCompleteIds)
         : this.emptyStats();
-
       detail[date] = {
         total: {
           all: total.all ?? 0,
@@ -588,7 +749,6 @@ export class DonHangService {
         },
       };
     }
-
     return {
       detail,
       completeOrderIds,
@@ -596,6 +756,25 @@ export class DonHangService {
     };
   }
 
+  /**
+   * Tính thống kê số lượng sản phẩm có áp dụng giảm giá trong các đơn hàng hoàn tất và chưa hoàn tất.
+   *
+   * Hàm này truy vấn vào repository chi tiết đơn hàng để:
+   * - Đếm tổng số sản phẩm đã bán (`totalProducts`)
+   * - Đếm số sản phẩm có áp dụng khuyến mãi (`discountedProducts`)
+   *
+   * @param completeOrderIds - Danh sách ID các đơn hàng đã hoàn tất.
+   * @param inCompleteOrderIds - Danh sách ID các đơn hàng chưa hoàn tất.
+   *
+   * @returns Thống kê tổng sản phẩm và số sản phẩm đã giảm giá trong toàn bộ đơn hàng.
+   * Dạng trả về:
+   * {
+   *   totalProducts: number;           // Tổng số sản phẩm
+   *   discountedProducts: number;     // Số sản phẩm đã áp dụng khuyến mãi
+   * }
+   *
+   * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong khi truy vấn thống kê.
+   */
   private async calculateDiscountStats(
     completeOrderIds: string[],
     inCompleteOrderIds: string[]
@@ -605,13 +784,11 @@ export class DonHangService {
           completeOrderIds
         )
       : { totalProducts: 0, discountedProducts: 0 };
-
     const inCompleteStats = inCompleteOrderIds.length
       ? await this.ChiTietDonHangRepo.getDiscountedProductStats(
           inCompleteOrderIds
         )
       : { totalProducts: 0, discountedProducts: 0 };
-
     return {
       totalProducts:
         completeStats.totalProducts + inCompleteStats.totalProducts,
@@ -620,6 +797,23 @@ export class DonHangService {
     };
   }
 
+  /**
+   * Lấy thống kê về mã giảm giá được sử dụng trong các đơn hàng.
+   *
+   * Hàm này truy vấn dịch vụ `MaGiamService` để tính:
+   * - Tổng số đơn hàng đã sử dụng mã giảm giá.
+   * - Số lượng mã giảm giá theo loại (giảm giá vận chuyển và giảm giá đơn hàng).
+   *
+   * Nếu không có đơn hàng nào được cung cấp, hàm trả về thống kê rỗng.
+   *
+   * @param orderIds - Danh sách ID của các đơn hàng cần thống kê.
+   *
+   * @returns Thống kê mã giảm giá được sử dụng, bao gồm:
+   * - `orderUsed`: Tổng số đơn có sử dụng mã giảm giá.
+   * - `typeStats`: Số lượng mã theo loại (vận chuyển và đơn hàng).
+   *
+   * @throws {InternalServerErrorException} Nếu xảy ra lỗi khi truy vấn `MaGiamService`.
+   */
   private async getVoucherStats(orderIds: string[]): Promise<VoucherStats> {
     if (!orderIds.length) {
       return {
@@ -627,7 +821,6 @@ export class DonHangService {
         typeStats: { shipping: 0, order: 0 },
       };
     }
-
     const stats = await this.MaGiamService.getVoucherStatsForOrders(orderIds);
     return {
       orderUsed: stats.orderUsed ?? 0,
@@ -638,6 +831,14 @@ export class DonHangService {
     };
   }
 
+  /**
+   * Trả về một đối tượng thống kê chi tiết đơn hàng với tất cả giá trị bằng 0.
+   *
+   * Hàm này dùng để khởi tạo giá trị mặc định cho các thống kê đơn hàng
+   * khi không có dữ liệu hoặc danh sách đơn hàng rỗng.
+   *
+   * @returns Đối tượng `OrderDetailStats` với tất cả trường được gán giá trị 0.
+   */
   private emptyStats(): OrderDetailStats {
     return {
       totalSalePrice: 0,
@@ -650,6 +851,14 @@ export class DonHangService {
     };
   }
 
+  /**
+   * Chuyển đổi một đối tượng `Date` thành chuỗi định dạng `yyyy-mm-dd`,
+   * dùng để đặt tên file hoặc hiển thị ngày theo chuẩn ISO.
+   *
+   * @param date - Đối tượng `Date` cần định dạng.
+   *
+   * @returns Chuỗi ngày dạng `yyyy-mm-dd`. Ví dụ: `2025-07-30`.
+   */
   private formatDateForFile(date: Date): string {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
@@ -657,18 +866,33 @@ export class DonHangService {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  /**
+   * Tạo báo cáo thống kê đơn hàng theo khoảng thời gian và xuất thành tệp Excel.
+   *
+   * Hàm này thực hiện các bước:
+   * 1. Lấy thống kê đơn hàng theo ngày trong khoảng `from` → `to`.
+   * 2. Lấy thông tin nhân viên thực hiện yêu cầu.
+   * 3. Tạo các sheet thống kê theo định dạng Excel.
+   * 4. Sinh file Excel dưới dạng buffer và trả về kèm tên file.
+   *
+   * @param from - Ngày bắt đầu của khoảng thống kê.
+   * @param to - Ngày kết thúc của khoảng thống kê.
+   * @param staffId - Mã định danh nhân viên thực hiện xuất báo cáo.
+   *
+   * @returns Đối tượng chứa:
+   * - `buffer`: Dữ liệu nhị phân của file Excel (dạng `Buffer`) để phục vụ tải xuống hoặc gửi qua mạng.
+   * - `fileName`: Tên file được đề xuất cho tệp Excel xuất ra, định dạng `Thong-ke-yyyy-mm-dd-yyyy-mm-dd.xlsx`.
+   */
   async getExcelReportStatsByDateRange(from: Date, to: Date, staffId: string) {
     const stats = await this.getStatsByDateRange(from, to);
     const staffInfor = await this.NhanVienService.findById(staffId);
     const fileName = `${this.formatDateForFile(from)}-${this.formatDateForFile(to)}`;
-
     const sheets = this.getExcelReportStats(stats, {
       NV_hoTen: staffInfor.NV_hoTen,
       NV_email: staffInfor.NV_email,
       NV_tenVaiTro: staffInfor.NV_tenVaiTro,
       NV_soDienThoai: staffInfor.NV_soDienThoai,
     });
-
     const buffer = await this.ExportService.generateExcelBuffer_ordersStats(
       sheets,
       {
@@ -682,11 +906,30 @@ export class DonHangService {
         dateRange: { start: from, end: to },
       }
     );
-
     const exportFileName = 'Thong-ke-' + fileName + '.xlsx';
     return { buffer, fileName: exportFileName };
   }
 
+  /**
+   * Tạo dữ liệu báo cáo thống kê định dạng bảng (sheet) dùng để xuất ra Excel.
+   *
+   * Gồm 2 phần chính:
+   * - Thông tin nhân viên thực hiện xuất báo cáo.
+   * - Thống kê đơn hàng theo từng ngày, gồm tổng số đơn, đơn hoàn tất, đơn thất bại,
+   *   doanh thu sản phẩm, doanh thu thuần sản phẩm, doanh thu vận chuyển, và doanh thu thuần vận chuyển.
+   *
+   * @protected
+   * @param data - Kết quả thống kê theo từng ngày (bao gồm đơn hoàn tất, chưa hoàn tất, tổng).
+   * @param staff - Thông tin nhân viên xuất báo cáo:
+   *   - `NV_hoTen`: Họ tên nhân viên.
+   *   - `NV_email`: Email liên hệ.
+   *   - `NV_soDienThoai`: Số điện thoại.
+   *   - `NV_tenVaiTro`: Tên vai trò hoặc chức vụ.
+   *
+   * @returns Mảng `SheetData` gồm 1 sheet có tên 'Báo cáo thống kê', chứa:
+   * - Bảng thông tin nhân viên xuất báo cáo.
+   * - Bảng thống kê đơn hàng theo ngày.
+   */
   protected getExcelReportStats(
     data: StatsResult,
     staff: {
@@ -709,7 +952,6 @@ export class DonHangService {
             staff.NV_tenVaiTro,
             staff.NV_soDienThoai,
           ],
-
           // 3. Đơn hàng
           [
             'Thời gian',
@@ -740,7 +982,6 @@ export class DonHangService {
                 stats.complete.totalShipPrice + stats.inComplete.totalShipPrice;
               const netRevenueS =
                 stats.complete.totalShipPrice - stats.complete.totalShipSale;
-
               return [
                 date,
                 Number(stats.total.all ?? 0),

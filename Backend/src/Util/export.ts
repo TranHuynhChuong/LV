@@ -9,6 +9,15 @@ export interface SheetData {
 
 @Injectable()
 export class ExportService {
+  /**
+   * Tạo file Excel thống kê đơn hàng và trả về dưới dạng Buffer.
+   *
+   * @param sheets - Mảng dữ liệu các sheet cần ghi vào file Excel.
+   * @param metaInfo - Thông tin người lập báo cáo và khoảng thời gian thống kê.
+   * @param metaInfo.staff - Thông tin nhân viên lập báo cáo.
+   * @param metaInfo.dateRange - Khoảng thời gian thống kê đơn hàng.
+   * @returns Buffer chứa nội dung file Excel đã tạo.
+   */
   async generateExcelBuffer_ordersStats(
     sheets: SheetData[],
     metaInfo: {

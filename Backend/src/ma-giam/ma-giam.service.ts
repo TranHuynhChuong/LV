@@ -33,10 +33,21 @@ export class MaGiamUtilService {
     private readonly MaGiamDonHangRepo: MaGiamDonHangRepository
   ) {}
 
+  /**
+   * Kiểm tra tính hợp lệ của các mã giảm theo danh sách ID.
+   * @param ids - Danh sách ID mã giảm cần kiểm tra.
+   * @returns Danh sách mã giảm hợp lệ.
+   */
   async findValidByIds(ids: string[]) {
     return this.MaGiamRepo.checkValid(ids);
   }
 
+  /**
+   * Tạo liên kết mã giảm cho một đơn hàng (mã giảm sử dụng cho đơn hàng).
+   * @param orderId - ID của đơn hàng.
+   * @param voucherIds - Danh sách ID mã giảm.
+   * @param session - Phiên MongoDB để hỗ trợ transaction.
+   */
   async createVoucherForOrder(
     dhId: string,
     mgIds: string[],
@@ -45,6 +56,10 @@ export class MaGiamUtilService {
     return this.MaGiamDonHangRepo.create(dhId, mgIds, session);
   }
 
+  /**
+   * Lấy thống kê số lượng mã giảm được áp dụng theo đơn hàng.
+   * @param orderIds - Danh sách ID đơn hàng.
+   */
   async getVoucherStatsForOrders(dhIds: string[]) {
     return this.MaGiamDonHangRepo.getVoucherStats(dhIds);
   }
@@ -57,7 +72,11 @@ export class MaGiamService {
     private readonly NhanVienService: NhanVienUtilService
   ) {}
 
-  //=========================== Tạo mã giảm mới=======================================
+  /**
+   * Tạo mới một mã giảm giá.
+   * @param data - Dữ liệu mã giảm cần tạo.
+   * @throws ConflictException nếu mã đã tồn tại.
+   */
   async create(data: CreateMaGiamDto) {
     const existing = await this.MaGiamRepo.findExisting(data.MG_id);
     if (existing) {
@@ -70,7 +89,6 @@ export class MaGiamService {
       thoiGian: new Date(),
     };
 
-    // Tạo khuyến mãi chính
     const created = await this.MaGiamRepo.create({
       ...data,
       lichSuThaoTac: [thaoTac],
@@ -83,7 +101,10 @@ export class MaGiamService {
     return created;
   }
 
-  //=========== Lấy danh sách mã giảm phân trang và theo trạng thái, loại  ==============
+  /**
+   * Lấy danh sách mã giảm có phân trang và bộ lọc.
+   * @param params - Thông tin phân trang và bộ lọc.
+   */
   async getAll(params: {
     page: number;
     limit: number;
@@ -93,11 +114,20 @@ export class MaGiamService {
     return this.MaGiamRepo.findAll(params);
   }
 
+  /**
+   * Lấy tất cả mã giảm còn hiệu lực.
+   */
   async getAllValid() {
     return this.MaGiamRepo.findAllValid();
   }
 
-  // =======================Lấy chi tiết mã giảm theo id==========================
+  /**
+   * Lấy thông tin chi tiết một mã giảm theo ID.
+   * @param id - ID mã giảm.
+   * @param filterType - Kiểu lọc mã.
+   * @param type - Loại mã giảm.
+   * @throws NotFoundException nếu không tìm thấy mã giảm.
+   */
   async getById(
     id: string,
     filterType?: VoucherFilterType,
@@ -116,16 +146,20 @@ export class MaGiamService {
     return result;
   }
 
-  // ==================== Cập nhật mã giảm =======================================
+  /**
+   * Cập nhật một mã giảm theo ID.
+   * @param id - ID mã giảm.
+   * @param newData - Dữ liệu cập nhật.
+   * @throws NotFoundException nếu không tìm thấy.
+   * @throws BadRequestException nếu thay đổi không hợp lệ.
+   */
   async update(id: string, newData: UpdateMaGiamDto): Promise<MaGiam> {
     // Tìm bản ghi hiện tại theo id
     const current = await this.MaGiamRepo.findById(id);
     if (!current) {
       throw new NotFoundException('Cập nhật mã giảm - Không tim thấy mã giảm');
     }
-
     const now = new Date();
-
     const isOngoing = current.MG_batDau <= now && now <= current.MG_ketThuc;
     if (
       isOngoing &&
@@ -136,29 +170,23 @@ export class MaGiamService {
         'Cập nhật mã giảm - Không thể cập nhật thời gian bắt đầu khi mã giảm đang diễn ra.'
       );
     }
-
     // Xác định trường thay đổi
     const fieldsChange: string[] = [];
     const updatePayload: any = {};
-
     for (const key of Object.keys(newData)) {
       if (key === 'NV_id') continue;
-
       const newValue = newData[key];
       const currentValue = current[key];
-
       const isChanged =
         currentValue instanceof Date && newValue instanceof Date
           ? currentValue.getTime() !== newValue.getTime()
           : newValue !== undefined && newValue !== currentValue;
-
       if (isChanged) {
         const label = typeOfChange[key] || key;
         fieldsChange.push(label);
         updatePayload[key] = newValue;
       }
     }
-
     // Thêm lịch sử thao tác nếu có thay đổi
     if (fieldsChange.length > 0 && newData.NV_id) {
       const thaoTac = {
@@ -168,41 +196,45 @@ export class MaGiamService {
       };
       updatePayload.lichSuThaoTac = [...current.lichSuThaoTac, thaoTac];
     }
-
     // Không có thay đổi thì trả về bản ghi cũ
     if (Object.keys(updatePayload).length === 0) {
       return current;
     }
-
     const updated = await this.MaGiamRepo.update(id, updatePayload);
     if (!updated) {
       throw new BadRequestException(
         'Cập nhật mã giảm - Cập nhật mã giảm thất bại'
       );
     }
-
     return updated;
   }
 
+  /**
+   * Xóa một mã giảm giá theo ID.
+   * @param id - ID mã giảm.
+   * @throws NotFoundException nếu không tìm thấy.
+   * @throws BadRequestException nếu mã đang có hiệu lực.
+   */
   async delete(id: string) {
     // Tìm bản ghi hiện tại theo id
     const current = await this.MaGiamRepo.findById(id);
     if (!current) {
       throw new NotFoundException('Xóa mã giảm - Không tim thấy mã giảm');
     }
-
     const now = new Date();
-
     const isOngoing = current.MG_batDau <= now && now <= current.MG_ketThuc;
     if (isOngoing) {
       throw new BadRequestException(
         'Xóa mã giảm - Không thể xóa khi mã giảm đang diễn ra.'
       );
     }
-
     return this.MaGiamRepo.delete(id);
   }
 
+  /**
+   * Đếm số lượng mã giảm đang có hiệu lực.
+   * @returns Số lượng mã giảm hợp lệ.
+   */
   async countValid(): Promise<number> {
     return this.MaGiamRepo.countValid();
   }

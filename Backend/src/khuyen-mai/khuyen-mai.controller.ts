@@ -21,12 +21,26 @@ import { PromotionFilterType } from './repositories/khuyen-mai.repository';
 export class KhuyenMaiController {
   constructor(private readonly KhuyenMaiService: KhuyenMaiService) {}
 
+  /**
+   * Tạo mới một khuyến mãi.
+   *
+   * @param {CreateKhuyenMaiDto} data - Dữ liệu khuyến mãi cần tạo.
+   * @returns {Promise<any>} Đối tượng khuyến mãi vừa được tạo.
+   */
   @UseGuards(XacThucGuard)
   @Post()
   create(@Body() data: CreateKhuyenMaiDto) {
-    return this.KhuyenMaiService.createKhuyenMai(data);
+    return this.KhuyenMaiService.create(data);
   }
 
+  /**
+   * Lấy danh sách khuyến mãi có phân trang và lọc theo loại khuyến mãi (nếu có).
+   *
+   * @param {string} page - Số trang hiện tại (bắt đầu từ 1).
+   * @param {string} limit - Số lượng bản ghi mỗi trang.
+   * @param {PromotionFilterType} [filterType] - (Tùy chọn) Loại khuyến mãi để lọc.
+   * @returns {Promise<any>} Danh sách khuyến mãi phù hợp.
+   */
   @Get()
   findAll(
     @Query('page') page: string,
@@ -40,11 +54,23 @@ export class KhuyenMaiController {
     });
   }
 
+  /**
+   * Đếm số lượng khuyến mãi còn hiệu lực.
+   *
+   * @returns {Promise<number>} Tổng số khuyến mãi đang còn hiệu lực.
+   */
   @Get('/total')
   async count(): Promise<any> {
     return await this.KhuyenMaiService.countValid();
   }
 
+  /**
+   * Lấy thông tin chi tiết của một khuyến mãi theo ID.
+   *
+   * @param {number} id - ID của khuyến mãi cần tìm.
+   * @param {PromotionFilterType} [filterType] - (Tùy chọn) Lọc chi tiết theo loại khuyến mãi.
+   * @returns {Promise<any>} Đối tượng khuyến mãi tương ứng nếu tìm thấy.
+   */
   @Get(':id')
   async findById(
     @Param('id', ParseIntPipe) id: number,
@@ -53,6 +79,13 @@ export class KhuyenMaiController {
     return this.KhuyenMaiService.findById(id, filterType);
   }
 
+  /**
+   * Cập nhật thông tin khuyến mãi theo ID.
+   *
+   * @param {number} id - ID của khuyến mãi cần cập nhật.
+   * @param {UpdateKhuyenMaiDto} data - Dữ liệu cập nhật.
+   * @returns {Promise<any>} Đối tượng khuyến mãi sau khi cập nhật thành công.
+   */
   @UseGuards(XacThucGuard)
   @Put(':id')
   update(
@@ -62,6 +95,12 @@ export class KhuyenMaiController {
     return this.KhuyenMaiService.update(id, data);
   }
 
+  /**
+   * Xóa khuyến mãi theo ID, nếu khuyến mãi chưa hoặc không còn hiệu lực.
+   *
+   * @param {number} id - ID của khuyến mãi cần xóa.
+   * @returns {Promise<void>} Xóa thành công sẽ không trả về dữ liệu.
+   */
   @UseGuards(XacThucGuard)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {

@@ -28,7 +28,10 @@ export class NguoiDungController {
     private readonly NhanVienService: NhanVienService
   ) {}
 
-  /** Tổng số nhân viên và khách hàng */
+  /**
+   * Lấy tổng số lượng nhân viên và khách hàng.
+   * @returns Số lượng nhân viên và khách hàng.
+   */
   @Roles(1)
   @Get('total')
   async getTotal(): Promise<{ staff: number; customer: number }> {
@@ -40,15 +43,18 @@ export class NguoiDungController {
     };
   }
 
-  /** CUSTOMER APIs */
-
+  /**
+   * Lấy danh sách khách hàng phân trang.
+   * @param query.page Trang cần lấy (mặc định: 1).
+   * @param query.limit Số lượng mỗi trang (mặc định: 24).
+   * @returns Danh sách khách hàng theo phân trang.
+   */
   @Roles(1)
   @Get('/customers')
   findAll(
     @Query()
     query: {
       page?: number;
-
       limit?: string;
     }
   ) {
@@ -60,11 +66,22 @@ export class NguoiDungController {
     return this.KhachHangService.findAll(params);
   }
 
+  /**
+   * Lấy thông tin khách hàng theo địa chỉ email.
+   * @param email Địa chỉ email cần tìm.
+   * @returns Thông tin khách hàng.
+   */
   @Get('customer/:email')
   async getCustomerByEmail(@Param('email') email: string) {
     return await this.KhachHangService.findByEmail(email);
   }
 
+  /**
+   * Cập nhật thông tin khách hàng theo ID.
+   * @param id ID của khách hàng.
+   * @param data Dữ liệu cập nhật.
+   * @returns Thông tin sau khi cập nhật.
+   */
   @Put('customer/:id')
   async updateCustomer(
     @Param('id', ParseIntPipe) id: number,
@@ -73,32 +90,56 @@ export class NguoiDungController {
     return await this.KhachHangService.update(id, data);
   }
 
-  /** STAFF APIs */
-
+  /**
+   * Lấy danh sách toàn bộ nhân viên.
+   * @returns Danh sách nhân viên.
+   */
   @Roles(1)
   @Get('staffs')
   async getAllStaffs(): Promise<NhanVien[]> {
     return await this.NhanVienService.findAll();
   }
 
+  /**
+   * Tạo nhân viên mới.
+   * @param data Dữ liệu nhân viên cần tạo.
+   * @returns Thông tin nhân viên sau khi tạo.
+   */
   @Roles(1)
   @Post('staff')
   async createStaff(@Body() data: CreateNhanVienDto) {
     return await this.NhanVienService.create(data);
   }
 
+  /**
+   * Lấy thông tin nhân viên theo ID.
+   * @param id ID của nhân viên.
+   * @returns Thông tin nhân viên.
+   */
   @Roles(1)
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string): Promise<any> {
     return await this.NhanVienService.findById(id);
   }
 
+  /**
+   * Cập nhật thông tin nhân viên theo ID.
+   * @param id ID nhân viên.
+   * @param data Dữ liệu cập nhật.
+   * @returns Thông tin sau cập nhật.
+   */
   @Roles(1)
   @Put('staff/:id')
   async updateStaff(@Param('id') id: string, @Body() data: UpdateNhanVienDto) {
     return await this.NhanVienService.update(id, data);
   }
 
+  /**
+   * Xóa mềm nhân viên (đánh dấu đã xóa).
+   * @param id ID nhân viên bị xóa.
+   * @param staffId ID người thực hiện thao tác xóa.
+   * @returns Kết quả xóa.
+   */
   @Roles(1)
   @Delete('staff/:id')
   async deleteStaff(
