@@ -47,7 +47,7 @@ export default function ReviewPanel() {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchData = useCallback(
+  const getData = useCallback(
     async (id: string) => {
       try {
         const res = await api.get(`orders/detail/${id}`);
@@ -62,8 +62,8 @@ export default function ReviewPanel() {
   );
 
   useEffect(() => {
-    if (id) fetchData(id);
-  }, [id, fetchData]);
+    if (id) getData(id);
+  }, [id, getData]);
 
   const reviewInputs = useMemo(() => {
     if (!data) return [];
@@ -143,15 +143,19 @@ export default function ReviewPanel() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpenConfirm(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenConfirm(false)}
+              className="cursor-pointer"
+            >
               Hủy
             </Button>
             <Button
-              variant="default"
               onClick={() => {
                 handleSubmit();
                 setOpenConfirm(false);
               }}
+              className="cursor-pointer"
             >
               Gửi đánh giá
             </Button>
