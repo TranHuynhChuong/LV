@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useAuth } from '@/contexts/auth-context';
-import EventBus from '@/lib/event-bus';
 import Loader from '@/components/utils/loader';
 import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
 import type { ShippingFee } from '@/models/shipping';
@@ -63,7 +62,6 @@ export default function ShippingDetail() {
     try {
       await api.put(`/shipping/${id}`, apiData);
       toast.success('Cập nhật thành công');
-      EventBus.emit('shipping:refetch');
       router.back();
     } catch {
       toast.error('Cập nhật thất bại!');
@@ -78,7 +76,6 @@ export default function ShippingDetail() {
     try {
       await api.delete(`/shipping/${id}?staffId=${authData.userId}`);
       toast.success('Xoá thành công');
-      EventBus.emit('shipping:refetch');
       router.back();
     } catch {
       toast.error('Xóa thất bại!');

@@ -6,7 +6,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import EventBus from '@/lib/event-bus';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { ImageDto } from '@/models/books';
 import { useParams, useRouter } from 'next/navigation';
@@ -80,7 +79,6 @@ export default function BookDetail() {
       });
 
       toast.success('Cập nhật thành công');
-      EventBus.emit('book:refetch');
       router.back();
     } catch {
       toast.error('Cập nhật thất bại!');
@@ -147,7 +145,6 @@ export default function BookDetail() {
     try {
       await api.delete(`/books/${id}?staffId=${authData.userId}`);
       toast.success('Xóa thành công');
-      EventBus.emit('book:refetch');
       router.back();
     } catch {
       toast.error('Xóa thất bại!');

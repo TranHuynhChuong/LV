@@ -8,7 +8,6 @@ import { mapShippingFeeToDto, ShippingFee } from '@/models/shipping';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import EventBus from '@/lib/event-bus';
 import ShippingFeeForm from './shipping-form';
 
 export default function ShippingNew() {
@@ -33,7 +32,6 @@ export default function ShippingNew() {
       .post('/shipping', apiData)
       .then(() => {
         toast.success('Thêm mới thành công');
-        EventBus.emit('shipping:refetch');
         router.back();
       })
       .catch(() => {

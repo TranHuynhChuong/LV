@@ -6,7 +6,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import EventBus from '@/lib/event-bus';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -69,7 +68,6 @@ export default function BookNew() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('Thêm mới thành công!');
-      EventBus.emit('book:refetch');
       router.back();
     } catch {
       toast.error('Thêm mới thất bại!');

@@ -4,7 +4,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import EventBus from '@/lib/event-bus';
 import { mapStaffFormDto, mapStaffToDto, Staff } from '@/models/accounts';
 import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { useParams, useRouter } from 'next/navigation';
@@ -57,7 +56,6 @@ export default function StaffDetail() {
     try {
       await api.put(`/users/staff/${id}`, payload);
       toast.success('Cập nhật thành công');
-      EventBus.emit('staff:refetch');
       router.back();
     } catch {
       toast.error('Cập nhật thất bại!');
@@ -71,7 +69,6 @@ export default function StaffDetail() {
     try {
       await api.delete(`/users/staff/${id}?staffId=${authData.userId}`);
       toast.success('Xóa thành công');
-      EventBus.emit('staff:refetch');
       router.back();
     } catch {
       toast.error('Xóa thất bại!');
