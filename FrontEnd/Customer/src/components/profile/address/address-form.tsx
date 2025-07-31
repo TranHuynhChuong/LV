@@ -66,7 +66,7 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
       if (defaultValue.provinceId) {
         onProvinceChange?.(defaultValue.provinceId);
       }
-    }, [defaultValue, form, onProvinceChange]);
+    }, [defaultValue, form]);
 
     useImperativeHandle(ref, () => ({
       submit: async () => {
