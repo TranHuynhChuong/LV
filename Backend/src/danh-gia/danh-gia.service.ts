@@ -39,11 +39,11 @@ export class DanhGiaService {
             if (!created) {
               throw new BadRequestException('Tạo đánh giá - Tạo thất bại');
             }
-            const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
+            await this.SachService.updateRating(
               dto.S_id,
+              created.DG_diem,
               session
             );
-            await this.SachService.updateScore(dto.S_id, newScore, session);
 
             createdDanhGias.push(created);
           }
@@ -148,11 +148,8 @@ export class DanhGiaService {
           );
         }
         updated = updateResult;
-        const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
-          dto.S_id,
-          session
-        );
-        await this.SachService.updateScore(dto.S_id, newScore, session);
+
+        await this.SachService.updateRating(dto.S_id, updated.DG_diem, session);
       });
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
@@ -204,11 +201,12 @@ export class DanhGiaService {
           throw new BadRequestException('Cập nhật đánh giá - Ẩn thất bại');
         }
         updated = updateResult;
-        const newScore = await this.DanhGiaRepo.getAverageRatingOfBook(
+
+        await this.SachService.updateRating(
           dto.S_id,
+          -updated.DG_diem,
           session
         );
-        await this.SachService.updateScore(dto.S_id, newScore, session);
       });
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');

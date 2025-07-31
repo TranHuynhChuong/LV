@@ -99,8 +99,8 @@ export class SachUtilService {
    * @param session Phiên làm việc MongoDB hỗ trợ transaction
    * @returns Promise<any> Kết quả cập nhật
    */
-  async updateScore(id: number, score: number, session: ClientSession) {
-    return this.SachRepo.updateScore(id, score, session);
+  async updateRating(id: number, score: number, session: ClientSession) {
+    return this.SachRepo.updateRating(id, score, session);
   }
 }
 

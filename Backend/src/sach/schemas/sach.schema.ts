@@ -206,10 +206,16 @@ export class Sach {
   lichSuThaoTac: LichSuThaoTacS[];
 
   /**
-   * Điểm đánh giá trung bình
+   * Điểm đánh giá tổng (Hiển thị)
    */
   @Prop({ type: Number, default: 0 })
   S_diemDG: number;
+
+  /**
+   * Số lượng đánh giá (Hiển thị)
+   */
+  @Prop({ type: Number, default: 0 })
+  S_soLuongDG: number;
 }
 
 export const SachSchema = SchemaFactory.createForClass(Sach);

@@ -113,21 +113,24 @@ export class SachRepository {
   }
 
   /**
-   * Cập nhật điểm đánh giá của một sách theo ID.
+   * Cập nhật đánh giá của một sách theo ID.
+   * - Nếu score > 0: thêm/hiện đánh giá (tăng số lượng và tổng điểm)
+   * - Nếu score < 0: ẩn đánh giá (giảm số lượng và tổng điểm)
    *
    * @param id ID sách cần cập nhật điểm
    * @param score Điểm đánh giá mới
    * @param session (Tuỳ chọn) Phiên làm việc MongoDB hỗ trợ transaction
    * @returns Kết quả của thao tác updateOne từ Mongoose
    */
-  async updateScore(id: number, score: number, session?: ClientSession) {
-    return this.SachModel.updateOne(
-      { S_id: id },
-      {
-        $set: { S_diemDG: score },
+  async updateRating(id: number, score: number, session?: ClientSession) {
+    if (score === 0) return;
+    const updateQuery: any = {
+      $inc: {
+        S_soLuongDG: score > 0 ? 1 : -1,
+        S_diemDG: score,
       },
-      { session }
-    );
+    };
+    return this.SachModel.updateOne({ S_id: id }, updateQuery, { session });
   }
 
   /**
@@ -452,6 +455,7 @@ export class SachRepository {
       S_id: 1,
       S_isbn: 1,
       S_diemDG: 1,
+      S_soLuongDG: 1,
       S_ten: 1,
       S_tacGia: 1,
       S_nhaXuatBan: 1,
