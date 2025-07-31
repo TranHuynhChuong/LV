@@ -35,7 +35,7 @@ export default function ProfilePanel() {
   useEffect(() => {
     if (!authData.userId) return;
     api
-      .get(`/users/customer/${authData.userId}`)
+      .get(`/users/customer/inf/${authData.userId}`)
       .then((res) => {
         const data = res.data;
         setProfile({
@@ -87,7 +87,7 @@ export default function ProfilePanel() {
       <div className="space-y-2">
         <Label>Email</Label>
         <div className="flex items-center gap-2">
-          <Input value={profile.email} disabled className="flex-1" />
+          <Input value={profile.email} readOnly className="flex-1" />
           <Button
             type="button"
             variant="outline"
