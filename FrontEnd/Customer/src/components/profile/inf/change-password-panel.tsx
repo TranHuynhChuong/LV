@@ -72,7 +72,7 @@ export default function ChangePasswordPanel() {
   return (
     <div className="w-full max-w-lg p-6 bg-white border rounded-md">
       <ChangePasswordForm
-        mode="forgot"
+        mode="change"
         onSubmit={handleResetPassword}
         loading={loading}
         error={error}
