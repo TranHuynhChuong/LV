@@ -117,7 +117,7 @@ export function CategoryTreeMenuOnDesktop({ nodes }: Readonly<{ nodes: CategoryN
   return (
     <>
       <div className="hidden h-full md:pb-4 md:block ">
-        <div className="flex items-center h-full px-1 bg-white">
+        <div className="flex items-center h-full px-1 bg-white  cursor-pointer">
           <Menu />
         </div>
       </div>
@@ -131,7 +131,6 @@ export function CategoryTreeMenuOnDesktop({ nodes }: Readonly<{ nodes: CategoryN
                     {node.name}
                   </span>
                 </CategoryLink>
-
                 <div className="px-2">
                   <CategoryTreeNodes nodes={node.children} />
                 </div>
@@ -150,7 +149,7 @@ export function CategoryTreeMenuOnMobile({ nodes }: Readonly<{ nodes: CategoryNo
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild className="md:hidden">
         <div className="h-full md:pb-4">
-          <div className="flex items-center h-full px-1 bg-white">
+          <div className="flex items-center h-full px-1 bg-white cursor-pointer">
             <Menu />
           </div>
         </div>
@@ -169,7 +168,6 @@ export function CategoryTreeMenuOnMobile({ nodes }: Readonly<{ nodes: CategoryNo
                     {node.name}
                   </span>
                 </CategoryLink>
-
                 <div>
                   <CategoryTreeNodes nodes={node.children} />
                 </div>
@@ -186,25 +184,21 @@ export default function CategoryList() {
   const [data, setData] = useState<Categories[]>([]);
   const [treeData, setTreeData] = useState<CategoryNode[]>([]);
   useEffect(() => {
-    const fetchCategories = async () => {
+    const getData = async () => {
       try {
         const res = await api.get('/categories');
         const data = res.data as CategoryDto[];
-
         const categoriesMapped = data.map((cat) => ({
           id: cat.TL_id,
           name: cat.TL_ten,
           parent: data.find((c) => c.TL_id === cat.TL_idTL)?.TL_ten || '',
         }));
-
         setData(categoriesMapped);
-      } catch (err) {
-        console.error('Lỗi tải danh mục:', err);
+      } catch {
         setData([]);
       }
     };
-
-    fetchCategories();
+    getData();
   }, []);
 
   useEffect(() => {
