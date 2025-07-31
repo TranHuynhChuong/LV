@@ -98,7 +98,7 @@ export function CategoryTreeNodes({ nodes }: Readonly<{ nodes: CategoryNode[] }>
                 }
               >
                 <ChevronRight
-                  className={`transition-transform duration-200 ${
+                  className={`transition-transform duration-200 cursor-pointer ${
                     open[node.id] ? 'rotate-90' : ''
                   }`}
                   size={18}

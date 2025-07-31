@@ -79,7 +79,7 @@ export default function ProfileSidebar() {
           </SheetContent>
         </Sheet>
       </div>
-      <div className="hidden bg-white border rounded-md shadow lg:block h-fit">
+      <div className="hidden bg-white border rounded-md lg:block h-fit">
         <SidebarContent />
       </div>
     </div>
