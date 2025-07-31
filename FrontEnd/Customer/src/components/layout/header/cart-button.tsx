@@ -32,7 +32,7 @@ export default function CartButton() {
     return () => {
       unsubscribe();
     };
-  }, [authData.userId, guestCartLength, updateQuantity]);
+  }, [authData.userId, guestCartLength]);
 
   return (
     <Button
