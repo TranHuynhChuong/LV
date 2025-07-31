@@ -32,6 +32,7 @@ export class PhiVanChuyenService {
 
   /**
    * Tạo mới phí vận chuyển hoặc khôi phục phí đã xóa.
+   *
    * @param newData - Dữ liệu tạo phí vận chuyển.
    * @returns Bản ghi phí vận chuyển đã được tạo hoặc khôi phục.
    */
@@ -94,6 +95,7 @@ export class PhiVanChuyenService {
 
   /**
    * Lấy tất cả phí vận chuyển kèm tên khu vực.
+   *
    * @returns Danh sách phí vận chuyển.
    */
   async getAll(): Promise<Partial<PhiVanChuyen & { T_ten: string }>[]> {
@@ -115,6 +117,7 @@ export class PhiVanChuyenService {
 
   /**
    * Lấy phí vận chuyển theo PVC_id.
+   *
    * @param id - ID phí vận chuyển.
    * @returns Bản ghi phí vận chuyển.
    */
@@ -135,6 +138,7 @@ export class PhiVanChuyenService {
 
   /**
    * Lấy phí vận chuyển theo T_id (khu vực), fallback về khu vực còn lại (T_id = 0) nếu không có.
+   *
    * @param id - T_id khu vực.
    * @returns Phí vận chuyển tương ứng.
    */
@@ -151,6 +155,7 @@ export class PhiVanChuyenService {
 
   /**
    * Cập nhật thông tin phí vận chuyển.
+   *
    * @param id - PVC_id bản ghi cần cập nhật.
    * @param newData - Dữ liệu cập nhật.
    * @returns Bản ghi sau khi cập nhật.
@@ -201,6 +206,7 @@ export class PhiVanChuyenService {
 
   /**
    * Xoá (mềm) phí vận chuyển và lưu lịch sử thao tác.
+   *
    * @param id - PVC_id cần xóa.
    * @param NV_id - ID nhân viên thực hiện thao tác.
    * @returns Bản ghi sau khi bị đánh dấu xoá.
@@ -231,6 +237,7 @@ export class PhiVanChuyenService {
 
   /**
    * Đếm tổng số bản ghi phí vận chuyển chưa bị xoá.
+   *
    * @returns Tổng số bản ghi còn hiệu lực.
    */
   async countAll(): Promise<number> {

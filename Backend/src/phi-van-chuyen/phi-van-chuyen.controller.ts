@@ -23,6 +23,7 @@ export class PhiVanChuyenController {
 
   /**
    * Tạo mới phí vận chuyển.
+   *
    * @param data Dữ liệu phí vận chuyển cần tạo.
    * @returns Bản ghi phí vận chuyển vừa tạo.
    */
@@ -34,6 +35,7 @@ export class PhiVanChuyenController {
 
   /**
    * Lấy danh sách phí vận chuyển cơ bản (chưa xoá).
+   *
    * @returns Mảng các bản ghi phí vận chuyển.
    */
   @Get()
@@ -43,6 +45,7 @@ export class PhiVanChuyenController {
 
   /**
    * Lấy tổng số phí vận chuyển chưa bị xoá.
+   *
    * @returns Số lượng phí vận chuyển còn hiệu lực.
    */
   @Get('/total')
@@ -52,6 +55,7 @@ export class PhiVanChuyenController {
 
   /**
    * Lấy phí vận chuyển theo ID khu vực (T_id).
+   *
    * @param id ID khu vực (T_id).
    * @returns Bản ghi phí vận chuyển tương ứng.
    */
@@ -62,6 +66,7 @@ export class PhiVanChuyenController {
 
   /**
    * Lấy chi tiết phí vận chuyển theo ID phí (PVC_id).
+   *
    * @param id ID phí vận chuyển.
    * @returns Bản ghi chi tiết phí vận chuyển.
    */
@@ -72,6 +77,7 @@ export class PhiVanChuyenController {
 
   /**
    * Cập nhật phí vận chuyển theo ID.
+   *
    * @param id ID phí vận chuyển cần cập nhật.
    * @param data Dữ liệu cập nhật.
    */
@@ -86,6 +92,7 @@ export class PhiVanChuyenController {
 
   /**
    * Xoá (mềm) phí vận chuyển theo ID.
+   *
    * @param id ID phí vận chuyển cần xoá.
    * @param staffId ID nhân viên thực hiện thao tác.
    * @returns Bản ghi phí vận chuyển sau khi bị xoá.

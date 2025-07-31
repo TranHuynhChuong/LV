@@ -15,6 +15,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Tạo bản ghi phí vận chuyển mới.
+   *
    * @param data - Dữ liệu phí vận chuyển cần tạo.
    * @param session - (Tuỳ chọn) phiên giao dịch mongoose.
    * @returns Bản ghi phí vận chuyển sau khi tạo.
@@ -26,6 +27,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Lấy giá trị PVC_id lớn nhất hiện tại (ID cuối cùng).
+   *
    * @param session - (Tuỳ chọn) phiên giao dịch mongoose.
    * @returns ID cuối cùng, hoặc 0 nếu không có bản ghi.
    */
@@ -43,6 +45,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Trả về danh sách tất cả phí vận chuyển chưa bị xoá.
+   *
    * @returns Mảng các bản ghi phí vận chuyển (chỉ trường cần thiết).
    */
   async findAll(): Promise<Partial<PhiVanChuyen>[]> {
@@ -54,6 +57,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Tìm phí vận chuyển theo ID tỉnh.
+   *
    * @param id - ID tỉnh cần tìm.
    * @returns Bản ghi phí vận chuyển tương ứng hoặc null nếu không tìm thấy.
    */
@@ -66,6 +70,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Tìm phí vận chuyển theo ID phí vận chuyển.
+   *
    * @param id - PVC_id cần tìm.
    * @returns Bản ghi phí vận chuyển tương ứng hoặc null nếu không tìm thấy.
    */
@@ -77,6 +82,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Cập nhật thông tin phí vận chuyển theo PVC_id.
+   *
    * @param id - PVC_id của bản ghi cần cập nhật.
    * @param data - Dữ liệu cập nhật.
    * @returns Bản ghi sau khi được cập nhật hoặc null nếu không tìm thấy.
@@ -91,6 +97,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Đánh dấu bản ghi phí vận chuyển là đã xoá (xóa mềm).
+   *
    * @param id - PVC_id của bản ghi cần xóa.
    * @returns Bản ghi sau khi cập nhật trạng thái đã xoá hoặc null nếu không tìm thấy.
    */
@@ -106,6 +113,7 @@ export class PhiVanChuyenRepository {
 
   /**
    * Đếm số lượng bản ghi phí vận chuyển chưa bị xoá.
+   *
    * @returns Tổng số bản ghi còn hiệu lực.
    */
   async countAll(): Promise<number> {

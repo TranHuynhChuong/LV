@@ -36,6 +36,7 @@ export class MaGiamRepository {
 
   /**
    * Tạo bộ lọc theo trạng thái hiệu lực và loại mã giảm giá.
+   *
    * @param filterType Kiểu lọc mã giảm giá (hết hạn, chưa kết thúc, đang hoạt động).
    * @param type Loại mã giảm giá (vận chuyển, hóa đơn, tất cả).
    * @returns Đối tượng điều kiện truy vấn MongoDB.
@@ -113,6 +114,7 @@ export class MaGiamRepository {
 
   /**
    * Lấy danh sách các mã giảm giá còn hiệu lực.
+   *
    * @returns Danh sách mã giảm giá đang hoạt động.
    */
   async findAllValid() {
@@ -125,6 +127,7 @@ export class MaGiamRepository {
 
   /**
    * Tìm mã giảm giá theo MG_id.
+   *
    * @param id Mã giảm giá.
    * @returns Tài liệu mã giảm giá nếu tồn tại.
    */
@@ -134,6 +137,7 @@ export class MaGiamRepository {
 
   /**
    * Lấy mã giảm giá theo ID và bộ lọc.
+   *
    * @param id Mã giảm giá.
    * @param filterType Kiểu lọc.
    * @param type Loại mã giảm giá.
@@ -159,6 +163,7 @@ export class MaGiamRepository {
 
   /**
    * Tạo mã giảm giá mới.
+   *
    * @param data Dữ liệu mã giảm giá.
    * @returns Mã giảm giá vừa tạo.
    */
@@ -168,6 +173,7 @@ export class MaGiamRepository {
 
   /**
    * Cập nhật thông tin mã giảm giá.
+   *
    * @param id Mã định danh của mã giảm giá.
    * @param update Dữ liệu cần cập nhật.
    * @returns Mã giảm giá đã được cập nhật.
@@ -180,6 +186,7 @@ export class MaGiamRepository {
 
   /**
    * Xóa mã giảm giá theo ID.
+   *
    * @param id Mã định danh của mã giảm giá.
    * @returns `true` nếu xóa thành công, ngược lại `false`.
    */
@@ -190,6 +197,7 @@ export class MaGiamRepository {
 
   /**
    * Đếm tổng số mã giảm giá còn hiệu lực hiện tại.
+   *
    * @returns Số lượng mã giảm giá đang hoạt động.
    */
   async countValid(): Promise<number> {
@@ -202,6 +210,7 @@ export class MaGiamRepository {
 
   /**
    * Kiểm tra và lọc các mã giảm giá trong danh sách đang còn hiệu lực.
+   *
    * @param ids Danh sách mã giảm giá cần kiểm tra.
    * @returns Danh sách mã giảm giá hợp lệ.
    */

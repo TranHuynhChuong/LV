@@ -30,6 +30,7 @@ export class NguoiDungController {
 
   /**
    * Lấy tổng số lượng nhân viên và khách hàng.
+   *
    * @returns Số lượng nhân viên và khách hàng.
    */
   @Roles(1)
@@ -45,6 +46,7 @@ export class NguoiDungController {
 
   /**
    * Lấy danh sách khách hàng phân trang.
+   *
    * @param query.page Trang cần lấy (mặc định: 1).
    * @param query.limit Số lượng mỗi trang (mặc định: 24).
    * @returns Danh sách khách hàng theo phân trang.
@@ -68,6 +70,7 @@ export class NguoiDungController {
 
   /**
    * Lấy thông tin khách hàng theo địa chỉ email.
+   *
    * @param email Địa chỉ email cần tìm.
    * @returns Thông tin khách hàng.
    */
@@ -78,6 +81,7 @@ export class NguoiDungController {
 
   /**
    * Cập nhật thông tin khách hàng theo ID.
+   *
    * @param id ID của khách hàng.
    * @param data Dữ liệu cập nhật.
    * @returns Thông tin sau khi cập nhật.
@@ -92,6 +96,7 @@ export class NguoiDungController {
 
   /**
    * Lấy danh sách toàn bộ nhân viên.
+   *
    * @returns Danh sách nhân viên.
    */
   @Roles(1)
@@ -102,6 +107,7 @@ export class NguoiDungController {
 
   /**
    * Tạo nhân viên mới.
+   *
    * @param data Dữ liệu nhân viên cần tạo.
    * @returns Thông tin nhân viên sau khi tạo.
    */
@@ -113,6 +119,7 @@ export class NguoiDungController {
 
   /**
    * Lấy thông tin nhân viên theo ID.
+   *
    * @param id ID của nhân viên.
    * @returns Thông tin nhân viên.
    */
@@ -124,6 +131,7 @@ export class NguoiDungController {
 
   /**
    * Cập nhật thông tin nhân viên theo ID.
+   *
    * @param id ID nhân viên.
    * @param data Dữ liệu cập nhật.
    * @returns Thông tin sau cập nhật.
@@ -136,6 +144,7 @@ export class NguoiDungController {
 
   /**
    * Xóa mềm nhân viên (đánh dấu đã xóa).
+   *
    * @param id ID nhân viên bị xóa.
    * @param staffId ID người thực hiện thao tác xóa.
    * @returns Kết quả xóa.

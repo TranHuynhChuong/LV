@@ -17,6 +17,7 @@ export class KhachHangUtilService {
 
   /**
    * Lấy email của khách hàng theo ID.
+   *
    * @param id Mã định danh khách hàng.
    * @returns Địa chỉ email của khách hàng.
    * @throws BadRequestException Nếu không tìm thấy khách hàng.
@@ -44,6 +45,7 @@ export class KhachHangService {
 
   /**
    * Tạo mới một khách hàng.
+   *
    * @param data Dữ liệu tạo khách hàng.
    * @returns Khách hàng mới được tạo.
    * @throws ConflictException Nếu email đã tồn tại.
@@ -79,6 +81,7 @@ export class KhachHangService {
 
   /**
    * Lấy danh sách khách hàng có phân trang.
+   *
    * @param options Tuỳ chọn phân trang (mặc định: trang 1, 24 mục/trang).
    * @returns Danh sách khách hàng và tổng số lượng.
    */
@@ -92,6 +95,7 @@ export class KhachHangService {
 
   /**
    * Cập nhật thông tin khách hàng.
+   *
    * @param id Mã định danh khách hàng.
    * @param data Dữ liệu cần cập nhật.
    * @returns Khách hàng sau khi được cập nhật.
@@ -107,6 +111,7 @@ export class KhachHangService {
 
   /**
    * Cập nhật email của khách hàng.
+   *
    * @param id Mã định danh khách hàng.
    * @param newEmail Địa chỉ email mới.
    * @returns Khách hàng sau khi cập nhật email.
@@ -131,6 +136,7 @@ export class KhachHangService {
 
   /**
    * Đếm tổng số khách hàng trong hệ thống.
+   *
    * @returns Tổng số lượng khách hàng.
    */
   async countAll(): Promise<number> {
@@ -139,6 +145,7 @@ export class KhachHangService {
 
   /**
    * Tìm khách hàng theo địa chỉ email.
+   *
    * @param email Địa chỉ email cần tìm.
    * @returns Thông tin khách hàng hoặc null nếu không tìm thấy.
    */
@@ -148,6 +155,7 @@ export class KhachHangService {
 
   /**
    * Tìm khách hàng theo ID.
+   *
    * @param id Mã định danh khách hàng.
    * @returns Khách hàng tương ứng với ID.
    * @throws NotFoundException Nếu không tìm thấy khách hàng.
@@ -164,6 +172,7 @@ export class KhachHangService {
 
   /**
    * Thống kê số lượng khách hàng theo từng tháng trong một năm.
+   *
    * @param year Năm cần thống kê (mặc định là năm hiện tại).
    * @returns Mảng 12 phần tử tương ứng số lượng khách hàng mỗi tháng.
    */

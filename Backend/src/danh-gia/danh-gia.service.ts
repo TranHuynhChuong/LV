@@ -12,9 +12,6 @@ import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 
-/**
- * Service xử lý logic nghiệp vụ liên quan đến đánh giá sách
- */
 @Injectable()
 export class DanhGiaService {
   constructor(
@@ -26,6 +23,7 @@ export class DanhGiaService {
 
   /**
    * Tạo mới nhiều đánh giá sách, cập nhật điểm trung bình từng sách trong cùng transaction
+   *
    * @param dtos Mảng dữ liệu đánh giá cần tạo
    * @returns Mảng các đánh giá đã được tạo
    * @throws BadRequestException nếu không thể tạo hoặc không có đánh giá nào được tạo
@@ -65,6 +63,7 @@ export class DanhGiaService {
 
   /**
    * Lấy tất cả đánh giá của một quyển sách (phân trang)
+   *
    * @param bookId ID sách cần lấy đánh giá
    * @param page Trang hiện tại
    * @param limit Số lượng đánh giá mỗi trang (mặc định 24)
@@ -76,6 +75,7 @@ export class DanhGiaService {
 
   /**
    * Lọc tất cả đánh giá theo nhiều tiêu chí
+   *
    * @param option Các tùy chọn lọc như trang, điểm, ngày, trạng thái
    * @returns Danh sách đánh giá và tổng số
    */
@@ -108,6 +108,7 @@ export class DanhGiaService {
 
   /**
    * Hiển thị (bỏ ẩn) một đánh giá và cập nhật điểm sách
+   *
    * @param dto Dữ liệu cập nhật bao gồm ID đơn hàng, sách, khách hàng và nhân viên
    * @returns Đánh giá đã được cập nhật
    * @throws NotFoundException nếu không tìm thấy đánh giá
@@ -164,6 +165,7 @@ export class DanhGiaService {
 
   /**
    * Ẩn một đánh giá và cập nhật lại điểm sách
+   *
    * @param dto Dữ liệu cập nhật bao gồm ID đơn hàng, sách, khách hàng và nhân viên
    * @returns Đánh giá đã được cập nhật
    * @throws NotFoundException nếu không tìm thấy đánh giá

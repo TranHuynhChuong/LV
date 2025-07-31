@@ -39,6 +39,7 @@ export class NhanVienUtilService {
 
   /**
    * Lấy thông tin của nhiều nhân viên theo danh sách ID.
+   *
    * @param ids Danh sách mã NV_id cần tìm
    * @returns Danh sách đối tượng nhân viên tương ứng
    */
@@ -57,6 +58,7 @@ export class NhanVienUtilService {
 
   /**
    * Chuyển đổi danh sách thao tác thành định dạng đầy đủ với thông tin nhân viên.
+   *
    * @param activityLog Danh sách thao tác có NV_id
    * @returns Danh sách thao tác có thông tin chi tiết của nhân viên
    */
@@ -101,6 +103,7 @@ export class NhanVienUtilService {
 
   /**
    * Tìm nhân viên theo ID và thêm tên vai trò vào kết quả.
+   *
    * @param id Mã định danh NV_id của nhân viên
    * @returns Nhân viên kèm tên vai trò (NV_tenVaiTro)
    */
@@ -129,8 +132,10 @@ export class NhanVienService {
 
   /**
    * Tạo mới một nhân viên, sinh NV_id tự động và ghi lịch sử thao tác.
+   *
    * @param newData Thông tin nhân viên mới
    * @returns Đối tượng nhân viên vừa được tạo
+   * @throws BadRequestException khi tạo thất bại.
    */
   async create(newData: CreateNhanVienDto): Promise<NhanVien> {
     const session = await this.connection.startSession();
@@ -170,6 +175,7 @@ export class NhanVienService {
 
   /**
    * Lấy tất cả nhân viên chưa bị xóa mềm.
+   *
    * @returns Danh sách nhân viên
    */
   async findAll(): Promise<NhanVien[]> {
@@ -178,8 +184,10 @@ export class NhanVienService {
 
   /**
    * Tìm chi tiết nhân viên theo ID, bao gồm lịch sử thao tác đã ánh xạ.
+   *
    * @param id Mã NV_id của nhân viên
    * @returns Nhân viên và lịch sử thao tác đã xử lý
+   * @throws NotFoundException khi không timg thấy.
    */
   async findById(id: string): Promise<any> {
     const result: any = await this.NhanVienRepo.findById(id);
@@ -194,6 +202,7 @@ export class NhanVienService {
 
   /**
    * Cập nhật thông tin nhân viên và ghi lại các trường đã thay đổi.
+   *
    * @param id Mã NV_id của nhân viên
    * @param newData Dữ liệu cập nhật
    * @returns Nhân viên sau khi cập nhật
@@ -242,6 +251,7 @@ export class NhanVienService {
 
   /**
    * Đánh dấu xóa mềm một nhân viên và ghi lịch sử thao tác.
+   *
    * @param id Mã NV_id cần xóa
    * @param NV_id ID của người thực hiện thao tác
    * @returns Nhân viên đã được đánh dấu xóa
@@ -267,6 +277,7 @@ export class NhanVienService {
 
   /**
    * Đếm tổng số nhân viên trong hệ thống.
+   *
    * @returns Số lượng nhân viên
    */
   async countAll(): Promise<number> {

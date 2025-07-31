@@ -7,10 +7,6 @@ import {
   XaPhuong,
 } from './schemas/dia-chi.schema';
 
-/**
- * Repository quản lý dữ liệu địa chỉ tỉnh/thành, phường/xã
- * Dữ liệu được cache khi module khởi tạo và có thể tải lại
- */
 @Injectable()
 export class DiaChiRepository implements OnModuleInit {
   private location: TinhThanh[] | null = null;
@@ -46,6 +42,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy danh sách tất cả tỉnh/thành (chỉ id và tên)
+   *
    * @returns Mảng đối tượng tỉnh/thành gồm T_id và T_ten
    */
   async findAllProvinces(): Promise<{ T_id: number; T_ten: string }[]> {
@@ -55,6 +52,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy danh sách phường/xã thuộc tỉnh/thành theo id
+   *
    * @param provinceId Mã tỉnh/thành
    * @returns Mảng phường/xã hoặc mảng rỗng nếu không tìm thấy
    */
@@ -66,6 +64,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy địa chỉ đầy đủ dạng chuỗi theo mã tỉnh/thành và phường/xã
+   *
    * @param provinceId Mã tỉnh/thành
    * @param wardId Mã phường/xã
    * @returns Địa chỉ đầy đủ (chuỗi) hoặc undefined nếu không tìm thấy
@@ -84,6 +83,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy thông tin tỉnh/thành theo id
+   *
    * @param provinceId Mã tỉnh/thành
    * @returns Đối tượng tỉnh/thành gồm T_id, T_ten hoặc undefined nếu không tìm thấy
    */
@@ -98,6 +98,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy toàn bộ dữ liệu địa chỉ tỉnh/thành kèm phường/xã
+   *
    * @returns Mảng tỉnh/thành đầy đủ
    */
   async findAll(): Promise<TinhThanh[]> {
@@ -107,6 +108,7 @@ export class DiaChiRepository implements OnModuleInit {
 
   /**
    * Lấy đối tượng tỉnh/thành theo id
+   *
    * @param id Mã tỉnh/thành
    * @returns Đối tượng tỉnh/thành hoặc undefined nếu không tìm thấy
    */

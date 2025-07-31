@@ -22,6 +22,7 @@ export class DonHangController {
 
   /**
    * Tạo mới đơn hàng
+   *
    * @param data - Dữ liệu tạo đơn hàng
    * @returns Đơn hàng vừa tạo
    */
@@ -32,6 +33,7 @@ export class DonHangController {
 
   /**
    * Kiểm tra hợp lệ của đơn hàng trước khi tạo
+   *
    * @param data - Dữ liệu kiểm tra
    * @returns Kết quả kiểm tra
    */
@@ -42,6 +44,7 @@ export class DonHangController {
 
   /**
    * Cập nhật trạng thái đơn hàng
+   *
    * @param id - Mã đơn hàng
    * @param status - Trạng thái mới
    * @param staffId - ID nhân viên thực hiện
@@ -58,6 +61,7 @@ export class DonHangController {
 
   /**
    * Lấy danh sách đơn hàng theo phân trang và bộ lọc
+   *
    * @param page - Trang cần lấy
    * @param limit - Số đơn hàng mỗi trang
    * @param filterType - Lọc theo trạng thái
@@ -89,6 +93,7 @@ export class DonHangController {
 
   /**
    * Lấy danh sách đơn hàng của người dùng theo phân trang
+   *
    * @param page - Trang cần lấy
    * @param limit - Số đơn hàng mỗi trang
    * @param filterType - Trạng thái cần lọc
@@ -115,6 +120,7 @@ export class DonHangController {
 
   /**
    * Đếm tổng số đơn hàng (theo từng trạng thái) theo khoảng thời gian
+   *
    * @param from - Ngày bắt đầu
    * @param to - Ngày kết thúc
    * @returns Tổng số đơn hàng
@@ -131,6 +137,7 @@ export class DonHangController {
 
   /**
    * Tìm đơn hàng theo mã đơn
+   *
    * @param id - Mã đơn hàng
    * @returns Chi tiết đơn hàng
    */
@@ -141,6 +148,7 @@ export class DonHangController {
 
   /**
    * Lấy chi tiết đơn hàng theo mã đơn và trạng thái
+   *
    * @param id - Mã đơn hàng
    * @param filterType - Trạng thái lọc (tùy chọn)
    * @returns Chi tiết đơn hàng
@@ -155,6 +163,7 @@ export class DonHangController {
 
   /**
    * Thống kê bán hàng theo khoảng thời gian
+   *
    * @param from - Ngày bắt đầu
    * @param to - Ngày kết thúc
    * @returns Dữ liệu thống kê
@@ -168,6 +177,7 @@ export class DonHangController {
 
   /**
    * Xuất báo cáo thống kê đơn hàng ra file Excel
+   *
    * @param from - Ngày bắt đầu
    * @param to - Ngày kết thúc
    * @param staffId - ID nhân viên

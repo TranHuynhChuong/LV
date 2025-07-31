@@ -73,6 +73,7 @@ export class SachRepository {
 
   /**
    * Tạo mới một bản ghi sách trong cơ sở dữ liệu.
+   *
    * @param data Dữ liệu một phần của sách cần tạo
    * @param session (Tuỳ chọn) Phiên làm việc của MongoDB để hỗ trợ transaction
    * @returns Promise trả về đối tượng sách vừa được tạo
@@ -87,6 +88,7 @@ export class SachRepository {
 
   /**
    * Cập nhật số lượng đã bán và tồn kho của nhiều sách đồng thời.
+   *
    * @param updates Mảng đối tượng chứa id sách và số lượng đã bán tương ứng
    * @param session (Tuỳ chọn) Phiên làm việc của MongoDB để hỗ trợ transaction
    * @returns Kết quả của thao tác bulkWrite từ Mongoose
@@ -112,6 +114,7 @@ export class SachRepository {
 
   /**
    * Cập nhật điểm đánh giá của một sách theo ID.
+   *
    * @param id ID sách cần cập nhật điểm
    * @param score Điểm đánh giá mới
    * @param session (Tuỳ chọn) Phiên làm việc MongoDB hỗ trợ transaction
@@ -129,6 +132,7 @@ export class SachRepository {
 
   /**
    * Cập nhật thông tin sách theo ID, chỉ cập nhật những sách chưa bị xoá mềm.
+   *
    * @param id ID sách cần cập nhật
    * @param data Dữ liệu cần cập nhật (có thể là một phần của đối tượng Sach)
    * @param session (Tuỳ chọn) Phiên làm việc MongoDB hỗ trợ transaction
@@ -151,6 +155,7 @@ export class SachRepository {
 
   /**
    * Xóa sách theo ID khỏi cơ sở dữ liệu (xóa cứng).
+   *
    * @param id ID của sách cần xóa
    * @returns Đối tượng sách vừa bị xóa hoặc null nếu không tìm thấy
    */
@@ -294,12 +299,6 @@ export class SachRepository {
 
   /**
    * Xây dựng các stage cho pipeline MongoDB để lấy thông tin khuyến mãi áp dụng cho sách.
-   *
-   * Cụ thể:
-   * - $lookup chi tiết khuyến mãi (chitietkhuyenmais) theo S_id sách, lọc chi tiết chưa xóa và chưa tạm ngừng.
-   * - $lookup khuyến mãi (khuyenmais) theo KM_id, chỉ lấy khuyến mãi còn hiệu lực theo ngày hiện tại.
-   * - Lọc chỉ giữ chi tiết khuyến mãi có khuyến mãi hiệu lực.
-   * - Thêm trường mới S_giaGiam là giá thấp nhất sau khi giảm nếu có khuyến mãi, ngược lại là giá bán gốc.
    *
    * @returns Mảng các PipelineStage phục vụ cho aggregation trong MongoDB.
    */

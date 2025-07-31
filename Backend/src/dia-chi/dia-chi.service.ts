@@ -8,6 +8,7 @@ export class DiaChiService {
 
   /**
    * Lấy danh sách tất cả tỉnh/thành (chỉ id và tên)
+   *
    * @returns Mảng đối tượng tỉnh/thành gồm T_id và T_ten
    */
   async findAllProvinces(): Promise<{ T_id: number; T_ten: string }[]> {
@@ -16,6 +17,7 @@ export class DiaChiService {
 
   /**
    * Lấy danh sách phường/xã thuộc tỉnh/thành theo id
+   *
    * @param provinceId Mã tỉnh/thành
    * @returns Mảng phường/xã
    */
@@ -25,6 +27,7 @@ export class DiaChiService {
 
   /**
    * Lấy địa chỉ đầy đủ dạng chuỗi theo mã tỉnh/thành và phường/xã
+   *
    * @param provinceId Mã tỉnh/thành
    * @param wardId Mã phường/xã
    * @returns Địa chỉ đầy đủ (chuỗi) hoặc undefined nếu không tìm thấy
@@ -38,6 +41,7 @@ export class DiaChiService {
 
   /**
    * Lấy thông tin tỉnh/thành theo id
+   *
    * @param provinceId Mã tỉnh/thành
    * @returns Thông tin cơ bản của tỉnh/thành hoặc undefined nếu không tìm thấy
    */
@@ -49,6 +53,7 @@ export class DiaChiService {
 
   /**
    * Lấy danh sách đầy đủ các tỉnh/thành kèm thông tin chi tiết
+   *
    * @returns Mảng tỉnh/thành
    */
   async findAll(): Promise<TinhThanh[]> {
@@ -57,6 +62,7 @@ export class DiaChiService {
 
   /**
    * Lấy danh sách đầy đủ thông tin của tỉnh/thành
+   *
    * @returns Thông tin đầy đủ của tỉnh/thành
    */
   async findProvinceId(id: number): Promise<TinhThanh | undefined> {
@@ -65,6 +71,7 @@ export class DiaChiService {
 
   /**
    *Làm mới (tải lại) dữ liệu địa chỉ
+  
    * @returns Kết quả thao tác làm mới dữ liệu
    */
   async refetchLocation() {

@@ -85,24 +85,20 @@ export class DanhGiaRepository {
   ): Promise<DanhGiaListResults> {
     const skip = (page - 1) * limit;
     const matchConditions: any = {};
-
     // Lọc theo điểm đánh giá
     if (rating) {
       matchConditions.DG_diem = rating;
     }
-
     // Lọc theo ngày tạo
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
       matchConditions.DG_ngayTao = { $gte: from, $lte: to };
     }
-
     // Lọc theo trạng thái hiển thị
     if (status && status !== 'all') {
       matchConditions.DG_daAn = status === 'hidden';
     }
-
     const matchStage: PipelineStage.Match = { $match: matchConditions };
     const dataPipeline: PipelineStage[] = [
       matchStage,
@@ -334,11 +330,6 @@ export class DanhGiaRepository {
 
   /**
    * Thống kê tổng hợp các đánh giá trong khoảng thời gian chỉ định.
-   *
-   * Bao gồm:
-   * - Số lượng đánh giá từ 1 đến 5 sao.
-   * - Số lượng đơn hàng duy nhất có đánh giá (`totalOrders`).
-   * - Số lượng đánh giá ẩn (`hidden`) và hiện (`visible`).
    *
    * @param from Ngày bắt đầu thống kê.
    * @param to Ngày kết thúc thống kê.

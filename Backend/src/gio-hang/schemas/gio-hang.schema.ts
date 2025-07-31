@@ -9,26 +9,30 @@ export type GioHangDocument = GioHang & Document;
  */
 @Schema()
 export class GioHang {
-  /**ID của khách hàng sở hữu giỏ hàng*/
+  /**
+   * ID của khách hàng sở hữu giỏ hàng
+   */
   @Prop({ type: Number, required: true })
   KH_id: number;
 
-  /**ID của sản phẩm có trong giỏ hàng*/
+  /**
+   * ID của sản phẩm có trong giỏ hàng
+   */
   @Prop({ type: Number, required: true })
   S_id: number;
 
-  /**Số lượng sản phẩm được thêm vào giỏ hàng*/
+  /**
+   * Số lượng sản phẩm được thêm vào giỏ hàng
+   */
   @Prop({ type: Number, required: true })
   GH_soLuong: number;
 
-  /**Thời gian cập nhật hoặc thêm sản phẩm vào giỏ hàng*/
+  /**
+   * Thời gian cập nhật hoặc thêm sản phẩm vào giỏ hàng
+   */
   @Prop({ type: Date, required: true })
   GH_thoiGian: Date;
 }
 
 export const GioHangSchema = SchemaFactory.createForClass(GioHang);
-/**
- * Tạo chỉ mục duy nhất theo cặp khóa KH_id và S_id để đảm bảo
- * mỗi khách hàng chỉ có một mục giỏ hàng duy nhất cho mỗi sản phẩm.
- */
 GioHangSchema.index({ KH_id: 1, S_id: 1 }, { unique: true });

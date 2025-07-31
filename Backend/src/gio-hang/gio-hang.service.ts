@@ -30,22 +30,14 @@ export class GioHangService {
 
   /**
    * Thêm sách vào giỏ hàng của khách hàng.
-   *
-   * Quy trình:
-   * - Kiểm tra số lượng mục giỏ hàng hiện có của khách hàng (nếu có), giới hạn tối đa 99 mục.
-   *   Nếu vượt, ném lỗi ConflictException.
-   * - Kiểm tra sách cần thêm có tồn tại không, nếu không có ném lỗi NotFoundException.
+   * - Kiểm tra sản phẩm thêm vào giỏ hàng và giỏ hàng.
    * - Nếu KH_id là -1 (khách vãng lai), trả về mảng rỗng (chỉ thực hiện kiểm tra).
-   * - Kiểm tra mục giỏ hàng đã tồn tại cho khách hàng và sách đó chưa.
-   *   + Nếu đã tồn tại, cộng dồn số lượng và cập nhật, nếu cập nhật thất bại ném lỗi BadRequestException.
-   *   + Nếu chưa tồn tại, tạo mới mục giỏ hàng, nếu thất bại ném lỗi BadRequestException.
-   * - Cuối cùng trả về mảng CartReturn thể hiện trạng thái giỏ hàng đã cập nhật.
+   * - Thêm nếu chưa, cập nhật nếu có
    *
    * @param dto Đối tượng chứa thông tin giỏ hàng mới cần tạo:
    *  - KH_id: Mã khách hàng
    *  - S_id: Mã sách cần thêm
    *  - GH_soLuong: Số lượng sách muốn thêm
-   *
    * @returns Promise trả về mảng CartReturn chứa thông tin giỏ hàng sau khi thêm/cập nhật
    * @throws ConflictException khi số lượng mục giỏ hàng vượt giới hạn cho phép
    * @throws NotFoundException khi sản phẩm không tồn tại
@@ -88,11 +80,6 @@ export class GioHangService {
 
   /**
    * Cập nhật số lượng sách trong giỏ hàng của khách hàng.
-   *
-   * Hàm sẽ lấy thông tin giỏ hàng mới từ `getCarts` dựa trên KH_id, S_id và số lượng GH_soLuong.
-   * Nếu không có mục giỏ hàng hợp lệ (item.length === 0), sẽ xóa mục giỏ hàng đó.
-   * Ngược lại, thực hiện cập nhật số lượng trong database thông qua repository.
-   * Nếu cập nhật không thành công, sẽ ném lỗi BadRequestException.
    *
    * @param param0 Đối tượng chứa:
    *   - KH_id: Mã khách hàng
@@ -137,9 +124,6 @@ export class GioHangService {
   /**
    * Xóa một mục giỏ hàng của khách hàng theo mã khách hàng và mã sách.
    *
-   * Gọi phương thức xóa trong repository để thực hiện xóa.
-   * Nếu không tìm thấy hoặc xóa không thành công, sẽ ném lỗi BadRequestException.
-   *
    * @param KH_id Mã khách hàng
    * @param S_id Mã sách cần xóa trong giỏ hàng
    * @returns Đối tượng GioHang đã bị xóa
@@ -156,11 +140,6 @@ export class GioHangService {
   /**
    * Xóa nhiều sản phẩm khỏi giỏ hàng của một khách hàng.
    *
-   * Phương thức này gọi đến repository để xóa các bản ghi giỏ hàng
-   * tương ứng với `KH_id` (mã khách hàng) và danh sách `S_id` (mã sách).
-   *
-   * Nếu không có bản ghi nào bị xóa, sẽ trả về `0`.
-   *
    * @param KH_id Mã khách hàng cần xóa giỏ hàng.
    * @param S_id Danh sách mã sách cần xóa khỏi giỏ hàng.
    * @returns Số lượng bản ghi đã bị xóa.
@@ -172,18 +151,6 @@ export class GioHangService {
 
   /**
    * Trả về danh sách giỏ hàng của khách hàng đã được đồng bộ hóa với tồn kho, tồn tại hiện tại.
-   *
-   * Phương thức này thực hiện các bước:
-   * 1. Lấy toàn bộ giỏ hàng của người dùng.
-   * 2. Gọi `getCarts` để chuẩn hóa thông tin từng sản phẩm (bao gồm kiểm tra tồn kho, tồn tại).
-   * 3. So sánh danh sách cũ và mới:
-   *    - Nếu sản phẩm trong giỏ không còn tồn tại trong kho => xóa khỏi giỏ.
-   *    - Nếu số lượng trong giỏ vượt quá tồn kho hiện tại => cập nhật lại số lượng.
-   * 4. Nếu có cập nhật số lượng, gọi repository để cập nhật hàng loạt.
-   * 5. Trả về danh sách giỏ hàng đã chuẩn hóa.
-   *
-   * Mục tiêu của hàm là đảm bảo dữ liệu giỏ hàng của người dùng luôn đúng
-   * với tồn kho hiện tại và không chứa các sản phẩm không còn khả dụng.
    *
    * @param id Mã người dùng (Customer ID) cần lấy giỏ hàng.
    * @returns Danh sách giỏ hàng đã được kiểm tra và đồng bộ.
@@ -218,18 +185,9 @@ export class GioHangService {
   /**
    * Lấy thông tin chi tiết các mục giỏ hàng từ danh sách đầu vào.
    *
-   * Phương thức này nhận vào danh sách giỏ hàng với các thông tin cơ bản
-   * đầy đủ của sách tương ứng. Kết quả sẽ được chuẩn hóa để đảm bảo số lượng và tồn tại của sách
+   * Nhận vào danh sách giỏ hàng với các thông tin cơ bản
+   * đầy đủ của sách tương ứng. Kết quả sẽ được chuẩn hóa để đảm bảo sự tồn tại và số lượng
    * không vượt quá tồn kho, và sắp xếp theo thời gian thêm giỏ hàng giảm dần.
-   *
-   * Logic xử lý:
-   * - Lọc ra danh sách S_id từ carts đầu vào.
-   * - Truy vấn chi tiết sách qua `SachService.findByIds`.
-   * - Duyệt từng cart:
-   *   + Nếu không tìm thấy sách => bỏ qua.
-   *   + Nếu GH_soLuong > S_tonKho => đặt GH_soLuong = S_tonKho.
-   *   + Nếu GH_soLuong = 0 và S_tonKho > 0 => đặt GH_soLuong = 1.
-   * - Trả về danh sách kết quả đã sắp xếp theo thời gian thêm giỏ hàng (mới nhất trước).
    *
    * @param carts Mảng các mục giỏ hàng cần lấy thông tin chi tiết.
    * @returns Danh sách mục giỏ hàng đã chuẩn hóa và đầy đủ thông tin.

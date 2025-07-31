@@ -12,6 +12,7 @@ export class TheLoaiRepository {
 
   /**
    * Tạo mới một thể loại
+   *
    * @param data Dữ liệu thể loại cần tạo
    * @param session Phiên giao dịch MongoDB (tuỳ chọn)
    * @returns Promise trả về thể loại đã tạo
@@ -35,6 +36,7 @@ export class TheLoaiRepository {
 
   /**
    * Tìm thể loại theo tên, chỉ tìm thể loại chưa bị xóa
+   *
    * @param name Tên thể loại cần tìm
    * @param session Phiên giao dịch MongoDB (tuỳ chọn)
    * @returns Promise trả về thể loại hoặc null nếu không tìm thấy
@@ -51,6 +53,7 @@ export class TheLoaiRepository {
 
   /**
    * Lấy danh sách tất cả thể loại chưa bị xóa, chỉ lấy các trường TL_id, TL_ten, TL_idTL
+   *
    * @returns Promise trả về mảng thể loại dạng Partial (chỉ có một số trường)
    */
   async findAll(): Promise<Partial<TheLoai>[]> {
@@ -62,6 +65,7 @@ export class TheLoaiRepository {
 
   /**
    * Tìm tất cả thể loại con (đệ quy) của thể loại theo ID
+   *
    * @param id ID thể loại cha cần tìm các thể loại con
    * @returns Promise trả về mảng ID các thể loại con
    */
@@ -92,6 +96,7 @@ export class TheLoaiRepository {
 
   /**
    * Tìm thể loại theo ID, chỉ thể loại chưa bị xóa
+   *
    * @param id ID thể loại cần tìm
    * @returns Promise trả về thể loại hoặc null nếu không tìm thấy
    */
@@ -103,6 +108,7 @@ export class TheLoaiRepository {
 
   /**
    * Cập nhật thông tin thể loại theo ID
+   *
    * @param id ID thể loại cần cập nhật
    * @param data Dữ liệu cập nhật
    * @returns Promise trả về thể loại đã cập nhật hoặc null nếu không tìm thấy
@@ -115,6 +121,7 @@ export class TheLoaiRepository {
 
   /**
    * Xóa mềm thể loại theo ID (cập nhật cờ TL_daXoa thành true)
+   *
    * @param id ID thể loại cần xóa
    * @returns Promise trả về thể loại đã xóa mềm hoặc null nếu không tìm thấy
    */
@@ -128,6 +135,7 @@ export class TheLoaiRepository {
 
   /**
    * Đếm tổng số thể loại chưa bị xóa
+   *
    * @returns Promise trả về số lượng thể loại
    */
   async countAll(): Promise<number> {

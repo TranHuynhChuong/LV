@@ -35,6 +35,7 @@ export class MaGiamUtilService {
 
   /**
    * Kiểm tra tính hợp lệ của các mã giảm theo danh sách ID.
+   *
    * @param ids - Danh sách ID mã giảm cần kiểm tra.
    * @returns Danh sách mã giảm hợp lệ.
    */
@@ -44,6 +45,7 @@ export class MaGiamUtilService {
 
   /**
    * Tạo liên kết mã giảm cho một đơn hàng (mã giảm sử dụng cho đơn hàng).
+   *
    * @param orderId - ID của đơn hàng.
    * @param voucherIds - Danh sách ID mã giảm.
    * @param session - Phiên MongoDB để hỗ trợ transaction.
@@ -58,6 +60,7 @@ export class MaGiamUtilService {
 
   /**
    * Lấy thống kê số lượng mã giảm được áp dụng theo đơn hàng.
+   *
    * @param orderIds - Danh sách ID đơn hàng.
    */
   async getVoucherStatsForOrders(dhIds: string[]) {
@@ -74,6 +77,7 @@ export class MaGiamService {
 
   /**
    * Tạo mới một mã giảm giá.
+   *
    * @param data - Dữ liệu mã giảm cần tạo.
    * @throws ConflictException nếu mã đã tồn tại.
    */
@@ -103,6 +107,7 @@ export class MaGiamService {
 
   /**
    * Lấy danh sách mã giảm có phân trang và bộ lọc.
+   *
    * @param params - Thông tin phân trang và bộ lọc.
    */
   async getAll(params: {
@@ -123,6 +128,7 @@ export class MaGiamService {
 
   /**
    * Lấy thông tin chi tiết một mã giảm theo ID.
+   *
    * @param id - ID mã giảm.
    * @param filterType - Kiểu lọc mã.
    * @param type - Loại mã giảm.
@@ -148,6 +154,7 @@ export class MaGiamService {
 
   /**
    * Cập nhật một mã giảm theo ID.
+   *
    * @param id - ID mã giảm.
    * @param newData - Dữ liệu cập nhật.
    * @throws NotFoundException nếu không tìm thấy.
@@ -211,6 +218,7 @@ export class MaGiamService {
 
   /**
    * Xóa một mã giảm giá theo ID.
+   *
    * @param id - ID mã giảm.
    * @throws NotFoundException nếu không tìm thấy.
    * @throws BadRequestException nếu mã đang có hiệu lực.
@@ -233,6 +241,7 @@ export class MaGiamService {
 
   /**
    * Đếm số lượng mã giảm đang có hiệu lực.
+   *
    * @returns Số lượng mã giảm hợp lệ.
    */
   async countValid(): Promise<number> {

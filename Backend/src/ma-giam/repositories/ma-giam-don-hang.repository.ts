@@ -17,8 +17,8 @@ export class MaGiamDonHangRepository {
   /**
    * Tạo bản ghi liên kết giữa một đơn hàng và các mã giảm giá đã áp dụng.
    *
-   * @param dhId Mã định danh của đơn hàng.
-   * @param mgIds Mảng mã định danh của các mã giảm giá.
+   * @param orderId Mã định danh của đơn hàng.
+   * @param voucherIds Mảng mã định danh của các mã giảm giá.
    * @param session (Tùy chọn) Phiên làm việc MongoDB để hỗ trợ transaction.
    * @returns Danh sách các bản ghi đã được thêm vào.
    */
@@ -32,10 +32,6 @@ export class MaGiamDonHangRepository {
 
   /**
    * Thống kê số lượng đơn hàng đã sử dụng mã giảm giá và thống kê theo loại mã giảm giá.
-   *
-   * - Truy vấn thực hiện hai pipeline song song:
-   *   - Pipeline 1: Join với collection `magiams`, nhóm theo `MG_loai`, đếm số lượng từng loại.
-   *   - Pipeline 2: Nhóm theo `DH_id` duy nhất để biết số đơn hàng có dùng mã giảm.
    *
    * @param orderIds Danh sách mã đơn hàng cần thống kê.
    * @returns

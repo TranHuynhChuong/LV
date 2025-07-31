@@ -20,6 +20,7 @@ export class GioHangController {
 
   /**
    * Tạo mới một mục giỏ hàng
+   *
    * @param dto Thông tin mục giỏ hàng cần tạo.
    * @returns Danh sách giỏ hàng sau khi cập nhật.
    */
@@ -30,6 +31,7 @@ export class GioHangController {
 
   /**
    * Cập nhật số lượng sản phẩm trong giỏ hàng.
+   *
    * @param dto Thông tin mục giỏ hàng cần cập nhật.
    * @returns Danh sách giỏ hàng sau khi cập nhật.
    */
@@ -40,6 +42,7 @@ export class GioHangController {
 
   /**
    * Xóa một mục giỏ hàng cụ thể theo KH_id và S_id.
+   *
    * @param KH_id ID khách hàng.
    * @param S_id ID sản phẩm cần xóa khỏi giỏ.
    * @returns Mục giỏ hàng đã bị xóa.
@@ -54,6 +57,7 @@ export class GioHangController {
 
   /**
    * Xóa nhiều mục giỏ hàng cùng lúc theo danh sách S_id.
+   *
    * @param body Dữ liệu gồm KH_id và danh sách S_id cần xóa.
    * @returns Số lượng mục đã xóa thành công.
    */
@@ -66,6 +70,7 @@ export class GioHangController {
 
   /**
    * Lấy toàn bộ giỏ hàng của một người dùng.
+   *
    * @param userId ID người dùng.
    * @returns Danh sách các mục trong giỏ hàng của người dùng.
    * @throws Error nếu userId không hợp lệ.
@@ -81,6 +86,7 @@ export class GioHangController {
 
   /**
    * Lấy danh sách giỏ hàng (gửi vào giỏ hàng - kiểm tra - trả về giỏ hàng với thông tin hiện tại).
+   *
    * @param carts Mảng các đối tượng giỏ hàng cần lấy (cần kiểm tra).
    * @returns Danh sách các mục giỏ hàng tương ứng.
    */

@@ -16,7 +16,7 @@ import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service'
 import { ClientSession, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 
-// Bản đồ ánh xạ tên trường → nhãn để hiển thị lịch sử thao tác
+/**Bản đồ ánh xạ tên trường → nhãn để hiển thị lịch sử thao tác*/
 const typeOfChange: Record<string, string> = {
   KM_ten: 'Tên',
   KM_batDau: 'Thời gian bắt đầu',
@@ -42,12 +42,6 @@ export class KhuyenMaiUtilService {
 
   /**
    * Cập nhật giá sau khuyến mãi cho một sách cụ thể dựa trên các khuyến mãi còn hiệu lực.
-   *
-   * Phương thức sẽ:
-   * - Lấy tất cả các khuyến mãi chưa kết thúc.
-   * - Duyệt qua từng khuyến mãi để tìm chi tiết khuyến mãi áp dụng cho sách có `S_id`.
-   * - Tính giá sau giảm dựa trên loại giảm (theo tỷ lệ hoặc giá trị tuyệt đối).
-   * - Cập nhật lại giá sau giảm vào bản ghi chi tiết khuyến mãi tương ứng.
    *
    * @param {number} S_id - ID của sách cần cập nhật giá khuyến mãi.
    * @param {number} S_giaBan - Giá bán gốc của sách.
@@ -89,14 +83,6 @@ export class KhuyenMaiService {
 
   /**
    * Tạo mới một khuyến mãi cùng với các chi tiết khuyến mãi liên quan trong một phiên giao dịch.
-   *
-   * - Mở một phiên giao dịch (transaction).
-   * - Tìm `KM_id` lớn nhất hiện tại và tạo `KM_id` mới.
-   * - Ghi lại lịch sử thao tác tạo mới (gắn NV_id và thời gian).
-   * - Tạo bản ghi khuyến mãi chính (`KhuyenMai`).
-   * - Nếu có chi tiết khuyến mãi (`KM_chiTiet`), chèn kèm các chi tiết vào bảng chi tiết khuyến mãi.
-   * - Trả về đối tượng khuyến mãi vừa tạo.
-   * - Đảm bảo rollback nếu có lỗi xảy ra trong transaction.
    *
    * @param {CreateKhuyenMaiDto} data - Dữ liệu đầu vào để tạo khuyến mãi, bao gồm thông tin khuyến mãi và các chi tiết liên quan.
    * @returns {Promise<any>} Đối tượng khuyến mãi vừa được tạo (có thể là bản ghi từ cơ sở dữ liệu).
@@ -166,11 +152,6 @@ export class KhuyenMaiService {
   /**
    * Tìm kiếm thông tin chi tiết của một khuyến mãi theo `KM_id`, kèm theo lọc loại khuyến mãi (nếu có).
    *
-   * Phương thức sẽ:
-   * - Gọi repository để lấy thông tin khuyến mãi và các chi tiết liên quan.
-   * - Nếu không tìm thấy, ném lỗi `NotFoundException`.
-   * - Nếu có lịch sử thao tác (`lichSuThaoTac`), ánh xạ thông tin nhân viên thực hiện từ `NhanVienService`.
-   *
    * @param {number} KM_id - ID của khuyến mãi cần tìm.
    * @param {PromotionFilterType} [filterType] - (Tùy chọn) Loại khuyến mãi để lọc kết quả.
    * @returns {Promise<any>} Đối tượng khuyến mãi kèm chi tiết và lịch sử thao tác (nếu có).
@@ -197,13 +178,6 @@ export class KhuyenMaiService {
 
   /**
    * Cập nhật thông tin một khuyến mãi theo `id`, bao gồm cả thông tin chính và danh sách chi tiết khuyến mãi.
-   *
-   * Phương thức thực hiện trong một transaction, bao gồm:
-   * - Kiểm tra sự tồn tại của khuyến mãi.
-   * - So sánh và xác định các trường thay đổi trong dữ liệu chính.
-   * - Xử lý cập nhật hoặc thay thế các chi tiết khuyến mãi nếu cần.
-   * - Ghi nhận lịch sử thao tác nếu có thay đổi và có thông tin nhân viên.
-   * - Tiến hành cập nhật dữ liệu nếu có thay đổi.
    *
    * @param {number} id - ID của khuyến mãi cần cập nhật.
    * @param {UpdateKhuyenMaiDto} newData - Dữ liệu mới dùng để cập nhật khuyến mãi.
@@ -272,12 +246,6 @@ export class KhuyenMaiService {
   /**
    * So sánh dữ liệu mới và cũ để xác định các trường có thay đổi, và xây dựng payload cập nhật.
    *
-   * Phương thức này sẽ:
-   * - Bỏ qua các trường `NV_id` và `KM_id` không cần xét cập nhật.
-   * - So sánh từng trường trong `newData` và `oldData` (bao gồm so sánh thời gian nếu là kiểu `Date`).
-   * - Ghi lại danh sách các trường đã thay đổi (gắn nhãn bằng `typeOfChange` nếu có).
-   * - Tạo `updatePayload` chỉ chứa những trường cần cập nhật.
-   *
    * @param {any} newData - Dữ liệu mới được truyền vào (ví dụ: từ client gửi lên).
    * @param {any} oldData - Dữ liệu cũ lấy từ cơ sở dữ liệu.
    * @returns {{ updatePayload: any; fieldsChange: string[] }}
@@ -310,13 +278,6 @@ export class KhuyenMaiService {
 
   /**
    * Xử lý cập nhật danh sách chi tiết khuyến mãi của một khuyến mãi cụ thể (`KM_id`).
-   *
-   * Phương thức thực hiện so sánh danh sách chi tiết khuyến mãi hiện có trong cơ sở dữ liệu với danh sách mới truyền vào:
-   * - Thêm mới nếu sách chưa từng có trong danh sách cũ.
-   * - Cập nhật nếu có sự thay đổi về tỷ lệ, giá trị, hoặc trạng thái tạm ngưng.
-   * - Xóa bỏ nếu chi tiết khuyến mãi cũ không còn tồn tại trong danh sách mới.
-   *
-   * Tất cả các thao tác được thực hiện trong một transaction thông qua `session`.
    *
    * @param {number} KM_id - ID của khuyến mãi cần xử lý chi tiết.
    * @param {any[]} newList - Danh sách chi tiết khuyến mãi mới (dạng mảng, mỗi phần tử chứa thông tin sách và thông tin khuyến mãi).
@@ -377,10 +338,6 @@ export class KhuyenMaiService {
   /**
    * Ghi lại lịch sử thao tác cập nhật khuyến mãi vào `updatePayload`.
    *
-   * Phương thức sẽ:
-   * - Tạo một bản ghi lịch sử thao tác với nội dung cập nhật các trường thay đổi và thông tin nhân viên.
-   * - Gộp lịch sử cũ (`existing.lichSuThaoTac`) với thao tác mới vào trường `lichSuThaoTac` của `updatePayload`.
-   *
    * @param {any} updatePayload - Đối tượng chứa các trường sẽ được cập nhật (sẽ được thêm lịch sử thao tác).
    * @param {any} existing - Đối tượng khuyến mãi hiện tại (chứa lịch sử thao tác cũ).
    * @param {string[]} fieldsChange - Danh sách tên các trường đã bị thay đổi.
@@ -419,11 +376,6 @@ export class KhuyenMaiService {
 
   /**
    * Xóa một khuyến mãi và toàn bộ chi tiết khuyến mãi liên quan trong cơ sở dữ liệu.
-   *
-   * Phương thức sẽ:
-   * - Kiểm tra sự tồn tại của khuyến mãi.
-   * - Không cho phép xóa nếu khuyến mãi đang diễn ra (đang trong thời gian hiệu lực).
-   * - Tiến hành xóa khuyến mãi và toàn bộ chi tiết liên quan trong một transaction.
    *
    * @param {number} id - ID của khuyến mãi cần xóa.
    * @returns {Promise<void>} Không trả về gì nếu xóa thành công.

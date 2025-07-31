@@ -50,6 +50,7 @@ export class DonHangService {
 
   /**
    * Kiểm tra tính hợp lệ của đơn hàng.
+   *
    * @param data - Dữ liệu đơn hàng để kiểm tra.
    * @param session - Phiên giao dịch MongoDB sử dụng để đảm bảo tính nhất quán khi đọc dữ liệu.
    * @returns Kết quả kiểm tra hợp lệ.
@@ -94,7 +95,7 @@ export class DonHangService {
   }
 
   /**
-   * Sinh mã đơn hàng tiếp theo dựa trên mã cuối cùng hiện có trong cơ sở dữ liệu.
+   * Sinh mã đơn hàng tiếp theo.
    * Mã có định dạng: <PREFIX><SỐ>, ví dụ: "AAA000000001"
    * Nếu đã đạt đến "ZZZ999999999" → ném lỗi.
    *
@@ -246,6 +247,7 @@ export class DonHangService {
 
   /**
    * Tạo mới một đơn hàng
+   *
    * @param data Dữ liệu tạo đơn hàng
    */
   private async createOrder(
@@ -283,6 +285,7 @@ export class DonHangService {
 
   /**
    * Quy trình tạo đơn hàng
+   *
    * @param data Dữ liệu tạo đơn hàng
    */
   async create(data: CreateDto) {
@@ -297,20 +300,16 @@ export class DonHangService {
         if (errors.length > 0) {
           throw new ConflictException(errors);
         }
-
         // B2 Tạo mã đơn hàng
         const DH_id = await this.generateNextOrderId(session);
         const now = new Date();
-
         // B3 Tính tổng tiền sản phẩm - để tính giá giảm nếu có dùng mã giảm
         const totalProductPrice = this.calculateTotalAmount(data);
-
         // B4 Tính giá giảm khi dùng mã giảm
         const { DH_giamHD, DH_giamVC } = await this.calculateDiscount(
           data,
           totalProductPrice
         );
-
         // B5 Check KH_id/KH_email và tạo đơn hàng;
         this.validateCustomerInf(data.DH.KH_email, data.DH.KH_id);
         const newOrder = await this.createOrder(data, {
@@ -320,13 +319,10 @@ export class DonHangService {
           now,
           session,
         });
-
         // B6. Tạo thông tin nhận đơn hàng
         await this.NhanHangDHService.create({ DH_id, ...data.NH }, session);
-
         // B7. Tạo chi tiết đơn hàng
         await this.ChiTietDonHangRepo.create(DH_id, data.DH.CTDH, session);
-
         // B8. Tạo mã giảm đơn hàng nếu có
         const magiamIds = data.MG?.map((m) => m.MG_id) ?? [];
         if (magiamIds.length > 0) {
@@ -336,14 +332,12 @@ export class DonHangService {
             session
           );
         }
-
         // B9.  Cập nhật đã bán và tồn kho
         const updates = data.DH.CTDH.map((item) => ({
           id: item.S_id,
           sold: item.CTDH_soLuong,
         }));
         await this.SachService.updateSold(updates, session);
-
         // B10. Gửi email thông báo đơn hàng đã tạo thành công
         let email = data.DH.KH_email;
         if (!email && data.DH.KH_id) {
@@ -351,7 +345,6 @@ export class DonHangService {
         }
         if (!email) throw new BadRequestException();
         this.EmailService.sendOrderCreatetion(email, DH_id);
-
         return newOrder;
       });
 
@@ -521,7 +514,6 @@ export class DonHangService {
    * - from: Ngày bắt đầu (lọc theo thời gian tạo đơn, nếu có)
    * - to: Ngày kết thúc (lọc theo thời gian tạo đơn, nếu có)
    * - userId: ID khách hàng (nếu có)
-   *
    * @returns Danh sách đơn hàng phù hợp theo trang và tiêu chí lọc, đã loại bỏ lịch sử thao tác và thông tin nhận hàng
    */
   async findAll(options: {
@@ -555,7 +547,6 @@ export class DonHangService {
    *
    * @param from - Ngày bắt đầu (tùy chọn). Nếu không cung cấp, sẽ tính từ thời điểm sớm nhất.
    * @param to - Ngày kết thúc (tùy chọn). Nếu không cung cấp, sẽ tính đến thời điểm hiện tại.
-   *
    * @returns Một đối tượng chứa tổng số đơn hàng và số lượng đơn hàng theo từng trạng thái:
    * - total: Tổng số đơn hàng
    * - pending: Chờ xử lý
@@ -582,7 +573,6 @@ export class DonHangService {
     return this.DonHangRepo.countAll(from, to);
   }
 
-  // ===================== Thống kê =========================//
   /**
    * Xác định đơn vị thời gian phù hợp (day, month, year) dựa trên khoảng thời gian.
    *
@@ -623,7 +613,6 @@ export class DonHangService {
    * @param from - Ngày bắt đầu thống kê (định dạng `Date`)
    * @param to - Ngày kết thúc thống kê (định dạng `Date`)
    * @returns Thống kê tổng hợp theo kiểu `StatsResult`
-   *
    * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong quá trình xử lý.
    */
   public async getStatsByDateRange(from: Date, to: Date): Promise<StatsResult> {
@@ -682,20 +671,10 @@ export class DonHangService {
    * phân loại đơn hoàn tất và chưa hoàn tất, đồng thời tổng hợp các thống kê chi tiết cho từng nhóm.
    *
    * @param orderStats - Dữ liệu đơn hàng theo trạng thái được nhóm theo ngày/tháng/năm.
-   * Cấu trúc:
-   * {
-   *   [date: string]: {
-   *     complete?: { orderIds: string[], stats: { totalBillSale, totalShipSale, totalShipPrice } },
-   *     inComplete?: { orderIds: string[], stats: { totalBillSale, totalShipSale, totalShipPrice } },
-   *     total?: { all: number, complete: number, inComplete: number, canceled: number }
-   *   }
-   * }
-   *
    * @returns Một object chứa:
    * - `detail`: Thống kê chi tiết theo từng ngày gồm tổng số đơn, đơn hoàn tất, đơn chưa hoàn tất, đơn huỷ.
    * - `completeOrderIds`: Tập hợp các `orderId` của đơn hoàn tất.
    * - `inCompleteOrderIds`: Tập hợp các `orderId` của đơn chưa hoàn tất.
-   *
    * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong quá trình truy vấn chi tiết đơn hàng.
    */
   private async processOrderStats(orderStats: Record<string, any>): Promise<{
@@ -759,20 +738,12 @@ export class DonHangService {
   /**
    * Tính thống kê số lượng sản phẩm có áp dụng giảm giá trong các đơn hàng hoàn tất và chưa hoàn tất.
    *
-   * Hàm này truy vấn vào repository chi tiết đơn hàng để:
-   * - Đếm tổng số sản phẩm đã bán (`totalProducts`)
-   * - Đếm số sản phẩm có áp dụng khuyến mãi (`discountedProducts`)
-   *
    * @param completeOrderIds - Danh sách ID các đơn hàng đã hoàn tất.
    * @param inCompleteOrderIds - Danh sách ID các đơn hàng chưa hoàn tất.
-   *
    * @returns Thống kê tổng sản phẩm và số sản phẩm đã giảm giá trong toàn bộ đơn hàng.
    * Dạng trả về:
-   * {
-   *   totalProducts: number;           // Tổng số sản phẩm
-   *   discountedProducts: number;     // Số sản phẩm đã áp dụng khuyến mãi
-   * }
-   *
+   * -  `totalProducts`: Tổng số sản phẩm
+   * - `discountedProducts`: Số sản phẩm đã áp dụng khuyến mãi
    * @throws {InternalServerErrorException} Nếu xảy ra lỗi trong khi truy vấn thống kê.
    */
   private async calculateDiscountStats(
@@ -800,18 +771,10 @@ export class DonHangService {
   /**
    * Lấy thống kê về mã giảm giá được sử dụng trong các đơn hàng.
    *
-   * Hàm này truy vấn dịch vụ `MaGiamService` để tính:
-   * - Tổng số đơn hàng đã sử dụng mã giảm giá.
-   * - Số lượng mã giảm giá theo loại (giảm giá vận chuyển và giảm giá đơn hàng).
-   *
-   * Nếu không có đơn hàng nào được cung cấp, hàm trả về thống kê rỗng.
-   *
    * @param orderIds - Danh sách ID của các đơn hàng cần thống kê.
-   *
    * @returns Thống kê mã giảm giá được sử dụng, bao gồm:
    * - `orderUsed`: Tổng số đơn có sử dụng mã giảm giá.
    * - `typeStats`: Số lượng mã theo loại (vận chuyển và đơn hàng).
-   *
    * @throws {InternalServerErrorException} Nếu xảy ra lỗi khi truy vấn `MaGiamService`.
    */
   private async getVoucherStats(orderIds: string[]): Promise<VoucherStats> {
@@ -834,9 +797,6 @@ export class DonHangService {
   /**
    * Trả về một đối tượng thống kê chi tiết đơn hàng với tất cả giá trị bằng 0.
    *
-   * Hàm này dùng để khởi tạo giá trị mặc định cho các thống kê đơn hàng
-   * khi không có dữ liệu hoặc danh sách đơn hàng rỗng.
-   *
    * @returns Đối tượng `OrderDetailStats` với tất cả trường được gán giá trị 0.
    */
   private emptyStats(): OrderDetailStats {
@@ -853,10 +813,8 @@ export class DonHangService {
 
   /**
    * Chuyển đổi một đối tượng `Date` thành chuỗi định dạng `yyyy-mm-dd`,
-   * dùng để đặt tên file hoặc hiển thị ngày theo chuẩn ISO.
    *
    * @param date - Đối tượng `Date` cần định dạng.
-   *
    * @returns Chuỗi ngày dạng `yyyy-mm-dd`. Ví dụ: `2025-07-30`.
    */
   private formatDateForFile(date: Date): string {
@@ -869,16 +827,9 @@ export class DonHangService {
   /**
    * Tạo báo cáo thống kê đơn hàng theo khoảng thời gian và xuất thành tệp Excel.
    *
-   * Hàm này thực hiện các bước:
-   * 1. Lấy thống kê đơn hàng theo ngày trong khoảng `from` → `to`.
-   * 2. Lấy thông tin nhân viên thực hiện yêu cầu.
-   * 3. Tạo các sheet thống kê theo định dạng Excel.
-   * 4. Sinh file Excel dưới dạng buffer và trả về kèm tên file.
-   *
    * @param from - Ngày bắt đầu của khoảng thống kê.
    * @param to - Ngày kết thúc của khoảng thống kê.
    * @param staffId - Mã định danh nhân viên thực hiện xuất báo cáo.
-   *
    * @returns Đối tượng chứa:
    * - `buffer`: Dữ liệu nhị phân của file Excel (dạng `Buffer`) để phục vụ tải xuống hoặc gửi qua mạng.
    * - `fileName`: Tên file được đề xuất cho tệp Excel xuất ra, định dạng `Thong-ke-yyyy-mm-dd-yyyy-mm-dd.xlsx`.
@@ -913,19 +864,12 @@ export class DonHangService {
   /**
    * Tạo dữ liệu báo cáo thống kê định dạng bảng (sheet) dùng để xuất ra Excel.
    *
-   * Gồm 2 phần chính:
-   * - Thông tin nhân viên thực hiện xuất báo cáo.
-   * - Thống kê đơn hàng theo từng ngày, gồm tổng số đơn, đơn hoàn tất, đơn thất bại,
-   *   doanh thu sản phẩm, doanh thu thuần sản phẩm, doanh thu vận chuyển, và doanh thu thuần vận chuyển.
-   *
-   * @protected
    * @param data - Kết quả thống kê theo từng ngày (bao gồm đơn hoàn tất, chưa hoàn tất, tổng).
    * @param staff - Thông tin nhân viên xuất báo cáo:
    *   - `NV_hoTen`: Họ tên nhân viên.
    *   - `NV_email`: Email liên hệ.
    *   - `NV_soDienThoai`: Số điện thoại.
    *   - `NV_tenVaiTro`: Tên vai trò hoặc chức vụ.
-   *
    * @returns Mảng `SheetData` gồm 1 sheet có tên 'Báo cáo thống kê', chứa:
    * - Bảng thông tin nhân viên xuất báo cáo.
    * - Bảng thống kê đơn hàng theo ngày.

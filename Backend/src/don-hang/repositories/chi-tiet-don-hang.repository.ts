@@ -16,6 +16,7 @@ export class ChiTietDonHangRepository {
 
   /**
    * Tạo mới các chi tiết đơn hàng cho một đơn hàng cụ thể.
+   *
    * @param orderId - Mã đơn hàng liên kết với các chi tiết.
    * @param detail - Danh sách các chi tiết đơn hàng.
    * @param session - Phiên giao dịch MongoDB (nếu có).
@@ -35,6 +36,7 @@ export class ChiTietDonHangRepository {
 
   /**
    * Tìm tất cả chi tiết đơn hàng theo ID đơn hàng.
+   *
    * @param orderId - Mã đơn hàng.
    * @returns Danh sách chi tiết đơn hàng dưới dạng plain object.
    */
@@ -44,6 +46,7 @@ export class ChiTietDonHangRepository {
 
   /**
    * Tính toán thống kê chi tiết sản phẩm cho danh sách đơn hàng.
+   *
    * @param orderIds - Mảng mã đơn hàng.
    * @returns Tổng giá bán, giá nhập, giá mua và số lượng sản phẩm.
    */
@@ -92,6 +95,7 @@ export class ChiTietDonHangRepository {
 
   /**
    * Thống kê số lượng sản phẩm đã giảm giá và tổng số lượng sản phẩm trong đơn hàng.
+   *
    * @param orderId - Mảng mã đơn hàng cần thống kê.
    * @returns Tổng số sản phẩm và số sản phẩm có giá mua thấp hơn giá bán.
    */

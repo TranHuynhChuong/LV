@@ -14,6 +14,7 @@ export class XacThucController {
 
   /**
    * Đăng ký tài khoản khách hàng mới.
+   *
    * @param newCustomer Dữ liệu khách hàng cần đăng ký.
    * @returns Thông tin khách hàng đã đăng ký hoặc lỗi nếu không thành công.
    */
@@ -24,6 +25,7 @@ export class XacThucController {
 
   /**
    * Cập nhật địa chỉ email cho khách hàng bằng mã OTP.
+   *
    * @param id Mã định danh của khách hàng.
    * @param newEmail Email mới cần cập nhật.
    * @param otp Mã xác thực OTP gửi tới email mới.
@@ -39,6 +41,7 @@ export class XacThucController {
 
   /**
    * Đổi mật khẩu cho khách hàng thông qua OTP.
+   *
    * @param id Mã định danh của khách hàng.
    * @param newPassword Mật khẩu mới.
    * @param otp Mã xác thực OTP.
@@ -54,6 +57,7 @@ export class XacThucController {
 
   /**
    * Quên mật khẩu – thay đổi mật khẩu qua email và OTP.
+   *
    * @param email Email đăng ký tài khoản.
    * @param newPassword Mật khẩu mới.
    * @param otp Mã xác thực OTP gửi tới email.
@@ -78,6 +82,7 @@ export class XacThucController {
   /**
    * Gửi mã OTP đến email của người dùng theo ID.
    * Dùng khi người dùng đã đăng nhập và có ID.
+   *
    * @param id Mã định danh của người dùng.
    * @returns Kết quả gửi OTP.
    */
@@ -89,6 +94,7 @@ export class XacThucController {
   /**
    * Gửi mã OTP đến email người dùng theo địa chỉ email.
    * Dùng cho đăng ký mới hoặc xác thực quên mật khẩu.
+   *
    * @param email Địa chỉ email của người dùng.
    * @param isNew `true` nếu là tạo mới tài khoản, `false` nếu là xác thực khác.
    * @returns Kết quả gửi OTP.
@@ -102,6 +108,7 @@ export class XacThucController {
 
   /**
    * Đăng nhập bằng email và mật khẩu dành cho khách hàng.
+   *
    * @param email Email của khách hàng.
    * @param pass Mật khẩu đã đăng ký.
    * @returns Token xác thực và thông tin tài khoản nếu hợp lệ.
@@ -115,6 +122,7 @@ export class XacThucController {
 
   /**
    * Đăng nhập bằng mã nhân viên và mật khẩu dành cho nhân viên.
+   *
    * @param code Mã đăng nhập của nhân viên.
    * @param pass Mật khẩu.
    * @returns Token xác thực và thông tin nhân viên nếu hợp lệ.
