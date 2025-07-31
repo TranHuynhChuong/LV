@@ -25,7 +25,7 @@ export default function OrderPanel() {
 
   const getData = useCallback(
     async (page: number, userId: number | null, filterType?: OrderStatus, orderId?: string) => {
-      if (userId) return;
+      if (!userId) return;
       try {
         const params = {
           page: page,
@@ -90,7 +90,7 @@ export default function OrderPanel() {
             {tabs.map((tab) => {
               const queryParams = new URLSearchParams(searchParams.toString());
               queryParams.set('type', tab);
-              const href = `/profile/orders?${queryParams.toString()}`;
+              const href = `/profile/order?${queryParams.toString()}`;
               return (
                 <Button
                   key={tab}
