@@ -2,7 +2,9 @@ import { ImageDto, BookDetail, BookDetailDto, BookOverview, BookOverviewDto } fr
 
 export function mapBookDetailFormDto(dto: BookDetailDto): BookDetail {
   const getImageUrls = (images: ImageDto[]): string[] => {
-    return images.map((img) => img.A_url);
+    return images
+      .sort((a, b) => (b.A_anhBia ? 1 : 0) - (a.A_anhBia ? 1 : 0))
+      .map((img) => img.A_url);
   };
 
   const discountPercent = Math.round(((dto.S_giaBan - dto.S_giaGiam) / dto.S_giaBan) * 100);
