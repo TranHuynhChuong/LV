@@ -37,6 +37,7 @@ import { Connection } from 'mongoose';
 import { SachUtilService } from 'src/sach/sach.service';
 import { CreateTheLoaiDto } from './dto/create-the-loai.dto';
 import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
+import { getNextSequence } from 'src/Util/counter.service';
 @Injectable()
 export class TheLoaiService {
   constructor(
@@ -63,12 +64,19 @@ export class TheLoaiService {
           NV_id: newData.NV_id,
           thoiGian: new Date(),
         };
-        const lastId = await this.TheLoaiRepo.findLastId(session);
-        const newId = lastId + 1;
+        if (!this.connection.db) {
+          throw new Error('Không thể kết nối cơ sở dữ liệu');
+        }
+        // Lấy giá trị seq tự tăng từ MongoDB
+        const seq = await getNextSequence(
+          this.connection.db,
+          'categoryId',
+          session
+        );
         const created = await this.TheLoaiRepo.create(
           {
             ...newData,
-            TL_id: newId,
+            TL_id: seq,
             lichSuThaoTac: [thaoTac],
           },
           session

@@ -15,6 +15,7 @@ import { UpdateKhuyenMaiDto } from './dto/update-khuyen-mai.dto';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 import { ClientSession, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
+import { getNextSequence } from 'src/Util/counter.service';
 
 /**Bản đồ ánh xạ tên trường → nhãn để hiển thị lịch sử thao tác*/
 const typeOfChange: Record<string, string> = {
@@ -93,8 +94,16 @@ export class KhuyenMaiService {
     const session = await this.connection.startSession();
     try {
       const result = await session.withTransaction(async () => {
-        const lastId = await this.KhuyenMaiRepo.findLastId(session);
-        const newId = lastId + 1;
+        if (!this.connection.db) {
+          throw new Error('Không thể kết nối cơ sở dữ liệu');
+        }
+        // Lấy giá trị seq tự tăng từ MongoDB
+        const seq = await getNextSequence(
+          this.connection.db,
+          'promotionId',
+          session
+        );
+
         const thaoTac = {
           thaoTac: 'Tạo mới',
           NV_id: data.NV_id,
@@ -104,7 +113,7 @@ export class KhuyenMaiService {
         const created = await this.KhuyenMaiRepo.create(
           {
             ...KhuyenMaiData,
-            KM_id: newId,
+            KM_id: seq,
             lichSuThaoTac: [thaoTac],
           },
           session
@@ -117,7 +126,7 @@ export class KhuyenMaiService {
         if (KM_chiTiet && KM_chiTiet.length > 0) {
           const chiTietWithKMId = KM_chiTiet.map((ct) => ({
             ...ct,
-            KM_id: newId,
+            KM_id: seq,
           }));
           await this.ChiTietKhuyenMaiRepo.create(chiTietWithKMId, session);
         }

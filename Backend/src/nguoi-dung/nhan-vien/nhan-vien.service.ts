@@ -10,6 +10,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { CreateNhanVienDto } from './dto/create-nhan-vien.dto';
 import { UpdateNhanVienDto } from './dto/update-nhan-vien.dto';
+import { getNextSequence } from 'src/Util/counter.service';
 
 export interface ThaoTac {
   thoiGian: Date;
@@ -142,12 +143,17 @@ export class NhanVienService {
     try {
       let result: NhanVien;
       await session.withTransaction(async () => {
-        const lastCode = await this.NhanVienRepo.findLastId(session);
-        const numericCode = lastCode ? parseInt(lastCode, 10) : 0;
-        const newNumericCode = numericCode + 1;
-        const newCode = newNumericCode
-          .toString()
-          .padStart(this.codeLength, '0');
+        if (!this.connection.db) {
+          throw new Error('Không thể kết nối cơ sở dữ liệu');
+        }
+        // Lấy giá trị seq tự tăng từ MongoDB
+        const seq = await getNextSequence(
+          this.connection.db,
+          'staffId',
+          session
+        );
+
+        const newCode = seq.toString().padStart(this.codeLength, '0');
         const thaoTac = {
           thaoTac: 'Tạo mới',
           NV_id: newData.NV_idNV,

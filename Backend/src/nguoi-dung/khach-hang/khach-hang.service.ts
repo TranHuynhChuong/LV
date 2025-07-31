@@ -35,6 +35,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { CreateKhachHangDto } from './dto/create-khach-hang.dto';
 import { UpdateKhachHangDto } from './dto/update-khach-hang.dto';
+import { getNextSequence } from 'src/Util/counter.service';
 
 @Injectable()
 export class KhachHangService {
@@ -60,11 +61,18 @@ export class KhachHangService {
         if (existing) {
           throw new ConflictException('Tạo khách hàng - Email đã tồn tại');
         }
-        const lastId = await this.KhachHangRepo.findLastId(session);
-        const newId = lastId + 1;
+        if (!this.connection.db) {
+          throw new Error('Không thể kết nối cơ sở dữ liệu');
+        }
+        // Lấy giá trị seq tự tăng từ MongoDB
+        const seq = await getNextSequence(
+          this.connection.db,
+          'customerId',
+          session
+        );
         const created = await this.KhachHangRepo.create({
           ...data,
-          KH_id: newId,
+          KH_id: seq,
         });
         if (!created) {
           throw new BadRequestException(

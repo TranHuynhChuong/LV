@@ -20,6 +20,7 @@ import { ClientSession, Connection } from 'mongoose';
 import { CreateSachDto } from './dto/create-sach.dto';
 import { UpdateSachDto } from './dto/update-sach.dto';
 import { KhuyenMaiUtilService } from 'src/khuyen-mai/khuyen-mai.service';
+import { getNextSequence } from 'src/Util/counter.service';
 
 const folderPrefix = 'Books';
 
@@ -138,8 +139,11 @@ export class SachService {
           data.S_tomTat,
           'passage'
         );
-        const lastId = await this.SachRepo.findLastId(session);
-        nextId = lastId + 1;
+        if (!this.connection.db) {
+          throw new Error('Không thể kết nối cơ sở dữ liệu');
+        }
+        // Lấy giá trị seq tự tăng từ MongoDB
+        nextId = await getNextSequence(this.connection.db, 'bookId', session);
         const thaoTac = {
           thaoTac: 'Tạo mới',
           NV_id: data.NV_id,

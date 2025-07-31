@@ -1,10 +1,5 @@
 import { Db, ClientSession, Document } from 'mongodb';
 
-interface CounterDocument extends Document {
-  name: string;
-  seq: number;
-}
-
 /**
  * Lấy số thứ tự tiếp theo từ collection 'counters'
  * @param db Kết nối MongoDB
@@ -17,21 +12,18 @@ export async function getNextSequence(
   name: string,
   session?: ClientSession
 ): Promise<number> {
-  const result = await db
-    .collection<CounterDocument>('counters')
-    .findOneAndUpdate(
-      { name },
-      { $inc: { seq: 1 } },
-      {
-        upsert: true,
-        returnDocument: 'after',
-        session,
-      }
-    );
+  const result = await db.collection('counters').findOneAndUpdate(
+    { name },
+    { $inc: { seq: 1 } },
+    {
+      upsert: true,
+      returnDocument: 'after',
+      session,
+    }
+  );
 
-  if (!result || !result.value) {
+  if (!result) {
     throw new Error(`Không lấy được sequence cho counter: ${name}`);
   }
-
-  return result.value.seq as number;
+  return result.seq as number;
 }

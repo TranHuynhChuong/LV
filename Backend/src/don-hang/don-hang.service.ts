@@ -103,69 +103,32 @@ export class DonHangService {
    * @throws Error nếu không thể sinh tiếp mã đơn hàng vì đã vượt giới hạn định dạng.
    */
   private async generateNextOrderId(session?: ClientSession): Promise<string> {
-    const lastId = await this.DonHangRepo.findLastId();
-    // Nếu chưa có đơn hàng nào → bắt đầu từ đầu
-    if (!lastId) return 'AAA000000001';
-    const prefix = lastId.slice(0, 3); // 'AAA'
-    const numberPart = lastId.slice(3); // '000000001'
-    const nextNumber = parseInt(numberPart, 10) + 1;
-    if (nextNumber > 999999999) {
-      // Nếu vượt quá 9 chữ số thì tăng prefix
-      const nextPrefix = this.incrementPrefix(prefix);
-      if (!nextPrefix)
-        throw new Error('Tạo đơn hàng - Đã vượt quá giới hạn mã đơn hàng');
-      return `${nextPrefix}000000001`;
+    if (!this.connection.db) {
+      throw new Error('Không thể kết nối cơ sở dữ liệu');
     }
-    return `${prefix}${nextNumber.toString().padStart(9, '0')}`;
-  }
-
-  // private async generateNextOrderId(session?: ClientSession): Promise<string> {
-  //   if (!this.connection.db) {
-  //     throw new Error('Không thể kết nối cơ sở dữ liệu');
-  //   }
-  //   // Lấy giá trị seq tự tăng từ MongoDB
-  //   const seq = await getNextSequence(this.connection.db, 'orderId', session);
-  //   // Giới hạn seq nằm trong khoảng cho phép
-  //   const maxPerPrefix = 999_999_999;
-  //   const maxSeq = 26 * 26 * 26 * maxPerPrefix; // = 17,575,999,982,424
-  //   if (seq < 1 || seq > maxSeq) {
-  //     throw new Error('Giá trị seq vượt quá giới hạn cho phép.');
-  //   }
-  //   // Tính chỉ số prefix (AAA → ZZZ)
-  //   const prefixIndex = Math.floor((seq - 1) / maxPerPrefix);
-  //   const numberPart = ((seq - 1) % maxPerPrefix) + 1;
-  //   const aCode = 'A'.charCodeAt(0);
-  //   const firstChar = String.fromCharCode(
-  //     aCode + Math.floor(prefixIndex / (26 * 26))
-  //   );
-  //   const secondChar = String.fromCharCode(
-  //     aCode + Math.floor((prefixIndex % (26 * 26)) / 26)
-  //   );
-  //   const thirdChar = String.fromCharCode(aCode + (prefixIndex % 26));
-  //   const prefix = `${firstChar}${secondChar}${thirdChar}`;
-  //   const numberStr = numberPart.toString().padStart(9, '0');
-  //   // Trả về mã đơn hàng có dạng như AAA000000001
-  //   return `${prefix}${numberStr}`;
-  // }
-
-  /**
-   * Tăng dần phần prefix theo thứ tự bảng chữ cái (A-Z).
-   * Ví dụ: AAA → AAB, AAZ → ABA, ZZZ → null.
-   *
-   * @param prefix - Chuỗi 3 ký tự chữ cái cần tăng.
-   * @returns Prefix mới nếu có thể tăng, ngược lại trả về null nếu đã đạt "ZZZ".
-   */
-  private incrementPrefix(prefix: string): string | null {
-    const chars = prefix.split('');
-    for (let i = 2; i >= 0; i--) {
-      if (chars[i] === 'Z') {
-        chars[i] = 'A';
-      } else {
-        chars[i] = String.fromCharCode(chars[i].charCodeAt(0) + 1);
-        return chars.join('');
-      }
+    // Lấy giá trị seq tự tăng từ MongoDB
+    const seq = await getNextSequence(this.connection.db, 'orderId', session);
+    // Giới hạn seq nằm trong khoảng cho phép
+    const maxPerPrefix = 999_999_999;
+    const maxSeq = 26 * 26 * 26 * maxPerPrefix; // = 17,575,999,982,424
+    if (seq < 1 || seq > maxSeq) {
+      throw new Error('Giá trị seq vượt quá giới hạn cho phép.');
     }
-    return null; // nếu đến ZZZ thì không tăng được nữa
+    // Tính chỉ số prefix (AAA → ZZZ)
+    const prefixIndex = Math.floor((seq - 1) / maxPerPrefix);
+    const numberPart = ((seq - 1) % maxPerPrefix) + 1;
+    const aCode = 'A'.charCodeAt(0);
+    const firstChar = String.fromCharCode(
+      aCode + Math.floor(prefixIndex / (26 * 26))
+    );
+    const secondChar = String.fromCharCode(
+      aCode + Math.floor((prefixIndex % (26 * 26)) / 26)
+    );
+    const thirdChar = String.fromCharCode(aCode + (prefixIndex % 26));
+    const prefix = `${firstChar}${secondChar}${thirdChar}`;
+    const numberStr = numberPart.toString().padStart(9, '0');
+    // Trả về mã đơn hàng có dạng như AAA000000001
+    return `${prefix}${numberStr}`;
   }
 
   /**

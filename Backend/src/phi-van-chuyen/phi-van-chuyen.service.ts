@@ -12,6 +12,7 @@ import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
 import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
 import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
 import { DiaChiService } from '../dia-chi/dia-chi.service';
+import { getNextSequence } from 'src/Util/counter.service';
 
 const typeOfChange: Record<string, string> = {
   PVC_phi: 'Phí',
@@ -67,8 +68,15 @@ export class PhiVanChuyenService {
           }
           result = updated;
         } else {
-          const lastId = await this.PhiVanChuyenRepo.findLastId(session);
-          const newId = lastId + 1;
+          if (!this.connection.db) {
+            throw new Error('Không thể kết nối cơ sở dữ liệu');
+          }
+          // Lấy giá trị seq tự tăng từ MongoDB
+          const seq = await getNextSequence(
+            this.connection.db,
+            'shippingId',
+            session
+          );
           const thaoTac = {
             thaoTac: 'Tạo mới',
             NV_id: newData.NV_id,
@@ -76,7 +84,7 @@ export class PhiVanChuyenService {
           };
           const created = await this.PhiVanChuyenRepo.create({
             ...newData,
-            PVC_id: newId,
+            PVC_id: seq,
             lichSuThaoTac: [thaoTac],
           });
           if (!created) {
