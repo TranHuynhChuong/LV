@@ -48,8 +48,8 @@ const ReviewItem: FC<Props> = ({ review }) => {
       })
       .catch(() => {
         toast.error('Thao tác thất bại');
-        setIsSubmitting(false);
-      });
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
