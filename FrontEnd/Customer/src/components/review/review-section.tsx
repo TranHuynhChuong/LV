@@ -134,7 +134,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Đánh giá sản phẩm</h3>
+      <h3 className="text-lg font-medium">Đánh giá sách</h3>
       <div className="p-4 ">
         <div className="flex items-center gap-6 mb-4">
           <div className="flex flex-col items-center gap-1">

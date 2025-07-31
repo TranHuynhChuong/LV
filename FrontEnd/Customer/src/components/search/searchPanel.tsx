@@ -84,7 +84,7 @@ export default function SearchPanel() {
   return (
     <div>
       <div className="flex items-center w-full p-4 bg-white rounded-md h-fit">
-        <h4 className="flex-1 font-medium ">Kết quả tìm kiếm: {totalItems} sản phẩm </h4>
+        <h4 className="flex-1 font-medium ">Kết quả tìm kiếm: {totalItems} sách </h4>
         {showSort && (
           <div className="flex justify-end h-fit">
             <Select value={sort} onValueChange={handleSortChange}>
