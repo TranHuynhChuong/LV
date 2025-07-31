@@ -33,10 +33,15 @@ export default function ConfirmToggleReviewDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+            className="cursor-pointer"
+          >
             Hủy
           </Button>
-          <Button onClick={onConfirm} disabled={submitting}>
+          <Button onClick={onConfirm} disabled={submitting} className="cursor-pointer">
             Xác nhận
           </Button>
         </DialogFooter>

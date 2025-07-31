@@ -103,7 +103,7 @@ export default function LoginForm() {
           )}
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
           {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </Button>
       </form>

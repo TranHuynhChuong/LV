@@ -208,6 +208,7 @@ export default function CartPanel() {
           <div className="flex items-center justify-between p-3 rounded shadow bg-zinc-50">
             <div className="flex items-center gap-4">
               <Checkbox
+                className="cursor-pointer"
                 checked={selected.length === inStockCarts.length}
                 onCheckedChange={() => {
                   if (selected.length === inStockCarts.length) {
