@@ -83,9 +83,17 @@ export default function AddressDetail() {
       {defaultData && <AddressForm ref={formRef} defaultValue={defaultData} />}
       <div className="flex justify-end pt-4 border-t">
         <div className="flex gap-2">
-          <Button onClick={() => setOpenDeleteDialog(true)}>Xóa</Button>
-          <Button onClick={() => setOpenUpdateDialog(true)}>Cập nhật</Button>
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button
+            variant="destructive"
+            onClick={() => setOpenDeleteDialog(true)}
+            className="cursor-pointer"
+          >
+            Xóa
+          </Button>
+          <Button onClick={() => setOpenUpdateDialog(true)} className="cursor-pointer">
+            Cập nhật
+          </Button>
+          <Button variant="outline" onClick={() => router.back()} className="cursor-pointer">
             Hủy
           </Button>
         </div>
@@ -97,11 +105,15 @@ export default function AddressDetail() {
             <DialogDescription> Bạn chắc chắn muốn xóa thông tin nhận hàng này?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDeleteDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenDeleteDialog(false)}
+              className="cursor-pointer"
+            >
               Hủy
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Xác nhận xóa
+            <Button variant="destructive" onClick={handleDelete} className="cursor-pointer">
+              Xóa
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -113,7 +125,11 @@ export default function AddressDetail() {
             <DialogDescription> Bạn có chắc muốn cập nhật thông tin này?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenUpdateDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenUpdateDialog(false)}
+              className="cursor-pointer"
+            >
               Hủy
             </Button>
             <Button
@@ -121,8 +137,9 @@ export default function AddressDetail() {
                 setOpenUpdateDialog(false);
                 handleUpdate();
               }}
+              className="cursor-pointer"
             >
-              Xác nhận cập nhật
+              Xác nhận
             </Button>
           </DialogFooter>
         </DialogContent>

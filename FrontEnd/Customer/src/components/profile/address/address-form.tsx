@@ -164,7 +164,11 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
               render={({ field }) => (
                 <FormItem className="flex items-center gap-2 space-y-0">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="cursor-pointer"
+                    />
                   </FormControl>
                   <FormLabel className="text-sm font-normal">Đặt làm địa chỉ mặc định</FormLabel>
                   <FormMessage />

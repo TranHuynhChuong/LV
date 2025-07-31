@@ -26,8 +26,9 @@ export function AddressItem({
   return (
     <div
       className={cn(
-        'p-4 border rounded-md bg-white shadow-sm space-y-1 cursor-pointer',
-        selected && 'border-blue-500 bg-blue-50'
+        'p-4 border rounded-md bg-white shadow-sm space-y-1',
+        selected && 'border-blue-500 bg-blue-50',
+        isComponent && 'cursor-pointer'
       )}
       onClick={isComponent ? onSelect : undefined}
     >
@@ -36,10 +37,9 @@ export function AddressItem({
           <p className="whitespace-nowrap">{address.name}</p>
           <p className="font-normal whitespace-nowrap text-muted-foreground">{address.phone}</p>
         </span>
-
         {!isComponent ? (
           <Link href={`/profile/address/${address.id}`} className="h-fit">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="cursor-pointer">
               Chỉnh sửa
             </Button>
           </Link>
@@ -47,11 +47,8 @@ export function AddressItem({
           selected && <CheckCircle className="w-4 h-4 mt-1 text-blue-500" />
         )}
       </div>
-
       <div className="text-sm">{address.fullName}</div>
-
       {address.note && <div className="text-xs italic text-muted-foreground">{address.note}</div>}
-
       {address.default && <Badge className="bg-zinc-600">Mặc định</Badge>}
     </div>
   );

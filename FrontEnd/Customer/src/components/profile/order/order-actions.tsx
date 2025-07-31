@@ -77,12 +77,12 @@ const actionMap: Record<
   }
 > = {
   Huy: {
-    endpoint: (id) => `/orders/canceled/${id}`,
-    successMsg: 'Xác nhận hủy đơn hàng thành công.',
-    errorMsg: 'Xác nhận hủy đơn hàng thất bại.',
-    confirmTitle: 'Bạn có chắc muốn hủy đơn hàng này?',
+    endpoint: (id) => `/orders/cancelRequest/${id}`,
+    successMsg: 'Yêu cầu hủy đơn hàng đã được gửi.',
+    errorMsg: 'Đã xảy ra lỗi, vui lòng thử lại.',
+    confirmTitle: 'Bạn có chắc muốn gửi yêu cầu hủy đơn hàng này?',
     confirmDescription:
-      'Hủy đơn hàng là hành động không thể hoàn tác. Vui lòng xác nhận kỹ trước khi tiếp tục.',
+      'Yêu cầu hủy đơn hàng là hành động không thể hoàn tác. Vui lòng xác nhận kỹ trước khi tiếp tục.',
   },
 };
 

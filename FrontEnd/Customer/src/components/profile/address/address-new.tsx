@@ -63,7 +63,11 @@ export default function AddressNew() {
             <DialogDescription>Bạn có chắc muốn thêm thông tin nhận hàng này?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenAddDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenAddDialog(false)}
+              className="cursor-pointer"
+            >
               Hủy
             </Button>
             <Button
@@ -71,8 +75,9 @@ export default function AddressNew() {
                 setOpenAddDialog(false);
                 handleSubmit();
               }}
+              className="cursor-pointer"
             >
-              Xác nhận thêm
+              Xác nhận
             </Button>
           </DialogFooter>
         </DialogContent>
