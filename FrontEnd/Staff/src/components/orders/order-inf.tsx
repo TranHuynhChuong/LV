@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import OrderActions from './order-actions';
 import { statusMap } from './order-item';
+import EventBus from '@/lib/event-bus';
 
 type Props = {
   data: Order;
@@ -187,6 +188,7 @@ export default function OrderInf({ data }: Readonly<Props>) {
           id={orderId}
           status={status}
           onSuccess={() => {
+            EventBus.emit('order:refetch');
             router.back();
           }}
         />

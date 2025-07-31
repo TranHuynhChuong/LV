@@ -98,8 +98,6 @@ export class EmailService {
     const html = `
       <h3>Đơn hàng của bạn đã được xác nhận hủy</h3>
       <p>Chúng tôi xác nhận rằng đơn hàng <strong>${orderId}</strong> của bạn đã được <span style="color: red;">huỷ thành công</span>.</p>
-      <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-      <p>Trân trọng,</p>
     `;
     const text = `Đơn hàng ${orderId} đã được hủy`;
     this.sendEmail(to, subject, html, text).catch((err) => {

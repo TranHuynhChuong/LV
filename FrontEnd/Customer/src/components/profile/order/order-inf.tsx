@@ -186,7 +186,9 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
         <Button
           variant="outline"
           className="text-sm font-normal cursor-pointer"
-          onClick={() => router.back()}
+          onClick={() => {
+            router.back();
+          }}
         >
           Thoát
         </Button>
