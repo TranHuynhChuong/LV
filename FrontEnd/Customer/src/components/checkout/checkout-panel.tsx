@@ -107,11 +107,25 @@ export default function CheckOutPanel() {
         if (res.data.errors.length === 0) {
           setBooks(orders);
         } else {
-          setErrorMessages(res.data.errors);
+          const errorCodes = res.data.errors;
+          const errorMessagesMap: Record<string, string> = {
+            '1001': 'Có sách không tồn tại',
+            '1002': 'Có sách không đủ hàng',
+            '1003': 'Có sách có thay đổi về giá',
+            '2001': 'Mã giảm giá không hợp lệ',
+          };
+          if (Array.isArray(errorCodes)) {
+            const mappedMessages = errorCodes
+              .map((code: string) => errorMessagesMap[code])
+              .filter(Boolean);
+            setErrorMessages(mappedMessages);
+          } else {
+            setErrorMessages(['Đã xảy ra lỗi, vui lòng thử lại!']);
+          }
         }
       })
       .catch(() => {
-        toast.error('Lỗi khi tạo đơn hàng');
+        toast.error('Đã xảy ra lỗi, vui lòng thử lại!');
         router.back();
       });
   }, [orders, selectedVouchers, router]);
@@ -166,12 +180,13 @@ export default function CheckOutPanel() {
         setCreateSuccess(true);
       })
       .catch((error) => {
-        const errorCodes = error?.response?.data?.message?.message;
+        console.log(error);
+        const errorCodes = error?.response?.data?.message;
         const errorMessagesMap: Record<string, string> = {
           '1001': 'Có sách không tồn tại',
           '1002': 'Có sách không đủ hàng',
           '1003': 'Có sách có thay đổi về giá',
-          '2001': 'Có sách đã ngừng bán',
+          '2001': 'Mã giảm giá không hợp lệ',
         };
         if (Array.isArray(errorCodes)) {
           const mappedMessages = errorCodes
@@ -194,7 +209,7 @@ export default function CheckOutPanel() {
       const timer = setTimeout(() => {
         clearOrder();
         router.replace('/cart');
-      }, 3500);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [errorMessages, router]);

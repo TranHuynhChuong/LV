@@ -35,7 +35,7 @@ export default function OrderErrorDialog({ open, errorMessages, clearOrder }: Re
         </DialogHeader>
         <div className="flex flex-col items-center w-full">
           <CircleAlert size={48} color="red" />
-          <ul className="mt-2 space-y-1 text-xs text-center list-inside">
+          <ul className="mt-2 space-y-1 text-center list-inside">
             {errorMessages.map((msg, idx) => (
               <li key={idx}>{msg}</li>
             ))}
