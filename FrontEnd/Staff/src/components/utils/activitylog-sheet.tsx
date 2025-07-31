@@ -49,8 +49,12 @@ export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
               ))}
             </ul>
           )}
-          <p>Người thực hiện:</p>
-          {renderUserInfo(item.user)}
+          {item.user.id && item.user.name && item.user.phone && item.user.email && (
+            <>
+              <p>Người thực hiện:</p>
+              {renderUserInfo(item.user)}
+            </>
+          )}
         </div>
       );
     }
@@ -59,8 +63,12 @@ export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
       <div className="space-y-1 text-sm">
         <p>Thời gian: {formatDate(item.time)}</p>
         <p>Thao tác: {item.action}</p>
-        <p>Người thực hiện:</p>
-        {renderUserInfo(item.user)}
+        {item.user.id && item.user.name && item.user.phone && item.user.email && (
+          <>
+            <p>Người thực hiện:</p>
+            {renderUserInfo(item.user)}
+          </>
+        )}
       </div>
     );
   }

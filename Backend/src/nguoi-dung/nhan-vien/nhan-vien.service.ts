@@ -51,7 +51,8 @@ export class NhanVienUtilService {
   /**
    * Bản đồ vai trò từ mã số sang tên mô tả.
    */
-  vaiTroMap: Record<number, string> = {
+  vaiTroMap: Record<number, string | null> = {
+    0: null,
     1: 'Quản trị',
     2: 'Quản lý',
     3: 'Bán Hàng',
@@ -96,7 +97,7 @@ export class NhanVienUtilService {
           NV_hoTen: nv?.NV_hoTen ?? null,
           NV_email: nv?.NV_email ?? null,
           NV_soDienThoai: nv?.NV_soDienThoai ?? null,
-          NV_tenVaiTro: this.vaiTroMap[nv.NV_vaiTro] ?? null,
+          NV_tenVaiTro: this.vaiTroMap[nv?.NV_vaiTro ?? 0] ?? null,
         },
       };
     });
