@@ -74,6 +74,17 @@ export class NguoiDungController {
    * @param email Địa chỉ email cần tìm.
    * @returns Thông tin khách hàng.
    */
+  @Get('customer/inf/:id')
+  async getCustomerById(@Param('id', ParseIntPipe) id: number) {
+    return await this.KhachHangService.findById(id);
+  }
+
+  /**
+   * Lấy thông tin khách hàng theo địa chỉ email.
+   *
+   * @param email Địa chỉ email cần tìm.
+   * @returns Thông tin khách hàng.
+   */
   @Get('customer/:email')
   async getCustomerByEmail(@Param('email') email: string) {
     return await this.KhachHangService.findByEmail(email);
