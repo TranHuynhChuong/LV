@@ -18,6 +18,7 @@ export type BookOverview = {
   inventory: number;
   sold: number;
   rating: number;
+  amountRating: number;
   categories: number[];
   status: number;
   isOnSale: boolean;
@@ -49,6 +50,7 @@ export type BookDetail = {
   weight: number;
   size: string;
   rating: number;
+  amountRating: number;
   saled: number;
   images: string[];
   similar: BookOverview[];

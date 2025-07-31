@@ -8,6 +8,7 @@ export type BookOverviewDto = {
   S_anh: string;
   S_trangThai: number;
   S_diemDG: number;
+  S_soLuongDG: number;
   TL_id: number[];
   S_giaGiam: number;
 };
@@ -39,6 +40,7 @@ export type BookDetailDto = {
   S_trongLuong: number;
   S_kichThuoc: string;
   S_diemDG: number;
+  S_soLuongDG: number;
   S_daBan: number;
   S_anh: {
     A_publicId: string;
