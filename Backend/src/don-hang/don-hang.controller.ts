@@ -8,6 +8,7 @@ import {
   Patch,
   HttpStatus,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 
@@ -15,6 +16,7 @@ import { DonHangService } from './don-hang.service';
 import { CheckDto, CreateDto } from './dto/create-don-hang.dto';
 import { parsePositiveInt } from 'src/Util/convert';
 import { OrderStatus } from './repositories/don-hang.repository';
+import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 
 @Controller('api/orders')
 export class DonHangController {
@@ -168,6 +170,7 @@ export class DonHangController {
    * @param to - Ngày kết thúc
    * @returns Dữ liệu thống kê
    */
+  @UseGuards(XacThucGuard)
   @Get('/stats')
   getStats(@Query('from') from: string, @Query('to') to: string) {
     const start = new Date(from);
@@ -183,6 +186,7 @@ export class DonHangController {
    * @param staffId - ID nhân viên
    * @param res - Đối tượng Response để gửi file
    */
+  @UseGuards(XacThucGuard)
   @Get('/stats/export')
   async exportStats(
     @Query('from') from: string,

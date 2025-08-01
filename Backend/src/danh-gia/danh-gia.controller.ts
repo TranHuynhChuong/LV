@@ -8,10 +8,12 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DanhGiaService } from './danh-gia.service';
 import { CreateDanhGiaDto } from './dto/create-danh-gia.dto';
 import { UpdateDanhGiaDto } from './dto/update-danh-gia.dto';
+import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 
 @Controller('/api/reviews')
 export class DanhGiaController {
@@ -23,6 +25,7 @@ export class DanhGiaController {
    * @param dto - Mảng đánh giá cần tạo
    * @returns Danh sách đánh giá đã tạo
    */
+  @UseGuards(XacThucGuard)
   @Post()
   create(@Body() dto: CreateDanhGiaDto[]) {
     return this.DanhGiaService.create(dto);
@@ -88,6 +91,7 @@ export class DanhGiaController {
    * @param to - Ngày kết thúc (ISO format)
    * @returns Dữ liệu thống kê đánh giá
    */
+  @UseGuards(XacThucGuard)
   @Get('/stats')
   async getRatingStats(@Query('from') from: string, @Query('to') to: string) {
     const start = new Date(from);
@@ -101,6 +105,7 @@ export class DanhGiaController {
    * @param dto - Thông tin đánh giá cần ẩn
    * @returns Đánh giá đã được cập nhật
    */
+  @UseGuards(XacThucGuard)
   @Patch('/hide')
   async hide(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.hide(dto);
@@ -112,6 +117,7 @@ export class DanhGiaController {
    * @param dto - Thông tin đánh giá cần hiển thị lại
    * @returns Đánh giá đã được cập nhật
    */
+  @UseGuards(XacThucGuard)
   @Patch('/show')
   async show(@Body() dto: UpdateDanhGiaDto) {
     return this.DanhGiaService.show(dto);
