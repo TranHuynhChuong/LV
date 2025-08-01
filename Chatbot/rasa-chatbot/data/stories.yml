@@ -1,0 +1,25 @@
+version: "3.1"
+
+stories:
+
+- story: Tìm sách không nói rõ
+  steps:
+    - intent: find_book
+    - action: utter_ask_book_info
+    - or:
+        - intent: book_content_only
+        - intent: find_book_with_content
+    - slot_was_set:
+        - book_info: "thông tin sách cần tìm"
+    - action: action_find_books
+
+- story: Tra cứu đơn hàng thiếu mã
+  steps:
+    - intent: find_order
+    - action: utter_ask_order_id
+    - or:
+      - intent: find_order_with_orderId
+      - intent: orderId_only
+    - slot_was_set:
+        - orderId: "AAA123456789"
+    - action: action_check_order

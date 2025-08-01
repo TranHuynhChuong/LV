@@ -1,0 +1,60 @@
+version: "3.1"
+
+intents:
+  - greet
+  - out_of_scope
+  - find_book
+  - find_book_with_content
+  - book_content_only
+  - find_order
+  - find_order_with_orderId
+  - orderId_only
+
+
+entities:
+  - orderId
+
+actions:
+  - action_find_books
+  - action_check_order
+  - action_provide_feature
+
+
+slots:
+  orderId:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: orderId
+
+  book_info:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
+
+responses:
+  utter_fallback:
+    - text: "Xin lỗi, tôi chưa thể hỗ trợ yêu cầu đó."
+
+  utter_greet:
+    - text: "Xin chào! Tôi là Dật Lạc - trợ lý ảo của bạn."
+    - text: "Dật Lạc xin chào! Rất vui được hỗ trợ bạn hôm nay."
+    - text: "Chào bạn, Dật Lạc luôn sẵn sàng hỗ trợ bạn 24/7!"
+    - text: "Xin chào, mình là Dật Lạc. Bạn cần hỗ trợ gì nào?"
+
+  utter_ask_order_id:
+    - text: "Bạn có thể cung cấp mã đơn hàng giúp tôi không?"
+    - text: "Vui lòng cho tôi biết mã đơn hàng của bạn để kiểm tra."
+    - text: "Bạn vui lòng nhập mã đơn hàng để tôi hỗ trợ tra cứu nhé."
+
+  utter_ask_book_info:
+    - text: "Bạn có thể nói rõ hơn về sách bạn đang tìm không?"
+    - text: "Cho tôi biết thêm thông tin về quyển sách bạn cần nhé. Bạn quan tâm đến sách gì?"
+    - text: "Để giúp bạn tốt hơn, tôi cần biết bạn muốn tìm sách như thế nào?"
+
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

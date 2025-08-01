@@ -1,0 +1,210 @@
+version: "3.1"
+
+nlu:
+
+- intent: greet
+  examples: |
+    - xin chào
+    - chào bạn
+    - hi
+    - hello
+    - dật lạc ơi
+    - chào buổi sáng
+    - chào hệ thống
+
+
+- intent: find_book
+  examples: |
+    - tìm sách
+    - tôi muốn tìm sách
+    - tôi cần tìm sách
+    - tra cứu sách
+    - bạn có thể giúp tôi tìm sách không?
+    - tôi đang tìm một vài quyển sách
+    - tôi muốn xem có sách gì không
+    - có cuốn sách nào không?
+    - bạn có sách không?
+    - tìm giúp tôi sách được không?
+    - cho tôi xem sách
+    - tôi cần xem các đầu sách
+    - có thể liệt kê sách cho tôi không?
+    - hệ thống có sách nào không?
+    - tôi muốn tìm hiểu về các sách hiện có
+    - sách hiện có những gì?
+    - sách đang có là gì?
+
+- intent: book_content_only
+  examples: |
+    - Nguyễn Nhật Ánh, tình yêu tuổi học trò
+    - nhà xuất bản Kim Đồng phát hành
+    - tiểu thuyết của Haruki Murakami
+    - thể loại kỹ năng mềm
+    - tâm lý học xuất bản bởi nhà xuất bản Trẻ
+    - lập trình Python dành cho người mới bắt đầu
+    - marketing do nhà xuất bản Lao Động phát hành
+    - Tô Hoài thể loại truyện thiếu nhi
+    - phát triển bản thân và kỹ năng sống
+    - lịch sử Việt Nam hiện đại
+    - Kim Đồng xuất bản viết về tuổi thơ?
+    - lập trình Python của tác giả Việt Nam
+    - khoa học viễn tưởng xuất bản bởi Trẻ
+    - triết học phương Đông
+    - Ngô Tất Tố
+    - nhà xuất bản Giáo dục phát hành
+    - nghệ thuật đương đại
+    - kinh doanh và quản trị
+    - Haruki Murakami về chủ đề cô đơn
+    - tiểu thuyết lịch sử
+    - nhà xuất bản Kim Đồng cho thiếu nhi
+    - Trẻ xuất bản viết về kỹ năng giao tiếp
+    - thể loại giả tưởng
+    - viết bởi Nguyễn Nhật Ánh và xuất bản bởi Kim Đồng
+    - tiểu thuyết Nhật Bản
+    - sách thiếu nhi của Kim Đồng
+    - sách tâm lý học cho người lớn
+    - truyện ngắn hiện đại Việt Nam
+    - triết học Trung Hoa cổ đại
+    - sách khoa học về vũ trụ
+    - truyện tranh Nhật Bản
+    - sách văn học Nga cổ điển
+    - thơ tình của Xuân Diệu
+    - truyện ngắn của Nam Cao
+    - sách viết về tâm linh
+    - thể loại kiếm hiệp
+    - lịch sử Trung Quốc thời nhà Minh
+    - tiểu sử các nhà khoa học nổi tiếng
+    - sách hướng dẫn kỹ năng giao tiếp
+    - sách về phát triển tư duy phản biện
+    - sách nấu ăn chay
+    - sách học tiếng Hàn cho người Việt
+    - văn học dân gian Tây Nguyên
+    - truyện cổ tích cho thiếu nhi
+    - Mắt biếc
+    - Cho tôi xin một vé đi tuổi thơ
+    - Nhà giả kim
+    - Dế mèn phiêu lưu ký
+    - Không gia đình
+    - Tôi thấy hoa vàng trên cỏ xanh
+    - Suối nguồn
+    - Chiến binh cầu vồng
+    - 7 thói quen của người thành đạt
+    - Đắc nhân tâm
+    - Bố già
+    - Totto-chan bên cửa sổ
+    - Người bán hàng vĩ đại nhất thế giới
+    - Muôn kiếp nhân sinh
+    - Sapiens: Lược sử loài người
+    - Lược sử thời gian
+    - Những tấm lòng cao cả
+    - Vượt ngục
+    - Sherlock Holmes
+    - Hoàng tử bé
+
+
+- intent: find_book_with_content
+  examples: |
+    - sách của Nguyễn Nhật Ánh về tình yêu tuổi học trò
+    - quyển sách do nhà xuất bản Kim Đồng phát hành
+    - quyển tiểu thuyết của Haruki Murakami
+    - cuốn sách thuộc thể loại kỹ năng mềm
+    - cuốn sách tâm lý học xuất bản bởi nhà xuất bản Trẻ
+    - cuốn sách lập trình Python dành cho người mới bắt đầu
+    - sách về marketing do nhà xuất bản Lao Động phát hành
+    - tìm sách của Tô Hoài thể loại truyện thiếu nhi
+    - sách về phát triển bản thân và kỹ năng sống
+    - sách nào nói về lịch sử Việt Nam hiện đại?
+    - cuốn sách nào do Kim Đồng xuất bản viết về tuổi thơ?
+    - sách lập trình Python của tác giả Việt Nam
+    - quyển sách khoa học viễn tưởng xuất bản bởi Trẻ
+    - có sách nào về triết học phương Đông không?
+    - cuốn sách của Ngô Tất Tố do nhà xuất bản Giáo dục phát hành
+    - sách nghệ thuật đương đại, có không?
+    - tìm sách kinh doanh và quản trị
+    - sách của Haruki Murakami về chủ đề cô đơn
+    - cuốn tiểu thuyết lịch sử
+    - sách của nhà xuất bản Kim Đồng cho thiếu nhi
+    - sách do Trẻ xuất bản viết về kỹ năng giao tiếp
+    - tôi muốn biết có sách nào thuộc thể loại giả tưởng không?
+    - có sách nào viết bởi Nguyễn Nhật Ánh và xuất bản bởi Kim Đồng không?
+    - tôi muốn tìm sách viết bởi J.K. Rowling
+    - có quyển sách nào nói về trí tuệ nhân tạo không?
+    - bạn có sách lịch sử thế giới xuất bản bởi NXB Trẻ không?
+    - tìm giúp tôi sách kỹ năng dành cho sinh viên mới ra trường
+    - sách nào của Ernest Hemingway có trong thư viện?
+    - cho tôi xem các sách thể loại viễn tưởng
+    - bạn có cuốn tiểu thuyết nào của Murakami không?
+    - có quyển sách nào viết về chủ đề phụ nữ hiện đại?
+    - tôi đang tìm sách lập trình Java cơ bản
+    - sách của Paulo Coelho nói về hành trình khám phá bản thân
+    - tìm sách thiếu nhi được Kim Đồng xuất bản gần đây
+    - có sách nào về phát triển nghề nghiệp không?
+    - quyển sách tâm lý nào phù hợp với người trưởng thành?
+    - tôi muốn sách thể loại truyện ngắn của Việt Nam
+    - có sách nào của tác giả Nhật viết về cô đơn không?
+    - bạn có gợi ý sách nào giúp cải thiện giao tiếp không?
+    - tìm giúp tôi sách nghệ thuật truyền thống Việt Nam
+    - cho tôi xem sách của tác giả Trịnh Hữu Tuệ
+    - bạn có sách tiếng Anh về thiết kế UX không?
+    - tôi muốn tìm sách của Nguyễn Nhật Ánh dành cho thiếu niên
+
+# - regex: orderId
+#   examples: |
+#     - [A-Za-z0-9]{6,15}
+
+- intent: find_order
+  examples: |
+    - kiểm tra đơn hàng
+    - trạng thái đơn hàng hiện tại?
+    - đơn hàng của tôi đâu?
+    - đơn hàng đang ở trạng thái nào?
+    - tôi muốn biết đơn hàng đã giao chưa
+    - đơn hàng gần đây nhất là gì?
+    - kiểm tra tình trạng đơn hàng giúp tôi
+    - tra cứu đơn hàng
+    - tình hình đơn hàng sao rồi?
+    - tình trạng xử lý đơn hàng sao rồi?
+    - cho tôi biết trạng thái đơn hàng
+
+- intent: find_order_with_orderId
+  examples: |
+    - đơn hàng có mã [ABC123456789](orderId)
+    - đơn hàng [XYZ987654321](orderId)
+    - trạng thái đơn hàng [123ABC456](orderId)
+    - tình trạng đơn hàng [AZ12bb98x](orderId)
+    - kiểm tra xem đơn hàng [INV4455ABC](orderId) đã đến chưa
+    - tôi cần tra đơn hàng [DH009X7Y3](orderId)
+    - kiểm tra mã đơn hàng [ORDER1234567](orderId)
+
+- intent: orderId_only
+  examples: |
+    - [ABC123456789](orderId)
+    - [XYZ987654321](orderId)
+    - [123ABC456](orderId)
+    - [AZ12bb98x](orderId)
+    - [INV4455ABC](orderId)
+    - [DH009X7Y3](orderId)
+    - [ORDER1234567](orderId)
+
+
+- intent: out_of_scope
+  examples: |
+    - Hôm nay thời tiết như thế nào?
+    - Tính giúp tôi 3 cộng 5
+    - Trái đất cách mặt trăng bao xa?
+    - Bạn tên gì?
+    - Mấy giờ rồi?
+    - Tôi đang buồn
+    - Bạn có yêu tôi không?
+    - Hát một bài hát đi
+    - Tại sao bầu trời có màu xanh?
+    - Tôi muốn học lập trình
+    - Bạn có thể dạy tôi tiếng Anh không?
+    - Tôi muốn mua tủ lạnh
+    - Cho tôi xin mã OTP
+    - Mở camera lên đi
+    - Bạn có thể kể chuyện cười không?
+    - Đố vui đi
+    - Tôi đang tìm việc làm
+    - Hôm nay có phim gì hay?
+    - Tôi muốn chơi game
+    - Gọi điện cho mẹ tôi
