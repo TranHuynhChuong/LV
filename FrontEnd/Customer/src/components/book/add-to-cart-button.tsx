@@ -137,7 +137,7 @@ export default function AddToCartButton({ inventory, id }: Readonly<Props>) {
               Mua Ngay
             </Button>
           ) : (
-            <Link href={`/carts?id=${id}`}>
+            <Link href={`/cart?id=${id}`}>
               <Button
                 className="rounded-none cursor-pointer md:rounded-sm "
                 onClick={handleAddToCart}
