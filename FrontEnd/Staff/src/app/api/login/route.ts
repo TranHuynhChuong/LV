@@ -12,7 +12,7 @@ interface JwtPayload {
 export async function POST(request: Request) {
   try {
     const { code, pass } = await request.json();
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API}/auth/login-staff`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BE_API}/auth/login-staff`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, pass }),
