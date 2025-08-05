@@ -49,7 +49,7 @@ export default function RasaWidget() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const hiddenPaths = ['/carts', '/checkout'];
+    const hiddenPaths = ['/cart', '/checkout'];
     const isHidden = hiddenPaths.some((path) => pathname.startsWith(path));
 
     const el = document.getElementById('rasaWebchatPro');
