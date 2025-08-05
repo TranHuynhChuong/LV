@@ -64,73 +64,6 @@ export class ExportService {
 
       let currentRowNumber = sheet.rowCount;
 
-      // === Bảng người xuất ===
-
-      const exportTitle = sheet.addRow(['NGƯỜI XUẤT FILE']);
-      sheet.mergeCells(4, 1, 4, 2);
-      exportTitle.font = { bold: true };
-      exportTitle.alignment = { horizontal: 'center' };
-      ['A4', 'B4'].forEach((cellRef) => {
-        const cell = sheet.getCell(cellRef);
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'FF000000' }, // Màu nền đen
-        };
-        cell.font = {
-          color: { argb: 'FFFFFFFF' }, // Chữ trắng
-          bold: true,
-        };
-      });
-      currentRowNumber++;
-
-      const staffRows = [
-        ['Mã số', metaInfo.staff.NV_id],
-        ['Họ tên', metaInfo.staff.NV_hoTen],
-        ['Email', metaInfo.staff.NV_email],
-        ['Vai trò', metaInfo.staff.NV_tenVaiTro],
-        ['Số điện thoại', metaInfo.staff.NV_soDienThoai],
-      ];
-      for (const row of staffRows) {
-        const r = sheet.insertRow(++currentRowNumber, row);
-        r.getCell(1).font = { bold: true };
-        r.getCell(1).alignment = { horizontal: 'left' };
-        r.getCell(2).alignment = { horizontal: 'left' };
-        r.eachCell((cell, colNumber) => {
-          cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' },
-          };
-          const column = sheet.getColumn(colNumber);
-          const rawValue = cell.value;
-          const value =
-            typeof rawValue === 'object' ||
-            typeof rawValue === 'undefined' ||
-            rawValue === null
-              ? ''
-              : String(rawValue);
-          const currentLength = value
-            .split('\n')
-            .reduce((max, line) => Math.max(max, line.trim().length), 0);
-          const currentSuggestedWidth = Math.min(currentLength + 2, 30);
-
-          if (!column.width || column.width < currentSuggestedWidth) {
-            column.width = currentSuggestedWidth;
-          }
-        });
-      }
-
-      sheet.addRow([]);
-      currentRowNumber++;
-
       // == Bảng chi tiết ==
       const tableStartRow = currentRowNumber + 1;
       const tableStartCell = `A${tableStartRow}`;
@@ -171,6 +104,9 @@ export class ExportService {
         cell.font = { size: 13, bold: true };
       });
 
+      sheet.addRow([]);
+      currentRowNumber++;
+
       headers.forEach((header, index) => {
         const column = sheet.getColumn(index + 1);
 
@@ -197,6 +133,47 @@ export class ExportService {
       });
 
       currentRowNumber += 1 + tableRows.length;
+
+      // === Ghi thông tin người thực hiện & ngày xuất ở cuối bảng ===
+      const exportDate = new Date().toLocaleDateString('vi-VN');
+      const leftLine1 = `${metaInfo.staff.NV_hoTen} - ${metaInfo.staff.NV_id} - ${metaInfo.staff.NV_tenVaiTro}`;
+      const leftLine2 = `${metaInfo.staff.NV_soDienThoai} - ${metaInfo.staff.NV_email}`;
+      const rightLine1 = `Ngày xuất ${exportDate}`;
+      const rightLine2 = `${metaInfo.staff.NV_hoTen}`;
+
+      const middleCol = Math.floor(totalCols / 2) + 1;
+
+      // === Row 1
+      const footerRow1 = sheet.addRow([]);
+      sheet.mergeCells(footerRow1.number, 1, footerRow1.number, middleCol - 1);
+      sheet.mergeCells(
+        footerRow1.number,
+        middleCol,
+        footerRow1.number,
+        totalCols
+      );
+
+      footerRow1.getCell(1).value = leftLine1;
+      footerRow1.getCell(1).alignment = { horizontal: 'left' };
+      footerRow1.getCell(middleCol).value = rightLine1;
+      footerRow1.getCell(middleCol).alignment = { horizontal: 'right' };
+      footerRow1.font = { italic: true, size: 12 };
+
+      // === Row 2
+      const footerRow2 = sheet.addRow([]);
+      sheet.mergeCells(footerRow2.number, 1, footerRow2.number, middleCol - 1);
+      sheet.mergeCells(
+        footerRow2.number,
+        middleCol,
+        footerRow2.number,
+        totalCols
+      );
+
+      footerRow2.getCell(1).value = leftLine2;
+      footerRow2.getCell(1).alignment = { horizontal: 'left' };
+      footerRow2.getCell(middleCol).value = rightLine2;
+      footerRow2.getCell(middleCol).alignment = { horizontal: 'right' };
+      footerRow2.font = { italic: true, size: 12 };
     }
 
     const buffer = await workbook.xlsx.writeBuffer();
