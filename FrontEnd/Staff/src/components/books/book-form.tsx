@@ -136,9 +136,9 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
     return (
       [
         name && `${name}`,
-        categoryLabels.length && `Thể loại ${categoryLabels.join(', ')}`,
-        author && `Tác giả ${author}`,
-        publisher && `Nhà xuất bản ${publisher}`,
+        categoryLabels.length && `${categoryLabels.join(', ')}`,
+        author && `${author}`,
+        publisher && `${publisher}`,
       ]
         .filter(Boolean)
         .join('. ') + '.'
