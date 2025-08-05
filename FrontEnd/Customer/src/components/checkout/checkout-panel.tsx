@@ -180,7 +180,6 @@ export default function CheckOutPanel() {
         setCreateSuccess(true);
       })
       .catch((error) => {
-        console.log(error);
         const errorCodes = error?.response?.data?.message;
         const errorMessagesMap: Record<string, string> = {
           '1001': 'Có sách không tồn tại',
