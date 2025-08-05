@@ -1,103 +1,215 @@
-<<<<<<< HEAD
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📦 Backend - Website quản lý và bán sách
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Dự án backend được xây dựng bằng **NestJS** và sử dụng **MongoDB Atlas** để lưu trữ dữ liệu. Hệ thống hỗ trợ xác thực bằng JWT, gửi email bằng Gmail/Nodemailer, lưu trữ ảnh trên Cloudinary và tích hợp chức năng tìm kiếm nâng cao bằng **Atlas Search** và **Vector Search** của **MongoDB Atlas** với mô hình `multilingual-e5-small`.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## ✨ Tính năng chính
 
-## Description
+Hệ thống backend được xây dựng theo kiến trúc Modular Monolith với các chức năng chính sau:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Quản lý Sách.
+- Quản lý Thể loại sách.
+- Quản lý Giỏ hàng.
+- Quản lý Đơn hàng.
+- Quản lý Mã giảm giá & Khuyến mãi.
+- Quản lý Đánh giá sách.
+- Quản lý Người dùng.
+- Quản lý Phí vận chuyển.
+- Quản lý thông tin nhận hàng.
+- Xác thực và phân quyền.
+- Tìm sách:
+  - Gợi ý tự động (autocomplete).
+  - Tìm kiếm ngữ nghĩa (semantic search) bằng vector, hỗ trợ chatbot và gợi ý sản phẩm.
+  - Sắp xếp kết quả tìm kiếm.
+- Tìm kiếm theo bộ lọc và phân trang.
+- Ghi nhận các lịch sử thao tác trên dữ liệu.
 
-## Project setup
+## 🚀 Công nghệ chính sử dụng
 
-```bash
-$ npm install
+- **NestJS** - Node.js framework
+- **MongoDB Atlas** - Cơ sở dữ liệu NoSQL
+- **JWT (JSON Web Token)** - Xác thực và phân quyền
+- **Cloudinary** - Lưu trữ hình ảnh
+- **Gmail + Nodemailer** - Gửi email (SMTP)
+- **Xenova Transformers** & **Xenova/multilingual-e5-small** - Chuyển đổi văn bản thành vector
+- **MongoDB Atlas Search** - Tìm kiếm từ khoá, autocomplete và ngữ nghĩa
+
+## 📁 Cấu trúc thư mục
+
+```plaintext
+src/
+├── app.module.ts
+├── main.ts
+├── config/                # Cấu hình ứng dụng và đọc biến môi trường
+├── danh-gia/              # Module đánh giá sách
+├── dia-chi/               # Module địa chỉ giao hàng
+├── don-hang/              # Module đơn hàng + thống kê
+├── gio-hang/              # Module giỏ hàng
+├── khuyen-mai/            # Module khuyến mãi
+├── ma-giam/               # Module mã giảm giá
+├── nguoi-dung/            # Module người dùng (khách hàng / nhân viên)
+├── phi-van-chuyen/        # Module phí vận chuyển
+├── sach/                  # Module sách
+├── the-loai/              # Module thể loại sách
+├── tt-nhan-hang/          # Module trạng thái nhận hàng
+├── xac-thuc/              # Xác thực + quyền truy cập
+└── Util/                  # Tiện ích dùng chung
 ```
 
-## Compile and run the project
+## 🧩 Cấu trúc module
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```plaintext
+<module-name>/
+├── <module-name>.controller.ts       # Định nghĩa các API endpoint cho module
+├── dto/                              # Chứa các lớp để validate dữ liệu đầu vào (DTO)
+│   ├── create-<module-name>.dto.ts   # Dữ liệu tạo mới
+│   └── update-<module-name>.dto.ts   # Dữ liệu cập nhật
+├── schemas/                          # Định nghĩa schema Mongoose cho module
+│   └── <module-name>.schema.ts
+├── repositories/                     # Giao tiếp trực tiếp với MongoDB thông qua Mongoose Model
+│   └── <module-name>.repository.ts
+├── <module-name>.service.ts          # Chứa các logic xử lý chính của module
+└── <module-name>.module.ts           # Định nghĩa module, import controller, service, schema,...
 ```
 
-## Run tests
+## ⚙️ Yêu cầu hệ thống
+
+- Node.js v18+
+- npm v9+
+- Tài khoản MongoDB Atlas
+- Tài khoản Cloudinary
+- Tài khoản Gmail có App Password (dùng để gửi email qua SMTP)
+
+## 📦 Cài đặt
+
+Cài đặt thư viện
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
+Tạo file môi trường .env tại thư mục gốc với các biến môi trường cần thiết. Xem chi tiết trong phần `🔧Cấu hình môi trường (.env)`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## ⚙️ Cấu hình dịch vụ
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+#### MongoDB Atlas
+
+- Tạo tài khoản tại <https://www.mongodb.com/cloud/atlas>
+- Tạo Project và Cluster theo hướng dẫn chính thức
+- Cập nhật Network Access (IP Whitelist) với địa chỉ IP máy hoặc dùng 0.0.0.0/0 để cho phép mọi IP
+- Tạo Index Atlas Search tại Atlas Search cho tìm kiếm nâng cao:
+  - Tạo Index có tên `default` với cấu hình:
+  ```json
+  {
+    "mappings": {
+      "fields": {
+        "S_nhaXuatBan": [{ "type": "autocomplete" }, { "type": "string" }],
+        "S_tacGia": [{ "type": "autocomplete" }, { "type": "string" }],
+        "S_ten": [{ "type": "autocomplete" }, { "type": "string" }]
+      }
+    }
+  }
+  ```
+  - Tạo Vector Search Index tên `vector_index` với cấu hình:
+  ```json
+  {
+    "fields": [
+      {
+        "numDimensions": 384,
+        "path": "S_eTomTat",
+        "similarity": "cosine",
+        "type": "vector"
+      }
+    ]
+  }
+  ```
+
+#### Cloudinary
+
+Tạo tài khoản tại <https://cloudinary.com/> và lấy các thông số trong phần Product Environment
+
+- cloudName
+- apiKey
+- apiSecret
+
+#### Gmail
+
+Tạo App Password trong phần quản lý tài khoản Google để sử dụng gửi email qua SMTP
+
+## 🔧 Cấu hình môi trường (.env)
+
+Dự án sử dụng file .env để cấu hình các biến môi trường cần thiết. Cần tạo file .env trong thư mục gốc với các biến sau:
+
+```env
+# MongoDB Atlas
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>/<database>?retryWrites=true&w=majority&appName=<your-app-name>
+
+# Cổng chạy ứng dụng
+PORT=3003
+
+# Cloudinary (lưu trữ ảnh)
+CLOUDINARY_CLOUD_NAME=<your_cloud_name>
+CLOUDINARY_API_KEY=<your_api_key>
+CLOUDINARY_API_SECRET=<your_api_secret>
+
+# Gmail SMTP
+EMAIL_USER=<your_email@gmail.com>
+EMAIL_PASS=<your_gmail_app_password>
+
+# JWT
+JWT_SECRET=<your_jwt_secret>
+
+# Tài khoản quản trị mặc định
+CODE=<your_code>
+PASS=<your_password>
+
+# URL frontend (Danh sách domain frontend được phép truy cập (CORS))
+FE_URL=http://localhost:3001,http://localhost:3002
+```
+
+## 🚀 Khởi chạy ứng dụng
+
+- Chạy ứng dụng ở môi trường phát triển
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- Build và chạy ở môi trường sản xuất
 
-## Resources
+```bash
+npm run build
+npm run start:prod
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+_Ứng dụng sẽ mặc định chạy tại địa chỉ:_
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+http://localhost:3003
+```
 
-## Support
+_❗Đảm bảo cổng 3003 không bị ứng dụng khác chiếm dụng để tránh lỗi khi khởi động._
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## ⚠️ Lưu ý
 
-## Stay in touch
+### 🗂️ Nhập dữ liệu địa chỉ hành chính
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Sau khi đã khởi động ứng dụng và kết nối thành công với MongoDB Atlas:
 
-## License
+- Truy cập MongoDB Atlas hoặc sử dụng MongoDB Compass
+- Tìm collection có tên diachis trong database của dự án
+- Import dữ liệu địa chỉ từ file mẫu **db/diachis.json** nằm trong thư mục **db**.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-=======
-# LV-BE
-Back-end of book sales management web application
->>>>>>> 6dd779541736334a19a8bea4de69b75653c5f666
+#### 📥 Hướng dẫn import với MongoDB Compass:
+
+- Mở MongoDB Compass và kết nối đến cluster MongoDB Atlas đã tạo
+- Chọn database và collection diachis
+- Click ADD DATA → Import JSON
+- Chọn file **db/diachis.json** → Import
+
+## ✍️ Người thực hiện
+
+Dự án được thực hiện bởi **Trần Huỳnh Chương**, trong khuôn khổ luận văn tốt nghiệp.
+
+## 📄 Giấy phép
+
+Dự án sử dụng cho mục đích học tập và nghiên cứu. Không sử dụng cho mục đích thương mại nếu không có sự cho phép.

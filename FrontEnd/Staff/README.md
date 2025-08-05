@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 Frontend — Website quản lý & bán sách dành cho nhân viên
 
-## Getting Started
+Giao diện frontend dành cho nhân viên quản trị hệ thống, giúp theo dõi và thao tác các chức năng quản lý. Được xây dựng bằng **Next.js** kết hợp với **shadcn/ui**.
 
-First, run the development server:
+## 👥 Đối tượng sử dụng
+
+- Quản trị viên
+- Nhân viên quản lý
+- Nhân viên bán hàng
+
+## ✨ Giao diện
+
+Hệ thống xây dựng giao diện dành cho 3 nhóm người dùng chính, bao gồm các trang chung và trang chức năng riêng theo vai trò:
+
+#### Trang chung
+
+- Trang chủ
+- Trang đăng nhập
+- Hồ sơ cá nhân
+
+#### Quản trị viên
+
+- Quản lý tài khoản
+- Lịch sử thao tác trên chi tiết các dữ liệu
+- Các trang của nhân viên quản lý
+
+#### Nhân viên quản lý
+
+- Quản lý thể loại
+- Quản lý sách
+- Quản lý khuyến mãi (Sách & Mã giảm)
+- Quản lý phí vận chuyển
+- Thống kê bán hàng
+- Các trang của nhân viên bán hàng
+
+#### Nhân viên bán hàng
+
+- Quản lý đơn hàng
+
+## 🚀 Công nghệ chính sử dụng
+
+- **Next.js 15**: Framework React, sử dụng App Router
+- **shadcn/ui**: Thư viện UI react, dựa trên Tailwind
+- **Lucide Icons**: Thư viện biểu tượng mã nguồn mở
+- **Axios**: Gọi API backend
+- **TailwindCSS**: framework CSS
+
+## 📁 Cấu trúc thư mục
+
+```plaintext
+src/
+├── app/                 # Routing chính theo App Router
+│   └── route/           # Route
+│   └── api/             # Api của next server
+├── components/          # Component giao diện
+├── contexts/            # Context API
+├── hooks/               # Custom hook
+├── lib/                 # Thư viện tiện ích
+├── models/              # Mô hình dữ liệu
+├── utils/               # Hàm tiện ích
+├── public/              # Ảnh tĩnh, favicon,...
+└── middleware.ts        # Kiểm tra quyền truy cập của người dùng
+```
+
+- Các component được tổ chức theo từng route tương ứng trong thư mục app/
+
+## ⚙️ Yêu cầu hệ thống
+
+- Node.js v18+
+
+## 📦 Cài đặt
+
+Cài đặt thư viện
+
+```bash
+npm install
+```
+
+Tạo file môi trường .env tại thư mục gốc với các biến môi trường cần thiết. Xem chi tiết trong phần `🔧Cấu hình môi trường (.env)`.
+
+## 🔧 Cấu hình môi trường (.env)
+
+Dự án sử dụng file .env để cấu hình các biến môi trường cần thiết. Cần tạo file .env trong thư mục gốc với các biến sau:
+
+```bash
+NEXT_PUBLIC_BE_API=http://localhost:3003/api
+```
+
+_🔸 Biến môi trường này quy định địa chỉ máy chủ backend mà frontend sẽ giao tiếp. Cần đảm bảo backend đã được khởi chạy thành công và lắng nghe tại cổng 3003._
+
+_🔸 Trong môi trường phát triển, nếu có thay đổi về cổng hoặc domain, cần cập nhật lại biến này cho phù hợp để đảm bảo các lệnh gọi API được thực thi đúng._
+
+## 🚀 Khởi chạy ứng dụng
+
+- Chạy ứng dụng ở môi trường phát triển
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Build và chạy ở môi trường sản xuất
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+_Ứng dụng sẽ mặc định chạy tại địa chỉ:_
 
-## Learn More
+```bash
+http://localhost:3001
+```
 
-To learn more about Next.js, take a look at the following resources:
+_❗Đảm bảo cổng 3001 không bị ứng dụng khác chiếm dụng để tránh lỗi khi khởi động._
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✍️ Người thực hiện
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Dự án được thực hiện bởi **Trần Huỳnh Chương**, trong khuôn khổ luận văn tốt nghiệp.
 
-## Deploy on Vercel
+## 📄 Giấy phép
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dự án sử dụng cho mục đích học tập và nghiên cứu. Không sử dụng cho mục đích thương mại nếu không có sự cho phép.
