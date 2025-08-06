@@ -246,7 +246,7 @@ export default function CheckOutPanel() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium">Thông tin nhận hàng</h2>
           {authData.userId && (
-            <Button size="sm" onClick={() => setOpenSelectAddress(true)}>
+            <Button size="sm" onClick={() => setOpenSelectAddress(true)} className="cursor-pointer">
               Lựa chọn
             </Button>
           )}

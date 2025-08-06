@@ -101,7 +101,9 @@ export default function VoucherSelector({
           </div>
 
           <div className="pt-4 text-right">
-            <Button onClick={handleConfirm}>Áp dụng</Button>
+            <Button onClick={handleConfirm} className=" cursor-pointer">
+              Áp dụng
+            </Button>
           </div>
         </div>
       </div>

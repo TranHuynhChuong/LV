@@ -84,7 +84,7 @@ export default function LoginForm({
           <div className="h-4 text-sm text-center text-red-500">{error}</div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4">
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="cursor-pointer">
             {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </Button>
           <div className="flex items-center justify-center gap-2 text-sm">

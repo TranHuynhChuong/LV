@@ -37,12 +37,12 @@ export function OrderSearchBar({ onApply, onReset, initalcode }: Readonly<OrderS
       </div>
 
       <div className="flex justify-end gap-2 my-2 ml-8">
-        <Button onClick={handleApply}>
+        <Button onClick={handleApply} className="cursor-pointer">
           <Search className="w-4 h-4 mr-1" />
           Tìm kiếm
         </Button>
 
-        <Button variant="outline" onClick={handleReset}>
+        <Button variant="outline" onClick={handleReset} className="cursor-pointer">
           <RotateCcw className="w-4 h-4 mr-1" />
           Đặt lại
         </Button>

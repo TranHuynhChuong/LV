@@ -92,7 +92,11 @@ export default function AddressList({ isComponent, onSelectAddress }: Readonly<A
           />
         ))}
       </div>
-      {isComponent && <Button onClick={() => handleSelect()}>Xác nhận</Button>}
+      {isComponent && (
+        <Button onClick={() => handleSelect()} className="cursor-pointer">
+          Xác nhận
+        </Button>
+      )}
     </div>
   );
 }

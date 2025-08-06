@@ -181,11 +181,15 @@ export default function OrderPanel() {
           <DateRangePicker date={range} onChange={setRange} />
         </div>
         <div className="flex justify-end gap-2 my-2 ml-8">
-          <Button onClick={() => handleSearch(orderId, range)}>
+          <Button onClick={() => handleSearch(orderId, range)} className="cursor-pointer">
             <Search className="w-4 h-4 mr-1" />
             Tìm kiếm
           </Button>
-          <Button variant="outline" onClick={() => handleClearSearch('date')}>
+          <Button
+            variant="outline"
+            onClick={() => handleClearSearch('date')}
+            className="cursor-pointer"
+          >
             <RotateCcw className="w-4 h-4 mr-1" />
             Đặt lại
           </Button>

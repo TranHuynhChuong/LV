@@ -3,6 +3,7 @@
 import ChangePasswordForm from '@/components/auth/change-password-form';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -10,7 +11,7 @@ export default function ChangePasswordPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
-
+  const router = useRouter();
   const { authData } = useAuth();
   const handleSendOtp = useCallback(async () => {
     if (!authData.userId) return;
@@ -57,6 +58,7 @@ export default function ChangePasswordPanel() {
 
       toast.success('Cập nhật mật khẩu thành công');
       setError('');
+      router.replace('/profile');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error?.response?.status === 422) {

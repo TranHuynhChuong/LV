@@ -51,10 +51,12 @@ export default function AddressNew() {
 
       <AddressForm ref={formRef} />
       <div className="flex justify-end gap-2 pt-4 border-t">
-        <Button variant="outline" onClick={() => router.back()}>
+        <Button variant="outline" onClick={() => router.back()} className="cursor-pointer">
           Hủy
         </Button>
-        <Button onClick={() => setOpenAddDialog(true)}>Thêm</Button>
+        <Button onClick={() => setOpenAddDialog(true)} className="cursor-pointer">
+          Thêm
+        </Button>
       </div>
       <Dialog open={openAddDialog} onOpenChange={setOpenAddDialog}>
         <DialogContent>

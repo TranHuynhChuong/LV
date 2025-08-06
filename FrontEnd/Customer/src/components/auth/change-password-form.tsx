@@ -81,7 +81,7 @@ export default function ChangePasswordForm({
         </div>
       )}
 
-      {mode === 'change' && (
+      {/* {mode === 'change' && (
         <div>
           <Label htmlFor="otp">Mã OTP</Label>
           <div className="flex items-center gap-2 mt-2">
@@ -101,7 +101,7 @@ export default function ChangePasswordForm({
             {countdown > 0 ? `Gửi lại sau ${countdown}s` : ''}
           </p>
         </div>
-      )}
+      )} */}
 
       <div>
         <Label htmlFor="otp">Mã OTP</Label>
@@ -155,14 +155,14 @@ export default function ChangePasswordForm({
 
       <div className="h-4 mt-2 text-sm text-center text-red-500">{error}</div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full cursor-pointer" disabled={loading}>
         Xác nhận
       </Button>
 
       {mode === 'forgot' && onBackToLogin && (
         <button
           type="button"
-          className="w-full mt-2 text-sm text-center hover:underline text-muted-foreground"
+          className="w-full mt-2 text-sm text-center hover:underline text-muted-foreground cursor-pointer"
           onClick={onBackToLogin}
         >
           Quay lại đăng nhập

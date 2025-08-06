@@ -100,7 +100,7 @@ export default function StaffForm({
                   <FormItem>
                     <FormLabel>Mã nhân viên</FormLabel>
                     <FormControl>
-                      <Input disabled {...field} />
+                      <Input readOnly {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -113,7 +113,7 @@ export default function StaffForm({
                 <FormItem>
                   <FormLabel>Họ tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập họ tên" {...field} disabled={isViewing} />
+                    <Input placeholder="Nhập họ tên" {...field} readOnly={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,7 +126,7 @@ export default function StaffForm({
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập số điện thoại" {...field} disabled={isViewing} />
+                    <Input placeholder="Nhập số điện thoại" {...field} readOnly={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,7 +139,7 @@ export default function StaffForm({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Nhập email" {...field} disabled={isViewing} />
+                    <Input type="email" placeholder="Nhập email" {...field} readOnly={isViewing} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -186,7 +186,7 @@ export default function StaffForm({
                       type="text"
                       placeholder="Nhập mật khẩu"
                       {...field}
-                      disabled={isViewing}
+                      readOnly={isViewing}
                     />
                   </FormControl>
                   <FormMessage />
