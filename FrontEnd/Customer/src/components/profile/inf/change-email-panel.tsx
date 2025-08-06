@@ -29,7 +29,7 @@ export default function ChangeEmailPanel() {
     if (!authData.userId) return;
 
     try {
-      await api.post(`/auth/${authData.userId}/send-otp`);
+      await api.post(`/auth/send-otp`, { email: newEmail, isNew: false });
       toast.success('Mã OTP đã được gửi đến email');
 
       setCountdown(30);
@@ -52,6 +52,7 @@ export default function ChangeEmailPanel() {
       })
       .then(() => {
         toast.success('Email đã được cập nhật thành công');
+        router.replace('/profile');
       })
       .catch((error) => {
         if (error?.response?.status === 422) {
@@ -85,6 +86,7 @@ export default function ChangeEmailPanel() {
               variant="outline"
               disabled={countdown > 0}
               onClick={handleSendOtp}
+              className="cursor-pointer"
             >
               Gửi mã
             </Button>
@@ -107,7 +109,7 @@ export default function ChangeEmailPanel() {
         <p className="text-sm text-center text-red-500">{error}</p>
       </CardContent>
       <CardFooter className="flex items-center justify-end w-full space-x-4">
-        <Button type="submit" onClick={handleSubmit} disabled={loading}>
+        <Button type="submit" onClick={handleSubmit} disabled={loading} className="cursor-pointer">
           Xác nhận thay đổi
         </Button>
         <Button
