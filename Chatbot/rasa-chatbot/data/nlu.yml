@@ -16,22 +16,7 @@ nlu:
 - intent: find_book
   examples: |
     - tìm sách
-    - tôi muốn tìm sách
-    - tôi cần tìm sách
     - tra cứu sách
-    - bạn có thể giúp tôi tìm sách không?
-    - tôi đang tìm một vài quyển sách
-    - tôi muốn xem có sách gì không
-    - có cuốn sách nào không?
-    - bạn có sách không?
-    - tìm giúp tôi sách được không?
-    - cho tôi xem sách
-    - tôi cần xem các đầu sách
-    - có thể liệt kê sách cho tôi không?
-    - hệ thống có sách nào không?
-    - tôi muốn tìm hiểu về các sách hiện có
-    - sách hiện có những gì?
-    - sách đang có là gì?
 
 - intent: book_content_only
   examples: |
@@ -147,42 +132,35 @@ nlu:
     - bạn có sách tiếng Anh về thiết kế UX không?
     - tôi muốn tìm sách của Nguyễn Nhật Ánh dành cho thiếu niên
 
-# - regex: orderId
-#   examples: |
-#     - [A-Za-z0-9]{6,15}
-
 - intent: find_order
   examples: |
     - kiểm tra đơn hàng
-    - trạng thái đơn hàng hiện tại?
-    - đơn hàng của tôi đâu?
-    - đơn hàng đang ở trạng thái nào?
-    - tôi muốn biết đơn hàng đã giao chưa
-    - đơn hàng gần đây nhất là gì?
-    - kiểm tra tình trạng đơn hàng giúp tôi
     - tra cứu đơn hàng
-    - tình hình đơn hàng sao rồi?
-    - tình trạng xử lý đơn hàng sao rồi?
-    - cho tôi biết trạng thái đơn hàng
+    - tìm đơn hàng
 
 - intent: find_order_with_orderId
   examples: |
-    - đơn hàng có mã [ABC123456789](orderId)
+    - đơn hàng có mã [AB123](orderId)
     - đơn hàng [XYZ987654321](orderId)
-    - trạng thái đơn hàng [123ABC456](orderId)
-    - tình trạng đơn hàng [AZ12bb98x](orderId)
-    - kiểm tra xem đơn hàng [INV4455ABC](orderId) đã đến chưa
-    - tôi cần tra đơn hàng [DH009X7Y3](orderId)
-    - kiểm tra mã đơn hàng [ORDER1234567](orderId)
+    - trạng thái đơn hàng [ABC123456](orderId)
+    - tình trạng đơn hàng [AZ1298864](orderId)
+    - kiểm tra xem đơn hàng [INV445500034](orderId)
+    - tôi cần tra đơn hàng [DH00973](orderId)
+    - kiểm tra đơn hàng [ORDER1234567](orderId)
+    - cho tôi biết trạng thái đơn hàng [ORD1234567345](orderId)
+    - tra cứu đơn hàng [AZU12980123](orderId)
+    - tình hình đơn hàng [XYZ987654321](orderId)
+    - tình trạng xử lý đơn hàng [INV4455](orderId)
+    - đơn hàng đang [ABC123456789](orderId) ở trạng thái nào?
 
 - intent: orderId_only
   examples: |
     - [ABC123456789](orderId)
     - [XYZ987654321](orderId)
-    - [123ABC456](orderId)
-    - [AZ12bb98x](orderId)
-    - [INV4455ABC](orderId)
-    - [DH009X7Y3](orderId)
+    - [INV445500034](orderId)
+    - [AZU12980123](orderId)
+    - [AZ1298864](orderId)
+    - [ABC123456](orderId)
     - [ORDER1234567](orderId)
 
 

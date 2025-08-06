@@ -11,11 +11,15 @@ rules:
 - rule: Tìm sách có thông tin sách
   steps:
     - intent: find_book_with_content
+    - slot_was_set:
+        - book_info: "thông tin sách cần tìm"
     - action: action_find_books
 
 - rule: Kiểm tra đơn hàng có mã đơn hàng
   steps:
     - intent: find_order_with_orderId
+    - slot_was_set:
+        - orderId: "AAA123456789"
     - action: action_check_order
 
 - rule: Xử lý fallback

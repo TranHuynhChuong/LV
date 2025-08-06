@@ -34,6 +34,7 @@ slots:
     mappings:
       - type: from_text
 
+
 responses:
   utter_fallback:
     - text: "Xin lỗi, tôi chưa thể hỗ trợ yêu cầu đó."
