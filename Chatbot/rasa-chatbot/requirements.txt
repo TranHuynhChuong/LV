@@ -1,0 +1,6 @@
+rasa==3.6.21
+underthesea==6.8.4
+rasa-sdk==3.6.2
+Requests==2.32.4
+sentence_transformers==5.0.0
+torch==2.2.0
