@@ -89,6 +89,6 @@ export const useOrderSummary = (
     [carts]
   );
   const total = orderTotal + shippingFee - productDiscount - shippingDiscount;
-  const totalSaving = productDiscount + shippingDiscount + (orderTotal - orderTotalUnit);
+  const totalSaving = orderTotalUnit - orderTotal + productDiscount + shippingDiscount;
   return { orderTotal, shippingFee, productDiscount, shippingDiscount, total, totalSaving };
 };
