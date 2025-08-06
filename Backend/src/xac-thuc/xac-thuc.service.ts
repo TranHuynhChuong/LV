@@ -184,9 +184,9 @@ export class XacThucService {
    * @throws InternalServerErrorException nếu có lỗi xảy ra trong quá trình gửi OTP.
    */
   async sendOtp(email: string, isNew: boolean) {
-    const isExit = await this.KhachHangService.findByEmail(email);
-    if (isExit && isNew) {
-      throw new NotFoundException('Email chưa đăng ký');
+    const isExist = await this.KhachHangService.findByEmail(email);
+    if (isExist && isNew) {
+      throw new NotFoundException('Email đã đăng ký');
     }
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
