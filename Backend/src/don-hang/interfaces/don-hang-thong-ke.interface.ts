@@ -14,6 +14,16 @@ export interface StatsResult {
     provinceName: string;
     count: number;
   }[];
+  reviews: {
+    s1: number;
+    s2: number;
+    s3: number;
+    s4: number;
+    s5: number;
+    totalOrders: number;
+    hidden: number;
+    visible: number;
+  };
 }
 
 /** Thống kê tổng số đơn hàng phân loại theo trạng thái */

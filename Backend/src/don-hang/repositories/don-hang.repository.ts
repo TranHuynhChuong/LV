@@ -142,6 +142,7 @@ export class DonHangRepository {
           _id: '$_id',
           DH_id: { $first: '$DH_id' },
           DH_ngayTao: { $first: '$DH_ngayTao' },
+          DH_ngayCapNhat: { $first: '$DH_ngayCapNhat' },
           DH_trangThai: { $first: '$DH_trangThai' },
           DH_giamHD: { $first: '$DH_giamHD' },
           DH_giamVC: { $first: '$DH_giamVC' },
@@ -231,7 +232,7 @@ export class DonHangRepository {
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
-      filter.DH_ngayTao = { $gte: from, $lte: to };
+      filter.DH_ngayCapNhat = { $gte: from, $lte: to };
     }
     return filter;
   }
@@ -264,7 +265,7 @@ export class DonHangRepository {
     const countPipeline = [...pipeline, { $count: 'count' }];
     const dataPipeline: PipelineStage[] = [...pipeline];
     const skip = (page - 1) * limit;
-    dataPipeline.push({ $sort: { DH_ngayTao: -1 } });
+    dataPipeline.push({ $sort: { DH_ngayCapNhat: -1 } });
     dataPipeline.push({ $skip: skip }, { $limit: limit });
     return paginateRawAggregate({
       model: this.DonHangModel,
@@ -319,6 +320,7 @@ export class DonHangRepository {
   ): Promise<DonHang | null> {
     const updateQuery: any = {
       DH_trangThai: OrderStatusMap[status],
+      DH_ngayCapNhat: new Date(),
     };
     const updateOps: any = {
       $set: updateQuery,
@@ -375,7 +377,7 @@ export class DonHangRepository {
     if (from && to) {
       from.setHours(0, 0, 0, 0);
       to.setHours(23, 59, 59, 999);
-      match.DH_ngayTao = { $gte: from, $lte: to };
+      match.DH_ngayCapNhat = { $gte: from, $lte: to };
     }
     type GroupResult = { _id: string; count: number };
     const result: GroupResult[] = await this.DonHangModel.aggregate([
@@ -486,13 +488,13 @@ export class DonHangRepository {
     const allRaw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: from, $lte: to },
+          DH_ngayCapNhat: { $gte: from, $lte: to },
         },
       },
       {
         $project: {
           dateGroup: {
-            $dateToString: { format: dateFormat, date: '$DH_ngayTao' },
+            $dateToString: { format: dateFormat, date: '$DH_ngayCapNhat' },
           },
         },
       },
@@ -509,7 +511,7 @@ export class DonHangRepository {
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: from, $lte: to },
+          DH_ngayCapNhat: { $gte: from, $lte: to },
           DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai', 'DaHuy'] },
         },
       },
@@ -521,7 +523,7 @@ export class DonHangRepository {
           DH_giamVC: 1,
           DH_phiVC: 1,
           dateGroup: {
-            $dateToString: { format: dateFormat, date: '$DH_ngayTao' },
+            $dateToString: { format: dateFormat, date: '$DH_ngayCapNhat' },
           },
         },
       },
@@ -621,7 +623,7 @@ export class DonHangRepository {
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: from, $lte: to },
+          DH_ngayCapNhat: { $gte: from, $lte: to },
           DH_trangThai: { $in: ['GiaoThanhCong', 'GiaoThatBai'] },
         },
       },
@@ -667,7 +669,7 @@ export class DonHangRepository {
     const raw = await this.DonHangModel.aggregate([
       {
         $match: {
-          DH_ngayTao: { $gte: from, $lte: to },
+          DH_ngayCapNhat: { $gte: from, $lte: to },
         },
       },
       {

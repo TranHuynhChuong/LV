@@ -103,6 +103,12 @@ export class DonHang {
   DH_ngayTao: Date;
 
   /**
+   * Ngày cập nhật đơn hàng
+   */
+  @Prop({ type: Date, required: true })
+  DH_ngayCapNhat: Date;
+
+  /**
    * Giảm giá hóa đơn (tiền hàng được giảm)
    */
   @Prop({ type: Number, default: 0 })

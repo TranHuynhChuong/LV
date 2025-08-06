@@ -1,3 +1,4 @@
+import { DanhGiaServiceUtil } from './../danh-gia/danh-gia.service';
 import {
   BadRequestException,
   ConflictException,
@@ -43,6 +44,7 @@ export class DonHangService {
     private readonly NhanVienService: NhanVienUtilService,
     private readonly MaGiamService: MaGiamUtilService,
     private readonly NhanHangDHService: TTNhanHangDHService,
+    private readonly DanhGiaServiceUtil: DanhGiaServiceUtil,
     private readonly DiaChiService: DiaChiService,
     private readonly DonHangRepo: DonHangRepository,
     private readonly ChiTietDonHangRepo: ChiTietDonHangRepository
@@ -227,6 +229,7 @@ export class DonHangService {
       {
         DH_id: context.DH_id,
         DH_ngayTao: context.now,
+        DH_ngayCapNhat: context.now,
         DH_giamHD: context.DH_giamHD,
         DH_giamVC: context.DH_giamVC,
         DH_phiVC: data.DH.DH_phiVC,
@@ -554,9 +557,9 @@ export class DonHangService {
       end.getFullYear() * 12 +
       end.getMonth() -
       (start.getFullYear() * 12 + start.getMonth());
-    if (diffInMonths > 12) {
+    if (diffInMonths >= 12) {
       return 'year';
-    } else if (diffInMonths > 2) {
+    } else if (diffInMonths >= 2) {
       return 'month';
     } else {
       return 'day';
@@ -617,6 +620,7 @@ export class DonHangService {
         };
       })
     );
+    const reviewStats = await this.DanhGiaServiceUtil.getRatingStats(orderIds);
     return {
       orders: ordersDetail,
       vouchers,
@@ -626,6 +630,7 @@ export class DonHangService {
       },
       totalDiscountStats,
       provinces: result,
+      reviews: reviewStats,
     };
   }
 
