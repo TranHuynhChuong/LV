@@ -55,7 +55,7 @@ export default function LoginPanel() {
     }
     setError('');
     try {
-      await api.post('/auth/send-otp', { email: targetEmail });
+      await api.post('/auth/send-otp', { email: targetEmail, isNew: false });
       toast.success('Mã OTP đã được gửi đến email');
 
       setOtpCountdown(30);
