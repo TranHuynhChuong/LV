@@ -37,7 +37,7 @@ export default function RegisterForm() {
     }
 
     try {
-      await api.post('/auth/send-otp', { email });
+      await api.post('/auth/send-otp', { email: email, isNew: true });
       setError('');
       toast.success('Mã OTP đã được gửi đến email');
       setOtpCountdown(30);
@@ -76,6 +76,7 @@ export default function RegisterForm() {
         password: password,
       });
       await loadAuth();
+      toast.success('Tài khoản đăng ký thành công');
       router.replace('/login');
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -183,7 +184,7 @@ export default function RegisterForm() {
           <div className="h-4 mt-2 text-sm text-center text-red-500">{error}</div>
         </CardContent>
         <CardFooter className="flex flex-col items-stretch gap-4 mt-6">
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={loading} className="cursor-pointer">
             {loading ? 'Đang đăng ký...' : 'Đăng ký'}
           </Button>
           <div className="flex items-center justify-center gap-2 text-sm ">
