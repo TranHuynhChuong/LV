@@ -40,7 +40,7 @@ export type Stats = {
     member: number;
     guest: number;
   };
-  rating: {
+  reviews: {
     s1: number;
     s2: number;
     s3: number;

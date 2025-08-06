@@ -12,10 +12,11 @@ type Props = {
     complete: number;
     inComplete: number;
     all: number;
+    canceled: number;
   };
 };
 
-export default function StatsChart({ stats, timeUnit, totalOrders }: Props) {
+export default function StatsChart({ stats, timeUnit, totalOrders }: Readonly<Props>) {
   return (
     <div className="space-y-4">
       <StatsSummary detail={stats.orders} />
@@ -84,11 +85,11 @@ export default function StatsChart({ stats, timeUnit, totalOrders }: Props) {
           <StatsBarChart
             title="Điểm đánh giá"
             data={[
-              { name: '1 Sao', value: stats.rating.s1 },
-              { name: '2 Sao', value: stats.rating.s2 },
-              { name: '3 Sao', value: stats.rating.s3 },
-              { name: '4 Sao', value: stats.rating.s4 },
-              { name: '5 Sao', value: stats.rating.s5 },
+              { name: '1 Sao', value: stats.reviews.s1 },
+              { name: '2 Sao', value: stats.reviews.s2 },
+              { name: '3 Sao', value: stats.reviews.s3 },
+              { name: '4 Sao', value: stats.reviews.s4 },
+              { name: '5 Sao', value: stats.reviews.s5 },
             ]}
             unit="Đánh giá"
             barSize={40}
@@ -98,7 +99,7 @@ export default function StatsChart({ stats, timeUnit, totalOrders }: Props) {
         <div className="basis-1/2">
           <RatioPieChart
             title="Tỷ lệ đánh giá của khách hàng thành viên sau khi nhận hàng"
-            data={[stats.rating.totalOrders, stats.buyers.member - stats.rating.totalOrders]}
+            data={[stats.reviews.totalOrders, stats.buyers.member - stats.reviews.totalOrders]}
             labels={['Có đánh giá', 'Không đánh giá']}
             unit="Đơn hàng"
             colors={['#0f766e', '#be185d']}
@@ -107,7 +108,7 @@ export default function StatsChart({ stats, timeUnit, totalOrders }: Props) {
       </div>
       <div className=" min-h-[350px] bg-white rounded-md border p-4 ">
         <StatsBarChart
-          title="Khu vực đặt hàng"
+          title="Khu vực đặt hàng (đơn hàng được đặt)"
           data={stats.provinces.map((p) => ({
             name: `${p.provinceName}`,
             value: p.count,

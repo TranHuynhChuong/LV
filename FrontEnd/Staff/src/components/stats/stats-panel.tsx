@@ -41,8 +41,8 @@ function getTimeUnitByRange(from: string, to: string): TimeUnit {
   const diffInMonths =
     end.getFullYear() * 12 + end.getMonth() - (start.getFullYear() * 12 + start.getMonth());
 
-  if (diffInMonths > 12) return 'year';
-  else if (diffInMonths > 2) return 'month';
+  if (diffInMonths >= 12) return 'year';
+  else if (diffInMonths >= 2) return 'month';
   return 'day';
 }
 
@@ -138,76 +138,69 @@ export default function StatsPanel() {
     const currentUnit = getTimeUnitByRange(from, to);
     setTimeUnit(currentUnit);
 
-    const fetchOrders = api.get(`/orders/stats`, {
-      params: {
-        from: fromDate,
-        to: toDate,
-      },
-    });
+    api
+      .get(`/orders/stats`, {
+        params: {
+          from: fromDate,
+          to: toDate,
+        },
+      })
+      .then((res) => {
+        const ordersData = res.data.orders;
+        let timeKeys: string[] = [];
+        switch (currentUnit) {
+          case 'day':
+            timeKeys = getAllDatesInRange(from, to);
+            break;
+          case 'month':
+            timeKeys = getAllMonthsInRange(from, to);
+            break;
+          case 'year':
+            timeKeys = getAllYearsInRange(from, to);
+            break;
+          default:
+            timeKeys = [];
+        }
+        for (const key of timeKeys) {
+          ordersData[key] ??= {
+            total: {
+              all: 0,
+              complete: 0,
+              inComplete: 0,
+              canceled: 0,
+            },
+            complete: {
+              totalSalePrice: 0,
+              totalCostPrice: 0,
+              totalBuyPrice: 0,
+              totalQuantity: 0,
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
+            },
+            inComplete: {
+              totalSalePrice: 0,
+              totalCostPrice: 0,
+              totalBuyPrice: 0,
+              totalQuantity: 0,
+              totalBillSale: 0,
+              totalShipSale: 0,
+              totalShipPrice: 0,
+            },
+          };
+        }
 
-    const fetchReviews = api.get(`/reviews/stats`, {
-      params: {
-        from: fromDate,
-        to: toDate,
-      },
-    });
+        setTotalOrders(calculateOrderTotalsFromStats(ordersData));
 
-    Promise.all([fetchOrders, fetchReviews]).then(([ordersRes, reviewsRes]) => {
-      const ordersData = ordersRes.data.orders;
-      let timeKeys: string[] = [];
-      switch (currentUnit) {
-        case 'day':
-          timeKeys = getAllDatesInRange(from, to);
-          break;
-        case 'month':
-          timeKeys = getAllMonthsInRange(from, to);
-          break;
-        case 'year':
-          timeKeys = getAllYearsInRange(from, to);
-          break;
-        default:
-          timeKeys = [];
-      }
-      for (const key of timeKeys) {
-        ordersData[key] ??= {
-          total: {
-            all: 0,
-            complete: 0,
-            inComplete: 0,
-            canceled: 0,
-          },
-          complete: {
-            totalSalePrice: 0,
-            totalCostPrice: 0,
-            totalBuyPrice: 0,
-            totalQuantity: 0,
-            totalBillSale: 0,
-            totalShipSale: 0,
-            totalShipPrice: 0,
-          },
-          inComplete: {
-            totalSalePrice: 0,
-            totalCostPrice: 0,
-            totalBuyPrice: 0,
-            totalQuantity: 0,
-            totalBillSale: 0,
-            totalShipSale: 0,
-            totalShipPrice: 0,
-          },
-        };
-      }
-
-      setTotalOrders(calculateOrderTotalsFromStats(ordersData));
-
-      setStats({
-        orders: ordersData,
-        vouchers: ordersRes.data.vouchers,
-        buyers: ordersRes.data.buyers,
-        rating: reviewsRes.data,
-        totalDiscountStats: ordersRes.data.totalDiscountStats,
-        provinces: ordersRes.data.provinces,
+        setStats({
+          orders: ordersData,
+          vouchers: res.data.vouchers,
+          buyers: res.data.buyers,
+          reviews: res.data.reviews,
+          totalDiscountStats: res.data.totalDiscountStats,
+          provinces: res.data.provinces,
+        });
       });
-    });
   }, [from, to]);
 
   const handleSearch = () => {
@@ -231,7 +224,7 @@ export default function StatsPanel() {
 
   return (
     <div className="p-6 space-y-2">
-      <div className="flex justify-between p-4 bg-white border rounded-md gap-2">
+      <div className="flex flex-wrap justify-between p-4 bg-white border rounded-md gap-2">
         <DateRangePicker date={range} onChange={setRange} />
 
         <div className="flex justify-end flex-1 gap-2">

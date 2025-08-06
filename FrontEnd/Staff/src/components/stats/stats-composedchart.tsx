@@ -44,7 +44,7 @@ export default function StatsOrderComposedChart({ detail, mode }: Readonly<Props
       return {
         fullDate,
         xLabel,
-        total: data.total.all,
+        total: data.total.inComplete + data.total.complete,
       };
     });
 
