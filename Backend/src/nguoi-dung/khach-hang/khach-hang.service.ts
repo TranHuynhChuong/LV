@@ -128,7 +128,7 @@ export class KhachHangService {
    */
   async updateEmail(id: number, newEmail: string): Promise<KhachHang> {
     const existing = await this.KhachHangRepo.findById(id);
-    if (existing) {
+    if (!existing) {
       throw new ConflictException(
         'Cập nhật email khách hàng - Khách hàng không tồn tại'
       );
