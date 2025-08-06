@@ -134,7 +134,6 @@ export class NguoiDungController {
    * @param id ID của nhân viên.
    * @returns Thông tin nhân viên.
    */
-  @Roles(1)
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string): Promise<any> {
     return await this.NhanVienService.findById(id);
