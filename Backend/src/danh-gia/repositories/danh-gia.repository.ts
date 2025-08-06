@@ -423,6 +423,105 @@ export class DanhGiaRepository {
   }
 
   /**
+   * Thống kê tổng hợp các đánh giá theo danh sách đơn hàng.
+   *
+   * @param orderIds Danh sách ID đơn hàng cần thống kê.
+   * @returns Một đối tượng thống kê tổng hợp theo cấu trúc:
+   * ```ts
+   * {
+   *   s1: number,         // số đánh giá 1 sao
+   *   s2: number,         // số đánh giá 2 sao
+   *   s3: number,         // số đánh giá 3 sao
+   *   s4: number,         // số đánh giá 4 sao
+   *   s5: number,         // số đánh giá 5 sao
+   *   totalOrders: number, // tổng số đơn hàng có đánh giá (không trùng)
+   *   hidden: number,      // số đánh giá đang bị ẩn (DG_daAn = true)
+   *   visible: number      // số đánh giá hiển thị (DG_daAn = false)
+   * }
+   * ```
+   */
+  async getRatingStatsByOrderIds(orderIds: string[]): Promise<{
+    s1: number;
+    s2: number;
+    s3: number;
+    s4: number;
+    s5: number;
+    totalOrders: number;
+    hidden: number;
+    visible: number;
+  }> {
+    if (!orderIds || orderIds.length === 0) {
+      return {
+        s1: 0,
+        s2: 0,
+        s3: 0,
+        s4: 0,
+        s5: 0,
+        totalOrders: 0,
+        hidden: 0,
+        visible: 0,
+      };
+    }
+
+    const [result] = await this.DanhGiaModel.aggregate<{
+      s1: number;
+      s2: number;
+      s3: number;
+      s4: number;
+      s5: number;
+      totalOrders: number;
+      hidden: number;
+      visible: number;
+    }>([
+      {
+        $match: {
+          DH_id: { $in: orderIds },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          s1: { $sum: { $cond: [{ $eq: ['$DG_diem', 1] }, 1, 0] } },
+          s2: { $sum: { $cond: [{ $eq: ['$DG_diem', 2] }, 1, 0] } },
+          s3: { $sum: { $cond: [{ $eq: ['$DG_diem', 3] }, 1, 0] } },
+          s4: { $sum: { $cond: [{ $eq: ['$DG_diem', 4] }, 1, 0] } },
+          s5: { $sum: { $cond: [{ $eq: ['$DG_diem', 5] }, 1, 0] } },
+          orderIds: { $addToSet: '$DH_id' },
+          hidden: { $sum: { $cond: [{ $eq: ['$DG_daAn', true] }, 1, 0] } },
+          visible: {
+            $sum: { $cond: [{ $eq: ['$DG_daAn', false] }, 1, 0] },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          s1: 1,
+          s2: 1,
+          s3: 1,
+          s4: 1,
+          s5: 1,
+          hidden: 1,
+          visible: 1,
+          totalOrders: { $size: '$orderIds' },
+        },
+      },
+    ]);
+    return (
+      result ?? {
+        s1: 0,
+        s2: 0,
+        s3: 0,
+        s4: 0,
+        s5: 0,
+        totalOrders: 0,
+        hidden: 0,
+        visible: 0,
+      }
+    );
+  }
+
+  /**
    * Cập nhật trạng thái ẩn/hiện của một đánh giá cụ thể và ghi lại lịch sử thao tác.
    *
    * Tìm đánh giá theo bộ ba khóa chính:

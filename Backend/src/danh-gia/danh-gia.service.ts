@@ -13,6 +13,21 @@ import { DanhGia } from './schemas/danh-gia.schema';
 import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 
 @Injectable()
+export class DanhGiaServiceUtil {
+  constructor(private readonly DanhGiaRepo: DanhGiaRepository) {}
+
+  /**
+   * Thống kê tổng hợp các đánh giá theo danh sách đơn hàng.
+   *
+   * @param orderIds Danh sách ID đơn hàng cần thống kê.
+   * @returns Một đối tượng thống kê tổng hợp theo cấu trúc:
+   */
+  async getRatingStats(orderIds: string[]) {
+    return this.DanhGiaRepo.getRatingStatsByOrderIds(orderIds);
+  }
+}
+
+@Injectable()
 export class DanhGiaService {
   constructor(
     @InjectConnection() private readonly connection: Connection,

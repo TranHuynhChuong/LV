@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { DanhGiaService } from './danh-gia.service';
+import { DanhGiaService, DanhGiaServiceUtil } from './danh-gia.service';
 import { DanhGiaController } from './danh-gia.controller';
 import { SachModule } from 'src/sach/sach.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,6 +14,7 @@ import { DanhGiaRepository } from './repositories/danh-gia.repository';
     NguoiDungModule,
   ],
   controllers: [DanhGiaController],
-  providers: [DanhGiaService, DanhGiaRepository],
+  providers: [DanhGiaService, DanhGiaServiceUtil, DanhGiaRepository],
+  exports: [DanhGiaServiceUtil],
 })
 export class DanhGiaModule {}
