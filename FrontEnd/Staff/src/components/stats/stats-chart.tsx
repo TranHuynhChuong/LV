@@ -72,7 +72,10 @@ export default function StatsChart({ stats, timeUnit, totalOrders }: Readonly<Pr
         <div className="basis-1/2">
           <RatioPieChart
             title="Tỷ lệ dùng mã giảm giá trên đơn hàng"
-            data={[stats.vouchers.orderUsed, totalOrders?.all]}
+            data={[
+              stats.vouchers.orderUsed,
+              totalOrders.complete + totalOrders.inComplete - stats.vouchers.orderUsed,
+            ]}
             labels={['Có dùng', 'Không dùng']}
             unit="Đơn hàng"
             colors={['#0f766e', '#be185d']}
