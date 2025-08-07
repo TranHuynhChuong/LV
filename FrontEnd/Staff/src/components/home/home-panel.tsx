@@ -73,14 +73,14 @@ export default function HomePanel() {
       icon: <Percent />,
       label: 'Khuyến mãi',
       value: totalValidPromotions,
-      href: '/promotions',
+      href: '/promotions/books?status=active',
       description: 'Đang có hiệu lực',
     },
     {
       icon: <TicketPercent />,
       label: 'Mã giảm giá',
       value: totalValidVouchers,
-      href: '/vouchers',
+      href: '/promotions/vouchers?status=active',
       description: 'Đang có hiệu lực',
     },
     {
@@ -112,7 +112,7 @@ export default function HomePanel() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Link href="/orders?status=pending">
+            <Link href="/orders?type=pending">
               <div className="p-4 transition border rounded-lg cursor-pointer">
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" /> Chờ xác nhận
@@ -120,7 +120,7 @@ export default function HomePanel() {
                 <p className="text-lg font-semibold ">{totalOrders.pending}</p>
               </div>
             </Link>
-            <Link href="/orders?status=shipping">
+            <Link href="/orders?type=shipping">
               <div className="p-4 transition border rounded-lg cursor-pointer">
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   <TruckIcon className="w-4 h-4" /> Đang vận chuyển
@@ -128,7 +128,7 @@ export default function HomePanel() {
                 <p className="text-lg font-semibold">{totalOrders.shipping}</p>
               </div>
             </Link>
-            <Link href="/orders?status=cancelRequest">
+            <Link href="/orders?type=cancelRequest">
               <div className="p-4 transition border rounded-lg cursor-pointer">
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   <XCircle className="w-4 h-4" /> Yêu cầu hủy
@@ -153,11 +153,17 @@ export default function HomePanel() {
             <div className="p-4 border rounded-lg ">
               <h3 className="mb-2 text-base font-semibold">Đang hoạt động</h3>
               <div className="flex gap-2">
-                <Link className="flex-1 p-4 border rounded-lg" href="/books/list/live?status=all">
+                <Link
+                  className="flex-1 p-4 border rounded-lg"
+                  href="/books/list?type=live&status=all"
+                >
                   <p className="text-xs text-muted-foreground">Tổng</p>
                   <p className="text-base font-semibold">{totalBooks.live.total}</p>
                 </Link>
-                <Link className="flex-1 p-4 border rounded-lg" href="/books/list/live?status=out">
+                <Link
+                  className="flex-1 p-4 border rounded-lg"
+                  href="/books/list?type=live&status=out&page=1"
+                >
                   <p className="text-xs text-muted-foreground">Hết hàng</p>
                   <p className="text-base font-semibold">{totalBooks.live.out}</p>
                 </Link>
@@ -166,11 +172,17 @@ export default function HomePanel() {
             <div className="p-4 border rounded-lg ">
               <h3 className="mb-2 text-base font-semibold">Đã ẩn</h3>
               <div className="flex gap-2">
-                <Link className="flex-1 p-4 border rounded-lg" href="/books/list/hidden?status=all">
+                <Link
+                  className="flex-1 p-4 border rounded-lg"
+                  href="/books/list?type=hidden&status=all&page=1"
+                >
                   <p className="text-xs text-muted-foreground">Tổng</p>
                   <p className="text-base font-semibold">{totalBooks.hidden.total}</p>
                 </Link>
-                <Link className="flex-1 p-4 border rounded-lg" href="/books/list/hidden?status=out">
+                <Link
+                  className="flex-1 p-4 border rounded-lg"
+                  href="/books/list?type=hidden&status=out&page=1"
+                >
                   <p className="text-xs text-muted-foreground">Hết hàng</p>
                   <p className="text-base font-semibold">{totalBooks.hidden.out}</p>
                 </Link>
