@@ -81,28 +81,6 @@ export default function ChangePasswordForm({
         </div>
       )}
 
-      {/* {mode === 'change' && (
-        <div>
-          <Label htmlFor="otp">Mã OTP</Label>
-          <div className="flex items-center gap-2 mt-2">
-            <Input id="otp" type="text" placeholder="Nhập mã OTP" required disabled={loading} />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleSendOtp}
-              disabled={countdown > 0}
-              className="cursor-pointer"
-            >
-              Gửi mã
-            </Button>
-          </div>
-          <p className="mt-2 text-xs text-end text-zinc-600">
-            {countdown > 0 ? `Gửi lại sau ${countdown}s` : ''}
-          </p>
-        </div>
-      )} */}
-
       <div>
         <Label htmlFor="otp">Mã OTP</Label>
         <Input
