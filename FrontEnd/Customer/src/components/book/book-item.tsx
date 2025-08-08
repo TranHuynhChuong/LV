@@ -17,7 +17,14 @@ export default function BookItem({ book }: Readonly<BookItemProps>) {
       <Card className="hover:shadow-[0_0_10px_rgba(0,0,0,0.2)] hover:z-10 transition-shadow duration-300 relative shadow-none rounded-sm overflow-hidden py-4 gap-2 h-full w-full flex flex-col cursor-pointer">
         <div className="">
           <div className="relative inset-0 flex items-center justify-center h-42">
-            <Image src={image} alt={name} fill priority className="object-contain w-auto h-full " />
+            <Image
+              src={image}
+              alt={name}
+              fill
+              sizes="168px"
+              priority
+              className="object-contain w-auto h-full "
+            />
           </div>
         </div>
 
@@ -34,15 +41,15 @@ export default function BookItem({ book }: Readonly<BookItemProps>) {
               {isOnSale ? (
                 <>
                   <span className="text-base font-bold text-red-600">
-                    {discountPrice.toLocaleString()}₫
+                    {new Intl.NumberFormat('vi-VN').format(discountPrice)}₫
                   </span>
                   <span className="text-xs text-gray-400 line-through">
-                    {salePrice.toLocaleString()}₫
+                    {new Intl.NumberFormat('vi-VN').format(salePrice)}₫
                   </span>
                 </>
               ) : (
                 <span className="text-base font-bold text-gray-800">
-                  {salePrice.toLocaleString()}₫
+                  {new Intl.NumberFormat('vi-VN').format(salePrice)}₫
                 </span>
               )}
             </div>
