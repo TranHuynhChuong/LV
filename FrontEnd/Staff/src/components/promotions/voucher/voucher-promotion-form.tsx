@@ -259,7 +259,7 @@ export default function VoucherPromotionForm({
                           decimalsLimit={0}
                           groupSeparator="."
                           decimalSeparator=","
-                          prefix="₫"
+                          prefix={form.watch('isPercentage') ? '%' : '₫'}
                           readOnly={isViewing}
                         />
                       </FormControl>
