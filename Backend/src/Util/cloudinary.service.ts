@@ -34,14 +34,14 @@ export class CloudinaryService implements OnModuleInit {
   ): Promise<{ public_id: string; url: string }> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        options,
+        { ...options, secure: true },
         (error, result) => {
           if (error || !result) {
             return reject(
               new InternalServerErrorException('Lỗi tải ảnh lên Cloudinary')
             );
           }
-          resolve({ public_id: result.public_id, url: result.url });
+          resolve({ public_id: result.public_id, url: result.secure_url });
         }
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);

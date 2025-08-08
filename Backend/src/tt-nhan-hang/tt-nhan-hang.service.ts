@@ -243,12 +243,14 @@ export class TTNhanHangKHService {
       // Nếu địa chỉ bị xóa là mặc định → kiểm tra các địa chỉ còn lại
       if (address.NH_macDinh) {
         const remaining = await this.TTNhanHangKHRepo.findAll(userId);
-        const hasMacDinh = remaining.some((item) => item.NH_macDinh);
-        if (!hasMacDinh && remaining.length > 0) {
-          // Không còn địa chỉ mặc định nào → đặt cái đầu tiên làm mặc định
-          const first = remaining[0];
+        const filtered = remaining.filter(
+          (item) => item.NH_id !== address.NH_id
+        );
+        if (filtered.length > 0) {
+          // Đặt cái đầu tiên làm mặc định
+          const first = filtered[0];
           await this.TTNhanHangKHRepo.update(
-            first.id,
+            first.NH_id,
             userId,
             { NH_macDinh: true },
             session
