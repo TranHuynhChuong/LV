@@ -131,15 +131,15 @@ export default function OrderInf({ data }: Readonly<Props>) {
                       {item.priceSell !== item.priceBuy ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {item.priceSell.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {item.priceBuy.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {item.priceBuy.toLocaleString()} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                         </span>
                       )}
                     </div>
@@ -153,24 +153,29 @@ export default function OrderInf({ data }: Readonly<Props>) {
           <div className="flex justify-between">
             <span className="text-gray-600">Tiền hàng</span>
             <span>
-              {orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0).toLocaleString()} đ
+              <span>
+                {new Intl.NumberFormat('vi-VN').format(
+                  orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0)
+                )}{' '}
+                đ
+              </span>
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Phí vận chuyển</span>
-            <span>{shippingFee.toLocaleString()} đ</span>
+            <span>{new Intl.NumberFormat('vi-VN').format(shippingFee)} đ</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Giảm hóa đơn</span>
-            <span>-{discountInvoice.toLocaleString()} đ</span>
+            <span>-{new Intl.NumberFormat('vi-VN').format(discountInvoice)} đ</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Giảm phí vận chuyển</span>
+            <span>-{new Intl.NumberFormat('vi-VN').format(discountShipping)} đ</span>
             <span>-{discountShipping.toLocaleString()} đ</span>
           </div>
           <div className="flex justify-between pt-2 font-semibold border-t text-primary">
             <span>Tổng thanh toán</span>
-            <span>{total.toLocaleString()} đ</span>
+            <span>{new Intl.NumberFormat('vi-VN').format(total)} đ</span>
           </div>
         </div>
       </div>
