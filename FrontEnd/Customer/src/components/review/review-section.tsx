@@ -96,9 +96,9 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
     }, [comment]);
 
     return (
-      <div className="flex ">
-        <div className="justify-start space-y-2 min-w-28 ld:min-w-32">
-          <p className="text-sm font-medium text-zinc-700">{name}</p>
+      <div className="flex space-x-4">
+        <div className="justify-start space-y-2 w-32">
+          <p className="text-sm font-medium text-zinc-700 break-words">{name}</p>
           <p className="text-xs text-zinc-500">{new Date(createdAt).toLocaleDateString('vi-VN')}</p>
         </div>
 
