@@ -3,6 +3,24 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { numberToVietnameseCurrencyWords } from './number-to-vietnamese-currency-words';
 
+function wrapText(text: string, maxCharsPerLine: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if ((currentLine + word).length <= maxCharsPerLine) {
+      currentLine += word + ' ';
+    } else {
+      lines.push(currentLine.trim());
+      currentLine = word + ' ';
+    }
+  }
+
+  if (currentLine.trim()) lines.push(currentLine.trim());
+  return lines;
+}
+
 export async function generateDeliveryNotePdf(order: any) {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
@@ -66,7 +84,16 @@ export async function generateDeliveryNotePdf(order: any) {
   y -= LINE_HEIGHT;
 
   drawText(`Mã đơn: ${order.orderId}`, 8, MARGIN);
-  drawText(`Ngày đặt: ${new Date(order.createdAt).toLocaleString()}`, 8, A5_WIDTH / 2);
+  drawText(
+    `Ngày đặt: ${new Intl.DateTimeFormat('vi-VN', {
+      weekday: 'short',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(order.createdAt))}`,
+    8,
+    A5_WIDTH / 2
+  );
 
   y -= LINE_HEIGHT * 2;
   // Table Header
@@ -85,24 +112,42 @@ export async function generateDeliveryNotePdf(order: any) {
   });
 
   y -= LINE_HEIGHT;
-  let totalProduct = 0;
+  let totalBook = 0;
 
   order.orderDetails.forEach((item: any, index: number) => {
     const cols = [
       (index + 1).toString(),
-      item.productName,
+      item.bookName,
       item.quantity.toString(),
-      `${(item.priceBuy * item.quantity).toLocaleString()} đ`,
+      `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+        item.priceBuy * item.quantity
+      )}`,
     ];
 
     x = MARGIN;
+    let rowHeight = LINE_HEIGHT;
+
     cols.forEach((text, i) => {
-      drawText(text, 8, x);
+      if (i === 1) {
+        const lines = wrapText(text, 36);
+        lines.forEach((line, j) => {
+          page.drawText(line, {
+            x,
+            y: y - j * 10,
+            size: 8,
+            font: regularFont,
+            color: rgb(0, 0, 0),
+          });
+        });
+        rowHeight = Math.max(rowHeight, lines.length * 10);
+      } else {
+        drawText(text, 8, x);
+      }
       x += TABLE_COLS[i];
     });
 
-    totalProduct += item.priceBuy * item.quantity;
-    y -= LINE_HEIGHT;
+    totalBook += item.priceBuy * item.quantity;
+    y -= rowHeight + 4;
   });
 
   page.drawLine({
@@ -115,7 +160,7 @@ export async function generateDeliveryNotePdf(order: any) {
 
   const shipping = order.shippingFee;
   const discount = order.discountInvoice + order.discountShipping;
-  const total = totalProduct + shipping - discount;
+  const total = totalBook + shipping - discount;
 
   const drawRight = (label: string, value: string, bold = false) => {
     drawText(label, 8, MARGIN, bold);
@@ -123,10 +168,23 @@ export async function generateDeliveryNotePdf(order: any) {
     y -= LINE_HEIGHT;
   };
 
-  drawRight('Tổng tiền hàng', `${totalProduct.toLocaleString()} đ`);
-  drawRight('Phí vận chuyển', `${shipping.toLocaleString()} đ`);
-  drawRight('Giảm giá', `-${discount.toLocaleString()} đ`);
-  drawRight('Tổng thanh toán', `${total.toLocaleString()} đ`, true);
+  drawRight(
+    'Tổng tiền hàng',
+    `${Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalBook)}`
+  );
+  drawRight(
+    'Phí vận chuyển',
+    `${Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(shipping)}`
+  );
+  drawRight(
+    'Giảm giá',
+    `-${Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discount)}`
+  );
+  drawRight(
+    'Tổng thanh toán',
+    `${Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}`,
+    true
+  );
 
   drawText(`Số tiền bằng chữ: ${numberToVietnameseCurrencyWords(total)}`, 8, MARGIN);
   // Signatures
@@ -141,8 +199,9 @@ export async function generateDeliveryNotePdf(order: any) {
   y -= LINE_HEIGHT * 6;
   centerText('Vui lòng kiểm tra hàng trước khi thanh toán!', 9);
 
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const rawBytes = await pdfDoc.save();
+  const fixedBuffer = new Uint8Array(new Uint8Array(rawBytes).buffer as ArrayBuffer);
+  const blob = new Blob([fixedBuffer], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   window.open(url);
 }
