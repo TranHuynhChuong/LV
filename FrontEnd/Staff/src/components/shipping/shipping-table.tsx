@@ -92,7 +92,14 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         </HoverCard>
       ),
       enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('fee')}</div>,
+      cell: ({ row }) => (
+        <div>
+          {new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(row.getValue('fee')) ?? '-'}
+        </div>
+      ),
     },
     {
       accessorKey: 'weight',
@@ -137,7 +144,14 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         </HoverCard>
       ),
       enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('surcharge') ?? '-'}</div>,
+      cell: ({ row }) => (
+        <div>
+          {new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+          }).format(row.getValue('surcharge')) ?? '-'}
+        </div>
+      ),
     },
     {
       accessorKey: 'surchargeUnit',

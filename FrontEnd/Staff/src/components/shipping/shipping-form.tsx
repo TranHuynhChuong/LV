@@ -20,6 +20,7 @@ import AddressSelect from './address-select';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
 import { ShippingFee } from '@/models/shipping';
+import CurrencyInput from 'react-currency-input-field';
 
 const formSchema: z.Schema<ShippingFee> = z
   .object({
@@ -177,11 +178,18 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <CurrencyInput
+                    id={field.name}
+                    name={field.name}
+                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
                     value={field.value ?? ''}
-                    onChange={field.onChange}
-                    placeholder="Nhập số tiền"
+                    decimalsLimit={0}
+                    groupSeparator="."
+                    decimalSeparator=","
+                    prefix="₫"
+                    onValueChange={(value) =>
+                      field.onChange({ target: { name: field.name, value } })
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -227,11 +235,18 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <CurrencyInput
+                    id={field.name}
+                    name={field.name}
+                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
                     value={field.value ?? ''}
-                    onChange={field.onChange}
-                    placeholder="Có thể để trống hoặc nhập số"
+                    decimalsLimit={0}
+                    groupSeparator="."
+                    decimalSeparator=","
+                    prefix="₫"
+                    onValueChange={(value) =>
+                      field.onChange({ target: { name: field.name, value } })
+                    }
                   />
                 </FormControl>
                 <FormMessage />
