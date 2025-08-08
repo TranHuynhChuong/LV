@@ -80,9 +80,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuButton size="lg" asChild>
             <Link href="/">
-              <Image src="/icon.png" alt="icon" width={32} height={32} className="w-8 h-8" />
+              <Image src="/icon.png" alt="icon" width={32} height={32} priority />
               <div className="grid flex-1 ml-2 leading-tight text-left">
-                <Image src="/name.png" alt="icon" width={90} height={24} className="h-6 w-90" />
+                <Image src="/name.png" alt="icon" width={90} height={24} priority />
               </div>
             </Link>
           </SidebarMenuButton>
