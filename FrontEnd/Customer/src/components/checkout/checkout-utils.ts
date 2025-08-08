@@ -65,7 +65,8 @@ export function mapToDataCheck(carts: Cart[], vouchers: { code: string; type: st
   return { CTDH, MG };
 }
 
-export const formatCurrency = (value: number) => value.toLocaleString() + 'đ';
+export const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 
 export const useOrderSummary = (
   carts: Cart[],
