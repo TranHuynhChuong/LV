@@ -53,7 +53,7 @@ export default function CartItem({
         </Link>
         <div className="flex-1">
           <div className="space-y-1">
-            <Link href={`/product/${cart.id}`}>
+            <Link href={`/book/${cart.id}`}>
               <p
                 className={`line-clamp-2 h-[3em] text-sm font-light ${
                   isOutOfStock ? 'text-zinc-400' : ''
