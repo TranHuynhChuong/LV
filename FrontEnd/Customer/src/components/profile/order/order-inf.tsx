@@ -93,7 +93,14 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
                     <div className="absolute w-[1px] h-10 bg-gray-300 -left-[11px] top-4"></div>
                   )}
                   <div className="ml-2">
-                    <p className="text-muted-foreground">{new Date(item.time).toLocaleString()}</p>
+                    <p className="text-muted-foreground">
+                      {new Intl.DateTimeFormat('vi-VN', {
+                        weekday: 'short',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      }).format(new Date(item.time))}
+                    </p>
                     <p>{item.action}</p>
                   </div>
                 </div>
@@ -135,15 +142,15 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
                       {item.priceSell !== item.priceBuy ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {item.priceSell.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {item.priceBuy.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {item.priceBuy.toLocaleString()} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                         </span>
                       )}
                     </div>
@@ -157,27 +164,30 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
           <div className="flex justify-between">
             <span className="text-gray-600">Tiền hàng</span>
             <span>
-              {orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0).toLocaleString()} đ
+              {new Intl.NumberFormat('vi-VN').format(
+                orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0)
+              )}{' '}
+              đ
             </span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-gray-600">Phí vận chuyển</span>
-            <span>{shippingFee.toLocaleString()} đ</span>
+            <span>{new Intl.NumberFormat('vi-VN').format(shippingFee)} đ</span>
           </div>
           <div className="flex justify-between italic text-zinc-500">
             <span>Giảm hóa đơn</span>
-            <span>-{discountInvoice.toLocaleString()} đ</span>
+            <span>-{new Intl.NumberFormat('vi-VN').format(discountInvoice)} đ</span>
           </div>
 
           <div className="flex justify-between italic text-zinc-500">
             <span>Giảm phí vận chuyển</span>
-            <span>-{discountShipping.toLocaleString()} đ</span>
+            <span>-{new Intl.NumberFormat('vi-VN').format(discountShipping)} đ</span>
           </div>
 
           <div className="flex justify-between pt-2 font-semibold border-t text-primary">
             <span>Tổng thanh toán</span>
-            <span>{total.toLocaleString()} đ</span>
+            <span>{new Intl.NumberFormat('vi-VN').format(total)} đ</span>
           </div>
         </div>
       </div>

@@ -75,15 +75,15 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
                       {item.priceSell !== item.priceBuy ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {item.priceSell.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {item.priceBuy.toLocaleString()} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {item.priceBuy.toLocaleString()} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
                         </span>
                       )}
                     </div>
@@ -110,7 +110,9 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
         <div className="py-4 space-y-6 ">
           <div className="flex items-end justify-end gap-1 text-xs text-muted-foreground">
             Tổng tiền số tiền ({order.orderDetails.length} sản phẩm):
-            <span className="text-sm font-semibold text-primary"> {total.toLocaleString()} đ</span>
+            <span className="text-sm font-semibold text-primary">
+              {new Intl.NumberFormat('vi-VN').format(total)} đ
+            </span>
           </div>
           <OrderActions
             id={order.orderId}
