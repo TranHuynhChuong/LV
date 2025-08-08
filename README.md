@@ -100,6 +100,19 @@ Khi chạy ứng dụng tại môi trường phát triển (localhost), mặc đ
 - Chatbot: 5005
 _Đảm bảo các cổng trên không bị ứng dụng khác chiếm dụng để tránh lỗi khi khởi động._
 
+Chạy dự án nhanh (Sau khi đã cấu hình và chạy thành công theo hướng dẫn cụ thể tại từng thư mục)
+```plaintext
+/
+├── start-all.bat/                        # Khởi chạy nhanh toàn bộ dự án
+├── start-backend.bat/                    # Khởi chạy nhanh backend
+├── start-chatbot.bat/                    # Khởi chạy nhanh chatbot
+├── start-frontend-customer.bat/          # Khỏi chạy nhanh frontend khách hàng
+└── start-frontend-staff.bat/             # Khởi chạy nhanh frontend nhân viên
+
+```
+_Đảm bảo backend và các frontend đã build thành công, chatbot đã chạy thành công để chạy nhanh dự án thông qua các file `.bat`._
+
+
 ## ✍️ Người thực hiện
 
 Dự án được thực hiện bởi **Trần Huỳnh Chương**, trong khuôn khổ luận văn tốt nghiệp.
