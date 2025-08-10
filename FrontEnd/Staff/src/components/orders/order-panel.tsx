@@ -31,7 +31,7 @@ export default function OrderPanel() {
   const type = (searchParams.get('type') ?? 'pending') as OrderStatus;
   const orderId = searchParams.get('orderId') ?? '';
   const page = parseInt(searchParams.get('page') ?? '1');
-  const limit = 24;
+  const limit = 12;
   const from = searchParams.get('from') ?? '';
   const to = searchParams.get('to') ?? '';
 

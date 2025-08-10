@@ -30,10 +30,18 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
     <div className="bg-white border rounded-md ">
       <div className="px-4">
         {/* Tiêu đề */}
-        <div className="flex items-center justify-between gap-4 py-4">
+        <div className="flex items-center justify-between gap-4 py-4 flex-wrap">
           <div className="text-sm font-medium whitespace-nowrap">Mã đơn: {order.orderId}</div>
-          <span className="text-sm whitespace-nowrap">
-            {statusMap[order.status] || 'Không xác định'}
+
+          <span className="text-sm whitespace-nowrap space-x-2 flex">
+            {order.payment && (
+              <>
+                <p>{order.payment.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+                <p>|</p>
+              </>
+            )}
+
+            <p>{statusMap[order.status] || 'Không xác định'}</p>
           </span>
         </div>
 

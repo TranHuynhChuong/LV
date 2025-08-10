@@ -1,3 +1,5 @@
+import { ZaloPayService } from './../thanh-toan/services/zalo-pay.service';
+import { ThanhToanService } from './../thanh-toan/services/thanh-toan.service';
 import { DanhGiaServiceUtil } from './../danh-gia/danh-gia.service';
 import {
   BadRequestException,
@@ -20,7 +22,6 @@ import {
 import { EmailService } from 'src/Util/email.service';
 import { KhachHangUtilService } from 'src/nguoi-dung/khach-hang/khach-hang.service';
 import { ExportService, SheetData } from 'src/Util/export';
-
 import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repository';
 import { TrangThaiDonHang } from './schemas/don-hang.schema';
 import {
@@ -32,7 +33,7 @@ import {
 } from './interfaces/don-hang-thong-ke.interface';
 import { DiaChiService } from 'src/dia-chi/dia-chi.service';
 import { getNextSequence } from 'src/Util/counter.service';
-
+import * as moment from 'moment';
 @Injectable()
 export class DonHangService {
   constructor(
@@ -47,7 +48,9 @@ export class DonHangService {
     private readonly DanhGiaServiceUtil: DanhGiaServiceUtil,
     private readonly DiaChiService: DiaChiService,
     private readonly DonHangRepo: DonHangRepository,
-    private readonly ChiTietDonHangRepo: ChiTietDonHangRepository
+    private readonly ChiTietDonHangRepo: ChiTietDonHangRepository,
+    private readonly ThanhToanService: ThanhToanService,
+    private readonly ZaloPayService: ZaloPayService
   ) {}
 
   /**
@@ -256,8 +259,12 @@ export class DonHangService {
    */
   async create(data: CreateDto) {
     const session = await this.connection.startSession();
+    let order_url = '';
+    let total = 0;
+    let orderId = '';
+    let transId = '';
     try {
-      const result = await session.withTransaction(async () => {
+      await session.withTransaction(async () => {
         // B1: Kiểm tra dữ liệu đầu vào
         const { errors } = await this.checkValid({
           CTDH: data.DH.CTDH,
@@ -268,6 +275,7 @@ export class DonHangService {
         }
         // B2 Tạo mã đơn hàng
         const DH_id = await this.generateNextOrderId(session);
+        orderId = DH_id;
         const now = new Date();
         // B3 Tính tổng tiền sản phẩm - để tính giá giảm nếu có dùng mã giảm
         const totalProductPrice = this.calculateTotalAmount(data);
@@ -278,7 +286,7 @@ export class DonHangService {
         );
         // B5 Check KH_id/KH_email và tạo đơn hàng;
         this.validateCustomerInf(data.DH.KH_email, data.DH.KH_id);
-        const newOrder = await this.createOrder(data, {
+        await this.createOrder(data, {
           DH_id,
           DH_giamHD,
           DH_giamVC,
@@ -311,10 +319,27 @@ export class DonHangService {
         }
         if (!email) throw new BadRequestException();
         this.EmailService.sendOrderCreatetion(email, DH_id);
-        return newOrder;
+        total = totalProductPrice + data.DH.DH_phiVC - DH_giamHD - DH_giamVC;
+        // Tạo document thanh toán nếu có
+        if (data.PhuongThucThanhToan === 'ZaloPay' && data.DH.KH_id) {
+          transId = `${moment().format('YYMMDDHHmmssSSS')}${orderId}`;
+          await this.ThanhToanService.create(orderId, transId, session);
+        }
       });
-
-      return result;
+      if (data.PhuongThucThanhToan === 'ZaloPay' && data.DH.KH_id) {
+        try {
+          const result = await this.ZaloPayService.create(
+            orderId,
+            transId,
+            total,
+            data.DH.KH_id
+          );
+          order_url = result.order_url;
+        } catch {
+          throw new BadRequestException([4001]);
+        }
+      }
+      return order_url;
     } catch (error) {
       if (error instanceof Error) throw error;
       throw new InternalServerErrorException(`Tạo đơn hàng - ${error.message}`);
@@ -448,6 +473,10 @@ export class DonHangService {
     result.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
       result.DH_id
     );
+    const payment = await this.ZaloPayService.queryOrder(result.DH_id);
+    if (payment !== null) {
+      result.DH_thanhToan = payment;
+    }
     return result;
   }
 
@@ -466,6 +495,10 @@ export class DonHangService {
     order.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
       order.DH_id
     );
+    const payment = await this.ZaloPayService.queryOrder(order.DH_id);
+    if (payment !== null) {
+      order.DH_thanhToan = payment;
+    }
     return order;
   }
 
@@ -504,6 +537,11 @@ export class DonHangService {
     for (const order of result.data as any[]) {
       delete order?.lichSuThaoTac;
       delete order?.thongTinNhanHang;
+
+      const payment = await this.ZaloPayService.queryOrder(order.DH_id);
+      if (payment !== null) {
+        order.DH_thanhToan = payment;
+      }
     }
     return result;
   }

@@ -126,6 +126,7 @@ export default function OrderActions({
   return (
     <div className="flex flex-wrap justify-end w-full gap-2">
       {isSubmitting && <Loader />}
+
       {canCancel && (
         <Button
           variant="outline"

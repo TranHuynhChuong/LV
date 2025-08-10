@@ -3,11 +3,17 @@
 import { Button } from '@/components/ui/button';
 import { Order } from '@/models/order';
 import { AnimatePresence, motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { ChevronDown, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import OrderActions from './order-actions';
 import { statusMap } from './order-item';
+import { useAuth } from '@/contexts/auth-context';
+import api from '@/lib/axios-client';
+import { toast } from 'sonner';
+import { useState } from 'react';
+import Loader from '@/components/utils/loader';
+import ReviewOrderList from '@/components/review/review-order';
 
 type OrderDetailProps = {
   data: Order;
@@ -27,6 +33,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
     shippingFee,
     reviewed,
     invoice,
+    payment,
   } = data;
 
   const total =
@@ -34,11 +41,49 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
     discountInvoice -
     discountShipping +
     shippingFee;
+  const [expanded, setExpanded] = useState(false);
+  const displayedProducts = expanded ? orderDetails : orderDetails.slice(0, 1);
   const router = useRouter();
+  const { authData } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handlePayment = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await api.get('payments/remake-payment', {
+        params: {
+          orderId: orderId,
+          amount: total,
+          userId: authData.userId,
+        },
+      });
+      const orderUrl = res.data.order_url;
+      if (orderUrl) {
+        router.replace(orderUrl);
+      } else {
+        throw Error;
+      }
+    } catch {
+      toast.error('Lỗi khi thanh toán, vui lòng thử lại!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-2">
-      <div className="flex items-center h-20 p-6 font-medium bg-white border rounded-md">
-        Mã đơn hàng: {orderId} | {statusMap[status] || 'Không xác định'}
+      {isSubmitting && <Loader />}
+      <div className="flex items-center justify-between gap-4 py-4 flex-wrap h-20 p-6 flex-1 bg-white border rounded-md">
+        <div className=" font-medium whitespace-nowrap">Mã đơn: {orderId}</div>
+
+        <span className=" whitespace-nowrap space-x-2 flex">
+          {payment && (
+            <>
+              <p>{payment.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+              <p>|</p>
+            </>
+          )}
+          <p>{statusMap[status] || 'Không xác định'}</p>
+        </span>
       </div>
 
       {invoice.taxCode && (
@@ -113,7 +158,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
       <div className="p-6 space-y-4 bg-white border rounded-md">
         <div className="text-sm divide-y">
           <AnimatePresence initial={false}>
-            {orderDetails.map((item) => (
+            {displayedProducts.map((item) => (
               <motion.div
                 key={item.bookId}
                 initial={{ opacity: 0, height: 0 }}
@@ -160,7 +205,26 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
             ))}
           </AnimatePresence>
         </div>
+        {orderDetails.length > 1 && (
+          <button
+            className="flex items-center justify-center w-full gap-1 text-xs cursor-pointer text-muted-foreground hover:underline"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? 'Ẩn bớt' : `Xem thêm`}
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${
+                expanded ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </button>
+        )}
+
         <div className="pt-2 space-y-2 text-sm border-t">
+          <div className="flex justify-between mb-2 border-b pb-2">
+            <span className="text-gray-600">Phương thức thanh toán</span>
+            <span>{payment ? payment.method : 'Thanh toán khi nhận hàng'}</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tiền hàng</span>
             <span>
@@ -175,24 +239,25 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
             <span className="text-gray-600">Phí vận chuyển</span>
             <span>{new Intl.NumberFormat('vi-VN').format(shippingFee)} đ</span>
           </div>
-          <div className="flex justify-between italic text-zinc-500">
+          <div className="flex justify-between  text-zinc-600">
             <span>Giảm hóa đơn</span>
             <span>-{new Intl.NumberFormat('vi-VN').format(discountInvoice)} đ</span>
           </div>
 
-          <div className="flex justify-between italic text-zinc-500">
+          <div className="flex justify-between  text-zinc-600">
             <span>Giảm phí vận chuyển</span>
             <span>-{new Intl.NumberFormat('vi-VN').format(discountShipping)} đ</span>
           </div>
 
           <div className="flex justify-between pt-2 font-semibold border-t text-primary">
-            <span>Tổng thanh toán</span>
+            <span>Thành tiền</span>
             <span>{new Intl.NumberFormat('vi-VN').format(total)} đ</span>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end flex-1 w-full gap-2 p-6 bg-white border rounded-md">
+      <ReviewOrderList orderId={orderId} />
+      <div className="flex justify-between flex-1 w-full gap-2 p-6 bg-white border rounded-md">
         <Button
           variant="outline"
           className="text-sm font-normal cursor-pointer"
@@ -203,15 +268,22 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
           Thoát
         </Button>
 
-        <OrderActions
-          showView={false}
-          reviewed={reviewed}
-          id={orderId}
-          status={status}
-          onSuccess={() => {
-            router.back();
-          }}
-        />
+        <div className="flex space-x-2">
+          {payment && !payment?.isPaid && (
+            <Button className="cursor-pointer" onClick={handlePayment}>
+              Thanh Toán
+            </Button>
+          )}
+          <OrderActions
+            showView={false}
+            reviewed={reviewed}
+            id={orderId}
+            status={status}
+            onSuccess={() => {
+              router.back();
+            }}
+          />
+        </div>
       </div>
     </div>
   );

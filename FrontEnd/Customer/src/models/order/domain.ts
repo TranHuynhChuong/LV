@@ -48,6 +48,10 @@ export interface Order {
     bookImage: string;
     bookStatus: number;
   }[];
+  payment?: {
+    isPaid: boolean;
+    method: string;
+  };
 }
 
 export interface OrderOverview {
@@ -70,4 +74,8 @@ export interface OrderOverview {
     bookImage: string;
     bookStatus: number;
   }[];
+  payment?: {
+    isPaid: boolean;
+    method: string;
+  };
 }

@@ -36,6 +36,10 @@ export interface OrderDto {
     S_anh: string;
     S_trangThai: number;
   }[];
+  DH_thanhToan?: {
+    TT_daThanhToan: boolean;
+    TT_phuongThuc: string;
+  };
 }
 
 export interface OrderOverviewDto {
@@ -58,4 +62,8 @@ export interface OrderOverviewDto {
     S_trangThai: number;
   }[];
   DH_daDanhGia: boolean;
+  DH_thanhToan?: {
+    TT_daThanhToan: boolean;
+    TT_phuongThuc: string;
+  };
 }

@@ -49,6 +49,12 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
         bookStatus: item.S_trangThai ?? 0,
       })
     ),
+    payment: dto.DH_thanhToan
+      ? {
+          isPaid: dto.DH_thanhToan.TT_daThanhToan,
+          method: dto.DH_thanhToan.TT_phuongThuc,
+        }
+      : undefined,
   };
 }
 
@@ -77,5 +83,11 @@ export function mapOrderOverviewListFromDto(dtos: OrderOverviewDto[]) {
       bookImage: item.S_anh ?? '',
       bookStatus: item.S_trangThai ?? 0,
     })),
+    payment: dto.DH_thanhToan
+      ? {
+          isPaid: dto.DH_thanhToan.TT_daThanhToan,
+          method: dto.DH_thanhToan.TT_phuongThuc,
+        }
+      : undefined,
   }));
 }

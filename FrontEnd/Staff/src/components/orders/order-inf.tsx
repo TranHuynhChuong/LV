@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Order } from '@/models/orders';
 import { generateDeliveryNotePdf } from '@/utils/print-delivery-note';
 import { AnimatePresence, motion } from 'framer-motion';
-import { MapPin } from 'lucide-react';
+import { ChevronDown, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import OrderActions from './order-actions';
 import { statusMap } from './order-item';
-
+import { useAuth } from '@/contexts/auth-context';
+import { useState } from 'react';
 type Props = {
   data: Order;
 };
@@ -27,6 +28,7 @@ export default function OrderInf({ data }: Readonly<Props>) {
     discountShipping,
     shippingFee,
     invoice,
+    payment,
   } = data;
 
   const total =
@@ -35,10 +37,26 @@ export default function OrderInf({ data }: Readonly<Props>) {
     discountShipping +
     shippingFee;
   const router = useRouter();
+  const { authData } = useAuth();
+  const [expanded, setExpanded] = useState(false);
+  const displayedBooks = expanded ? orderDetails : orderDetails.slice(0, 1);
   return (
     <div className="space-y-2">
-      <div className="flex items-center h-20 p-6 font-medium bg-white border rounded-md">
-        Mã đơn hàng: {orderId} | {statusMap[status] || 'Không xác định'}
+      <div
+        className={`flex items-center justify-between gap-4 py-4 flex-wrap h-20 p-6 flex-1 bg-white border rounded-md ${
+          authData.role === 1 ? 'pr-20' : ''
+        }`}
+      >
+        <div className=" font-medium whitespace-nowrap">Mã đơn: {orderId}</div>
+        <span className=" whitespace-nowrap space-x-2 flex">
+          {payment && (
+            <>
+              <p>{payment.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+              <p>|</p>
+            </>
+          )}
+          <p>{statusMap[status] || 'Không xác định'}</p>
+        </span>
       </div>
       {invoice.taxCode && (
         <div className="p-6 bg-white border rounded-md ">
@@ -102,7 +120,7 @@ export default function OrderInf({ data }: Readonly<Props>) {
       <div className="p-6 space-y-4 bg-white border rounded-md">
         <div className="text-sm divide-y">
           <AnimatePresence initial={false}>
-            {orderDetails.map((item) => (
+            {displayedBooks.map((item) => (
               <motion.div
                 key={item.bookId}
                 initial={{ opacity: 0, height: 0 }}
@@ -149,7 +167,25 @@ export default function OrderInf({ data }: Readonly<Props>) {
             ))}
           </AnimatePresence>
         </div>
+        {orderDetails.length > 1 && (
+          <button
+            className="flex items-center justify-center w-full gap-1 text-xs cursor-pointer text-muted-foreground hover:underline"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? 'Ẩn bớt' : `Xem thêm`}
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${
+                expanded ? 'rotate-180' : 'rotate-0'
+              }`}
+            />
+          </button>
+        )}
         <div className="pt-2 space-y-2 text-sm border-t">
+          <div className="flex justify-between mb-2 border-b pb-2">
+            <span className="text-gray-600">Phương thức thanh toán</span>
+            <span>{payment ? payment.method : 'Thanh toán khi nhận hàng'}</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tiền hàng</span>
             <span>
@@ -170,8 +206,8 @@ export default function OrderInf({ data }: Readonly<Props>) {
             <span>-{new Intl.NumberFormat('vi-VN').format(discountInvoice)} đ</span>
           </div>
           <div className="flex justify-between">
+            <span className="text-gray-600">Giảm phí vận chuyển</span>
             <span>-{new Intl.NumberFormat('vi-VN').format(discountShipping)} đ</span>
-            <span>-{discountShipping.toLocaleString()} đ</span>
           </div>
           <div className="flex justify-between pt-2 font-semibold border-t text-primary">
             <span>Tổng thanh toán</span>

@@ -30,6 +30,7 @@ export function mapStaffFormDto(data: StaffDto[]): Staff[] {
     email: staff.NV_email,
     phone: staff.NV_soDienThoai,
     password: staff.NV_matKhau,
+    isBlock: staff.NV_daKhoa,
   }));
 }
 
@@ -41,5 +42,6 @@ export function mapStaffToDto(data: Staff, staffId: string): StaffDto {
     NV_email: data.email,
     NV_soDienThoai: data.phone,
     NV_matKhau: data.password,
+    NV_daKhoa: data.isBlock,
   };
 }

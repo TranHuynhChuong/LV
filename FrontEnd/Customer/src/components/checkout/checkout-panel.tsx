@@ -30,6 +30,7 @@ import {
 } from './checkout-utils';
 import type { InvoiceFormHandle } from '@/components/checkout/invoice-section';
 import LoadingInline from '../ui/loading-inline';
+
 export const InvoiceForm = dynamic(
   () => import('@/components/checkout/invoice-section').then((mod) => mod.default),
   {
@@ -46,6 +47,11 @@ export const VoucherSection = dynamic(() => import('@/components/checkout/vouche
 export const AddressList = dynamic(() => import('@/components/profile/address/address-list'), {
   ssr: false,
   loading: () => <LoadingInline label="Đang tải danh sách thông tin nhận hàng..." />,
+});
+
+export const PaymentMethod = dynamic(() => import('@/components/checkout/payment-methods'), {
+  ssr: false,
+  loading: () => <LoadingInline label="Đang tải phương thức thanh toán..." />,
 });
 
 export const OrderErrorDialog = dynamic(() => import('./order-error-dialog'), {
@@ -77,6 +83,7 @@ export default function CheckOutPanel() {
     useOrderSummary(books, shippingPolicy, selectedVouchers);
   const [createSuccess, setCreateSuccess] = useState(false);
   const removeFromCartByIds = useCartStore((state) => state.removeFromCartByIds);
+  const [paymentMethod, setPaymentMethod] = useState<string>('COD');
 
   const getDefaultAddress = useCallback(
     async (userId: number) => {
@@ -172,12 +179,15 @@ export default function CheckOutPanel() {
           }
         : undefined,
       MG: selectedVouchers.map((v) => ({ MG_id: v.code })),
+      ...(paymentMethod !== 'COD' && { PhuongThucThanhToan: paymentMethod }),
     };
     setIsSubmitting(true);
     api
       .post('/orders', payload)
-      .then(() => {
+      .then((res) => {
+        const order_url = res.data;
         setCreateSuccess(true);
+        if (order_url) router.replace(order_url);
       })
       .catch((error) => {
         const errorCodes = error?.response?.data?.message;
@@ -186,6 +196,7 @@ export default function CheckOutPanel() {
           '1002': 'Có sách không đủ hàng',
           '1003': 'Có sách có thay đổi về giá',
           '2001': 'Mã giảm giá không hợp lệ',
+          '4001': 'Lỗi thanh toán, vui lòng kiểm tra đơn hàng và thanh toán lại',
         };
         if (Array.isArray(errorCodes)) {
           const mappedMessages = errorCodes
@@ -323,6 +334,7 @@ export default function CheckOutPanel() {
         orderTotal={orderTotal}
         isDisabled={!authData.userId}
       />
+      <PaymentMethod value={paymentMethod} onChange={setPaymentMethod} />
       <BooksSection books={books} />
       <section className="p-6 space-y-6 bg-white border rounded-md shadow">
         <div className="space-y-1 text-sm text-muted-foreground">

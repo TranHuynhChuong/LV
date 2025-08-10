@@ -38,7 +38,16 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
             <p>{format(new Date(order.createdAt), 'dd/MM/yyyy')}</p>
           </div>
           <div className="flex flex-col items-end gap-2 text-sm">
-            <span className="whitespace-nowrap">{statusMap[order.status] || 'Không xác định'}</span>
+            <span className="text-sm whitespace-nowrap space-x-2 flex">
+              {order.payment && (
+                <>
+                  <p>{order.payment.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+                  <p>|</p>
+                </>
+              )}
+
+              <p>{statusMap[order.status] || 'Không xác định'}</p>
+            </span>
             {order.requestInvoice && (
               <Badge variant="outline" className="whitespace-nowrap">
                 Yêu cầu xuất hóa đơn
