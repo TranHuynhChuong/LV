@@ -278,7 +278,7 @@ export default function CartPanel() {
             disabled={selected.length === 0}
             onClick={handleCheckout}
           >
-            Thanh toán ({selected.length})
+            Đặt hàng ({selected.length})
           </Button>
         </div>
       </div>
