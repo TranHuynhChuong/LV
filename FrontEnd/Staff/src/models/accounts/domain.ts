@@ -12,4 +12,5 @@ export type Staff = {
   phone: string;
   id?: string;
   password: string;
+  isBlock: boolean;
 };

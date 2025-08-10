@@ -75,10 +75,10 @@ export class NhanVien {
   NV_matKhau: string;
 
   /**
-   * Trạng thái xóa mềm: `true` nếu nhân viên đã bị xóa, `false` nếu còn hoạt động.
+   * Trạng thái khóa: `true` nếu nhân viên đã bị khóa, `false` nếu còn hoạt động.
    */
   @Prop({ type: Boolean, default: false })
-  NV_daXoa: boolean;
+  NV_daKhoa: boolean;
 
   /**
    * Danh sách các thao tác mà nhân viên đã thực hiện.

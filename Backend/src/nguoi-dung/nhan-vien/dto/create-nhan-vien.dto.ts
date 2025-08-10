@@ -4,6 +4,7 @@ import {
   MinLength,
   MaxLength,
   IsNumber,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateNhanVienDto {
@@ -30,4 +31,7 @@ export class CreateNhanVienDto {
 
   @IsString()
   NV_idNV: string;
+
+  @IsBoolean()
+  NV_daKhoa: string;
 }

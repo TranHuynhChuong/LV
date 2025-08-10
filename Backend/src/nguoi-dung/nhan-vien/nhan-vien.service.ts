@@ -104,13 +104,13 @@ export class NhanVienUtilService {
   }
 
   /**
-   * Tìm nhân viên theo ID và thêm tên vai trò vào kết quả.
+   * Tìm nhân viên theo ID (không bị khóa) và thêm tên vai trò vào kết quả.
    *
    * @param id Mã định danh NV_id của nhân viên
    * @returns Nhân viên kèm tên vai trò (NV_tenVaiTro)
    */
   async findById(id: string): Promise<NhanVien & { NV_tenVaiTro: string }> {
-    const staff = await this.NhanVienRepo.findById(id);
+    const staff = await this.NhanVienRepo.findUnBlockById(id);
     if (!staff) {
       throw new NotFoundException();
     }
@@ -257,29 +257,57 @@ export class NhanVienService {
   }
 
   /**
-   * Đánh dấu xóa mềm một nhân viên và ghi lịch sử thao tác.
+   * Khóa một nhân viên và ghi lịch sử thao tác.
    *
    * @param id Mã NV_id cần xóa
    * @param NV_id ID của người thực hiện thao tác
    * @returns Nhân viên đã được đánh dấu xóa
    */
-  async delete(id: string, NV_id: string): Promise<NhanVien> {
+  async block(id: string, NV_id: string): Promise<NhanVien> {
     const existing = await this.NhanVienRepo.findById(id);
     if (!existing) throw new BadRequestException();
     const thaoTac = {
-      thaoTac: 'Xóa dữ liệu',
+      thaoTac: 'Khóa tài khoản',
       NV_id: NV_id,
       thoiGian: new Date(),
     };
     const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const deleted = await this.NhanVienRepo.update(id, {
-      NV_daXoa: true,
+    const block = await this.NhanVienRepo.update(id, {
+      NV_daKhoa: true,
       lichSuThaoTac: lichSuThaoTac,
     });
-    if (!deleted) {
-      throw new NotFoundException('Xóa nhân viên - Xóa nhân viên thất bại');
+    if (!block) {
+      throw new NotFoundException('Khóa nhân viên - Khóa nhân viên thất bại');
     }
-    return deleted;
+    return block;
+  }
+
+  /**
+   * Khóa một nhân viên và ghi lịch sử thao tác.
+   *
+   * @param id Mã NV_id cần xóa
+   * @param NV_id ID của người thực hiện thao tác
+   * @returns Nhân viên đã được đánh dấu xóa
+   */
+  async unblock(id: string, NV_id: string): Promise<NhanVien> {
+    const existing = await this.NhanVienRepo.findById(id);
+    if (!existing) throw new BadRequestException();
+    const thaoTac = {
+      thaoTac: 'Mở khóa tài khoản',
+      NV_id: NV_id,
+      thoiGian: new Date(),
+    };
+    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
+    const unblock = await this.NhanVienRepo.update(id, {
+      NV_daKhoa: false,
+      lichSuThaoTac: lichSuThaoTac,
+    });
+    if (!unblock) {
+      throw new NotFoundException(
+        'Mở khóa nhân viên - Mở khóa nhân viên thất bại'
+      );
+    }
+    return unblock;
   }
 
   /**

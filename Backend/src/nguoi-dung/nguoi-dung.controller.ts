@@ -4,7 +4,6 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Param,
   Body,
   Query,
@@ -150,21 +149,5 @@ export class NguoiDungController {
   @Put('staff/:id')
   async updateStaff(@Param('id') id: string, @Body() data: UpdateNhanVienDto) {
     return await this.NhanVienService.update(id, data);
-  }
-
-  /**
-   * Xóa mềm nhân viên (đánh dấu đã xóa).
-   *
-   * @param id ID nhân viên bị xóa.
-   * @param staffId ID người thực hiện thao tác xóa.
-   * @returns Kết quả xóa.
-   */
-  @Roles(1)
-  @Delete('staff/:id')
-  async deleteStaff(
-    @Param('id') id: string,
-    @Query('staffId') staffId: string
-  ) {
-    return await this.NhanVienService.delete(id, staffId);
   }
 }

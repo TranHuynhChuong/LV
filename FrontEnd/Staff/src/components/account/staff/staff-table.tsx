@@ -17,10 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import DeleteActionCell from '@/components/utils/delete-action-cell';
-import { useAuth } from '@/contexts/auth-context';
-import api from '@/lib/axios-client';
-import EventBus from '@/lib/event-bus';
 import { Staff } from '@/models/accounts';
 import {
   ColumnDef,
@@ -46,7 +42,6 @@ export default function StaffTable({ data }: Readonly<Props>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const { authData } = useAuth();
   const columns: ColumnDef<Staff>[] = [
     {
       accessorKey: 'id',
@@ -67,6 +62,13 @@ export default function StaffTable({ data }: Readonly<Props>) {
       enableHiding: false,
       enableColumnFilter: true,
       cell: ({ row }) => <div>{row.getValue('roleName')}</div>,
+    },
+    {
+      accessorKey: 'isBlock',
+      header: 'Trạng thái',
+      enableHiding: false,
+      enableColumnFilter: true,
+      cell: ({ row }) => <div>{row.getValue('isBlock') ? 'Khóa' : 'Hoạt động'}</div>,
     },
     {
       accessorKey: 'fullName',
@@ -97,13 +99,6 @@ export default function StaffTable({ data }: Readonly<Props>) {
             <Link className="cursor-pointer hover:underline" href={`/accounts/staffs/${staff.id}`}>
               Cập nhật
             </Link>
-            <DeleteActionCell
-              resourceId={staff.id}
-              onDelete={async (id) => {
-                await api.delete(`/users/staff/${id}?staffId=${authData.userId}`);
-                EventBus.emit('staff:refetch');
-              }}
-            />
           </div>
         );
       },
@@ -155,7 +150,7 @@ export default function StaffTable({ data }: Readonly<Props>) {
             }
           >
             <SelectTrigger className="w-[180px] cursor-pointer">
-              <SelectValue placeholder="Lọc theo vai trò" className="cursor-pointer" />
+              <SelectValue placeholder="Vai trò" className="cursor-pointer" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="cursor-pointer">
@@ -169,6 +164,28 @@ export default function StaffTable({ data }: Readonly<Props>) {
               </SelectItem>
               <SelectItem value="Bán hàng" className="cursor-pointer">
                 Bán hàng
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            onValueChange={(value) =>
+              table
+                .getColumn('isBlock')
+                ?.setFilterValue(value === 'all' ? undefined : Boolean(value))
+            }
+          >
+            <SelectTrigger className="w-[200px] cursor-pointer">
+              <SelectValue placeholder="Trạng thái hoạt động" className="cursor-pointer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">
+                Tất cả
+              </SelectItem>
+              <SelectItem value="true" className="cursor-pointer">
+                Khóa
+              </SelectItem>
+              <SelectItem value="false" className="cursor-pointer">
+                Hoạt động
               </SelectItem>
             </SelectContent>
           </Select>

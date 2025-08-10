@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
 import { Staff } from '@/models/accounts';
@@ -32,23 +33,17 @@ const formSchema: z.Schema<Staff> = z.object({
   email: z.string().email('Email không hợp lệ').max(128, 'Email không được vượt quá 128 ký tự'),
   role: z.string(),
   password: z.string().min(6, 'Mật khẩu ít nhất 6 ký tự').max(72, 'Mật khẩu tối đa 72 ký tự'),
+  isBlock: z.boolean(),
 });
 
 type Props = {
   defaultValues?: Partial<Staff>;
   onSubmit?: (data: Staff) => void;
-  onDelete?: () => void;
   isViewing?: boolean;
 };
 
-export default function StaffForm({
-  defaultValues,
-  onSubmit,
-  onDelete,
-  isViewing,
-}: Readonly<Props>) {
+export default function StaffForm({ defaultValues, onSubmit, isViewing }: Readonly<Props>) {
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState<boolean>(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<Staff | null>(null);
   const roleOptions = [
@@ -65,6 +60,7 @@ export default function StaffForm({
       email: '',
       role: '3',
       password: '',
+      isBlock: false,
       ...defaultValues,
     },
   });
@@ -79,11 +75,6 @@ export default function StaffForm({
       onSubmit?.(formDataToSubmit);
       setIsConfirmDialogOpen(false);
     }
-  };
-
-  const handleConfirmDelete = () => {
-    setIsDeleteDialogOpen(false);
-    onDelete?.();
   };
 
   return (
@@ -106,6 +97,24 @@ export default function StaffForm({
                 )}
               />
             )}
+            <FormField
+              control={form.control}
+              name="isBlock"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Khóa tài khoản</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="cursor-pointer"
+                      disabled={isViewing}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="fullName"
@@ -194,19 +203,10 @@ export default function StaffForm({
               )}
             />
           </div>
-          <FormFooterActions
-            isEditing={isEditing}
-            isViewing={isViewing}
-            onDelete={() => setIsDeleteDialogOpen(true)}
-          />
+          <FormFooterActions isEditing={isEditing} isViewing={isViewing} />
         </form>
       </Form>
-      <ConfirmDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleConfirmDelete}
-        mode="delete"
-      />
+
       <ConfirmDialog
         open={isConfirmDialogOpen}
         onOpenChange={setIsConfirmDialogOpen}

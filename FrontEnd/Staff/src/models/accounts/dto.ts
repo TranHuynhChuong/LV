@@ -6,6 +6,7 @@ export type StaffDto = {
   NV_soDienThoai: string;
   NV_idNV?: string;
   NV_matKhau: string;
+  NV_daKhoa: boolean;
 };
 
 export type CustomerDto = {

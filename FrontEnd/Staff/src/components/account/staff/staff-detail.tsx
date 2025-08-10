@@ -63,23 +63,11 @@ export default function StaffDetail() {
     }
   }
 
-  async function handleOnDelete() {
-    if (!authData.userId) return;
-    setIsSubmitting(true);
-    try {
-      await api.delete(`/users/staff/${id}?staffId=${authData.userId}`);
-      toast.success('Xóa thành công');
-      router.back();
-    } catch {
-      toast.error('Xóa thất bại!');
-      setIsSubmitting(false);
-    }
-  }
   if (!data) return <StaffFormLoading />;
   else
     return (
       <>
-        <StaffForm defaultValues={data} onSubmit={handleOnSubmit} onDelete={handleOnDelete} />
+        <StaffForm defaultValues={data} onSubmit={handleOnSubmit} />
         {isSubmitting && <Loader />}
         <div className="absolute top-6 right-6">
           <ActionHistorySheet activityLogs={activityLogs} />
