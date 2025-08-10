@@ -934,7 +934,9 @@ export class DonHangService {
                 stats.complete.totalShipPrice - stats.complete.totalShipSale;
               return [
                 date,
-                Number(stats.total.all ?? 0),
+                Number(
+                  (stats.total.complete ?? 0) + (stats.total.inComplete ?? 0)
+                ),
                 Number(stats.total.complete ?? 0),
                 Number(stats.total.inComplete ?? 0),
                 Number(revenueP ?? 0),
