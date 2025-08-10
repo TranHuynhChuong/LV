@@ -28,6 +28,10 @@ const links = [
     title: 'Đơn hàng',
     items: [{ label: 'Đơn hàng của tôi', href: '/profile/order' }],
   },
+  {
+    title: 'Đánh giá',
+    items: [{ label: 'Đánh giá của tôi', href: '/profile/review' }],
+  },
 ];
 
 export default function ProfileSidebar() {

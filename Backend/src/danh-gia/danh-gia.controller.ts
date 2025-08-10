@@ -85,6 +85,32 @@ export class DanhGiaController {
   }
 
   /**
+   * API: Lấy danh sách đánh giá của một đơn hàng
+   *
+   * @param orderId Mã đơn hàng
+   */
+  @Get('order/:orderId')
+  getReviewsOfOrder(@Param('orderId') orderId: string) {
+    return this.DanhGiaService.findAllOfOrder(orderId);
+  }
+
+  /**
+   * API: Lấy danh sách đánh giá của một khách hàng
+   *
+   * @param customerId Mã khách hàng
+   * @param page Số trang (mặc định 1)
+   * @param limit Số lượng trên mỗi trang (mặc định 24)
+   */
+  @Get('customer/:customerId')
+  getReviewsOfCustomer(
+    @Param('customerId', ParseIntPipe) customerId: number,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 12
+  ) {
+    return this.DanhGiaService.findAllOfCustomer(customerId, page, limit);
+  }
+
+  /**
    * Thống kê số lượng đánh giá trong khoảng thời gian.
    *
    * @param from - Ngày bắt đầu (ISO format)

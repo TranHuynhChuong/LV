@@ -122,6 +122,27 @@ export class DanhGiaService {
   }
 
   /**
+   * Lấy danh sách đánh giá của một đơn hàng
+   *
+   * @param orderId Mã đơn hàng
+   */
+  async findAllOfOrder(orderId: string) {
+    return this.DanhGiaRepo.findAllOfOrder(orderId);
+  }
+
+  /**
+   * Lấy danh sách đánh giá của một khách hàng
+   *
+   * @param customerId Mã khách hàng
+   * @param page Số trang hiện tại
+   * @param limit Số lượng bản ghi mỗi trang
+   * @returns Danh sách đánh giá, phân trang
+   */
+  async findAllOfCustomer(customerId: number, page: number, limit?: number) {
+    return this.DanhGiaRepo.findAllOfCustomer(customerId, page, limit);
+  }
+
+  /**
    * Hiển thị (bỏ ẩn) một đánh giá và cập nhật điểm sách
    *
    * @param dto Dữ liệu cập nhật bao gồm ID đơn hàng, sách, khách hàng và nhân viên

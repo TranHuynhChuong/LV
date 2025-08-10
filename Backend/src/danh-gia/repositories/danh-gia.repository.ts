@@ -218,6 +218,106 @@ export class DanhGiaRepository {
   }
 
   /**
+   * Lấy danh sách đánh giá của một đơn hàng cụ thể
+   *
+   * @param orderId Mã đơn hàng cần lấy đánh giá
+   * @returns Danh sách đánh giá, thông tin phân trang
+   */
+  findAllOfOrder(orderId: string): Promise<any[]> {
+    return this.DanhGiaModel.aggregate([
+      {
+        $match: { DH_id: orderId },
+      },
+      {
+        $lookup: {
+          from: 'saches',
+          localField: 'S_id',
+          foreignField: 'S_id',
+          as: 'sach',
+        },
+      },
+      { $unwind: { path: '$sach', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          S_ten: '$sach.S_ten',
+        },
+      },
+      {
+        $project: {
+          sach: 0,
+        },
+      },
+      { $sort: { DG_ngayTao: -1 } },
+    ]);
+  }
+
+  /**
+   * Lấy danh sách đánh giá của một khách hàng cụ thể
+   *
+   * @param customerId Mã khách hàng cần lấy đánh giá
+   * @param page Số trang hiện tại (bắt đầu từ 1)
+   * @param limit Số lượng đánh giá trên mỗi trang (mặc định 24)
+   * @returns Danh sách đánh giá, thông tin phân trang
+   */
+  async findAllOfCustomer(customerId: number, page: number, limit = 24) {
+    const skip = (page - 1) * limit;
+    const matchStage: PipelineStage.Match = {
+      $match: { KH_id: customerId },
+    };
+    const dataPipeline: PipelineStage[] = [
+      matchStage,
+      {
+        $lookup: {
+          from: 'saches',
+          localField: 'S_id',
+          foreignField: 'S_id',
+          as: 'sach',
+        },
+      },
+      { $unwind: { path: '$sach', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          S_ten: '$sach.S_ten',
+          S_anh: {
+            $arrayElemAt: [
+              {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$sach.S_anh',
+                      as: 'anh',
+                      cond: { $eq: ['$$anh.A_anhBia', true] },
+                    },
+                  },
+                  as: 'anh',
+                  in: '$$anh.A_url',
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          sach: 0,
+        },
+      },
+      { $sort: { DG_ngayTao: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+    const countPipeline: PipelineStage[] = [matchStage, { $count: 'count' }];
+    return paginateRawAggregate({
+      model: this.DanhGiaModel,
+      page,
+      limit,
+      dataPipeline,
+      countPipeline,
+    });
+  }
+
+  /**
    * Tính điểm đánh giá trung bình của một quyển sách (chỉ tính các đánh giá đang hiển thị).
    *
    * @param bookId Mã sách cần tính điểm trung bình
