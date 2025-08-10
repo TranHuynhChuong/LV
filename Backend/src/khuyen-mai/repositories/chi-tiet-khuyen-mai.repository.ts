@@ -26,8 +26,6 @@ export class ChiTietKhuyenMaiRepository {
       {
         $match: {
           S_id: { $in: ids },
-          CTKM_daXoa: false,
-          CTKM_tamNgung: false,
         },
       },
       {
@@ -51,7 +49,6 @@ export class ChiTietKhuyenMaiRepository {
           S_id: 1,
           CTKM_theoTyLe: 1,
           CTKM_giaTri: 1,
-          CTKM_tamNgung: 1,
           CTKM_giaSauGiam: 1,
         },
       },
@@ -69,7 +66,7 @@ export class ChiTietKhuyenMaiRepository {
     id: number,
     session?: ClientSession
   ): Promise<ChiTietKhuyenMai[]> {
-    return this.ChiTietKhuyenMaiModel.find({ KM_id: id, CTKM_daXoa: false })
+    return this.ChiTietKhuyenMaiModel.find({ KM_id: id })
       .session(session ?? null)
       .lean()
       .exec();
@@ -101,7 +98,7 @@ export class ChiTietKhuyenMaiRepository {
     session?: ClientSession
   ) {
     return this.ChiTietKhuyenMaiModel.findOneAndUpdate(
-      { S_id: bookId, KM_id: promotionId, CTKM_daXoa: false },
+      { S_id: bookId, KM_id: promotionId },
       update,
       { new: true, session }
     );
@@ -122,7 +119,7 @@ export class ChiTietKhuyenMaiRepository {
     session?: ClientSession
   ) {
     return this.ChiTietKhuyenMaiModel.findOneAndUpdate(
-      { S_id: bookId, KM_id: promotionId, CTKM_daXoa: false },
+      { S_id: bookId, KM_id: promotionId },
       {
         $set: {
           CTKM_giaSauGiam: giaSauGiam,
@@ -140,9 +137,8 @@ export class ChiTietKhuyenMaiRepository {
    * @returns Kết quả cập nhật
    */
   async remove(promotionId: number, bookId: number, session?: ClientSession) {
-    return this.ChiTietKhuyenMaiModel.updateOne(
+    return this.ChiTietKhuyenMaiModel.deleteOne(
       { KM_id: promotionId, S_id: bookId },
-      { CTKM_daXoa: true },
       { session }
     );
   }

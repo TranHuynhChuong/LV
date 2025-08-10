@@ -14,8 +14,6 @@ export type DetailDto = {
   S_id: number;
   CTKM_theoTyLe: boolean;
   CTKM_giaTri: number;
-  CTKM_tamNgung: boolean;
-  CTKM_daXoa: boolean;
   CTKM_giaSauGiam?: number;
 };
 
@@ -37,7 +35,6 @@ export type BookPromotionDetailToDto = {
     S_id: number;
     CTKM_theoTyLe: boolean;
     CTKM_giaTri: number;
-    CTKM_tamNgung: boolean;
     CTKM_giaSauGiam?: number;
   }[];
   NV_id: string;

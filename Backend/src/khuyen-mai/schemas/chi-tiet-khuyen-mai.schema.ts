@@ -36,18 +36,6 @@ export class ChiTietKhuyenMai {
    */
   @Prop({ type: Number, required: true })
   CTKM_giaSauGiam: number;
-
-  /**
-   * Cờ tạm ngưng áp dụng khuyến mãi (true nếu tạm ngưng)
-   */
-  @Prop({ type: Boolean, required: true, default: false })
-  CTKM_tamNgung: boolean;
-
-  /**
-   * Cờ đánh dấu đã xóa (true nếu đã bị xóa mềm)
-   */
-  @Prop({ type: Boolean, required: true, default: false })
-  CTKM_daXoa: boolean;
 }
 
 export const ChiTietKhuyenMaiSchema =

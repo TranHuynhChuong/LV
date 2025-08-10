@@ -69,17 +69,10 @@ export class KhuyenMaiRepository {
       },
       {
         $addFields: {
-          KM_slTong: {
-            $size: {
-              $filter: {
-                input: '$chiTietList',
-                as: 'ct',
-                cond: { $eq: ['$$ct.CTKM_daXoa', false] },
-              },
-            },
-          },
+          KM_slTong: { $size: '$chiTietList' },
         },
       },
+
       {
         $project: {
           lichSuThaoTac: 0,
@@ -148,7 +141,7 @@ export class KhuyenMaiRepository {
             $filter: {
               input: '$chiTietKhuyenMai',
               as: 'ct',
-              cond: { $eq: ['$$ct.CTKM_daXoa', false] },
+              cond: true,
             },
           },
         },

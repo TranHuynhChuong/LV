@@ -22,7 +22,6 @@ export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
       bookId: d.S_id,
       isPercent: d.CTKM_theoTyLe,
       value: d.CTKM_giaTri,
-      isBlocked: d.CTKM_tamNgung,
       salePrice: d.CTKM_giaSauGiam,
     })),
   };
@@ -65,7 +64,6 @@ export function mapBookPromotionDetailToDto(
       S_id: detail.bookId,
       CTKM_theoTyLe: detail.isPercent,
       CTKM_giaTri: detail.value,
-      CTKM_tamNgung: detail.isBlocked,
       CTKM_giaSauGiam: detail.salePrice,
     })),
     NV_id: staffId,

@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -32,7 +31,6 @@ type Props = {
     bookId: number;
     isPercent: boolean;
     value: number;
-    isBlocked: boolean;
     salePrice?: number;
   }[];
   watch: UseFormWatch<BookPromotionDetail>;
@@ -78,21 +76,17 @@ export default function BookDiscountTable({
               <TableHead>Kiểu</TableHead>
               <TableHead>Giá sau giảm</TableHead>
               <TableHead>Tồn kho</TableHead>
-              <TableHead>Khóa</TableHead>
               <TableHead>Xóa</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {mergedData?.map(({ detail: item, book }, index) => {
               if (!book) return null;
-              const isBlocked = watch(`details.${index}.isBlocked`) ?? false;
               const isPercent = watch(`details.${index}.isPercent`) ?? true;
               const rawValue = watch(`details.${index}.value`);
-
               const value = isNaN(Number(rawValue)) ? 0 : Number(rawValue);
               const salePricePath = `details.${index}.salePrice` as const;
               const valuePath = `details.${index}.value` as const;
-              const blockedPath = `details.${index}.isBlocked` as const;
               const percentPath = `details.${index}.isPercent` as const;
               const idPath = `details.${index}.bookId` as const;
 
@@ -149,7 +143,7 @@ export default function BookDiscountTable({
                         type="number"
                         min={0}
                         max={100}
-                        readOnly={isBlocked || isViewing}
+                        readOnly={isViewing}
                         value={rawValue ?? 0}
                         onChange={(e) => {
                           const parsed = Number(e.target.value);
@@ -165,7 +159,7 @@ export default function BookDiscountTable({
                         groupSeparator="."
                         decimalSeparator=","
                         prefix="₫"
-                        readOnly={isBlocked || isViewing}
+                        readOnly={isViewing}
                         value={rawValue ?? 0}
                         onValueChange={(value) => {
                           const parsed = Number(value ?? 0);
@@ -177,7 +171,7 @@ export default function BookDiscountTable({
                   </TableCell>
                   <TableCell>
                     <Select
-                      disabled={isBlocked || isViewing}
+                      disabled={isViewing}
                       onValueChange={(val) => {
                         setValue(percentPath, val === 'percent');
                         setValue(
@@ -218,16 +212,6 @@ export default function BookDiscountTable({
                       readOnly
                       className="w-18 disabled:opacity-80"
                     />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center ">
-                      <Switch
-                        className="cursor-pointer"
-                        checked={isBlocked}
-                        onCheckedChange={(val) => setValue(blockedPath, val)}
-                        disabled={isViewing}
-                      />
-                    </div>
                   </TableCell>
                   <TableCell>
                     <Button

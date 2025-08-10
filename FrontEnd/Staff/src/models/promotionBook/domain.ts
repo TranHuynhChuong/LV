@@ -13,7 +13,6 @@ export type Details = {
   salePrice?: number;
   value: number;
   isPercent: boolean;
-  isBlocked: boolean;
 };
 
 export type BookPromotionDetail = {

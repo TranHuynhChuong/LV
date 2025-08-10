@@ -312,8 +312,7 @@ export class KhuyenMaiService {
         );
       } else if (
         oldItem.CTKM_theoTyLe !== newItem.CTKM_theoTyLe ||
-        oldItem.CTKM_giaTri !== newItem.CTKM_giaTri ||
-        oldItem.CTKM_tamNgung !== newItem.CTKM_tamNgung
+        oldItem.CTKM_giaTri !== newItem.CTKM_giaTri
       ) {
         changed = true;
         promises.push(
@@ -323,7 +322,6 @@ export class KhuyenMaiService {
             {
               CTKM_theoTyLe: newItem.CTKM_theoTyLe,
               CTKM_giaTri: newItem.CTKM_giaTri,
-              CTKM_tamNgung: newItem.CTKM_tamNgung,
               CTKM_giaSauGiam: newItem.CTKM_giaSauGiam,
             },
             session

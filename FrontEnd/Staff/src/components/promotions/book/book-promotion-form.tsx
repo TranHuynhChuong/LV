@@ -33,7 +33,6 @@ const BookPromotionSchema: z.Schema<BookPromotionDetail> = z
         bookId: z.number(),
         isPercent: z.boolean(),
         value: z.number(),
-        isBlocked: z.boolean(),
         salePrice: z.number().optional(),
       })
     ),
@@ -71,7 +70,6 @@ type Detail = {
   bookId: number;
   salePrice?: number;
   isPercent: boolean;
-  isBlocked: boolean;
 };
 
 export default function BookPromotionForm({
@@ -122,7 +120,6 @@ export default function BookPromotionForm({
       isPercent: true,
       value: 0,
       salePrice: undefined,
-      isBlocked: false,
     }));
     const currentDetails = watch('details') || [];
     setValue('details', [...currentDetails, ...newDetails]);
