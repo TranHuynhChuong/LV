@@ -146,7 +146,7 @@ export default function CategoryTable({ data, levelOptions }: Readonly<Props>) {
     },
     initialState: {
       pagination: {
-        pageSize: 12,
+        pageSize: 24,
       },
     },
   });

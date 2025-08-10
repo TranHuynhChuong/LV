@@ -101,6 +101,10 @@ export class CreateDto {
   @IsArray()
   @IsOptional()
   MG?: CreateMaGiamDonHangDto[];
+
+  @IsString()
+  @IsOptional()
+  PhuongThucThanhToan?: string;
 }
 
 export class CheckDto {

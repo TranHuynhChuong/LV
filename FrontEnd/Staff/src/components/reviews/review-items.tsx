@@ -7,13 +7,14 @@ import eventBus from '@/lib/event-bus';
 import { Review } from '@/models/reviews';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, MessageCircleMore } from 'lucide-react';
 import Image from 'next/image';
 import { FC, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '@/components/utils/loader';
 import dynamic from 'next/dynamic';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
 
 const ConfirmToggleReviewDialog = dynamic(() => import('./review-confirm-dialog'), {
   ssr: false,
@@ -56,27 +57,36 @@ const ReviewItem: FC<Props> = ({ review }) => {
     <div className="flex flex-col gap-4 p-4 bg-white border rounded-md md:flex-row">
       {isSubmitting && <Loader />}
       <div className="flex-col flex-1">
-        <h2 className="pb-4 pl-4 text-sm font-semibold">Mã đơn hàng: {review.orderId}</h2>
-        <div className="flex">
-          <div className="relative w-24 h-24 shrink-0">
+        <h2 className="pb-2  text-sm "> {review.bookName}</h2>
+        <div className="flex space-x-2">
+          <div className="relative w-20 h-20 shrink-0">
             <Image
               src={review.bookImage}
               alt={review.bookName}
-              sizes="96px"
+              sizes="80px"
               fill
-              className="object-cover rounded-md"
+              className="object-cover rounded-sm border"
             />
           </div>
           <div className="flex-1 space-y-1">
-            <div className="text-sm text-muted-foreground">{review.bookName}</div>
-            <div className="text-sm">
-              Người đánh giá: <strong>{review.name}</strong>
+            <div className="text-sm flex space-x-2">
+              <p>Điểm: {review.rating}/5 </p>
+              {review.comment && (
+                <HoverCard>
+                  <HoverCardTrigger>
+                    <span className="text-xs cursor-pointer">
+                      <MessageCircleMore size={18} />
+                    </span>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80" side="top">
+                    <p className="text-xs">{review.comment}</p>
+                  </HoverCardContent>
+                </HoverCard>
+              )}
             </div>
-            <div className="text-sm">
-              Điểm: <strong>{review.rating}⭐</strong>
-            </div>
-
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground">Mã đơn hàng: {review.orderId}</div>
+            <div className="text-xs text-muted-foreground">Người đánh giá: {review.name}</div>
+            <div className="text-xs text-muted-foreground">
               Ngày: {format(new Date(review.createdAt), 'dd/MM/yyyy', { locale: vi })}
             </div>
           </div>

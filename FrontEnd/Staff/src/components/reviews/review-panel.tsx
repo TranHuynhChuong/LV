@@ -28,7 +28,7 @@ export default function ReviewPanel() {
 
   const type = (searchParams.get('type') ?? 'visible') as 'all' | 'visible' | 'hidden';
   const page = parseInt(searchParams.get('page') ?? '1');
-  const limit = 20;
+  const limit = 12;
   const rating = searchParams.get('rating') ?? '';
   const from = searchParams.get('from') ?? '';
   const to = searchParams.get('to') ?? '';

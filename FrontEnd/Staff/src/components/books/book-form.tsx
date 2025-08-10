@@ -443,9 +443,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="summary"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
-                    <span className="text-red-500">*</span>Tóm tắt
-                  </FormLabel>
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">Tóm tắt</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <Textarea
                       value={autoSummary}

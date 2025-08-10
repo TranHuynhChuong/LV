@@ -240,11 +240,7 @@ export class SachRepository {
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $eq: ['$S_id', '$$s_id'] },
-                    { $eq: ['$CTKM_daXoa', false] },
-                    { $eq: ['$CTKM_tamNgung', false] },
-                  ],
+                  $and: [{ $eq: ['$S_id', '$$s_id'] }],
                 },
               },
             },
@@ -316,10 +312,7 @@ export class SachRepository {
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $eq: ['$S_id', '$$s_id'] },
-                    { $eq: ['$CTKM_daXoa', false] },
-                  ],
+                  $and: [{ $eq: ['$S_id', '$$s_id'] }],
                 },
               },
             },

@@ -1,6 +1,7 @@
 export default () => ({
   app: {
     port: parseInt(process.env.PORT ?? '3003', 10),
+    url: process.env.BE_URL,
   },
   database: {
     uri: process.env.MONGO_URI,
@@ -27,5 +28,13 @@ export default () => ({
       .split(',')
       .map((url) => url.trim())
       .filter((url) => url.length > 0),
+  },
+
+  zaloPay: {
+    appId: process.env.APPID,
+    key1: process.env.KEY1,
+    key2: process.env.KEY2,
+    createEndpoint: process.env.CREATE_ENDPOINT,
+    queryEndpoint: process.env.QUERY_ENDPOINT,
   },
 });

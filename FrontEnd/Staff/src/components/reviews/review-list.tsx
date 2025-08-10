@@ -10,7 +10,7 @@ type Props = {
 
 const ReviewList: FC<Props> = ({ data }) => {
   return (
-    <div className="space-y-2">
+    <div className=" grid grid-cols-1 lg:grid-cols-2 gap-2">
       {data.map((review, index) => (
         <ReviewItem key={`${review.orderId}-${review.bookId}-${index}`} review={review} />
       ))}
