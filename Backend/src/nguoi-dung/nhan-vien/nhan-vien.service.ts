@@ -32,6 +32,7 @@ const typeOfChange: Record<string, string> = {
   NV_soDienThoai: 'Số điện thoại',
   NV_vaiTro: 'Vai trò',
   NV_matKhau: 'Mật khẩu',
+  NV_daKhoa: 'Trạng thái khóa tài khoản',
 };
 
 @Injectable()
