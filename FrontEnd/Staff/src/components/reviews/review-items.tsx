@@ -93,7 +93,7 @@ const ReviewItem: FC<Props> = ({ review }) => {
         </div>
       </div>
       <div className="flex justify-end">
-        <div className="mr-12">
+        <div className={authData.role === 1 ? 'mr-12' : ''}>
           <Button
             variant={review.isHidden ? 'outline' : 'default'}
             onClick={() => setOpenConfirm(true)}
