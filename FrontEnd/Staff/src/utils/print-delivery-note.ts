@@ -187,6 +187,13 @@ export async function generateDeliveryNotePdf(order: any) {
   );
 
   drawText(`Số tiền bằng chữ: ${numberToVietnameseCurrencyWords(total)}`, 8, MARGIN);
+
+  const isPaid = order?.payment?.isPaid;
+  if (isPaid) {
+    y -= LINE_HEIGHT;
+    drawText(`Đã thanh toán (${order?.payment?.method})`, 8, MARGIN);
+  }
+
   // Signatures
   y -= LINE_HEIGHT * 2;
   drawText('Người Nhận', 8, MARGIN);
