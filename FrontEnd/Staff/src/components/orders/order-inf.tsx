@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Order } from '@/models/orders';
-import { generateDeliveryNotePdf } from '@/utils/print-delivery-note';
+import { generateDeliveryNotePdf } from '@/components/orders/print-delivery-note';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, MapPin } from 'lucide-react';
 import Image from 'next/image';
