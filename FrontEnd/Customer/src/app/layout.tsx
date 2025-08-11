@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Roboto, Geist } from 'next/font/google';
 import RouteWatcher from '@/components/utils/route-watcher';
-import RasaWidget from '@/chatbot/rasa-widget';
+import RasaWidget from '@/components/chatbot/rasa-widget';
 
 const geistSans = Geist({
   subsets: ['latin'],
