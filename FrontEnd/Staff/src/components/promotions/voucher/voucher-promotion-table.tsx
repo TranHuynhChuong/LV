@@ -37,8 +37,7 @@ export default function VoucherPromotionsTable({ data }: Readonly<Props>) {
       header: 'Loại',
       cell: ({ row }) => {
         const type = row.original.type;
-        const display =
-          type === 'vc' ? 'Vận chuyển' : type === 'hd' ? 'Tiền hàng' : 'Không xác định';
+        const display = type === 'vc' ? 'Vận chuyển' : type === 'hd' ? 'Hóa đơn' : 'Không xác định';
         return <div>{display}</div>;
       },
     },
