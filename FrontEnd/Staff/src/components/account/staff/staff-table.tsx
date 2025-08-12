@@ -171,7 +171,7 @@ export default function StaffTable({ data }: Readonly<Props>) {
             onValueChange={(value) =>
               table
                 .getColumn('isBlock')
-                ?.setFilterValue(value === 'all' ? undefined : Boolean(value))
+                ?.setFilterValue(value === 'all' ? undefined : value === 'true')
             }
           >
             <SelectTrigger className="w-[200px] cursor-pointer">
