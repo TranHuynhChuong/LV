@@ -16,6 +16,7 @@ Hệ thống backend được xây dựng theo kiến trúc Modular Monolith v�
 - Quản lý Phí vận chuyển.
 - Quản lý thông tin nhận hàng.
 - Xác thực và phân quyền.
+- Thanh toán trực tuyến.
 - Tìm sách:
   - Gợi ý tự động (autocomplete).
   - Tìm kiếm ngữ nghĩa (semantic search) bằng vector, hỗ trợ chatbot và gợi ý sản phẩm.
@@ -30,6 +31,7 @@ Hệ thống backend được xây dựng theo kiến trúc Modular Monolith v�
 - **JWT (JSON Web Token)** - Xác thực và phân quyền
 - **Cloudinary** - Lưu trữ hình ảnh
 - **Gmail + Nodemailer** - Gửi email (SMTP)
+- **ZalopaySandbox** - Thanh toán trực tuyến
 - **Xenova Transformers** & **Xenova/multilingual-e5-small** - Chuyển đổi văn bản thành vector
 - **MongoDB Atlas Search** - Tìm kiếm từ khoá, autocomplete và ngữ nghĩa
 
@@ -51,6 +53,7 @@ src/
 ├── sach/                  # Module sách
 ├── the-loai/              # Module thể loại sách
 ├── tt-nhan-hang/          # Module trạng thái nhận hàng
+├── thanh-toan/            # Module thanh toán
 ├── xac-thuc/              # Xác thực + quyền truy cập
 └── Util/                  # Tiện ích dùng chung
 ```
@@ -135,6 +138,27 @@ Tạo tài khoản tại <https://cloudinary.com/> và lấy các thông số tr
 
 Tạo App Password trong phần quản lý tài khoản Google để sử dụng gửi email qua SMTP
 
+#### ZaloPay Sandbox
+
+Tạo tài khoản và đăng nhập tại https://sandbox.zalopay.vn/.
+Sau khi đăng nhập, vào Quản lý ứng dụng → chọn ứng dụng cần tích hợp để lấy các thông tin sau trong phần Thông tin kết nối:
+
+- APPID – Mã định danh ứng dụng (Application ID).
+- KEY1 – Khóa bí mật dùng để ký dữ liệu gửi đi (merchant key 1).
+- KEY2 – Khóa bí mật dùng để xác thực dữ liệu phản hồi (merchant key 2).
+- CREATE_ENDPOINT – Đường dẫn API tạo đơn hàng (ví dụ: https://sb-openapi.zalopay.vn/v2/create).
+- QUERY_ENDPOINT – Đường dẫn API truy vấn trạng thái đơn hàng (ví dụ: https://sb-openapi.zalopay.vn/v2/query).
+
+_💡 Lưu ý: Có thể sử dụng thông tin dùng chung (được cung cấp trên tài liệu của zalopaysanbox) để test mà không cần đăng ký tài khoản._
+
+```env
+APPID=2553
+KEY1=PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL
+KEY2=kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz
+CREATE_ENDPOINT=https://sb-openapi.zalopay.vn/v2/create
+QUERY_ENDPOINT=https://sb-openapi.zalopay.vn/v2/query
+```
+
 ## 🔧 Cấu hình môi trường (.env)
 
 Dự án sử dụng file .env để cấu hình các biến môi trường cần thiết. Cần tạo file .env trong thư mục gốc với các biến sau:
@@ -164,6 +188,19 @@ PASS=<your_password>
 
 # URL frontend (Danh sách domain frontend được phép truy cập (CORS))
 FE_URL=http://localhost:3001,http://localhost:3002
+
+# ZaloPay Sandbox (Thông tin tích hợp API thanh toán)
+APPID=<your_app_id>
+KEY1=<your_key1>
+KEY2=<your_key2>
+CREATE_ENDPOINT=<create_payment_endpoint>
+QUERY_ENDPOINT=<query_payment_endpoint>
+
+# Backend URL (sử dụng khi frontend gọi API)
+# - Nếu chạy local: http://localhost:3003
+# - Nếu dùng ngrok: chạy lệnh `ngrok http 3003` và copy URL HTTPS vào đây
+BE_URL=<backend_url>
+
 ```
 
 ## 🚀 Khởi chạy ứng dụng

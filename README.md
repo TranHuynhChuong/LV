@@ -20,6 +20,7 @@ Hệ thống bao gồm:
 - **rasa webchat**
 - **zustand**
 - **Axios**
+- **ZalopaySandbox**
 
 
 ## ✨ Đối tượng sử dụng và tính năng chính
@@ -46,6 +47,7 @@ Gồm 3 vai trò:
 - Quản lý Phí vận chuyển.
 - Quản lý thông tin nhận hàng.
 - Xác thực và phân quyền.
+- Thanh toán trực tuyến.
 - Tìm sách:
   - Gợi ý tự động (autocomplete).
   - Tìm kiếm ngữ nghĩa (semantic search) bằng vector, hỗ trợ chatbot và gợi ý sản phẩm.
@@ -104,6 +106,7 @@ Chạy dự án nhanh (Sau khi đã cấu hình và chạy thành công theo hư
 ```plaintext
 /
 ├── start-all.bat/                        # Khởi chạy nhanh toàn bộ dự án
+├── start-ngrok-backend.bat/              # Khỏi chạy nhanh ngrok cổng 3003 cho backend
 ├── start-backend.bat/                    # Khởi chạy nhanh backend
 ├── start-chatbot.bat/                    # Khởi chạy nhanh chatbot
 ├── start-frontend-customer.bat/          # Khỏi chạy nhanh frontend khách hàng
@@ -112,6 +115,7 @@ Chạy dự án nhanh (Sau khi đã cấu hình và chạy thành công theo hư
 ```
 _Đảm bảo backend và các frontend đã build thành công, chatbot đã chạy thành công để chạy nhanh dự án thông qua các file `.bat`._
 
+_Cần chạy file `start-ngrok-backend.bat` trước khi khởi chạy backend nếu chạy thử nghiệm tại localhost, cần lấy url công khai tạm thời do ngrok cung cấp, sao chép vào `.env` tại biến `BE_URL` trước khi khởi chạy backend. _
 
 ## ✍️ Người thực hiện
 
