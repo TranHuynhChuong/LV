@@ -68,7 +68,7 @@ export async function generateDeliveryNotePdf(order: any) {
   };
 
   centerText('DẬT LẠC', 12, true);
-  centerText('63 Ấp 8, Xã Long Trị, TP Cần Thơ', 9);
+  centerText('387 - 389 Hai Bà Trưng, P. Võ Thị Sáu, Q.3, TP.HCM', 9);
   centerText('07029220412', 9);
   y -= 4;
   centerText('PHIẾU GIAO HÀNG', 13, true);
