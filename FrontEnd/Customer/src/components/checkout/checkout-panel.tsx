@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import BooksSection from '@/components/checkout/book-section';
 import AddressForm, { AddressFormHandle } from '@/components/profile/address/address-form';
 import { Button } from '@/components/ui/button';
@@ -29,38 +28,12 @@ import {
   useOrderSummary,
 } from './checkout-utils';
 import type { InvoiceFormHandle } from '@/components/checkout/invoice-section';
-import LoadingInline from '../ui/loading-inline';
-
-export const InvoiceForm = dynamic(
-  () => import('@/components/checkout/invoice-section').then((mod) => mod.default),
-  {
-    ssr: false,
-    loading: () => <LoadingInline label="Đang tải form hóa đơn..." />,
-  }
-);
-
-export const VoucherSection = dynamic(() => import('@/components/checkout/voucher-section'), {
-  ssr: false,
-  loading: () => <LoadingInline label="Đang tải mã giảm giá..." />,
-});
-
-export const AddressList = dynamic(() => import('@/components/profile/address/address-list'), {
-  ssr: false,
-  loading: () => <LoadingInline label="Đang tải danh sách thông tin nhận hàng..." />,
-});
-
-export const PaymentMethod = dynamic(() => import('@/components/checkout/payment-methods'), {
-  ssr: false,
-  loading: () => <LoadingInline label="Đang tải phương thức thanh toán..." />,
-});
-
-export const OrderErrorDialog = dynamic(() => import('./order-error-dialog'), {
-  ssr: false,
-});
-
-export const OrderSuccessDialog = dynamic(() => import('./order-success-dialog'), {
-  ssr: false,
-});
+import InvoiceForm from '@/components/checkout/invoice-section';
+import PaymentMethod from './payment-methods';
+import OrderErrorDialog from './order-error-dialog';
+import OrderSuccessDialog from './order-success-dialog';
+import VoucherSection from './voucher-section';
+import AddressList from '../profile/address/address-list';
 
 export default function CheckOutPanel() {
   const [address, setAddress] = useState<Address>();
