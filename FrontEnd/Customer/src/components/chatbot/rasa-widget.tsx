@@ -49,13 +49,17 @@ export default function RasaWidget() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const hiddenPaths = ['/cart', '/checkout'];
+    const hiddenPaths = ['/cart', '/checkout', '/profile'];
     const isHidden = hiddenPaths.some((path) => pathname.startsWith(path));
+    const intervalId = setInterval(() => {
+      const el = document.getElementById('rasaWebchatPro');
+      if (el) {
+        el.style.display = isHidden ? 'none' : 'block';
+        clearInterval(intervalId);
+      }
+    }, 1000);
 
-    const el = document.getElementById('rasaWebchatPro');
-    if (el) {
-      el.style.display = isHidden ? 'none' : 'block';
-    }
+    return () => clearInterval(intervalId);
   }, [pathname]);
 
   return null;
