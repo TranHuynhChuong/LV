@@ -1,13 +1,8 @@
 'use client';
 
 import { OrderOverview } from '@/models/orders';
+import OrderItem from './order-item';
 import OrderItemLoading from './order-item-loading';
-import dynamic from 'next/dynamic';
-
-const OrderItem = dynamic(() => import('./order-item'), {
-  loading: () => <OrderItemLoading />,
-  ssr: false,
-});
 
 type Props = {
   orders: OrderOverview[];
@@ -15,7 +10,13 @@ type Props = {
 
 export default function OrderList({ orders }: Readonly<Props>) {
   if (orders.length === 0) {
-    return null;
+    return (
+      <div className="flex flex-col gap-2">
+        {[1, 2, 3].map((order, index) => (
+          <OrderItemLoading key={index} />
+        ))}
+      </div>
+    );
   }
   return (
     <div className="flex flex-col gap-2">

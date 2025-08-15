@@ -12,13 +12,9 @@ import Image from 'next/image';
 import { FC, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '@/components/utils/loader';
-import dynamic from 'next/dynamic';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '../ui/hover-card';
-
-const ConfirmToggleReviewDialog = dynamic(() => import('./review-confirm-dialog'), {
-  ssr: false,
-});
+import ConfirmToggleReviewDialog from './review-confirm-dialog';
 
 type Props = {
   review: Review;

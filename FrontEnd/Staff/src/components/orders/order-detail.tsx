@@ -7,13 +7,8 @@ import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { mapOrderFromDto, Order } from '@/models/orders';
 import OrderInfLoading from './order-inf-loading';
-import dynamic from 'next/dynamic';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
-
-const OrderInf = dynamic(() => import('./order-inf'), {
-  loading: () => <OrderInfLoading />,
-  ssr: false,
-});
+import OrderInf from './order-inf';
 
 export default function OrderDetail() {
   const router = useRouter();

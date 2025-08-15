@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Order } from '@/models/orders';
-import { generateDeliveryNotePdf } from '@/components/orders/print-delivery-note';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, MapPin } from 'lucide-react';
 import Image from 'next/image';
@@ -40,6 +39,12 @@ export default function OrderInf({ data }: Readonly<Props>) {
   const { authData } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const displayedBooks = expanded ? orderDetails : orderDetails.slice(0, 1);
+
+  const handleExportPdf = async () => {
+    const { generateDeliveryNotePdf } = await import('@/components/orders/print-delivery-note');
+    generateDeliveryNotePdf(data);
+  };
+
   return (
     <div className="space-y-2">
       <div
@@ -219,7 +224,7 @@ export default function OrderInf({ data }: Readonly<Props>) {
         <Button
           variant="outline"
           className="text-sm font-normal cursor-pointer"
-          onClick={() => generateDeliveryNotePdf(data)}
+          onClick={() => handleExportPdf()}
         >
           Xuất phiếu giao hàng
         </Button>
