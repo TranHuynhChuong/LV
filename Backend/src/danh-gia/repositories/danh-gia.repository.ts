@@ -262,7 +262,7 @@ export class DanhGiaRepository {
   async findAllOfCustomer(customerId: number, page: number, limit = 24) {
     const skip = (page - 1) * limit;
     const matchStage: PipelineStage.Match = {
-      $match: { KH_id: customerId },
+      $match: { KH_id: customerId, DG_daAn: false },
     };
     const dataPipeline: PipelineStage[] = [
       matchStage,
