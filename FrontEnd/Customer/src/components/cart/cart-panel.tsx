@@ -31,7 +31,7 @@ export default function CartPanel() {
   const clearOrder = useOrderStore((state) => state.clearOrder);
 
   const searchParams = useSearchParams();
-
+  const bookId = searchParams.get('id') ?? '';
   useEffect(() => {
     setHydrated(true);
   }, []);
@@ -48,9 +48,9 @@ export default function CartPanel() {
             const validProducts = res.data.filter(Boolean);
             const cartsRecive = mapCartFronDto(validProducts);
             setCarts(cartsRecive);
-            const idParam = searchParams.get('id');
-            if (idParam) {
-              const id = Number(idParam);
+
+            if (bookId) {
+              const id = Number(bookId);
               const match = cartsRecive.find((c) => c.id === id);
               if (match) setSelected([id]);
             }
@@ -67,9 +67,9 @@ export default function CartPanel() {
           const validProducts = res.data.filter(Boolean);
           const cartsRecive = mapCartFronDto(validProducts);
           setCarts(cartsRecive);
-          const idParam = searchParams.get('id');
-          if (idParam) {
-            const id = Number(idParam);
+          const bookId = searchParams.get('id');
+          if (bookId) {
+            const id = Number(bookId);
             const match = cartsRecive.find((c) => c.id === id);
             if (match) setSelected([id]);
           }
@@ -84,7 +84,7 @@ export default function CartPanel() {
     };
 
     getData();
-  }, [authData.userId, hydrated, router, searchParams]);
+  }, [authData.userId, hydrated, router, searchParams, bookId]);
 
   const toggleSelect = (id: number) => {
     setSelected((prev) => (prev.includes(id) ? prev.filter((spid) => spid !== id) : [...prev, id]));

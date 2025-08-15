@@ -8,7 +8,6 @@ import { mapCartFronDto, mapCartToDto } from '@/models/cart';
 import { useCartStore } from '@/stores/cart.store';
 import clsx from 'clsx';
 import { Minus, Plus } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -137,14 +136,15 @@ export default function AddToCartButton({ inventory, id }: Readonly<Props>) {
               Mua Ngay
             </Button>
           ) : (
-            <Link href={`/cart?id=${id}`}>
-              <Button
-                className="rounded-none cursor-pointer md:rounded-sm "
-                onClick={handleAddToCart}
-              >
-                Mua Ngay
-              </Button>
-            </Link>
+            <Button
+              className="rounded-none cursor-pointer md:rounded-sm "
+              onClick={async () => {
+                await handleAddToCart();
+                router.push(`/cart?id=${id}`);
+              }}
+            >
+              Mua Ngay
+            </Button>
           )}
         </div>
       </div>
