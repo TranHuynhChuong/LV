@@ -26,8 +26,10 @@ rules:
   steps:
     - intent: nlu_fallback
     - action: utter_fallback
+    - action: action_provide_feature
 
 - rule: Xử lý ngoài phạm vi
   steps:
     - intent: out_of_scope
     - action: utter_fallback
+    - action: action_provide_feature
