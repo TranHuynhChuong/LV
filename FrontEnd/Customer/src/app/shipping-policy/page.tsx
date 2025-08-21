@@ -73,7 +73,7 @@ export default function ShippingPolicyPage() {
                 <tr key={fee.id ?? index}>
                   <td className="px-4 py-3">{fee.province}</td>
                   <td className="px-4 py-3">
-                    {fee.fee?.toLocaleString()} VNĐ / {(fee.weight ?? 0) / 1000}kg
+                    {fee.fee?.toLocaleString()} VNĐ / {fee.weight ?? 0}kg
                     {fee.surcharge && fee.surchargeUnit
                       ? ` (+${fee.surcharge.toLocaleString()} VNĐ mỗi ${
                           fee.surchargeUnit ?? 0

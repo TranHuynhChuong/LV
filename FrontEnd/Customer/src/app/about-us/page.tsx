@@ -22,7 +22,7 @@ export default function AboutUsPage() {
               đến trải nghiệm mua sắm tiện lợi, uy tín và giá trị cho mọi độc giả.
             </p>
           </div>
-          <Image src="/logo/logoName1.png" alt="Logo" width={150} height={50} />
+          <Image src="icon.png" alt="Logo" width={150} height={50} />
         </div>
       </section>
       <section className="space-y-4 text-sm">
