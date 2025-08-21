@@ -16,6 +16,7 @@ import { UpdateKhuyenMaiDto } from './dto/update-khuyen-mai.dto';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 import { parsePositiveInt } from 'src/Util/convert';
 import { PromotionFilterType } from './repositories/khuyen-mai.repository';
+import { Roles } from 'src/xac-thuc/xac-thuc.roles.decorator';
 
 @Controller('api/promotions')
 export class KhuyenMaiController {
@@ -28,6 +29,7 @@ export class KhuyenMaiController {
    * @returns {Promise<any>} Đối tượng khuyến mãi vừa được tạo.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Post()
   create(@Body() data: CreateKhuyenMaiDto) {
     return this.KhuyenMaiService.create(data);
@@ -87,6 +89,7 @@ export class KhuyenMaiController {
    * @returns {Promise<any>} Đối tượng khuyến mãi sau khi cập nhật thành công.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -102,6 +105,7 @@ export class KhuyenMaiController {
    * @returns {Promise<void>} Xóa thành công sẽ không trả về dữ liệu.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Delete(':id')
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.KhuyenMaiService.delete(id);

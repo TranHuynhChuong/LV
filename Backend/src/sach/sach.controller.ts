@@ -20,6 +20,7 @@ import { BookFilterType, BookSortType } from './repositories/sach.repository';
 import { SachService } from './sach.service';
 import { CreateSachDto } from './dto/create-sach.dto';
 import { UpdateSachDto } from './dto/update-sach.dto';
+import { Roles } from 'src/xac-thuc/xac-thuc.roles.decorator';
 
 @Controller('api/books')
 export class SachController {
@@ -33,6 +34,7 @@ export class SachController {
    * @returns Thông tin sách vừa tạo
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Post()
   @UseInterceptors(AnyFilesInterceptor())
   create(
@@ -53,6 +55,7 @@ export class SachController {
    * @returns Thông tin sách đã cập nhật
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Put('/:id')
   @UseInterceptors(AnyFilesInterceptor())
   update(
@@ -207,6 +210,8 @@ export class SachController {
    * @param staffId ID nhân viên thực hiện thao tác xóa
    * @returns Thông tin sách sau khi xóa (đánh dấu xóa)
    */
+  @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Delete('/:id')
   delete(
     @Param('id', ParseIntPipe) id: number,

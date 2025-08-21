@@ -16,6 +16,7 @@ import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
 import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
+import { Roles } from 'src/xac-thuc/xac-thuc.roles.decorator';
 
 @Controller('api/shipping')
 export class PhiVanChuyenController {
@@ -28,6 +29,7 @@ export class PhiVanChuyenController {
    * @returns Bản ghi phí vận chuyển vừa tạo.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Post()
   async create(@Body() data: CreatePhiVanChuyenDto) {
     return await this.PhiVanChuyenService.create(data);
@@ -82,6 +84,7 @@ export class PhiVanChuyenController {
    * @param data Dữ liệu cập nhật.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -98,6 +101,7 @@ export class PhiVanChuyenController {
    * @returns Bản ghi phí vận chuyển sau khi bị xoá.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,

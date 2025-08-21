@@ -18,6 +18,7 @@ import {
   VoucherFilterType,
   VoucherType,
 } from './repositories/ma-giam.repository';
+import { Roles } from 'src/xac-thuc/xac-thuc.roles.decorator';
 
 @Controller('api/vouchers')
 export class MaGiamController {
@@ -28,6 +29,7 @@ export class MaGiamController {
    * @param data Dữ liệu tạo mã giảm giá
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Post()
   create(@Body() data: CreateMaGiamDto) {
     return this.MaGiamService.create(data);
@@ -92,6 +94,7 @@ export class MaGiamController {
    * @param data Dữ liệu cập nhật
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Put(':id')
   update(@Param('id') id: string, @Body() data: UpdateMaGiamDto) {
     return this.MaGiamService.update(id, data);
@@ -102,6 +105,7 @@ export class MaGiamController {
    * @param id ID mã giảm
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.MaGiamService.delete(id);

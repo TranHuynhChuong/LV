@@ -16,6 +16,7 @@ import { TheLoai } from './schemas/the-loai.schema';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 import { CreateTheLoaiDto } from './dto/create-the-loai.dto';
 import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
+import { Roles } from 'src/xac-thuc/xac-thuc.roles.decorator';
 
 @Controller('api/categories')
 export class TheLoaiController {
@@ -28,6 +29,7 @@ export class TheLoaiController {
    * @returns {Promise<TheLoai>} Thể loại mới được tạo.
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Post()
   async create(@Body() data: CreateTheLoaiDto) {
     return await this.TheLoaiService.create(data);
@@ -72,6 +74,7 @@ export class TheLoaiController {
    * @returns Kết quả cập nhật
    */
   @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Put(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -87,6 +90,8 @@ export class TheLoaiController {
    * @param {string} staffId - ID nhân viên thực hiện xoá
    * @returns Kết quả xoá
    */
+  @UseGuards(XacThucGuard)
+  @Roles(1, 2)
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,

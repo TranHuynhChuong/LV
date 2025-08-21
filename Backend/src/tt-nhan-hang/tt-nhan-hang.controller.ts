@@ -7,10 +7,13 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { TTNhanHangKHService } from './tt-nhan-hang.service';
 import { TTNhanHangKH } from './schemas/tt-nhan-hang-kh.schema';
+import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 
+@UseGuards(XacThucGuard)
 @Controller('api/addresses')
 export class TTNhanHangController {
   constructor(private readonly service: TTNhanHangKHService) {}
@@ -62,6 +65,7 @@ export class TTNhanHangController {
    * @param data - Dữ liệu cập nhật.
    * @returns Thông tin địa chỉ sau khi cập nhật.
    */
+
   @Put(':KH_id/:NH_id')
   async update(
     @Param('NH_id', ParseIntPipe) NH_id: number,

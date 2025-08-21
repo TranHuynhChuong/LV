@@ -101,6 +101,7 @@ export class DanhGiaController {
    * @param page Số trang (mặc định 1)
    * @param limit Số lượng trên mỗi trang (mặc định 24)
    */
+  @UseGuards(XacThucGuard)
   @Get('customer/:customerId')
   getReviewsOfCustomer(
     @Param('customerId', ParseIntPipe) customerId: number,
