@@ -9,7 +9,6 @@ import { useAuth } from '@/contexts/auth-context';
 import Loader from '@/components/utils/loader';
 import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
 import type { ShippingFee } from '@/models/shipping';
-import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import ShippingFeeForm from './shipping-form';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 import ShippingFeeFormLoading from './shipping-form-loading';
@@ -22,7 +21,6 @@ export default function ShippingDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [data, setData] = useState<ShippingFee>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   useEffect(() => {
     setBreadcrumbs([
@@ -38,9 +36,7 @@ export default function ShippingDetail() {
       try {
         const res = await api.get(`/shipping/${id}`);
         const data = res.data;
-
         setData(mapShippingFeeFromDto(data));
-        setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
       } catch {
         toast.error('Đã xảy ra lỗi!');
         router.back();
@@ -90,7 +86,7 @@ export default function ShippingDetail() {
         <ShippingFeeForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
 
         <div className="absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <ActionHistorySheet dataName="PhiVanChuyen" dataId={id} />
         </div>
       </>
     );

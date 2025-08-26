@@ -4,8 +4,7 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { mapStaffFormDto, mapStaffToDto, Staff } from '@/models/accounts';
-import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
+import { Staff } from '@/models/accounts';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -20,7 +19,6 @@ export default function StaffDetail() {
   const id = params?.id as string;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<Staff>();
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
   const { authData } = useAuth();
 
   useEffect(() => {
@@ -36,10 +34,10 @@ export default function StaffDetail() {
     try {
       const res = await api.get(`/users/staff/${id}`);
       const data = res.data;
-      setData(mapStaffFormDto([data])[0]);
-      setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
-    } catch {
+      setData(data);
+    } catch (error) {
       toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
+      console.error(error);
       router.back();
     }
   }, [id, router]);
@@ -50,15 +48,16 @@ export default function StaffDetail() {
 
   async function handleOnSubmit(data: Staff) {
     if (!authData.userId) return;
-
-    const payload = mapStaffToDto(data, authData.userId);
+    const payload = { ...data, staffId: authData.userId };
+    delete payload.id;
     setIsSubmitting(true);
     try {
       await api.put(`/users/staff/${id}`, payload);
       toast.success('Cập nhật thành công');
       router.back();
-    } catch {
+    } catch (error) {
       toast.error('Cập nhật thất bại!');
+      console.error(error);
       setIsSubmitting(false);
     }
   }
@@ -70,7 +69,7 @@ export default function StaffDetail() {
         <StaffForm defaultValues={data} onSubmit={handleOnSubmit} />
         {isSubmitting && <Loader />}
         <div className="absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <ActionHistorySheet dataName="TaiKhoan" dataId={id} />
         </div>
       </>
     );

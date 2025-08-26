@@ -87,9 +87,14 @@ export class PhiVanChuyenRepository {
    * @param data - Dữ liệu cập nhật.
    * @returns Bản ghi sau khi được cập nhật hoặc null nếu không tìm thấy.
    */
-  async update(id: number, data: any): Promise<PhiVanChuyen | null> {
+  async update(
+    id: number,
+    data: any,
+    session?: ClientSession
+  ): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyenModel.findOneAndUpdate({ PVC_id: id }, data, {
       new: true,
+      session,
     })
 
       .exec();
@@ -101,11 +106,14 @@ export class PhiVanChuyenRepository {
    * @param id - PVC_id của bản ghi cần xóa.
    * @returns Bản ghi sau khi cập nhật trạng thái đã xoá hoặc null nếu không tìm thấy.
    */
-  async delete(id: number): Promise<PhiVanChuyen | null> {
+  async delete(
+    id: number,
+    session?: ClientSession
+  ): Promise<PhiVanChuyen | null> {
     return this.PhiVanChuyenModel.findOneAndUpdate(
       { PVC_id: id },
       { PVC_daXoa: true },
-      { new: true }
+      { new: true, session }
     )
 
       .exec();

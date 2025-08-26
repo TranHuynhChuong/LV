@@ -1,5 +1,3 @@
-import { ActivityLogsDto } from '../activityLogs';
-
 export type VoucherPromotionDetailDto = {
   MG_id: string;
   MG_batDau: Date;
@@ -9,7 +7,6 @@ export type VoucherPromotionDetailDto = {
   MG_loai: string;
   MG_toiThieu?: number;
   MG_toiDa?: number;
-  lichSuThaoTac: ActivityLogsDto[];
 };
 
 export type VoucherPromotionOverviewDto = {

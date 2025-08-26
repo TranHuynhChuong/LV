@@ -1,4 +1,3 @@
-import { ActivityLogsDto } from '../activityLogs/dto';
 import { BookOverViewDto } from '../books/dto';
 
 export type BookPromotionOverviewDto = {
@@ -22,7 +21,6 @@ export type BookPromotionDetailDto = {
   KM_ten: string;
   KM_batDau: Date;
   KM_ketThuc: Date;
-  lichSuThaoTac: ActivityLogsDto[];
   chiTietKhuyenMai: DetailDto[];
   saches: BookOverViewDto[];
 };

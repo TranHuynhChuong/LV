@@ -1,4 +1,3 @@
-import { ActivityLogs, mapActivityLogsFromDto } from '../activityLogs';
 import { VoucherPromotionDetail, VoucherPromotionOverview } from './domain';
 import { VoucherPromotionDetailDto } from './dto';
 
@@ -15,7 +14,6 @@ export function mapVoucherPromotionOverviewFromDto(
 
 export function mapVoucherPromotionDetailFromDto(dto: VoucherPromotionDetailDto): {
   data: VoucherPromotionDetail;
-  activityLogs: ActivityLogs[];
 } {
   const data: VoucherPromotionDetail = {
     id: dto.MG_id,
@@ -28,9 +26,7 @@ export function mapVoucherPromotionDetailFromDto(dto: VoucherPromotionDetailDto)
     maxDiscount: dto.MG_toiDa,
   };
 
-  const activityLogs = mapActivityLogsFromDto(dto.lichSuThaoTac);
-
-  return { data, activityLogs };
+  return { data };
 }
 
 export function mapVoucherPromotionDetailToDto(data: VoucherPromotionDetail, staffId: string) {

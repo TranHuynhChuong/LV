@@ -644,7 +644,6 @@ export class DanhGiaRepository {
     bookId: number,
     customerId: number,
     status: boolean,
-    history: any,
     session?: ClientSession
   ): Promise<DanhGia | null> {
     return this.DanhGiaModel.findOneAndUpdate(
@@ -655,7 +654,6 @@ export class DanhGiaRepository {
       },
       {
         $set: { DG_daAn: status },
-        $push: { lichSuThaoTac: history },
       },
       {
         new: true,

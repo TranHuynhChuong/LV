@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -13,7 +14,6 @@ import {
 import { TransformService } from '../Util/transform.service';
 import { Sach, Anh, BookStatus } from './schemas/sach.schema';
 import { CloudinaryService } from 'src/Util/cloudinary.service';
-import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 import { TheLoaiUtilService } from 'src/the-loai/the-loai.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { ClientSession, Connection } from 'mongoose';
@@ -21,29 +21,10 @@ import { CreateSachDto } from './dto/create-sach.dto';
 import { UpdateSachDto } from './dto/update-sach.dto';
 import { KhuyenMaiUtilService } from 'src/khuyen-mai/khuyen-mai.service';
 import { getNextSequence } from 'src/Util/counter.service';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 
 const folderPrefix = 'Books';
-
-const typeOfChange: Record<string, string> = {
-  TL_id: 'Thể loại',
-  S_trangThai: 'Trạng thái',
-  S_ten: 'Tên',
-  S_tomTat: 'Nội dung tóm tắt',
-  S_moTa: 'Mô tả',
-  S_tacGia: 'Tác giả',
-  S_nhaXuaBan: 'Nhà xuất bản',
-  S_ngonNgu: 'Ngôn ngữ',
-  S_nguoiDich: 'Người dịch',
-  S_namXuatBan: 'Năm xuất bản',
-  S_soTrang: 'Số trang',
-  S_isbn: 'ISBN',
-  S_giaBan: 'Giá bán',
-  S_giaNhap: 'Giá nhập',
-  S_tonKho: 'Tồn kho',
-  S_trongLuong: 'Trọng lượng',
-  S_kichThuoc: 'Kích thước',
-  S_anh: 'Hình ảnh',
-};
 
 @Injectable()
 export class SachUtilService {
@@ -110,8 +91,8 @@ export class SachService {
     private readonly SachRepo: SachRepository,
     private readonly TransformService: TransformService,
     private readonly CloudinaryService: CloudinaryService,
-    private readonly NhanVienService: NhanVienUtilService,
     private readonly KhuyenMaiService: KhuyenMaiUtilService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService,
     @Inject(forwardRef(() => TheLoaiUtilService))
     private readonly TheLoai: TheLoaiUtilService,
     @InjectConnection() private readonly connection: Connection
@@ -120,13 +101,13 @@ export class SachService {
   /**
    * Tạo mới một bản ghi sách trong cơ sở dữ liệu.
    *
-   * @param data Dữ liệu sách cần tạo (CreateSachDto)
+   * @param newData Dữ liệu sách cần tạo (CreateSachDto)
    * @param coverImage (Tuỳ chọn) Ảnh bìa sách upload từ client
    * @param images (Tuỳ chọn) Danh sách ảnh khác upload từ client
    * @returns Promise<Sach> Bản ghi sách vừa được tạo
    */
   async create(
-    data: CreateSachDto,
+    newData: CreateSachDto,
     coverImage?: Express.Multer.File,
     images?: Express.Multer.File[]
   ): Promise<Sach> {
@@ -136,7 +117,7 @@ export class SachService {
       let finalResult: Sach;
       await session.withTransaction(async () => {
         const vector = await this.TransformService.getTextEmbedding(
-          data.S_tomTat,
+          newData.S_tomTat,
           'passage'
         );
         if (!this.connection.db) {
@@ -144,17 +125,19 @@ export class SachService {
         }
         // Lấy giá trị seq tự tăng từ MongoDB
         nextId = await getNextSequence(this.connection.db, 'bookId', session);
-        const thaoTac = {
-          thaoTac: 'Tạo mới',
-          NV_id: data.NV_id,
-          thoiGian: new Date(),
-        };
+        await this.LichSuThaoTacService.create({
+          actionType: 'create',
+          staffId: newData.NV_id ?? '',
+          dataName: DULIEU.BOOK,
+          dataId: nextId,
+          session: session,
+        });
+
         const dataToSave: Partial<Sach> = {
-          ...data,
+          ...newData,
           S_id: nextId,
           S_eTomTat: vector,
           S_anh: [],
-          lichSuThaoTac: [thaoTac],
         };
         const created = await this.SachRepo.create(dataToSave, session);
         if (!created)
@@ -199,21 +182,22 @@ export class SachService {
    */
   async update(
     id: number,
-    data: UpdateSachDto,
+    newData: UpdateSachDto,
     coverImage?: Express.Multer.File,
     images?: Express.Multer.File[]
   ): Promise<Sach> {
     const existing = await this.SachRepo.findById(id);
     if (!existing)
       throw new NotFoundException('Cập nhật sản phẩm - Không tồn tại sản phẩm');
+    let newImages: Anh[] = [];
+
     const session = await this.connection.startSession();
     session.startTransaction();
-    let newImages: Anh[] = [];
     try {
       const vector =
-        data.S_tomTat && data.S_tomTat !== existing.S_tomTat
+        newData.S_tomTat && newData.S_tomTat !== existing.S_tomTat
           ? await this.TransformService.getTextEmbedding(
-              data.S_tomTat,
+              newData.S_tomTat,
               'passage'
             )
           : existing.S_eTomTat;
@@ -226,42 +210,52 @@ export class SachService {
           );
         }
       }
-      const imagesToDelete = data.imagesToDelete ?? [];
+      const imagesToDelete = newData.imagesToDelete ?? [];
       const remainingImages = existing.S_anh.filter(
         (img) => !imagesToDelete.includes(img.A_url)
       );
       const allImages = [...remainingImages, ...newImages];
-      const { fieldsChange, updatePayload } = this.detectChangedFields(
-        data,
-        existing
-      );
-      if (vector !== existing.S_eTomTat) updatePayload.S_eTomTat = vector;
-      if (newImages.length) {
-        updatePayload.S_anh = allImages;
-        fieldsChange.push('Cập nhật hình ảnh');
-      }
-      if (fieldsChange.length > 0 && data.NV_id) {
-        updatePayload.lichSuThaoTac = [
-          ...existing.lichSuThaoTac,
-          {
-            thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-            NV_id: data.NV_id,
-            thoiGian: new Date(),
-          },
-        ];
-      }
       const giaBanChanged =
-        data.S_giaBan !== undefined && data.S_giaBan !== existing.S_giaBan;
-      if (giaBanChanged && data.S_giaBan) {
+        newData.S_giaBan !== undefined &&
+        newData.S_giaBan !== existing.S_giaBan;
+      if (giaBanChanged && newData.S_giaBan) {
         await this.KhuyenMaiService.updatePromotionOfBook(
           id,
-          data.S_giaBan,
+          newData.S_giaBan,
           session
         );
       }
+      const { updatePayload } = await this.LichSuThaoTacService.create({
+        actionType: 'update',
+        staffId: newData.NV_id ?? '',
+        dataName: DULIEU.BOOK,
+        dataId: id,
+        newData: { ...newData, S_anh: allImages },
+        existingData: existing,
+        ignoreFields: ['NV_id'],
+        session: session,
+      });
+
       if (Object.keys(updatePayload).length === 0) return existing as Sach;
+      if (newData.S_tomTat !== existing.S_tomTat)
+        updatePayload.S_eTomTat = vector;
+      if (JSON.stringify(existing.S_anh) !== JSON.stringify(allImages)) {
+        updatePayload.S_anh = allImages;
+      }
       const updated = await this.SachRepo.update(id, updatePayload, session);
       if (!updated) throw new Error();
+      for (const url of imagesToDelete) {
+        const img = existing.S_anh.find((i) => i.A_url === url);
+        if (img) {
+          try {
+            await this.CloudinaryService.deleteImage(img.A_publicId);
+          } catch {
+            console.warn(
+              `Không thể xóa ảnh trên Cloudinary: ${img.A_publicId}`
+            );
+          }
+        }
+      }
       await session.commitTransaction();
       return updated;
     } catch {
@@ -318,54 +312,6 @@ export class SachService {
       );
     }
     return uploaded;
-  }
-
-  /**
-   * Phát hiện các trường dữ liệu đã thay đổi so với bản ghi hiện tại.
-   *
-   * @param data Dữ liệu cập nhật mới (UpdateSachDto)
-   * @param existing Bản ghi sách hiện tại (Sach)
-   * @returns Object chứa:
-   *   - fieldsChange: Danh sách tên các trường đã thay đổi (dạng chuỗi mô tả)
-   *   - updatePayload: Dữ liệu cập nhật thực tế chỉ gồm các trường đã thay đổi
-   */
-  private detectChangedFields(
-    data: UpdateSachDto,
-    existing: Sach
-  ): { fieldsChange: string[]; updatePayload: Partial<Sach> } {
-    const fieldsChange: string[] = [];
-    const updatePayload: Partial<Sach> = {};
-    for (const key of Object.keys(data)) {
-      if (key === 'NV_id') continue;
-      const newValue = data[key];
-      const oldValue = existing[key];
-      if (newValue === undefined) continue;
-      const bothAreArrays = Array.isArray(newValue) && Array.isArray(oldValue);
-      const hasChanged = bothAreArrays
-        ? !this.areArraysEqual(newValue, oldValue)
-        : newValue !== oldValue;
-      if (hasChanged) {
-        const label = typeOfChange[key];
-        fieldsChange.push(label);
-        updatePayload[key] = newValue;
-      }
-    }
-    return { fieldsChange, updatePayload };
-  }
-
-  /**
-   * So sánh hai mảng có bằng nhau hay không (so sánh từng phần tử và thứ tự).
-   *
-   * @param arr1 Mảng thứ nhất
-   * @param arr2 Mảng thứ hai
-   * @returns true nếu hai mảng có cùng độ dài và từng phần tử tương ứng bằng nhau, ngược lại false
-   */
-  private areArraysEqual(arr1: any[], arr2: any[]): boolean {
-    if (arr1.length !== arr2.length) return false;
-    for (let i = 0; i < arr1.length; i++) {
-      if (arr1[i] !== arr2[i]) return false;
-    }
-    return true;
   }
 
   /**
@@ -503,15 +449,10 @@ export class SachService {
     id: number,
     mode: 'default' | 'full' = 'default'
   ): Promise<any> {
-    const result: any = await this.SachRepo.findById(id, mode);
+    const result = await this.SachRepo.findById(id, mode);
     if (!result) {
       throw new NotFoundException('Tìm sản phẩm - Không tồn tại sản phẩm');
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
     if (mode === 'full') {
       const S_tuongTuRaw = await this.SachRepo.findByVector(
         result.S_eTomTat,
@@ -528,27 +469,40 @@ export class SachService {
    * Xóa sách theo ID, đồng thời ghi lại lịch sử thao tác của nhân viên
    *
    * @param id - ID của sách cần xóa
-   * @param NV_id - ID nhân viên thực hiện thao tác xóa
+   * @param staffId - ID nhân viên thực hiện thao tác xóa
    * @returns Trả về bản ghi sách đã được cập nhật trạng thái xóa
    */
-  async delete(id: number, NV_id: string): Promise<Sach> {
+  async delete(id: number, staffId: string): Promise<Sach> {
     const existing = await this.SachRepo.findById(id);
     if (!existing)
       throw new NotFoundException('Xóa sản phẩm - Sản phẩm không tồn tại');
-    const thaoTac = {
-      thaoTac: 'Xóa dữ liệu',
-      NV_id: NV_id,
-      thoiGian: new Date(),
-    };
-    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const deleted = await this.SachRepo.update(id, {
-      S_trangThai: BookStatus.Deleted,
-      lichSuThaoTac: lichSuThaoTac,
-    });
-    if (!deleted) {
-      throw new NotFoundException('Xóa sản phẩm - Xóa sản phẩm thất bại');
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const deleted = await this.SachRepo.update(id, {
+        S_trangThai: BookStatus.Deleted,
+      });
+      if (!deleted) {
+        throw new NotFoundException('Xóa sản phẩm - Xóa sản phẩm thất bại');
+      }
+      await this.LichSuThaoTacService.create({
+        actionType: 'delete',
+        staffId: staffId ?? '',
+        dataName: DULIEU.BOOK,
+        dataId: id,
+        session: session,
+      });
+      await session.commitTransaction();
+      return deleted;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Xóa sản phẩm  - ${error.message}`
+      );
+    } finally {
+      await session.endSession();
     }
-    return deleted;
   }
 
   /**

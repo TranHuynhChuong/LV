@@ -7,16 +7,16 @@ import {
   PhiVanChuyen,
   PhiVanChuyenSchema,
 } from './schemas/phi-van-chuyen.schema';
-import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
 import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
+import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: PhiVanChuyen.name, schema: PhiVanChuyenSchema },
     ]),
-    NguoiDungModule,
     DiaChiModule,
+    LichSuThaoTacModule,
   ],
   controllers: [PhiVanChuyenController],
   providers: [PhiVanChuyenService, PhiVanChuyenRepository],

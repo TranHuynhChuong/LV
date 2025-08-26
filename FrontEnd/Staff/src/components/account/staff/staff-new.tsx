@@ -4,7 +4,7 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { mapStaffToDto, Staff } from '@/models/accounts';
+import { Staff } from '@/models/accounts';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,14 +25,16 @@ export default function StaffNew() {
 
   async function handleOnsubmit(data: Staff) {
     if (!authData.userId) return;
-    const payload = mapStaffToDto(data, authData.userId);
+    const payload = { ...data, staffId: authData.userId };
+    delete payload.id;
     setIsSubmitting(true);
     try {
       await api.post('/users/staff', payload);
       toast.success('Thêm mới thành công!');
       router.back();
-    } catch {
+    } catch (error) {
       toast.error('Thêm mới thất bại. Vui lòng thử lại!');
+      console.error(error);
       setIsSubmitting(false);
     }
   }

@@ -4,10 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  CustomerListResults,
-  KhachHangRepository,
-} from './repositories/khach-hang.repository';
+import { KhachHangRepository } from './repositories/khach-hang.repository';
 
 import { KhachHang } from './schemas/khach-hang.schema';
 
@@ -36,6 +33,8 @@ import { Connection } from 'mongoose';
 import { CreateKhachHangDto } from './dto/create-khach-hang.dto';
 import { UpdateKhachHangDto } from './dto/update-khach-hang.dto';
 import { getNextSequence } from 'src/Util/counter.service';
+import { KhachHangResponseDto } from './dto/response-khach-hang.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class KhachHangService {
@@ -93,12 +92,13 @@ export class KhachHangService {
    * @param options Tuỳ chọn phân trang (mặc định: trang 1, 24 mục/trang).
    * @returns Danh sách khách hàng và tổng số lượng.
    */
-  async findAll(options: {
-    page?: number;
-    limit?: number;
-  }): Promise<CustomerListResults> {
+  async findAll(options: { page?: number; limit?: number }) {
     const { page = 1, limit = 24 } = options;
-    return this.KhachHangRepo.findAll(page, limit);
+    const results = await this.KhachHangRepo.findAll(page, limit);
+    return {
+      data: plainToInstance(KhachHangResponseDto, results.data),
+      paginationInfo: results.paginationInfo,
+    };
   }
 
   /**
@@ -157,8 +157,10 @@ export class KhachHangService {
    * @param email Địa chỉ email cần tìm.
    * @returns Thông tin khách hàng hoặc null nếu không tìm thấy.
    */
-  async findByEmail(email: string): Promise<KhachHang | null> {
-    return this.KhachHangRepo.findByEmail(email);
+  async findByEmail(email: string) {
+    const result = await this.KhachHangRepo.findByEmail(email);
+    if (!result) return null;
+    return plainToInstance(KhachHangResponseDto, result);
   }
 
   /**

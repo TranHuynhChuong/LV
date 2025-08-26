@@ -12,17 +12,11 @@ import { ChiTietKhuyenMaiRepository } from './repositories/chi-tiet-khuyen-mai.r
 import { KhuyenMai } from './schemas/khuyen-mai.schema';
 import { CreateKhuyenMaiDto } from './dto/create-khuyen-mai.dto';
 import { UpdateKhuyenMaiDto } from './dto/update-khuyen-mai.dto';
-import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 import { ClientSession, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { getNextSequence } from 'src/Util/counter.service';
-
-/**Bản đồ ánh xạ tên trường → nhãn để hiển thị lịch sử thao tác*/
-const typeOfChange: Record<string, string> = {
-  KM_ten: 'Tên',
-  KM_batDau: 'Thời gian bắt đầu',
-  KM_ketThuc: 'Thời gian kết thúc',
-};
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 
 @Injectable()
 export class KhuyenMaiUtilService {
@@ -76,7 +70,7 @@ export class KhuyenMaiUtilService {
 @Injectable()
 export class KhuyenMaiService {
   constructor(
-    private readonly NhanVienService: NhanVienUtilService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService,
     private readonly KhuyenMaiRepo: KhuyenMaiRepository,
     private readonly ChiTietKhuyenMaiRepo: ChiTietKhuyenMaiRepository,
     @InjectConnection() private readonly connection: Connection
@@ -85,12 +79,11 @@ export class KhuyenMaiService {
   /**
    * Tạo mới một khuyến mãi cùng với các chi tiết khuyến mãi liên quan trong một phiên giao dịch.
    *
-   * @param {CreateKhuyenMaiDto} data - Dữ liệu đầu vào để tạo khuyến mãi, bao gồm thông tin khuyến mãi và các chi tiết liên quan.
-   * @returns {Promise<any>} Đối tượng khuyến mãi vừa được tạo (có thể là bản ghi từ cơ sở dữ liệu).
-   * @throws {BadRequestException} Nếu việc tạo khuyến mãi thất bại.
+   * @param data - Dữ liệu đầu vào để tạo khuyến mãi, bao gồm thông tin khuyến mãi và các chi tiết liên quan.
+   * @returns Đối tượng khuyến mãi vừa được tạo (có thể là bản ghi từ cơ sở dữ liệu).
    */
 
-  async create(data: CreateKhuyenMaiDto) {
+  async create(newData: CreateKhuyenMaiDto) {
     const session = await this.connection.startSession();
     try {
       const result = await session.withTransaction(async () => {
@@ -104,17 +97,19 @@ export class KhuyenMaiService {
           session
         );
 
-        const thaoTac = {
-          thaoTac: 'Tạo mới',
-          NV_id: data.NV_id,
-          thoiGian: new Date(),
-        };
-        const { KM_chiTiet, ...KhuyenMaiData } = data;
+        await this.LichSuThaoTacService.create({
+          actionType: 'update',
+          staffId: newData.NV_id ?? '',
+          dataName: DULIEU.PROMOTION,
+          dataId: seq,
+          session: session,
+        });
+
+        const { KM_chiTiet, ...KhuyenMaiData } = newData;
         const created = await this.KhuyenMaiRepo.create(
           {
             ...KhuyenMaiData,
             KM_id: seq,
-            lichSuThaoTac: [thaoTac],
           },
           session
         );
@@ -148,7 +143,7 @@ export class KhuyenMaiService {
    * @param {number} params.page - Trang cần tìm.
    * @param {number} params.limit - Số lượng bản ghi trên mỗi trang.
    * @param {PromotionFilterType} [params.filterType] - (Tùy chọn) Loại khuyến mãi cần lọc.
-   * @returns {Promise<any>} Danh sách khuyến mãi theo trang và bộ lọc.
+   * @returns Danh sách khuyến mãi theo trang và bộ lọc.
    */
   async findAll(params: {
     page: number;
@@ -161,27 +156,18 @@ export class KhuyenMaiService {
   /**
    * Tìm kiếm thông tin chi tiết của một khuyến mãi theo `KM_id`, kèm theo lọc loại khuyến mãi (nếu có).
    *
-   * @param {number} KM_id - ID của khuyến mãi cần tìm.
+   * @param {number} id - ID của khuyến mãi cần tìm.
    * @param {PromotionFilterType} [filterType] - (Tùy chọn) Loại khuyến mãi để lọc kết quả.
-   * @returns {Promise<any>} Đối tượng khuyến mãi kèm chi tiết và lịch sử thao tác (nếu có).
-   * @throws {NotFoundException} Nếu không tìm thấy khuyến mãi với `KM_id` đã cho.
+   * @returns Đối tượng khuyến mãi kèm chi tiết và lịch sử thao tác (nếu có).
    */
-  async findById(
-    KM_id: number,
-    filterType?: PromotionFilterType
-  ): Promise<any> {
-    const result: any = await this.KhuyenMaiRepo.findAndGetDetailById(
-      KM_id,
+  async findById(id: number, filterType?: PromotionFilterType) {
+    const result = await this.KhuyenMaiRepo.findAndGetDetailById(
+      id,
       filterType
     );
     if (!result) {
       throw new NotFoundException('Tìm khuyến mãi - Khuyến mãi không tồn tại');
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
     return result;
   }
 
@@ -191,9 +177,6 @@ export class KhuyenMaiService {
    * @param {number} id - ID của khuyến mãi cần cập nhật.
    * @param {UpdateKhuyenMaiDto} newData - Dữ liệu mới dùng để cập nhật khuyến mãi.
    * @returns {Promise<KhuyenMai>} Đối tượng khuyến mãi sau khi đã được cập nhật.
-   * @throws {NotFoundException} Nếu không tìm thấy khuyến mãi có `id` tương ứng.
-   * @throws {BadRequestException} Nếu quá trình cập nhật thất bại.
-   * @throws {InternalServerErrorException} Nếu xảy ra lỗi không xác định trong quá trình cập nhật.
    */
   async update(id: number, newData: UpdateKhuyenMaiDto): Promise<KhuyenMai> {
     const session = await this.connection.startSession();
@@ -206,29 +189,21 @@ export class KhuyenMaiService {
             'Cập nhật khuyến mãi - Khuyến mãi không tồn tại'
           );
         }
-        const { KM_chiTiet, ...khuyenMaiData } = newData;
-        const { updatePayload, fieldsChange } = this.getUpdateFields(
-          khuyenMaiData,
-          existing
-        );
-        const isUpdateChiTiet = await this.processPromotionDetails(
-          id,
-          KM_chiTiet || [],
-          session
-        );
-        if ((fieldsChange.length > 0 || isUpdateChiTiet) && newData.NV_id) {
-          this.addActivityLog(
-            updatePayload,
-            existing,
-            fieldsChange,
-            isUpdateChiTiet,
-            newData.NV_id
-          );
-        }
-        if (Object.keys(updatePayload).length === 0) {
-          updated = existing;
-          return;
-        }
+        const { KM_chiTiet } = newData;
+
+        const { updatePayload } = await this.LichSuThaoTacService.create({
+          actionType: 'update',
+          staffId: newData.NV_id ?? '',
+          dataName: DULIEU.PROMOTION,
+          dataId: id,
+          newData: newData,
+          existingData: existing,
+          ignoreFields: ['NV_id', 'KM_id'],
+          session: session,
+        });
+
+        await this.processPromotionDetails(id, KM_chiTiet || [], session);
+
         const updateResult = await this.KhuyenMaiRepo.update(
           id,
           updatePayload,
@@ -253,52 +228,19 @@ export class KhuyenMaiService {
   }
 
   /**
-   * So sánh dữ liệu mới và cũ để xác định các trường có thay đổi, và xây dựng payload cập nhật.
-   *
-   * @param {any} newData - Dữ liệu mới được truyền vào (ví dụ: từ client gửi lên).
-   * @param {any} oldData - Dữ liệu cũ lấy từ cơ sở dữ liệu.
-   * @returns {{ updatePayload: any; fieldsChange: string[] }}
-   * Đối tượng chứa:
-   * - `updatePayload`: các trường cần cập nhật.
-   * - `fieldsChange`: danh sách tên các trường (hoặc nhãn hiển thị) đã thay đổi.
-   */
-  private getUpdateFields(
-    newData: any,
-    oldData: any
-  ): { updatePayload: any; fieldsChange: string[] } {
-    const updatePayload: any = {};
-    const fieldsChange: string[] = [];
-    for (const key of Object.keys(newData)) {
-      if (key === 'NV_id' || key === 'KM_id') continue;
-      const newValue = newData[key];
-      const oldValue = oldData[key];
-      const isChanged =
-        oldValue instanceof Date && newValue instanceof Date
-          ? oldValue.getTime() !== newValue.getTime()
-          : newValue !== undefined && newValue !== oldValue;
-      if (isChanged) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = newValue;
-      }
-    }
-    return { updatePayload, fieldsChange };
-  }
-
-  /**
    * Xử lý cập nhật danh sách chi tiết khuyến mãi của một khuyến mãi cụ thể (`KM_id`).
    *
-   * @param {number} KM_id - ID của khuyến mãi cần xử lý chi tiết.
+   * @param {number} id - ID của khuyến mãi cần xử lý chi tiết.
    * @param {any[]} newList - Danh sách chi tiết khuyến mãi mới (dạng mảng, mỗi phần tử chứa thông tin sách và thông tin khuyến mãi).
    * @param {ClientSession} session - Phiên giao dịch hiện tại (MongoDB transaction session).
    * @returns {Promise<boolean>} Trả về `true` nếu có thay đổi xảy ra (thêm, sửa, xóa); ngược lại trả về `false`.
    */
   private async processPromotionDetails(
-    KM_id: number,
+    id: number,
     newList: any[],
     session: ClientSession
   ): Promise<boolean> {
-    const oldList = await this.ChiTietKhuyenMaiRepo.findAllByPromotionId(KM_id);
+    const oldList = await this.ChiTietKhuyenMaiRepo.findAllByPromotionId(id);
     const oldMap = new Map(oldList.map((item) => [item.S_id, item]));
     const newMap = new Map(newList.map((item) => [item.S_id, item]));
     const promises: Promise<any>[] = [];
@@ -308,7 +250,7 @@ export class KhuyenMaiService {
       if (!oldItem) {
         changed = true;
         promises.push(
-          this.ChiTietKhuyenMaiRepo.create([{ ...newItem, KM_id }], session)
+          this.ChiTietKhuyenMaiRepo.create([{ ...newItem, KM_id: id }], session)
         );
       } else if (
         oldItem.CTKM_theoTyLe !== newItem.CTKM_theoTyLe ||
@@ -318,7 +260,7 @@ export class KhuyenMaiService {
         promises.push(
           this.ChiTietKhuyenMaiRepo.update(
             newItem.S_id,
-            KM_id,
+            id,
             {
               CTKM_theoTyLe: newItem.CTKM_theoTyLe,
               CTKM_giaTri: newItem.CTKM_giaTri,
@@ -333,43 +275,13 @@ export class KhuyenMaiService {
       if (!newMap.has(oldItem.S_id)) {
         changed = true;
         promises.push(
-          this.ChiTietKhuyenMaiRepo.remove(KM_id, oldItem.S_id, session)
+          this.ChiTietKhuyenMaiRepo.remove(id, oldItem.S_id, session)
         );
       }
     }
 
     await Promise.all(promises);
     return changed;
-  }
-
-  /**
-   * Ghi lại lịch sử thao tác cập nhật khuyến mãi vào `updatePayload`.
-   *
-   * @param {any} updatePayload - Đối tượng chứa các trường sẽ được cập nhật (sẽ được thêm lịch sử thao tác).
-   * @param {any} existing - Đối tượng khuyến mãi hiện tại (chứa lịch sử thao tác cũ).
-   * @param {string[]} fieldsChange - Danh sách tên các trường đã bị thay đổi.
-   * @param {boolean} isUpdateChiTiet - Có thay đổi chi tiết khuyến mãi sách hay không.
-   * @param {string} NV_id - ID của nhân viên thực hiện thao tác.
-   */
-  private addActivityLog(
-    updatePayload: any,
-    existing: any,
-    fieldsChange: string[],
-    isUpdateChiTiet: boolean,
-    NV_id: string
-  ) {
-    const thaoTac = {
-      thaoTac: `Cập nhật: ${[
-        ...fieldsChange,
-        isUpdateChiTiet ? 'Thông tin khuyến mãi sách' : '',
-      ]
-        .filter(Boolean)
-        .join(', ')}`,
-      NV_id,
-      thoiGian: new Date(),
-    };
-
-    updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
   }
 
   /**

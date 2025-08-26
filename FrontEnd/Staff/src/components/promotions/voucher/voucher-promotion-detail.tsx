@@ -4,7 +4,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { ActivityLogs } from '@/models/activityLogs';
 import type { VoucherPromotionDetail } from '@/models/promotionVoucher';
 import {
   mapVoucherPromotionDetailFromDto,
@@ -34,7 +33,6 @@ export default function VoucherPromotionDetail() {
 
   const [data, setData] = useState<VoucherPromotionDetail>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   async function onSubmit(data: VoucherPromotionDetail) {
     if (!authData.userId) return;
@@ -78,9 +76,8 @@ export default function VoucherPromotionDetail() {
       if (!id) return;
       try {
         const res = await api.get(`/vouchers/${id}`);
-        const { data, activityLogs } = mapVoucherPromotionDetailFromDto(res.data);
+        const { data } = mapVoucherPromotionDetailFromDto(res.data);
         setData(data);
-        setActivityLogs(activityLogs);
       } catch {
         toast.error('Không tìm thấy mã giảm!');
         router.back();
@@ -105,7 +102,7 @@ export default function VoucherPromotionDetail() {
           />
 
           <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
+            <ActionHistorySheet dataName="MaGiam" dataId={id} />
           </div>
         </div>
         {isSubmitting && <Loader />}

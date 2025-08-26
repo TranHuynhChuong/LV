@@ -151,7 +151,6 @@ export class DonHangRepository {
           DH_HD: { $first: '$DH_HD' },
           KH_id: { $first: '$KH_id' },
           KH_email: { $first: '$KH_email' },
-          lichSuThaoTac: { $first: '$lichSuThaoTac' },
           thongTinNhanHang: { $first: '$nhanHang' },
           chiTietDonHang: {
             $push: {
@@ -308,14 +307,12 @@ export class DonHangRepository {
    *
    * @param {string} DH_id - Mã định danh của đơn hàng cần cập nhật.
    * @param {OrderStatus} status - Trạng thái mới của đơn hàng (được ánh xạ từ enum OrderStatus sang giá trị trong DB).
-   * @param {any} [activityLog] - (Tuỳ chọn) Nhật ký thao tác sẽ được thêm vào mảng `lichSuThaoTac` của đơn hàng.
    * @param {ClientSession} [session] - (Tuỳ chọn) Phiên giao dịch MongoDB dùng để đảm bảo tính nhất quán khi thực hiện cập nhật.
    * @returns {Promise<DonHang | null>} Trả về đơn hàng sau khi cập nhật nếu tồn tại, ngược lại trả về `null`.
    */
   async update(
     DH_id: string,
     status: OrderStatus,
-    activityLog?: any,
     session?: ClientSession
   ): Promise<DonHang | null> {
     const updateQuery: any = {
@@ -325,11 +322,6 @@ export class DonHangRepository {
     const updateOps: any = {
       $set: updateQuery,
     };
-    if (activityLog) {
-      updateOps.$push = {
-        lichSuThaoTac: activityLog,
-      };
-    }
     return this.DonHangModel.findOneAndUpdate({ DH_id }, updateOps, {
       new: true,
       session,

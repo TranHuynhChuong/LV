@@ -7,7 +7,6 @@ import { DonHang, DonHangSchema } from './schemas/don-hang.schema';
 import { SachModule } from 'src/sach/sach.module';
 import { TTNhanHangModule } from 'src/tt-nhan-hang/tt-nhan-hang.module';
 import { MaGiamModule } from 'src/ma-giam/ma-giam.module';
-import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
 import { UtilModule } from 'src/Util/util.module';
 import {
   ChiTietDonHang,
@@ -17,6 +16,8 @@ import { ChiTietDonHangRepository } from './repositories/chi-tiet-don-hang.repos
 import { DiaChiModule } from 'src/dia-chi/dia-chi.module';
 import { DanhGiaModule } from 'src/danh-gia/danh-gia.module';
 import { ThanhToanModule } from 'src/thanh-toan/thanh-toan.module';
+import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
+import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.module';
 
 @Module({
   imports: [
@@ -24,15 +25,15 @@ import { ThanhToanModule } from 'src/thanh-toan/thanh-toan.module';
     MongooseModule.forFeature([
       { name: ChiTietDonHang.name, schema: ChiTietDonHangSchema },
     ]),
-
+    NguoiDungModule,
     SachModule,
     TTNhanHangModule,
     MaGiamModule,
-    NguoiDungModule,
     UtilModule,
     DiaChiModule,
     DanhGiaModule,
     ThanhToanModule,
+    LichSuThaoTacModule,
   ],
   controllers: [DonHangController],
   providers: [DonHangService, DonHangRepository, ChiTietDonHangRepository],

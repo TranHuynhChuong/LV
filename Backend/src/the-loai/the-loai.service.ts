@@ -5,15 +5,10 @@ import {
   NotFoundException,
   forwardRef,
   Inject,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { TheLoaiRepository } from './repositories/the-loai.repository';
 import { TheLoai } from './schemas/the-loai.schema';
-import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
-
-const typeOfChange: Record<string, string> = {
-  TL_ten: 'Tên thể loại',
-  TL_idTL: 'Thể loại cha',
-};
 
 @Injectable()
 export class TheLoaiUtilService {
@@ -38,11 +33,13 @@ import { SachUtilService } from 'src/sach/sach.service';
 import { CreateTheLoaiDto } from './dto/create-the-loai.dto';
 import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
 import { getNextSequence } from 'src/Util/counter.service';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 @Injectable()
 export class TheLoaiService {
   constructor(
     private readonly TheLoaiRepo: TheLoaiRepository,
-    private readonly NhanVienService: NhanVienUtilService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService,
     @InjectConnection() private readonly connection: Connection,
     @Inject(forwardRef(() => SachUtilService))
     private readonly SachService: SachUtilService
@@ -59,11 +56,6 @@ export class TheLoaiService {
     try {
       let result: TheLoai;
       await session.withTransaction(async () => {
-        const thaoTac = {
-          thaoTac: 'Tạo mới',
-          NV_id: newData.NV_id,
-          thoiGian: new Date(),
-        };
         if (!this.connection.db) {
           throw new Error('Không thể kết nối cơ sở dữ liệu');
         }
@@ -77,19 +69,25 @@ export class TheLoaiService {
           {
             ...newData,
             TL_id: seq,
-            lichSuThaoTac: [thaoTac],
           },
           session
         );
         if (!created) {
           throw new BadRequestException('Tạo thể loại - Tạo thất bại');
         }
+        await this.LichSuThaoTacService.create({
+          actionType: 'create',
+          staffId: newData.NV_id ?? '',
+          dataName: DULIEU.CATEGORY,
+          dataId: seq,
+          session: session,
+        });
         result = created;
       });
       return result!;
     } catch {
       await session.abortTransaction();
-      throw new BadRequestException('Tạo thể loại - Tạo thể loại thất bại');
+      throw new BadRequestException('Tạo thể loại - Tạo thất bại');
     } finally {
       await session.endSession();
     }
@@ -104,44 +102,42 @@ export class TheLoaiService {
    */
   async update(id: number, newData: UpdateTheLoaiDto): Promise<TheLoai> {
     // Tìm bản ghi hiện tại theo id
-    const current = await this.TheLoaiRepo.findById(id);
-    if (!current) {
+    const existing = await this.TheLoaiRepo.findById(id);
+    if (!existing) {
       throw new NotFoundException(
         'Cập nhật thể loại - Không tìm thấy thể loại'
       );
     }
-    // Xác định trường thay đổi
-    const fieldsChange: string[] = [];
-    const updatePayload: any = {};
-    for (const key of Object.keys(newData)) {
-      if (
-        newData[key] !== undefined &&
-        newData[key] !== current[key] &&
-        key !== 'NV_id'
-      ) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = newData[key];
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const { updatePayload } = await this.LichSuThaoTacService.create({
+        actionType: 'update',
+        staffId: newData.NV_id ?? '',
+        dataName: DULIEU.CATEGORY,
+        dataId: id,
+        newData: newData,
+        existingData: existing,
+        ignoreFields: ['NV_id'],
+        session: session,
+      });
+      const updated = await this.TheLoaiRepo.update(id, updatePayload, session);
+      if (!updated) {
+        throw new BadRequestException('Cập nhật thể loại - Cập nhật thất bại');
       }
+      await session.commitTransaction();
+      return updated;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Cập nhật thể loại - ${error.message}`
+      );
+    } finally {
+      await session.endSession();
     }
-    // Thêm lịch sử thao tác nếu có thay đổi
-    if (fieldsChange.length > 0 && newData.NV_id) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-        NV_id: newData.NV_id,
-        thoiGian: new Date(),
-      };
-      updatePayload.lichSuThaoTac = [...current.lichSuThaoTac, thaoTac];
-    }
-    // Không có thay đổi thì trả về bản ghi cũ
-    if (Object.keys(updatePayload).length === 0) {
-      return current;
-    }
-    const updated = await this.TheLoaiRepo.update(id, updatePayload);
-    if (!updated) {
-      throw new BadRequestException('Cập nhật thể loại - Cập nhật thất bại');
-    }
-    return updated;
   }
 
   /**
@@ -160,15 +156,10 @@ export class TheLoaiService {
    * @returns {Promise<TheLoai | null>} Promise trả về thể loại nếu tìm thấy, ngược lại null
    */
   async findById(id: number): Promise<any> {
-    const result: any = await this.TheLoaiRepo.findById(id);
+    const result = await this.TheLoaiRepo.findById(id);
     if (!result) {
       throw new NotFoundException();
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
     return result;
   }
 
@@ -176,10 +167,10 @@ export class TheLoaiService {
    * Đánh dấu thể loại là đã xoá (soft delete) theo ID.
    *
    * @param {number} id - ID của thể loại cần xoá
-   * @param {string} NV_id - ID nhân viên thực hiện xoá
+   * @param {string} staffId - ID nhân viên thực hiện xoá
    * @returns {Promise<TheLoai>} Promise trả về thể loại đã được cập nhật trạng thái xoá
    */
-  async delete(id: number, NV_id: string): Promise<TheLoai> {
+  async delete(id: number, staffId: string): Promise<TheLoai> {
     const existing = await this.TheLoaiRepo.findById(id);
     if (!existing)
       throw new NotFoundException('Xóa thể loại - Thể loại không tồn tại');
@@ -193,20 +184,29 @@ export class TheLoaiService {
       throw new ConflictException(
         'Xóa thể loại - Không thể xóa do ràng buộc dữ liệu'
       );
-    const thaoTac = {
-      thaoTac: 'Xóa dữ liệu',
-      NV_id: NV_id,
-      thoiGian: new Date(),
-    };
-    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const deleted = await this.TheLoaiRepo.update(id, {
-      TL_daXoa: true,
-      lichSuThaoTac: lichSuThaoTac,
-    });
-    if (!deleted) {
-      throw new BadRequestException('Xóa thể loại - Xóa thất bại');
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const deleted = await this.TheLoaiRepo.delete(id, session);
+      if (!deleted) {
+        throw new BadRequestException('Xóa thể loại - Xóa thất bại');
+      }
+      await this.LichSuThaoTacService.create({
+        actionType: 'delete',
+        staffId: staffId ?? '',
+        dataName: DULIEU.CATEGORY,
+        dataId: id,
+        session: session,
+      });
+      await session.commitTransaction();
+      return deleted;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(`Xóa thể loại - ${error.message}`);
+    } finally {
+      await session.endSession();
     }
-    return deleted;
   }
 
   /**

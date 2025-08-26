@@ -4,36 +4,6 @@ import { Document } from 'mongoose';
 export type NhanVienDocument = NhanVien & Document;
 
 /**
- * Lịch sử thao tác của nhân viên.
- */
-@Schema()
-export class LichSuThaoTacNV {
-  /**
-   * Nội dung thao tác mà nhân viên đã thực hiện.
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   * Thời gian thao tác, mặc định là thời điểm hiện tại.
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * ID của nhân viên thực hiện thao tác.
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-
-export const LichSuThaoTacNVSchema =
-  SchemaFactory.createForClass(LichSuThaoTacNV);
-
-/**
  * Thông tin nhân viên.
  */
 @Schema()
@@ -79,12 +49,6 @@ export class NhanVien {
    */
   @Prop({ type: Boolean, default: false })
   NV_daKhoa: boolean;
-
-  /**
-   * Danh sách các thao tác mà nhân viên đã thực hiện.
-   */
-  @Prop({ type: [LichSuThaoTacNVSchema] })
-  lichSuThaoTac: LichSuThaoTacNV[];
 }
 
 export const NhanVienSchema = SchemaFactory.createForClass(NhanVien);

@@ -5,35 +5,6 @@ import { Document } from 'mongoose';
 export type DonHangDocument = DonHang & Document;
 
 /**
- * Lịch sử thao tác của đơn hàng
- */
-@Schema()
-export class LichSuThaoTacDH {
-  /**
-   * Nội dung thao tác
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   *Thời gian thao tác, mặc định là thời điểm tạo
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * Mã nhân viên thực hiện thao tác
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-export const LichSuThaoTacDHSchema =
-  SchemaFactory.createForClass(LichSuThaoTacDH);
-
-/**
  * Kiểu dữ liệu hóa đơn đi kèm đơn hàng
  */
 @Schema()
@@ -136,12 +107,6 @@ export class DonHang {
     default: TrangThaiDonHang.ChoVanChuyen,
   })
   DH_trangThai: TrangThaiDonHang;
-
-  /**
-   * Lịch sử thao tác trên đơn hàng
-   */
-  @Prop({ type: [LichSuThaoTacDHSchema] })
-  lichSuThaoTac: LichSuThaoTacDH[];
 
   /**
    * Mã khách hàng (nếu là khách có tài khoản)

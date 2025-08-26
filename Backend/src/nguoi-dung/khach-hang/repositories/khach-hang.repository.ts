@@ -27,17 +27,6 @@ export class KhachHangRepository {
     return created.save({ session });
   }
 
-  async findLastId(session?: ClientSession): Promise<number> {
-    const result = await this.KhachHangModel.find({})
-      .sort({ KH_id: -1 })
-      .limit(1)
-      .select('KH_id')
-      .session(session ?? null)
-      .lean();
-
-    return result.length > 0 ? result[0].KH_id : 0;
-  }
-
   /**
    * Lấy danh sách khách hàng có phân trang.
    * @param page Số trang.
@@ -68,7 +57,7 @@ export class KhachHangRepository {
    * @returns Đối tượng khách hàng tương ứng hoặc null nếu không tìm thấy.
    */
   async findByEmail(email: string): Promise<KhachHang | null> {
-    return this.KhachHangModel.findOne({ KH_email: email }).exec();
+    return this.KhachHangModel.findOne({ KH_email: email }).lean().exec();
   }
 
   /**
@@ -77,7 +66,7 @@ export class KhachHangRepository {
    * @returns Đối tượng khách hàng tương ứng hoặc null nếu không tìm thấy.
    */
   async findById(id: number): Promise<KhachHang | null> {
-    return this.KhachHangModel.findOne({ KH_id: id }).exec();
+    return this.KhachHangModel.findOne({ KH_id: id }).lean().exec();
   }
 
   /**

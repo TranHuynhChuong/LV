@@ -2,35 +2,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-/**
- * Lịch sử thao tác áp dụng cho mã giảm giá.
- */
-@Schema()
-export class LichSuThaoTacMG {
-  /**
-   * Nội dung thao tác thực hiện (ví dụ: Tạo, cập nhật, xóa).
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   * Thời điểm thao tác được thực hiện.
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * ID của nhân viên thực hiện thao tác.
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-export const LichSuThaoTacMGSchema =
-  SchemaFactory.createForClass(LichSuThaoTacMG);
-
 export type MaGiamDocument = MaGiam & Document;
 
 /**
@@ -85,12 +56,6 @@ export class MaGiam {
    */
   @Prop({ type: Number })
   MG_toiDa?: number;
-
-  /**
-   * Danh sách lịch sử thao tác thực hiện trên mã giảm giá.
-   */
-  @Prop({ type: [LichSuThaoTacMGSchema] })
-  lichSuThaoTac: LichSuThaoTacMG[];
 }
 
 export const MaGiamSchema = SchemaFactory.createForClass(MaGiam);

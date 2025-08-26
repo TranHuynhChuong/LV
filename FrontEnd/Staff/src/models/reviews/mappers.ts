@@ -1,4 +1,3 @@
-import { mapActivityLogsFromDto } from '../activityLogs';
 import { ReviewDto } from './dto';
 
 export function mappedReviewFromDto(dto: ReviewDto[]) {
@@ -12,7 +11,7 @@ export function mappedReviewFromDto(dto: ReviewDto[]) {
     bookName: item.S_ten,
     bookImage: item.S_anh,
     orderId: item.DH_id,
-    activityLogs: mapActivityLogsFromDto(item.lichSuThaoTac),
+
     customerId: item.KH_id,
   }));
 }

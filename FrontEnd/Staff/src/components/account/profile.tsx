@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { mapStaffFormDto, Staff } from '@/models/accounts';
+import { Staff } from '@/models/accounts';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -28,8 +28,9 @@ export default function Profile() {
       try {
         const res = await api.get(`/users/staff/${authData.userId}`);
         const staff = res.data;
-        setData(mapStaffFormDto([staff])[0]);
-      } catch {
+        setData(staff);
+      } catch (error) {
+        console.error(error);
         toast.error('Đã xảy ra lỗi khi tải dữ liệu!');
         router.back();
       }

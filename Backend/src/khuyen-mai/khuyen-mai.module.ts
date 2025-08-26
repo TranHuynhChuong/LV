@@ -4,12 +4,12 @@ import { KhuyenMai, KhuyenMaiSchema } from './schemas/khuyen-mai.schema';
 import { KhuyenMaiRepository } from './repositories/khuyen-mai.repository';
 import { KhuyenMaiService, KhuyenMaiUtilService } from './khuyen-mai.service';
 import { KhuyenMaiController } from './khuyen-mai.controller';
-import { NguoiDungModule } from 'src/nguoi-dung/nguoi-dung.module';
 import {
   ChiTietKhuyenMai,
   ChiTietKhuyenMaiSchema,
 } from './schemas/chi-tiet-khuyen-mai.schema';
 import { ChiTietKhuyenMaiRepository } from './repositories/chi-tiet-khuyen-mai.repository';
+import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.module';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { ChiTietKhuyenMaiRepository } from './repositories/chi-tiet-khuyen-mai.r
       { name: KhuyenMai.name, schema: KhuyenMaiSchema },
       { name: ChiTietKhuyenMai.name, schema: ChiTietKhuyenMaiSchema },
     ]),
-    NguoiDungModule,
+    LichSuThaoTacModule,
   ],
   providers: [
     KhuyenMaiRepository,

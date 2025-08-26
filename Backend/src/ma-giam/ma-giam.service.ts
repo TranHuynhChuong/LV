@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -12,19 +13,11 @@ import {
 import { MaGiam } from './schemas/ma-giam.schema';
 import { CreateMaGiamDto } from './dto/create-ma-giam.dto';
 import { UpdateMaGiamDto } from './dto/update-ma-giam.dto';
-import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
 import { MaGiamDonHangRepository } from './repositories/ma-giam-don-hang.repository';
-import { ClientSession } from 'mongoose';
-
-const typeOfChange: Record<string, string> = {
-  MG_batDau: 'Thời gian bắt đầu',
-  MG_ketThuc: 'Thời gian kết thúc',
-  MG_theoTyLe: 'Kiểu giảm giá',
-  MG_giaTri: 'Giá trị giảm',
-  MG_loai: 'Loại mã giảm',
-  MG_toiThieu: 'Giá trị tối thiểu',
-  MG_toiDa: 'Giá trị tối đa',
-};
+import { ClientSession, Connection } from 'mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 
 @Injectable()
 export class MaGiamUtilService {
@@ -72,7 +65,8 @@ export class MaGiamUtilService {
 export class MaGiamService {
   constructor(
     private readonly MaGiamRepo: MaGiamRepository,
-    private readonly NhanVienService: NhanVienUtilService
+    @InjectConnection() private readonly connection: Connection,
+    private readonly LichSuThaoTacService: LichSuThaoTacService
   ) {}
 
   /**
@@ -81,28 +75,34 @@ export class MaGiamService {
    * @param data - Dữ liệu mã giảm cần tạo.
    * @throws ConflictException nếu mã đã tồn tại.
    */
-  async create(data: CreateMaGiamDto) {
-    const existing = await this.MaGiamRepo.findExisting(data.MG_id);
+  async create(newData: CreateMaGiamDto) {
+    const existing = await this.MaGiamRepo.findExisting(newData.MG_id);
     if (existing) {
       throw new ConflictException();
     }
-
-    const thaoTac = {
-      thaoTac: 'Tạo mới',
-      NV_id: data.NV_id,
-      thoiGian: new Date(),
-    };
-
-    const created = await this.MaGiamRepo.create({
-      ...data,
-      lichSuThaoTac: [thaoTac],
-    });
-
-    if (!created) {
-      throw new BadRequestException('Tạo mã giảm - Tạo mã giảm thất bại');
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const created = await this.MaGiamRepo.create(newData, session);
+      if (!created) {
+        throw new BadRequestException('Tạo mã giảm - Tạo mã giảm thất bại');
+      }
+      await this.LichSuThaoTacService.create({
+        actionType: 'create',
+        staffId: newData.NV_id ?? '',
+        dataName: DULIEU.VOUCHER,
+        dataId: newData.MG_id,
+        session: session,
+      });
+      await session.commitTransaction();
+      return created;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(`Tạo mã giảm - ${error.message}`);
+    } finally {
+      await session.endSession();
     }
-
-    return created;
   }
 
   /**
@@ -132,23 +132,17 @@ export class MaGiamService {
    * @param id - ID mã giảm.
    * @param filterType - Kiểu lọc mã.
    * @param type - Loại mã giảm.
-   * @throws NotFoundException nếu không tìm thấy mã giảm.
+   * @return Mã giảm.
    */
   async getById(
     id: string,
     filterType?: VoucherFilterType,
     type?: VoucherType
-  ): Promise<any> {
-    const result: any = await this.MaGiamRepo.findById(id, filterType, type);
+  ) {
+    const result = await this.MaGiamRepo.findById(id, filterType, type);
     if (!result) {
       throw new NotFoundException('Tìm mã giảm - Mã giảm không tồn tại');
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
-
     return result;
   }
 
@@ -162,58 +156,53 @@ export class MaGiamService {
    */
   async update(id: string, newData: UpdateMaGiamDto): Promise<MaGiam> {
     // Tìm bản ghi hiện tại theo id
-    const current = await this.MaGiamRepo.findById(id);
-    if (!current) {
+    const existing = await this.MaGiamRepo.findById(id);
+    if (!existing) {
       throw new NotFoundException('Cập nhật mã giảm - Không tim thấy mã giảm');
     }
     const now = new Date();
-    const isOngoing = current.MG_batDau <= now && now <= current.MG_ketThuc;
+    const isOngoing = existing.MG_batDau <= now && now <= existing.MG_ketThuc;
     if (
       isOngoing &&
       newData.MG_batDau &&
-      newData.MG_batDau.getTime() !== current.MG_batDau.getTime()
+      newData.MG_batDau.getTime() !== existing.MG_batDau.getTime()
     ) {
       throw new BadRequestException(
         'Cập nhật mã giảm - Không thể cập nhật thời gian bắt đầu khi mã giảm đang diễn ra.'
       );
     }
-    // Xác định trường thay đổi
-    const fieldsChange: string[] = [];
-    const updatePayload: any = {};
-    for (const key of Object.keys(newData)) {
-      if (key === 'NV_id') continue;
-      const newValue = newData[key];
-      const currentValue = current[key];
-      const isChanged =
-        currentValue instanceof Date && newValue instanceof Date
-          ? currentValue.getTime() !== newValue.getTime()
-          : newValue !== undefined && newValue !== currentValue;
-      if (isChanged) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = newValue;
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const { updatePayload } = await this.LichSuThaoTacService.create({
+        actionType: 'update',
+        staffId: newData.NV_id ?? '',
+        dataName: DULIEU.VOUCHER,
+        dataId: id,
+        newData: newData,
+        existingData: existing,
+        ignoreFields: ['NV_id'],
+        session: session,
+      });
+
+      const updated = await this.MaGiamRepo.update(id, updatePayload, session);
+      if (!updated) {
+        throw new BadRequestException(
+          'Cập nhật mã giảm - Cập nhật mã giảm thất bại'
+        );
       }
-    }
-    // Thêm lịch sử thao tác nếu có thay đổi
-    if (fieldsChange.length > 0 && newData.NV_id) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-        NV_id: newData.NV_id,
-        thoiGian: new Date(),
-      };
-      updatePayload.lichSuThaoTac = [...current.lichSuThaoTac, thaoTac];
-    }
-    // Không có thay đổi thì trả về bản ghi cũ
-    if (Object.keys(updatePayload).length === 0) {
-      return current;
-    }
-    const updated = await this.MaGiamRepo.update(id, updatePayload);
-    if (!updated) {
-      throw new BadRequestException(
-        'Cập nhật mã giảm - Cập nhật mã giảm thất bại'
+
+      await session.commitTransaction();
+      return updated;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Cập nhật phí vận chuyển - ${error.message}`
       );
+    } finally {
+      await session.endSession();
     }
-    return updated;
   }
 
   /**

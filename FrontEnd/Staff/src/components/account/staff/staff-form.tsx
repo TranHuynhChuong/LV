@@ -31,7 +31,7 @@ const formSchema: z.Schema<Staff> = z.object({
   fullName: z.string().min(2, 'Họ tên ít nhất 2 ký tự').max(48, 'Họ tên tối đa 48 ký tự'),
   phone: z.string().regex(/^\d{9,11}$/, 'Số điện thoại không hợp lệ (9-11 số)'),
   email: z.string().email('Email không hợp lệ').max(128, 'Email không được vượt quá 128 ký tự'),
-  role: z.string(),
+  role: z.number(),
   password: z.string().min(6, 'Mật khẩu ít nhất 6 ký tự').max(72, 'Mật khẩu tối đa 72 ký tự'),
   isBlock: z.boolean(),
 });
@@ -58,7 +58,7 @@ export default function StaffForm({ defaultValues, onSubmit, isViewing }: Readon
       fullName: '',
       phone: '',
       email: '',
-      role: '3',
+      role: 3,
       password: '',
       isBlock: false,
       ...defaultValues,
@@ -160,7 +160,10 @@ export default function StaffForm({ defaultValues, onSubmit, isViewing }: Readon
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Vai trò</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(val) => field.onChange(Number(val))}
+                    value={field.value.toString()}
+                  >
                     <FormControl>
                       <SelectTrigger className="w-full cursor-pointer" disabled={isViewing}>
                         <SelectValue placeholder="Chọn vai trò" className="cursor-pointer" />

@@ -3,31 +3,25 @@ import {
   NotFoundException,
   Injectable,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
-import { NhanVienUtilService } from '../nguoi-dung/nhan-vien/nhan-vien.service';
 import { PhiVanChuyenRepository } from './repositories/phi-van-chuyen.repository';
 import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
 import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
 import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
 import { DiaChiService } from '../dia-chi/dia-chi.service';
 import { getNextSequence } from 'src/Util/counter.service';
-
-const typeOfChange: Record<string, string> = {
-  PVC_phi: 'Phí',
-  PVC_ntl: 'Ngưỡng khối lượng',
-  PVC_phuPhi: 'Phụ phí',
-  PVC_dvpp: 'Đơ vị phụ phí',
-  T_id: 'Khu vực',
-};
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 
 @Injectable()
 export class PhiVanChuyenService {
   constructor(
     private readonly PhiVanChuyenRepo: PhiVanChuyenRepository,
-    private readonly NhanVienService: NhanVienUtilService,
     private readonly DiaChiService: DiaChiService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
@@ -51,15 +45,17 @@ export class PhiVanChuyenService {
               'Tạo phí vận chuyển - Khu vực đã được thiết lập phí vận chuyển'
             );
           }
-          const thaoTac = {
-            thaoTac: 'Khôi phục & cập nhật',
-            NV_id: newData.NV_id,
-            thoiGian: new Date(),
-          };
+          await this.LichSuThaoTacService.create({
+            actionType: 'create',
+            staffId: newData.NV_id ?? '',
+            dataName: DULIEU.SHIPPINGFEE,
+            dataId: exists.PVC_id,
+            session: session,
+          });
           const updated = await this.PhiVanChuyenRepo.update(exists.PVC_id, {
             ...newData,
             PVC_daXoa: false,
-            lichSuThaoTac: [...(exists.lichSuThaoTac || []), thaoTac],
+            session,
           });
           if (!updated) {
             throw new BadRequestException(
@@ -77,15 +73,17 @@ export class PhiVanChuyenService {
             'shippingId',
             session
           );
-          const thaoTac = {
-            thaoTac: 'Tạo mới',
-            NV_id: newData.NV_id,
-            thoiGian: new Date(),
-          };
+          await this.LichSuThaoTacService.create({
+            actionType: 'create',
+            staffId: newData.NV_id ?? '',
+            dataName: DULIEU.SHIPPINGFEE,
+            dataId: seq,
+            session: session,
+          });
           const created = await this.PhiVanChuyenRepo.create({
             ...newData,
             PVC_id: seq,
-            lichSuThaoTac: [thaoTac],
+            session,
           });
           if (!created) {
             throw new BadRequestException(
@@ -129,18 +127,13 @@ export class PhiVanChuyenService {
    * @param id - ID phí vận chuyển.
    * @returns Bản ghi phí vận chuyển.
    */
-  async getById(id: number): Promise<any> {
-    const result: any = await this.PhiVanChuyenRepo.findById(id);
+  async getById(id: number) {
+    const result = await this.PhiVanChuyenRepo.findById(id);
     if (!result) {
       throw new NotFoundException(
         'Tìm phí vận chuyển - Không tồn tại phí vận chuyển'
       );
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
     return result;
   }
 
@@ -178,69 +171,85 @@ export class PhiVanChuyenService {
         'Cập nhật phí vận chuyển - Không tìm thấy phí vận chuyển'
       );
     }
-    const fieldsChange: string[] = [];
-    const updatePayload: any = {};
-    for (const key of Object.keys(newData)) {
-      if (
-        newData[key] !== undefined &&
-        newData[key] !== existing[key] &&
-        key !== 'NV_id'
-      ) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = newData[key]; // chỉ thêm trường có thay đổi
-      }
-    }
-    if (fieldsChange.length > 0 && newData.NV_id) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-        NV_id: newData.NV_id,
-        thoiGian: new Date(),
-      };
-      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    }
-    // Nếu không có gì thay đổi, trả về bản ghi cũ
-    if (Object.keys(updatePayload).length === 0) {
-      return existing;
-    }
-    const updated = await this.PhiVanChuyenRepo.update(id, updatePayload);
-    if (!updated) {
-      throw new BadRequestException(
-        'Cập nhật phí vận chuyển - Cập nhật phí vận chuyển thất bại'
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      const { updatePayload } = await this.LichSuThaoTacService.create({
+        actionType: 'update',
+        staffId: newData.NV_id ?? '',
+        dataName: DULIEU.SHIPPINGFEE,
+        dataId: id,
+        newData: newData,
+        existingData: existing,
+        ignoreFields: ['NV_id'],
+        session: session,
+      });
+      const updated = await this.PhiVanChuyenRepo.update(
+        id,
+        updatePayload,
+        session
       );
+      if (!updated) {
+        throw new BadRequestException(
+          'Cập nhật phí vận chuyển - Cập nhật phí vận chuyển thất bại'
+        );
+      }
+      await session.commitTransaction();
+      return updated;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Cập nhật phí vận chuyển - ${error.message}`
+      );
+    } finally {
+      await session.endSession();
     }
-    return updated;
   }
 
   /**
    * Xoá (mềm) phí vận chuyển và lưu lịch sử thao tác.
    *
    * @param id - PVC_id cần xóa.
-   * @param NV_id - ID nhân viên thực hiện thao tác.
+   * @param staffId - ID nhân viên thực hiện thao tác.
    * @returns Bản ghi sau khi bị đánh dấu xoá.
    */
-  async delete(id: number, NV_id: string): Promise<PhiVanChuyen> {
+  async delete(id: number, staffId: string): Promise<PhiVanChuyen> {
     const existing = await this.PhiVanChuyenRepo.findById(id);
     if (!existing)
       throw new BadRequestException(
         'Xóa phí vận chuyển - Phí vận chuyển không tồn tại'
       );
-    const thaoTac = {
-      thaoTac: 'Xóa dữ liệu',
-      NV_id: NV_id,
-      thoiGian: new Date(),
-    };
-    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const deleted = await this.PhiVanChuyenRepo.update(id, {
-      PVC_daXoa: true,
-      lichSuThaoTac: lichSuThaoTac,
-    });
-    if (!deleted) {
-      throw new BadRequestException(
-        'Xóa phí vận chuyển - Xóa phí vận chuyển thất bại'
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      await this.LichSuThaoTacService.create({
+        actionType: 'delete',
+        staffId: staffId ?? '',
+        dataName: DULIEU.SHIPPINGFEE,
+        dataId: id,
+        session: session,
+      });
+      const deleted = await this.PhiVanChuyenRepo.update(id, {
+        PVC_daXoa: true,
+        session,
+      });
+      if (!deleted) {
+        throw new BadRequestException(
+          'Xóa phí vận chuyển - Xóa phí vận chuyển thất bại'
+        );
+      }
+      await session.commitTransaction();
+      return deleted;
+    } catch (error) {
+      await session.abortTransaction();
+      if (error instanceof Error) throw error;
+      throw new InternalServerErrorException(
+        `Xóa phí vận chuyển - ${error.message}`
       );
+    } finally {
+      await session.endSession();
     }
-    return deleted;
   }
 
   /**

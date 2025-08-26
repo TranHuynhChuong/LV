@@ -4,35 +4,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { NhanVienRepository } from './repositories/nhan-vien.repository';
-
 import { NhanVien } from './schemas/nhan-vien.schema';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { CreateNhanVienDto } from './dto/create-nhan-vien.dto';
 import { UpdateNhanVienDto } from './dto/update-nhan-vien.dto';
 import { getNextSequence } from 'src/Util/counter.service';
-
-export interface ThaoTac {
-  thoiGian: Date;
-  thaoTac: string;
-  nhanVien: {
-    NV_id: string | null;
-    NV_hoTen: string | null;
-    NV_email: string | null;
-    NV_soDienThoai: string | null;
-  };
-}
+import { NhanVienResponseDto } from './dto/response-nhan-vien.dto';
+import { plainToInstance } from 'class-transformer';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 
 /**
- * Bản đồ ánh xạ các trường thay đổi sang nhãn hiển thị.
+ * Bản đồ vai trò từ mã số sang tên mô tả.
  */
-const typeOfChange: Record<string, string> = {
-  NV_hoTen: 'Họ tên',
-  NV_email: 'Email',
-  NV_soDienThoai: 'Số điện thoại',
-  NV_vaiTro: 'Vai trò',
-  NV_matKhau: 'Mật khẩu',
-  NV_daKhoa: 'Trạng thái khóa tài khoản',
+const Role: Record<number, string | null> = {
+  0: null,
+  1: 'Quản trị',
+  2: 'Quản lý',
+  3: 'Bán Hàng',
 };
 
 @Injectable()
@@ -45,81 +35,30 @@ export class NhanVienUtilService {
    * @param ids Danh sách mã NV_id cần tìm
    * @returns Danh sách đối tượng nhân viên tương ứng
    */
-  protected async findAllIds(ids: string[]): Promise<NhanVien[]> {
-    return this.NhanVienRepo.findAllIds(ids);
+  public async findAllIds(ids: string[]) {
+    const results = await this.NhanVienRepo.findAllIds(ids);
+    return results.map((r) => ({
+      ...r,
+      NV_tenVaiTro:
+        r.NV_vaiTro != null ? (Role[r.NV_vaiTro] ?? 'Không xác định') : null,
+    }));
   }
 
   /**
-   * Bản đồ vai trò từ mã số sang tên mô tả.
-   */
-  vaiTroMap: Record<number, string | null> = {
-    0: null,
-    1: 'Quản trị',
-    2: 'Quản lý',
-    3: 'Bán Hàng',
-  };
-
-  /**
-   * Chuyển đổi danh sách thao tác thành định dạng đầy đủ với thông tin nhân viên.
-   *
-   * @param activityLog Danh sách thao tác có NV_id
-   * @returns Danh sách thao tác có thông tin chi tiết của nhân viên
-   */
-  async mapActivityLog<
-    T extends { NV_id?: string; thoiGian: any; thaoTac: any },
-  >(
-    activityLog: T[]
-  ): Promise<
-    {
-      thoiGian: any;
-      thaoTac: any;
-      nhanVien: {
-        NV_id: string | null;
-        NV_hoTen: string | null;
-        NV_email: string | null;
-        NV_soDienThoai: string | null;
-      };
-    }[]
-  > {
-    if (activityLog.length === 0) return [];
-    const ids = [
-      ...new Set(activityLog.map((a) => a.NV_id).filter(Boolean)),
-    ] as string[];
-    const nhanViens = await this.findAllIds(ids);
-    const nhanVienMap = new Map<string, any>();
-    nhanViens.forEach((nv) => nhanVienMap.set(nv.NV_id, nv));
-    return activityLog.map((a) => {
-      const nv = a.NV_id ? nhanVienMap.get(a.NV_id) : undefined;
-      return {
-        thoiGian: a.thoiGian,
-        thaoTac: a.thaoTac,
-        nhanVien: {
-          NV_id: nv?.NV_id ?? null,
-          NV_hoTen: nv?.NV_hoTen ?? null,
-          NV_email: nv?.NV_email ?? null,
-          NV_soDienThoai: nv?.NV_soDienThoai ?? null,
-          NV_tenVaiTro: this.vaiTroMap[nv?.NV_vaiTro ?? 0] ?? null,
-        },
-      };
-    });
-  }
-
-  /**
-   * Tìm nhân viên theo ID (không bị khóa) và thêm tên vai trò vào kết quả.
+   * Tìm nhân viên theo ID và thêm tên vai trò vào kết quả.
    *
    * @param id Mã định danh NV_id của nhân viên
    * @returns Nhân viên kèm tên vai trò (NV_tenVaiTro)
    */
   async findById(id: string): Promise<NhanVien & { NV_tenVaiTro: string }> {
-    const staff = await this.NhanVienRepo.findUnBlockById(id);
-    if (!staff) {
-      throw new NotFoundException();
+    const result = await this.NhanVienRepo.findUnBlockById(id);
+    if (!result) {
+      throw new NotFoundException('Tìm nhân viên - Không tìm thấy nhân viên');
     }
-    const result: NhanVien & { NV_tenVaiTro: string } = {
-      ...staff,
-      NV_tenVaiTro: this.vaiTroMap[staff.NV_vaiTro] ?? 'Không xác định',
+    return {
+      ...result,
+      NV_tenVaiTro: Role[result.NV_vaiTro] ?? 'Không xác định',
     };
-    return result;
   }
 }
 
@@ -129,16 +68,15 @@ export class NhanVienService {
 
   constructor(
     private readonly NhanVienRepo: NhanVienRepository,
-    private readonly NhanVienUtils: NhanVienUtilService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService,
     @InjectConnection() private readonly connection: Connection
   ) {}
 
   /**
-   * Tạo mới một nhân viên, sinh NV_id tự động và ghi lịch sử thao tác.
+   * Tạo mới một nhân viên.
    *
    * @param newData Thông tin nhân viên mới
    * @returns Đối tượng nhân viên vừa được tạo
-   * @throws BadRequestException khi tạo thất bại.
    */
   async create(newData: CreateNhanVienDto): Promise<NhanVien> {
     const session = await this.connection.startSession();
@@ -154,18 +92,11 @@ export class NhanVienService {
           'staffId',
           session
         );
-
         const newCode = seq.toString().padStart(this.codeLength, '0');
-        const thaoTac = {
-          thaoTac: 'Tạo mới',
-          NV_id: newData.NV_idNV,
-          thoiGian: new Date(),
-        };
         const created = await this.NhanVienRepo.create(
           {
             ...newData,
             NV_id: newCode,
-            lichSuThaoTac: [thaoTac],
           },
           session
         );
@@ -173,9 +104,21 @@ export class NhanVienService {
           throw new BadRequestException(
             'Tạo nhân viên - Tạo nhân viên thất bại'
           );
+
+        await this.LichSuThaoTacService.create({
+          actionType: 'create',
+          staffId: newData.NV_idNV ?? '',
+          dataName: DULIEU.ACCOUNT,
+          dataId: newCode,
+          session: session,
+        });
+
         result = created;
       });
       return result!;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
     } finally {
       await session.endSession();
     }
@@ -186,8 +129,13 @@ export class NhanVienService {
    *
    * @returns Danh sách nhân viên
    */
-  async findAll(): Promise<NhanVien[]> {
-    return await this.NhanVienRepo.findAll();
+  async findAll(): Promise<NhanVienResponseDto[]> {
+    const result = await this.NhanVienRepo.findAll();
+    const mapResult = result.map((staff) => ({
+      ...staff,
+      NV_tenVaiTro: Role[staff.NV_vaiTro] ?? 'Không xác định',
+    }));
+    return plainToInstance(NhanVienResponseDto, mapResult);
   }
 
   /**
@@ -198,14 +146,11 @@ export class NhanVienService {
    * @throws NotFoundException khi không timg thấy.
    */
   async findById(id: string): Promise<any> {
-    const result: any = await this.NhanVienRepo.findById(id);
+    const result = await this.NhanVienRepo.findById(id);
     if (!result) {
       throw new NotFoundException('Tìm nhân viên - Không tìm thấy nhân viên');
     }
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0 ? await this.NhanVienUtils.mapActivityLog(lichSu) : [];
-    return result;
+    return plainToInstance(NhanVienResponseDto, result);
   }
 
   /**
@@ -222,93 +167,35 @@ export class NhanVienService {
         'Cập nhật nhân viên - Không tìm thấy nhân viên'
       );
     }
-    const fieldsChange: string[] = [];
-    const updatePayload: any = {};
-    for (const key of Object.keys(newData)) {
-      if (
-        newData[key] !== undefined &&
-        newData[key] !== existing[key] &&
-        key !== 'NV_idNV'
-      ) {
-        const label = typeOfChange[key] || key;
-        fieldsChange.push(label);
-        updatePayload[key] = newData[key]; // Chỉ thêm trường thực sự thay đổi
+
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      const { updatePayload } = await this.LichSuThaoTacService.create({
+        actionType: 'update',
+        staffId: newData.NV_idNV ?? '',
+        dataName: DULIEU.ACCOUNT,
+        dataId: existing.NV_id,
+        newData: newData,
+        existingData: existing,
+        ignoreFields: ['NV_idNV'],
+        session: session,
+      });
+      const updated = await this.NhanVienRepo.update(id, updatePayload);
+      if (!updated) {
+        throw new BadRequestException(
+          'Cập nhật nhân viên - Cập nhật nhân viên thất bại'
+        );
       }
+      await session.commitTransaction();
+      return updated;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
     }
-    if (fieldsChange.length > 0 && newData.NV_idNV) {
-      const thaoTac = {
-        thaoTac: `Cập nhật: ${fieldsChange.join(', ')}`,
-        NV_id: newData.NV_idNV,
-        thoiGian: new Date(),
-      };
-
-      updatePayload.lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    }
-    // Nếu không có trường nào thay đổi thì trả về bản ghi cũ
-    if (Object.keys(updatePayload).length === 0) {
-      return existing;
-    }
-    const updated = await this.NhanVienRepo.update(id, updatePayload);
-    if (!updated) {
-      throw new BadRequestException(
-        'Cập nhật nhân viên - Cập nhật nhân viên thất bại'
-      );
-    }
-    return updated;
-  }
-
-  /**
-   * Khóa một nhân viên và ghi lịch sử thao tác.
-   *
-   * @param id Mã NV_id cần xóa
-   * @param NV_id ID của người thực hiện thao tác
-   * @returns Nhân viên đã được đánh dấu xóa
-   */
-  async block(id: string, NV_id: string): Promise<NhanVien> {
-    const existing = await this.NhanVienRepo.findById(id);
-    if (!existing) throw new BadRequestException();
-    const thaoTac = {
-      thaoTac: 'Khóa tài khoản',
-      NV_id: NV_id,
-      thoiGian: new Date(),
-    };
-    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const block = await this.NhanVienRepo.update(id, {
-      NV_daKhoa: true,
-      lichSuThaoTac: lichSuThaoTac,
-    });
-    if (!block) {
-      throw new NotFoundException('Khóa nhân viên - Khóa nhân viên thất bại');
-    }
-    return block;
-  }
-
-  /**
-   * Khóa một nhân viên và ghi lịch sử thao tác.
-   *
-   * @param id Mã NV_id cần xóa
-   * @param NV_id ID của người thực hiện thao tác
-   * @returns Nhân viên đã được đánh dấu xóa
-   */
-  async unblock(id: string, NV_id: string): Promise<NhanVien> {
-    const existing = await this.NhanVienRepo.findById(id);
-    if (!existing) throw new BadRequestException();
-    const thaoTac = {
-      thaoTac: 'Mở khóa tài khoản',
-      NV_id: NV_id,
-      thoiGian: new Date(),
-    };
-    const lichSuThaoTac = [...existing.lichSuThaoTac, thaoTac];
-    const unblock = await this.NhanVienRepo.update(id, {
-      NV_daKhoa: false,
-      lichSuThaoTac: lichSuThaoTac,
-    });
-    if (!unblock) {
-      throw new NotFoundException(
-        'Mở khóa nhân viên - Mở khóa nhân viên thất bại'
-      );
-    }
-    return unblock;
   }
 
   /**

@@ -29,36 +29,6 @@ export class Anh {
 export const AnhSPSchema = SchemaFactory.createForClass(Anh);
 
 /**
- * Lịch sử thao tác trên sách, ghi lại các hành động do nhân viên thực hiện.
- */
-@Schema()
-export class LichSuThaoTacS {
-  /**
-   * Mô tả thao tác
-   *
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   * Thời gian thực hiện thao tác
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * ID nhân viên thực hiện thao tác
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-export const LichSuThaoTacSPSchema =
-  SchemaFactory.createForClass(LichSuThaoTacS);
-
-/**
  * Trạng thái hiển thị của sách.
  */
 export enum BookStatus {
@@ -198,12 +168,6 @@ export class Sach {
    */
   @Prop({ type: [AnhSPSchema], default: [] })
   S_anh: Anh[];
-
-  /**
-   * Lịch sử thao tác của nhân viên trên sách
-   */
-  @Prop({ type: [LichSuThaoTacSPSchema] })
-  lichSuThaoTac: LichSuThaoTacS[];
 
   /**
    * Điểm đánh giá tổng (Hiển thị)

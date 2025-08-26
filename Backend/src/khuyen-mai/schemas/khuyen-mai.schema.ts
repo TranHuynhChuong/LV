@@ -2,34 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type KhuyenMaiDocument = KhuyenMai & Document;
-/**
- * Lịch sử thao tác trên khuyến mãi
- */
-@Schema()
-export class LichSuThaoTacKM {
-  /**
-   * Mô tả thao tác thực hiện
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   * Thời gian thực hiện thao tác, mặc định là thời gian hiện tại khi tạo bản ghi
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * Mã định danh nhân viên thực hiện thao tác
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-export const LichSuThaoTacKMSchema =
-  SchemaFactory.createForClass(LichSuThaoTacKM);
 
 /**
  * Schema Khuyến mãi
@@ -59,12 +31,6 @@ export class KhuyenMai {
    */
   @Prop({ type: Date, required: true })
   KM_ketThuc: Date;
-
-  /**
-   * Mảng lịch sử các thao tác được thực hiện trên khuyến mãi này
-   */
-  @Prop({ type: [LichSuThaoTacKMSchema] })
-  lichSuThaoTac: LichSuThaoTacKM[];
 }
 
 export const KhuyenMaiSchema = SchemaFactory.createForClass(KhuyenMai);

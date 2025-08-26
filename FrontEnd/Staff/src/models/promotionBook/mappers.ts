@@ -1,4 +1,3 @@
-import { ActivityLogs, mapActivityLogsFromDto } from '../activityLogs';
 import { BookOverView } from '../books/domain';
 import { BookPromotionDetail, BookPromotionOverview } from './domain';
 import {
@@ -11,7 +10,6 @@ import {
 export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
   data: BookPromotionDetail;
   books: BookOverView[];
-  activityLogs: ActivityLogs[];
 } {
   const data: BookPromotionDetail = {
     id: dto.KM_id,
@@ -37,9 +35,7 @@ export function mapBookPromotionDetailFromDto(dto: BookPromotionDetailDto): {
     status: b.S_trangThai,
   }));
 
-  const activityLogs = mapActivityLogsFromDto(dto.lichSuThaoTac);
-
-  return { data, books, activityLogs };
+  return { data, books };
 }
 
 export function mapBookPromotionsFromDto(dto: BookPromotionOverviewDto[]): BookPromotionOverview[] {

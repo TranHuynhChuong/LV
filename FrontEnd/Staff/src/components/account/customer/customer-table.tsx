@@ -30,7 +30,7 @@ export default function CustomerTable({ data }: Readonly<Props>) {
     {
       accessorKey: 'createAt',
       header: 'Ngày tạo',
-      cell: ({ row }) => <div>{row.getValue('createAt')}</div>,
+      cell: ({ row }) => <div>{new Date(row.getValue('createAt')).toLocaleString()}</div>,
     },
   ];
 

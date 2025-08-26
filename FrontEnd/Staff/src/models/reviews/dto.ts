@@ -1,5 +1,3 @@
-import { ActivityLogsDto } from '../activityLogs';
-
 export type ReviewDto = {
   KH_hoTen: string;
   DG_diem: string;
@@ -10,6 +8,5 @@ export type ReviewDto = {
   S_anh: string;
   S_id: number;
   DH_id: string;
-  lichSuThaoTac: ActivityLogsDto[];
   KH_id: number;
 };

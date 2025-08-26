@@ -3,37 +3,6 @@ import { Document } from 'mongoose';
 
 export type PhiVanChuyenDocument = PhiVanChuyen & Document;
 
-/**
- * Lịch sử thao tác liên quan đến phí vận chuyển.
- */
-@Schema()
-export class LichSuThaoTacPVC {
-  /**
-   * Mô tả thao tác được thực hiện (tạo, cập nhật, xóa,...).
-   */
-  @Prop({ type: String })
-  thaoTac: string;
-
-  /**
-   * Thời gian thao tác diễn ra.
-   * Mặc định là thời điểm hiện tại khi tạo bản ghi.
-   */
-  @Prop({ type: Date, default: Date.now })
-  thoiGian: Date;
-
-  /**
-   * ID nhân viên thực hiện thao tác.
-   */
-  @Prop({
-    type: String,
-    required: true,
-  })
-  NV_id: string;
-}
-
-export const LichSuThaoTacPVCSchema =
-  SchemaFactory.createForClass(LichSuThaoTacPVC);
-
 @Schema()
 export class PhiVanChuyen {
   /**
@@ -78,12 +47,6 @@ export class PhiVanChuyen {
    */
   @Prop({ type: Number, unique: true })
   T_id: number;
-
-  /**
-   * Danh sách lịch sử thao tác liên quan đến bản ghi phí vận chuyển.
-   */
-  @Prop({ type: [LichSuThaoTacPVCSchema] })
-  lichSuThaoTac: LichSuThaoTacPVC[];
 }
 
 export const PhiVanChuyenSchema = SchemaFactory.createForClass(PhiVanChuyen);

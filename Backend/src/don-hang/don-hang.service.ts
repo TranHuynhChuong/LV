@@ -34,6 +34,8 @@ import {
 import { DiaChiService } from 'src/dia-chi/dia-chi.service';
 import { getNextSequence } from 'src/Util/counter.service';
 import * as moment from 'moment';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 @Injectable()
 export class DonHangService {
   constructor(
@@ -50,7 +52,8 @@ export class DonHangService {
     private readonly DonHangRepo: DonHangRepository,
     private readonly ChiTietDonHangRepo: ChiTietDonHangRepository,
     private readonly ThanhToanService: ThanhToanService,
-    private readonly ZaloPayService: ZaloPayService
+    private readonly ZaloPayService: ZaloPayService,
+    private readonly LichSuThaoTacService: LichSuThaoTacService
   ) {}
 
   /**
@@ -409,17 +412,17 @@ export class DonHangService {
         if (!email) throw new NotFoundException('Khách hàng không tồn tại');
         // Gửi email thông báo theo trạng thái mới
         this.notifyEmailStatus(newStatus, email, order.DH_id);
+
+        await this.LichSuThaoTacService.create({
+          actionType: thaoTac,
+          staffId: staffId ?? '',
+          dataName: DULIEU.ORDER,
+          dataId: id,
+          session: session,
+        });
+
         // Cập nhật trạng thái đơn hàng và ghi lịch sử thao tác
-        const result = await this.DonHangRepo.update(
-          id,
-          newStatus,
-          {
-            thaoTac,
-            NV_id: staffId,
-            thoiGian: new Date(),
-          },
-          session
-        );
+        const result = await this.DonHangRepo.update(id, newStatus, session);
         if (!result)
           throw new BadRequestException('Cập nhật đơn hàng thất bại');
         // Nếu trạng thái là "Đã hủy" thì cập nhật lại tồn kho và số lượng bán
@@ -455,16 +458,11 @@ export class DonHangService {
    * @throws NotFoundException nếu không tìm thấy đơn hàng
    */
   async findById(id: string, filterType?: OrderStatus): Promise<any> {
-    const result: any = await this.DonHangRepo.findById(id, filterType);
+    const result = await this.DonHangRepo.findById(id, filterType);
     if (!result) {
       throw new NotFoundException('Tìm đơn hàng - Đơn hàng không tồn tại');
     }
-    // Xử lý lịch sử thao tác (nếu có), ánh xạ nhân viên thực hiện
-    const lichSu = result.lichSuThaoTac ?? [];
-    result.lichSuThaoTac =
-      lichSu.length > 0
-        ? await this.NhanVienService.mapActivityLog(lichSu)
-        : [];
+
     // Nếu email khách hàng bị thiếu, cố gắng truy vấn bằng KH_id
     if ((!result.KH_email || result.KH_email === '') && result.KH_id) {
       result.KH_email = await this.KhachHangService.getEmail(result.KH_id);
@@ -477,6 +475,11 @@ export class DonHangService {
     if (payment !== null) {
       result.DH_thanhToan = payment;
     }
+
+    result.lichSuThaoTac = await this.LichSuThaoTacService.findByReference(
+      id,
+      'DonHang'
+    );
     return result;
   }
 
@@ -535,7 +538,6 @@ export class DonHangService {
       userId: userId,
     });
     for (const order of result.data as any[]) {
-      delete order?.lichSuThaoTac;
       delete order?.thongTinNhanHang;
 
       const payment = await this.ZaloPayService.queryOrder(order.DH_id);

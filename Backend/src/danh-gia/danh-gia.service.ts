@@ -10,7 +10,8 @@ import { SachUtilService } from 'src/sach/sach.service';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
-import { NhanVienUtilService } from 'src/nguoi-dung/nhan-vien/nhan-vien.service';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 
 @Injectable()
 export class DanhGiaServiceUtil {
@@ -33,7 +34,7 @@ export class DanhGiaService {
     @InjectConnection() private readonly connection: Connection,
     private readonly DanhGiaRepo: DanhGiaRepository,
     private readonly SachService: SachUtilService,
-    private readonly NhanVienService: NhanVienUtilService
+    private readonly LichSuThaoTacService: LichSuThaoTacService
   ) {}
 
   /**
@@ -101,9 +102,9 @@ export class DanhGiaService {
     from?: Date;
     to?: Date;
     status?: 'all' | 'visible' | 'hidden';
-  }): Promise<any> {
+  }) {
     const { page, limit = 24, rating, from, to, status } = option;
-    const result: any = await this.DanhGiaRepo.findAll(
+    const result = await this.DanhGiaRepo.findAll(
       page,
       limit,
       rating,
@@ -111,13 +112,6 @@ export class DanhGiaService {
       to,
       status
     );
-    for (const item of result.data) {
-      const lichSu = item.lichSuThaoTac ?? [];
-      item.lichSuThaoTac =
-        lichSu.length > 0
-          ? await this.NhanVienService.mapActivityLog(lichSu)
-          : [];
-    }
     return result;
   }
 
@@ -165,17 +159,12 @@ export class DanhGiaService {
             'Cập nhật đánh giá - Không tìm thấy đánh giá'
           );
         }
-        const thaoTac = {
-          thaoTac: 'Hiển thị đánh giá',
-          NV_id: dto.NV_id,
-          thoiGian: new Date(),
-        };
+
         const updateResult = await this.DanhGiaRepo.update(
           dto.DH_id,
           dto.S_id,
           dto.KH_id,
           false,
-          thaoTac,
           session
         );
         if (!updateResult) {
@@ -186,6 +175,14 @@ export class DanhGiaService {
         updated = updateResult;
 
         await this.SachService.updateRating(dto.S_id, updated.DG_diem, session);
+
+        await this.LichSuThaoTacService.create({
+          actionType: 'Hiển thị đánh giá',
+          staffId: dto.NV_id ?? '',
+          dataName: DULIEU.REVIEW,
+          dataId: dto.S_id + '-' + dto.KH_id + '-' + dto.DH_id,
+          session: session,
+        });
       });
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');
@@ -220,17 +217,12 @@ export class DanhGiaService {
             'Cập nhật đánh giá - Không tìm thấy đánh giá'
           );
         }
-        const thaoTac = {
-          thaoTac: 'Ẩn đánh giá',
-          NV_id: dto.NV_id,
-          thoiGian: new Date(),
-        };
+
         const updateResult = await this.DanhGiaRepo.update(
           dto.DH_id,
           dto.S_id,
           dto.KH_id,
           true,
-          thaoTac,
           session
         );
         if (!updateResult) {
@@ -243,6 +235,14 @@ export class DanhGiaService {
           -updated.DG_diem,
           session
         );
+
+        await this.LichSuThaoTacService.create({
+          actionType: 'Ẩn đánh giá',
+          staffId: dto.NV_id ?? '',
+          dataName: DULIEU.REVIEW,
+          dataId: dto.S_id + '-' + dto.KH_id + '-' + dto.DH_id,
+          session: session,
+        });
       });
       if (!updated) {
         throw new BadRequestException('Cập nhật đánh giá - Không thể cập nhật');

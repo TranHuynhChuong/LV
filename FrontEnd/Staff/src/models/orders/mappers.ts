@@ -1,5 +1,4 @@
 import { Order, OrderDto, OrderOverviewDto } from '.';
-import { mapActivityLogsFromDto } from '../activityLogs';
 
 export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
   return {
@@ -17,7 +16,7 @@ export async function mapOrderFromDto(dto: OrderDto): Promise<Order> {
     },
     customerId: dto.KH_id ?? 0,
     customerEmail: dto.KH_email ?? null,
-    activityLogs: mapActivityLogsFromDto(dto.lichSuThaoTac),
+    activityLogs: dto.lichSuThaoTac,
     shippingInfo: {
       recipientName: dto.thongTinNhanHang?.NH_hoTen ?? '',
       phoneNumber: dto.thongTinNhanHang?.NH_soDienThoai ?? '',

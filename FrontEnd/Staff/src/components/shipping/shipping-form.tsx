@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { CircleHelp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
@@ -28,38 +27,11 @@ const formSchema: z.Schema<ShippingFee> = z
       (val) => (val === '' || val === undefined ? undefined : Number(val)),
       z.number().optional()
     ) as z.ZodType<number | undefined>,
-    fee: z.preprocess(
-      (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
-      z
-        .number()
-        .optional()
-        .refine((val) => val !== undefined, {
-          message: 'Vui lòng nhập giá phí',
-        })
-    ) as z.ZodType<number | undefined>,
-    weight: z.preprocess(
-      (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
-      z
-        .number()
-        .optional()
-        .refine((val) => val !== undefined, {
-          message: 'Vui lòng nhập giá phí',
-        })
-    ) as z.ZodType<number | undefined>,
+    fee: z.number({ required_error: 'Không được để trống' }),
+    weight: z.number({ required_error: 'Không được để trống' }),
 
-    surcharge: z.preprocess(
-      (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
-      z.number().optional()
-    ) as z.ZodType<number | undefined>,
-    surchargeUnit: z.preprocess(
-      (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
-      z
-        .number()
-        .optional()
-        .refine((val) => val === undefined || val >= 100, {
-          message: 'Đơn vị phụ phí phải lớn hơn hoặc bằng 100',
-        })
-    ) as z.ZodType<number | undefined>,
+    surcharge: z.number({ required_error: 'Không được để trống' }),
+    surchargeUnit: z.number({ required_error: 'Không được để trống' }),
   })
   .refine((data) => data.surcharge === undefined || data.surchargeUnit !== undefined, {
     message: 'Vui lòng nhập đơn vị phụ phí nếu có phụ phí',
@@ -113,10 +85,10 @@ export default function ShippingFeeForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       provinceId: defaultValues.provinceId,
-      fee: defaultValues.fee,
-      weight: defaultValues.weight,
-      surcharge: defaultValues.surcharge,
-      surchargeUnit: defaultValues.surchargeUnit,
+      fee: defaultValues.fee ?? 0,
+      weight: defaultValues.weight ?? 0,
+      surcharge: defaultValues.surcharge ?? 0,
+      surchargeUnit: defaultValues.surchargeUnit ?? 0,
     },
   });
 
@@ -182,14 +154,12 @@ export default function ShippingFeeForm({
                     id={field.name}
                     name={field.name}
                     className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
-                    value={field.value ?? ''}
+                    value={field.value ?? 0}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
                     prefix="₫"
-                    onValueChange={(value) =>
-                      field.onChange({ target: { name: field.name, value } })
-                    }
+                    onValueChange={(value) => field.onChange(Number(value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -210,11 +180,15 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    value={field.value ?? ''}
-                    onChange={field.onChange}
-                    placeholder="Nhập số trọng lượng"
+                  <CurrencyInput
+                    id={field.name}
+                    name={field.name}
+                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                    value={field.value ?? 0}
+                    decimalsLimit={0}
+                    groupSeparator="."
+                    decimalSeparator=","
+                    onValueChange={(value) => field.onChange(Number(value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -239,14 +213,12 @@ export default function ShippingFeeForm({
                     id={field.name}
                     name={field.name}
                     className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
-                    value={field.value ?? ''}
+                    value={field.value ?? 0}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
                     prefix="₫"
-                    onValueChange={(value) =>
-                      field.onChange({ target: { name: field.name, value } })
-                    }
+                    onValueChange={(value) => field.onChange(Number(value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -267,12 +239,15 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    value={surchargeValue ? field.value : 0}
-                    onChange={field.onChange}
-                    disabled={!surchargeValue}
-                    placeholder="Có thể để trống hoặc nhập số"
+                  <CurrencyInput
+                    id={field.name}
+                    name={field.name}
+                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
+                    value={field.value ?? ''}
+                    decimalsLimit={0}
+                    groupSeparator="."
+                    decimalSeparator=","
+                    onValueChange={(value) => field.onChange(Number(value))}
                   />
                 </FormControl>
                 <FormMessage />

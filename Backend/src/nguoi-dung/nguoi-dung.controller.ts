@@ -1,4 +1,3 @@
-import { NhanVien } from './nhan-vien/schemas/nhan-vien.schema';
 import {
   Controller,
   Get,
@@ -18,9 +17,10 @@ import { parsePositiveInt } from 'src/Util/convert';
 import { UpdateKhachHangDto } from './khach-hang/dto/update-khach-hang.dto';
 import { CreateNhanVienDto } from './nhan-vien/dto/create-nhan-vien.dto';
 import { UpdateNhanVienDto } from './nhan-vien/dto/update-nhan-vien.dto';
+import { NhanVienResponseDto } from './nhan-vien/dto/response-nhan-vien.dto';
 
-@Controller('api/users')
 @UseGuards(XacThucGuard)
+@Controller('api/users')
 export class NguoiDungController {
   constructor(
     private readonly KhachHangService: KhachHangService,
@@ -111,7 +111,7 @@ export class NguoiDungController {
    */
   @Roles(1)
   @Get('staffs')
-  async getAllStaffs(): Promise<NhanVien[]> {
+  async getAllStaffs(): Promise<NhanVienResponseDto[]> {
     return await this.NhanVienService.findAll();
   }
 
@@ -133,6 +133,7 @@ export class NguoiDungController {
    * @param id ID của nhân viên.
    * @returns Thông tin nhân viên.
    */
+  @Roles(1)
   @Get('staff/:id')
   async getStaffById(@Param('id') id: string): Promise<any> {
     return await this.NhanVienService.findById(id);

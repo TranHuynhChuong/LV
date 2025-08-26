@@ -64,7 +64,7 @@ export class SachController {
     @Body() body: UpdateSachDto
   ) {
     const coverImage = files.find((f) => f.fieldname === 'coverImageFile');
-    const images = files.filter((f) => f.fieldname === 'ImageFiles');
+    const images = files.filter((f) => f.fieldname === 'imageFiles');
     return this.SachService.update(id, body, coverImage, images);
   }
 

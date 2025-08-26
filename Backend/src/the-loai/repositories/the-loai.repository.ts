@@ -113,9 +113,14 @@ export class TheLoaiRepository {
    * @param data Dữ liệu cập nhật
    * @returns Promise trả về thể loại đã cập nhật hoặc null nếu không tìm thấy
    */
-  async update(id: number, data: any): Promise<TheLoai | null> {
+  async update(
+    id: number,
+    data: any,
+    session?: ClientSession
+  ): Promise<TheLoai | null> {
     return this.TheLoaiModel.findOneAndUpdate({ TL_id: id }, data, {
       new: true,
+      session,
     }).exec();
   }
 
@@ -125,11 +130,11 @@ export class TheLoaiRepository {
    * @param id ID thể loại cần xóa
    * @returns Promise trả về thể loại đã xóa mềm hoặc null nếu không tìm thấy
    */
-  async delete(id: number): Promise<TheLoai | null> {
+  async delete(id: number, session?: ClientSession): Promise<TheLoai | null> {
     return this.TheLoaiModel.findOneAndUpdate(
       { TL_id: id },
       { TL_daXoa: true },
-      { new: true }
+      { new: true, session }
     ).exec();
   }
 

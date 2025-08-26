@@ -1,4 +1,4 @@
-import { ActivityLogsDto } from '../activityLogs';
+import { ActivityLogs } from '../activityLogs';
 
 export interface OrderDto {
   DH_id: string;
@@ -16,7 +16,7 @@ export interface OrderDto {
   };
   KH_id: number | null;
   KH_email: string | null;
-  lichSuThaoTac: ActivityLogsDto[];
+  lichSuThaoTac: ActivityLogs[];
   thongTinNhanHang: {
     NH_hoTen: string;
     NH_soDienThoai: string;

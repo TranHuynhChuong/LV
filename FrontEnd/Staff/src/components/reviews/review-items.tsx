@@ -114,7 +114,10 @@ const ReviewItem: FC<Props> = ({ review }) => {
           />
         </div>
         <div className="relative">
-          <ActionHistorySheet activityLogs={review.activityLogs} />
+          <ActionHistorySheet
+            dataName="DanhGia"
+            dataId={review.bookId + '-' + review.customerId + '-' + review.orderId}
+          />
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, PipelineStage } from 'mongoose';
+import { ClientSession, Model, PipelineStage } from 'mongoose';
 import { MaGiam, MaGiamDocument } from '../schemas/ma-giam.schema';
 import { Injectable } from '@nestjs/common';
 import { paginateRawAggregate } from 'src/Util/paginateWithFacet';
@@ -167,8 +167,9 @@ export class MaGiamRepository {
    * @param data Dữ liệu mã giảm giá.
    * @returns Mã giảm giá vừa tạo.
    */
-  async create(data: Partial<MaGiam>) {
-    return this.MaGiamModel.create(data);
+  async create(data: Partial<MaGiam>, session?: ClientSession) {
+    const created = new this.MaGiamModel(data);
+    return created.save({ session });
   }
 
   /**
@@ -178,9 +179,10 @@ export class MaGiamRepository {
    * @param update Dữ liệu cần cập nhật.
    * @returns Mã giảm giá đã được cập nhật.
    */
-  async update(id: string, update: Partial<MaGiam>) {
+  async update(id: string, update: Partial<MaGiam>, session?: ClientSession) {
     return this.MaGiamModel.findOneAndUpdate({ MG_id: id }, update, {
       new: true,
+      session,
     });
   }
 

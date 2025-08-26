@@ -4,7 +4,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { ActivityLogs } from '@/models/activityLogs';
 import { BookOverView } from '@/models/books';
 import type { BookPromotionDetail } from '@/models/promotionBook';
 import { mapBookPromotionDetailFromDto, mapBookPromotionDetailToDto } from '@/models/promotionBook';
@@ -33,16 +32,14 @@ export default function BookPromotionDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<BookPromotionDetail>();
   const [books, setBooks] = useState<BookOverView[]>([]);
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
 
   const getData = useCallback(async () => {
     if (!id) return;
     try {
       const res = await api.get(`/promotions/${id}`);
-      const { data, books, activityLogs } = mapBookPromotionDetailFromDto(res.data);
+      const { data, books } = mapBookPromotionDetailFromDto(res.data);
       setData(data);
       setBooks(books);
-      setActivityLogs(activityLogs);
     } catch {
       toast.error('Không tìm thấy khuyến mãi!');
       router.back();
@@ -103,7 +100,7 @@ export default function BookPromotionDetail() {
             onDelete={onDelete}
           />
           <div className="absolute top-6 right-6">
-            <ActionHistorySheet activityLogs={activityLogs} />
+            <ActionHistorySheet dataName="KhuyenMai" dataId={id} />
           </div>
         </div>
 

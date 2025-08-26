@@ -7,7 +7,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '@/components/utils/loader';
-import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { Category, mapCategoryToDto } from '@/models/categories';
 import CategoryFormLoading from './category-form-loading';
 import CategoryForm from './category-form';
@@ -21,7 +20,6 @@ export default function CategoryDetail() {
   const { setBreadcrumbs } = useBreadcrumb();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [data, setData] = useState<Category>();
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
   useEffect(() => {
     setBreadcrumbs([
       { label: 'Trang chủ', href: '/' },
@@ -41,7 +39,6 @@ export default function CategoryDetail() {
         name: data.TL_ten,
         parentId: data.TL_idTL ?? null,
       });
-      setActivityLogs(mapActivityLogsFromDto(data.lichSuThaoTac));
     } catch {
       toast.error('Không tìm thấy thể loại!');
       router.back();
@@ -93,7 +90,7 @@ export default function CategoryDetail() {
         {isSubmitting && <Loader />}
         <CategoryForm onSubmit={handleSubmit} onDelete={handleDelete} defaultValues={data} />
         <div className="absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <ActionHistorySheet dataName="TheLoai" dataId={id} />
         </div>
       </>
     );

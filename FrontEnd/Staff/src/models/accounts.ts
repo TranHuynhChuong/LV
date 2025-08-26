@@ -1,12 +1,12 @@
 export type Customer = {
   email: string;
   name: string;
-  createAt: string;
+  createAt: Date;
 };
 
 export type Staff = {
   email: string;
-  role: string;
+  role: number;
   roleName?: string;
   fullName: string;
   phone: string;

@@ -4,7 +4,7 @@ import StaffTable from '@/components/account/staff/staff-table';
 import SwitchTab from '@/components/account/switchtab';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
-import { Staff, mapStaffFormDto } from '@/models/accounts';
+import { Staff } from '@/models/accounts';
 import { useEffect, useState } from 'react';
 
 export default function StaffPanel() {
@@ -13,7 +13,7 @@ export default function StaffPanel() {
     try {
       const res = await api.get('/users/staffs');
       const data = res.data;
-      setData(data.length > 0 ? mapStaffFormDto(data) : []);
+      setData(data.length > 0 ? data : []);
     } catch {
       setData([]);
     }

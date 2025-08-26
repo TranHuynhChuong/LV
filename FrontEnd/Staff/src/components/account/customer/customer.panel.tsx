@@ -2,7 +2,7 @@
 
 import PagiantionControls from '@/components/utils/pagination-controls';
 import api from '@/lib/axios-client';
-import { Customer, mapCustomersFromDto } from '@/models/accounts';
+import { Customer } from '@/models/accounts';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SwitchTab from '../switchtab';
@@ -27,12 +27,13 @@ export default function CustomerPanel() {
     try {
       const res = await api.get('/users/customers', { params });
       const { data, paginationInfo } = res.data;
-      setData(mapCustomersFromDto(data));
+      setData(data);
       setPageNumbers(paginationInfo.pageNumbers);
       setTotalPage(paginationInfo.totalPages);
-    } catch {
+    } catch (error) {
+      console.error(error);
       setData([]);
-      setPageNumbers([1]);
+      setPageNumbers([]);
     }
   }
 
@@ -42,15 +43,15 @@ export default function CustomerPanel() {
       const result = res.data;
       if (!result) {
         setData([]);
-        setPageNumbers([1]);
+        setPageNumbers([]);
         return;
       }
-
-      setData(mapCustomersFromDto([result]));
-      setPageNumbers([1]);
-    } catch {
+      setData([result]);
+      setPageNumbers([]);
+    } catch (error) {
+      console.error(error);
       setData([]);
-      setPageNumbers([1]);
+      setPageNumbers([]);
     }
   }
 

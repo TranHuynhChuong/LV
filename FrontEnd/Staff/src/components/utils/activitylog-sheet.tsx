@@ -11,12 +11,25 @@ import { Info } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ActivityLogs } from '@/models/activityLogs';
 import { useAuth } from '@/contexts/auth-context';
+import { useState } from 'react';
+import api from '@/lib/axios-client';
+import { Skeleton } from '../ui/skeleton';
+import { ScrollArea } from '../ui/scroll-area';
 
 type Props = {
-  activityLogs: ActivityLogs[];
+  dataName:
+    | 'Sach'
+    | 'DanhGia'
+    | 'MaGiam'
+    | 'KhuyenMai'
+    | 'TaiKhoan'
+    | 'PhiVanChuyen'
+    | 'TheLoai'
+    | 'DonHang';
+  dataId: string | number;
 };
 
-export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
+export default function ActionHistorySheet({ dataName, dataId }: Readonly<Props>) {
   function formatDate(date: string | Date) {
     return new Date(date).toLocaleString();
   }
@@ -73,11 +86,38 @@ export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
     );
   }
 
+  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
+  const [loading, setLoading] = useState(false);
   const { authData } = useAuth();
+  const [skip, setSkip] = useState(0);
+  const limit = 3;
+  const [showMore, setShowMore] = useState(true);
+
+  async function fetchData() {
+    setLoading(true);
+    try {
+      const res = await api.get<ActivityLogs[]>(
+        `/activityLogs/${dataName}/${dataId}?skip=${skip}&limit=${limit}`
+      );
+      setActivityLogs([...activityLogs, ...res.data]);
+      setSkip([...activityLogs, ...res.data].length);
+      if (skip === [...activityLogs, ...res.data].length) setShowMore(false);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (authData.userId && authData.role !== 1) return null;
   return (
-    <Sheet>
+    <Sheet
+      onOpenChange={(open) => {
+        if (open) {
+          fetchData();
+        }
+      }}
+    >
       <SheetTrigger asChild>
         <Button variant="outline" className="absolute top-0 right-0 cursor-pointer">
           <Info />
@@ -86,21 +126,40 @@ export default function ActionHistorySheet({ activityLogs }: Readonly<Props>) {
       <SheetContent>
         <SheetHeader>
           <SheetTitle className="text-lg">Lịch sử thao tác</SheetTitle>
-          {activityLogs.length > 0 && (
-            <div className="mt-4 space-y-3 text-sm">
-              <Accordion type="multiple" className="w-full">
-                {activityLogs.map((item, index) => (
-                  <AccordionItem value={`item-${index}`} key={index}>
-                    <AccordionTrigger className="cursor-pointer">
-                      {item.action.startsWith('Cập nhật') ? 'Cập nhật' : item.action} –{' '}
-                      {formatDate(item.time)}
-                    </AccordionTrigger>
-                    <AccordionContent>{renderItemContent(item)}</AccordionContent>
-                  </AccordionItem>
+          <ScrollArea className="h-[calc(100vh-80px)]  pr-4 ">
+            {activityLogs.length > 0 && (
+              <div className="mt-4 space-y-3 text-sm">
+                <Accordion type="multiple" className="w-full">
+                  {activityLogs.map((item, index) => (
+                    <AccordionItem value={`item-${index}`} key={index}>
+                      <AccordionTrigger className="cursor-pointer">
+                        {item.action.startsWith('Cập nhật') ? 'Cập nhật' : item.action} –{' '}
+                        {formatDate(item.time)}
+                      </AccordionTrigger>
+                      <AccordionContent>{renderItemContent(item)}</AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                {showMore && (
+                  <Button onClick={fetchData} className=" cursor-pointer">
+                    Thêm
+                  </Button>
+                )}
+              </div>
+            )}
+            {loading && (
+              <div className="mt-4 space-y-3 text-sm">
+                {[...Array(3)].map((_, idx) => (
+                  <div key={idx} className="space-y-2 border-b pb-4">
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
                 ))}
-              </Accordion>
-            </div>
-          )}
+              </div>
+            )}
+          </ScrollArea>
         </SheetHeader>
       </SheetContent>
     </Sheet>

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   KhachHangService,
@@ -16,15 +16,15 @@ import {
 } from './nhan-vien/nhan-vien.service';
 import { NhanVienRepository } from './nhan-vien/repositories/nhan-vien.repository';
 import { NhanVien, NhanVienSchema } from './nhan-vien/schemas/nhan-vien.schema';
+import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: KhachHang.name, schema: KhachHangSchema },
-    ]),
-    MongooseModule.forFeature([
       { name: NhanVien.name, schema: NhanVienSchema },
     ]),
+    forwardRef(() => LichSuThaoTacModule),
   ],
   controllers: [NguoiDungController],
   providers: [

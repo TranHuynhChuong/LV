@@ -137,7 +137,7 @@ export class XacThucService {
     if (!user) {
       throw new NotFoundException('Email chưa đăng ký');
     }
-    const id = user.KH_id;
+    const id = user.id;
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
       throw new UnprocessableEntityException('Mã OTP không chính xác');
@@ -291,11 +291,11 @@ export class XacThucService {
     if (!customer) {
       throw new UnauthorizedException();
     }
-    const isPasswordValid = await bcrypt.compare(pass, customer.KH_matKhau);
+    const isPasswordValid = await bcrypt.compare(pass, customer.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException();
     }
-    const token = await this.generateToken(customer.KH_id.toString(), 0);
+    const token = await this.generateToken(customer.id.toString(), 0);
     return { token };
   }
 }

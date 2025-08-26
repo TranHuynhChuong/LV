@@ -51,7 +51,7 @@ export default function OrderDetail() {
       <>
         <OrderInf data={data} />
         <div className="absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={data.activityLogs} />
+          <ActionHistorySheet dataName="DonHang" dataId={id} />
         </div>
       </>
     );

@@ -6,7 +6,6 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { ActivityLogs, mapActivityLogsFromDto } from '@/models/activityLogs';
 import { ImageDto } from '@/models/books';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -94,7 +93,6 @@ export default function BookDetail() {
   const getBookImageUrls = (images: ImageDto[]): string[] => {
     return images.filter((img) => !img.A_anhBia).map((img) => img.A_url);
   };
-  const [activityLogs, setActivityLogs] = useState<ActivityLogs[]>([]);
   const getData = useCallback(
     async (id: string) => {
       if (!id) return;
@@ -124,9 +122,6 @@ export default function BookDetail() {
           images: getBookImageUrls(book.S_anh),
         };
         setData(mapped);
-
-        const metadataFormatted = mapActivityLogsFromDto(book.lichSuThaoTac);
-        setActivityLogs(metadataFormatted);
       } catch {
         toast.error('Không tìm thấy sách!');
         router.back();
@@ -162,7 +157,7 @@ export default function BookDetail() {
           onDelete={data?.status === 'An' ? handleOnDelete : undefined}
         />
         <div className="absolute top-6 right-6">
-          <ActionHistorySheet activityLogs={activityLogs} />
+          <ActionHistorySheet dataName="Sach" dataId={id} />
         </div>
       </div>
     );
