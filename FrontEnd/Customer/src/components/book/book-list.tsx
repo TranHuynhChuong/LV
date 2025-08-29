@@ -1,6 +1,6 @@
 'use client';
 import BookItem from './book-item';
-import { BookOverview } from '@/models/book';
+import { Book } from '@/models/book';
 import clsx from 'clsx';
 import {
   Carousel,
@@ -12,7 +12,7 @@ import {
 import BookItemLoading from './book-item-loading';
 
 type BookListProps = {
-  books: BookOverview[];
+  books: Book[];
   displayType?: 'grid' | 'carousel';
   isLoading?: boolean;
   pageSize?: number;
@@ -31,7 +31,7 @@ export function BookList({
           {books.map((book, index) => (
             <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5">
               <div className="p-1">
-                <BookItem key={book.id} book={book} />
+                <BookItem key={book.bookId} book={book} />
               </div>
             </CarouselItem>
           ))}
@@ -53,7 +53,7 @@ export function BookList({
     >
       {isLoading
         ? Array.from({ length: pageSize }).map((_, index) => <BookItemLoading key={index} />)
-        : books.map((book) => <BookItem key={book.id} book={book} />)}
+        : books.map((book) => <BookItem key={book.bookId} book={book} />)}
     </div>
   );
 }

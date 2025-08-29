@@ -13,28 +13,14 @@ import {
 import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
-import { Order, mapOrderFromDto } from '@/models/order';
+import { Order } from '@/models/order';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-interface BookReviewInput {
-  bookId: number;
-  bookName: string;
-  bookImage: string;
-}
-
 interface ReviewState {
   rating: number;
   content: string;
-}
-
-function mapOrderToReviewInputs(order: Order): BookReviewInput[] {
-  return order.orderDetails.map((item) => ({
-    bookId: item.bookId,
-    bookName: item.bookName,
-    bookImage: item.bookImage,
-  }));
 }
 
 export default function ReviewPanel() {
@@ -51,8 +37,8 @@ export default function ReviewPanel() {
     async (id: string) => {
       try {
         const res = await api.get(`orders/detail/${id}`);
-        const mapped = await mapOrderFromDto(res.data);
-        setData(mapped);
+        const data = res.data;
+        setData(data);
       } catch {
         toast.error('Không tìm thấy đơn hàng!');
         router.back();
@@ -67,7 +53,7 @@ export default function ReviewPanel() {
 
   const reviewInputs = useMemo(() => {
     if (!data) return [];
-    return mapOrderToReviewInputs(data);
+    return data.orderDetails;
   }, [data]);
 
   useEffect(() => {
@@ -92,11 +78,11 @@ export default function ReviewPanel() {
     if (!data || !authData.userId) return;
 
     const payload = Object.entries(reviews).map(([bookId, { rating, content }]) => ({
-      DH_id: data.orderId,
-      KH_id: authData.userId,
-      S_id: Number(bookId),
-      DG_diem: rating,
-      DG_noiDung: content,
+      orderId: data.orderId,
+      custumerId: authData.userId,
+      bookId: Number(bookId),
+      rating: rating,
+      content: content,
     }));
 
     try {
@@ -118,8 +104,8 @@ export default function ReviewPanel() {
       {reviewInputs.map((b) => (
         <BookReviewForm
           key={b.bookId}
-          bookImage={b.bookImage}
-          bookName={b.bookName}
+          bookImage={b.image}
+          bookName={b.title}
           initialRating={reviews[b.bookId]?.rating ?? 5}
           initialContent={reviews[b.bookId]?.content ?? ''}
           onChange={(rating, content) => handleChange(b.bookId, rating, content)}

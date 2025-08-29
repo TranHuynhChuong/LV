@@ -6,11 +6,7 @@ import { Button } from '@/components/ui/button';
 import PaginationControls from '@/components/utils/pagination-controls';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import {
-  mapVoucherPromotionOverviewFromDto,
-  VoucherPromotionOverview,
-  VoucherPromotionOverviewDto,
-} from '@/models/promotionVoucher';
+import { Voucher } from '@/models/voucher';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -28,21 +24,13 @@ enum VoucherType {
   All = 'all',
 }
 
-const mapVouchers = (data: VoucherPromotionOverviewDto[]): VoucherPromotionOverview[] =>
-  data.map((item) => ({
-    id: item.MG_id,
-    startAt: item.MG_batDau,
-    endAt: item.MG_ketThuc,
-    type: item.MG_loai,
-  }));
-
 export default function Page() {
   const { setBreadcrumbs } = useBreadcrumb();
   useEffect(() => {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Mã giảm giá' }]);
   }, [setBreadcrumbs]);
 
-  const [data, setData] = useState<VoucherPromotionOverview[]>([]);
+  const [data, setData] = useState<Voucher[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -67,7 +55,7 @@ export default function Page() {
         const res = await api.get(`/vouchers/${promotionId}?filterType=${filterType}&type=${type}`);
 
         const item = res.data;
-        setData(mapVoucherPromotionOverviewFromDto([item]));
+        setData([item]);
         setPageNumbers([]);
         setTotalPages(1);
         setTotalItems(1);
@@ -84,7 +72,7 @@ export default function Page() {
       const res = await api.get('/vouchers', { params });
       const { data, paginationInfo } = res.data;
 
-      setData(mapVouchers(data));
+      setData(data);
       setPageNumbers(paginationInfo.pageNumbers);
       setTotalPages(paginationInfo.totalPages);
       setTotalItems(paginationInfo.totalItems);

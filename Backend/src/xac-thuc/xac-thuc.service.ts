@@ -106,7 +106,7 @@ export class XacThucService {
     if (!user) {
       throw new NotFoundException('Email chưa đăng ký');
     }
-    const email = user.KH_email;
+    const email = user.email;
     const verifyOtp = await this.verifyOtp(email, otp);
     if (!verifyOtp) {
       throw new UnprocessableEntityException('Mã OTP không chính xác');
@@ -215,7 +215,7 @@ export class XacThucService {
     }
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    const email = user.KH_email;
+    const email = user.email;
     await this.otp.findOneAndUpdate(
       { email },
       { code, expiresAt },

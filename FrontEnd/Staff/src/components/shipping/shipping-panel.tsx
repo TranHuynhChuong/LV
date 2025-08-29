@@ -3,7 +3,7 @@
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
-import { mapShippingFeesFromDtoList, ShippingFee } from '@/models/shipping';
+import { Shipping } from '@/models/shipping';
 import { useCallback, useEffect, useState } from 'react';
 import ShippingTable from './shipping-table';
 
@@ -13,13 +13,13 @@ export default function ShippingPanel() {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Phí vận chuyển' }]);
   }, [setBreadcrumbs]);
 
-  const [data, setData] = useState<ShippingFee[]>([]);
+  const [data, setData] = useState<Shipping[]>([]);
 
   const getData = useCallback(async function getData(): Promise<void> {
     try {
       const res = await api.get('/shipping');
-      const mapped = mapShippingFeesFromDtoList(res.data);
-      setData(mapped);
+      const data = res.data;
+      setData(data);
     } catch {
       setData([]);
     }

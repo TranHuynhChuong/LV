@@ -13,10 +13,20 @@ export class DiaChiController {
    * @returns Danh sách xã/phường hoặc tỉnh/thành phố
    */
   @Get(':id')
-  findWardsOrProvinces(@Param('id', ParseIntPipe) id: number) {
+  async findWardsOrProvinces(@Param('id', ParseIntPipe) id: number) {
     if (id === 0) {
-      return this.DiaChiService.findAllProvinces();
-    } else return this.DiaChiService.findWardsByProvinceId(id);
+      const provinces = await this.DiaChiService.findAllProvinces();
+      return provinces.map((p) => ({
+        code: p.T_id,
+        name: p.T_ten,
+      }));
+    } else {
+      const wards = await this.DiaChiService.findWardsByProvinceId(id);
+      return wards.map((w) => ({
+        code: w.X_id,
+        name: w.X_ten,
+      }));
+    }
   }
 
   /**

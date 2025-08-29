@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { Review } from '@/models/reviews';
+import { Review } from '@/models/review';
 import ReviewItem from './review-items';
 
 type Props = {

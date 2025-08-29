@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
-import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/address';
+import { Address } from '@/models/address';
 import { ChevronLeft } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -33,8 +33,7 @@ export default function AddressDetail() {
       api
         .get(`/addresses/${authData.userId}/${id}`)
         .then(async (res) => {
-          const mapped = await mapAddressListFromDto([res.data]);
-          setDefaultData(mapped[0] || null);
+          setDefaultData(res.data);
         })
         .catch(() => {
           toast.error('Không tìm thấy địa chỉ');
@@ -46,10 +45,8 @@ export default function AddressDetail() {
   const handleUpdate = async () => {
     const data = await formRef.current?.submit();
     if (data) {
-      const mapped = mapAddressToDto(data, authData.userId ?? undefined);
-
       api
-        .put(`/addresses/${authData.userId}/${id}`, mapped)
+        .put(`/addresses/${authData.userId}/${id}`, data)
         .then(() => {
           toast.success('Cập nhật thành công');
           router.back();

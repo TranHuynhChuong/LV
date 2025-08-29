@@ -7,7 +7,7 @@ import PaginationControls from '@/components/utils/pagination-controls';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
 import eventBus from '@/lib/event-bus';
-import { Review, mappedReviewFromDto } from '@/models/reviews';
+import { Review } from '@/models/review';
 import { startOfDay } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -49,8 +49,7 @@ export default function ReviewPanel() {
 
         const res = await api.get('/reviews/all', { params });
         const { data, paginationInfo } = res.data;
-        const mapped = mappedReviewFromDto(data);
-        setData(mapped);
+        setData(data);
         setPageNumbers(paginationInfo.pageNumbers);
         setTotalPages(paginationInfo.totalPage);
         setTotalItems(paginationInfo.totalItems);

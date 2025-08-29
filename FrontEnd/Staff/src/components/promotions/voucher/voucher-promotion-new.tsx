@@ -7,8 +7,8 @@ import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/utils/loader';
-import { mapVoucherPromotionDetailToDto, VoucherPromotionDetail } from '@/models/promotionVoucher';
 import VoucherPromotionForm from './voucher-promotion-form';
+import { Voucher } from '@/models/voucher';
 
 export default function VoucherPromotionNew() {
   const { setBreadcrumbs } = useBreadcrumb();
@@ -24,10 +24,10 @@ export default function VoucherPromotionNew() {
     ]);
   }, [setBreadcrumbs]);
 
-  async function onSubmit(data: VoucherPromotionDetail): Promise<void> {
+  async function onSubmit(data: Voucher): Promise<void> {
     if (!authData.userId) return;
 
-    const apiData = mapVoucherPromotionDetailToDto(data, authData.userId);
+    const apiData = { ...data, staffId: authData.userId };
     setIsSubmitting(true);
 
     try {

@@ -6,7 +6,7 @@ import PaginationControls from '@/components/utils/pagination-controls';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import eventBus from '@/lib/event-bus';
-import { mapOrderOverviewListFromDto, OrderOverview, OrderStatus } from '@/models/order';
+import { Order, OrderStatus } from '@/models/order';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -14,7 +14,7 @@ export default function OrderPanel() {
   const { authData } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [data, setData] = useState<OrderOverview[]>([]);
+  const [data, setData] = useState<Order[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -36,10 +36,9 @@ export default function OrderPanel() {
         };
         const res = await api.get('orders/user', { params });
         const { data, paginationInfo } = res.data;
-        const mapped = mapOrderOverviewListFromDto(data);
-        setData(mapped);
+        setData(data);
         setPageNumbers(paginationInfo.pageNumbers);
-        setTotalPages(paginationInfo.totalPage);
+        setTotalPages(paginationInfo.totalPages);
         setTotalItems(paginationInfo.totalItems);
       } catch {
         setData([]);

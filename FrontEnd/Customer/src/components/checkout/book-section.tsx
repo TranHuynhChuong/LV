@@ -9,7 +9,7 @@ type BooksSectionProps = {
 };
 
 export default function BooksSection({ books }: Readonly<BooksSectionProps>) {
-  const total = books.reduce((sum, b) => sum + b.discountPrice * b.quantity, 0);
+  const total = books.reduce((sum, b) => sum + b.purchasePrice * b.quantity, 0);
 
   return (
     <div className="space-y-2">
@@ -18,34 +18,39 @@ export default function BooksSection({ books }: Readonly<BooksSectionProps>) {
           <div className="space-y-4">
             {books.map((b) => (
               <div
-                key={b.id}
+                key={b.bookId}
                 className="flex items-start gap-4 pt-4 border-t h-18 first:border-none"
               >
                 {/* Ảnh sản phẩm */}
                 <div className="flex-shrink-0 overflow-hidden border rounded w-14 h-14">
                   <Image
-                    src={b.cover}
-                    alt={b.name}
+                    src={b.image}
+                    alt={b.title}
                     width={56}
                     height={56}
                     className="object-cover w-full h-full"
                   />
                 </div>
                 <div className="flex flex-col justify-between flex-1 h-full text-sm">
-                  <h4 className="">{b.name}</h4>
+                  <h4 className="">{b.title}</h4>
 
                   <div className="flex items-center justify-between w-full">
                     <div className="space-x-2">
-                      {b.isOnSale ? (
+                      {b.purchasePrice < b.sellingPrice ? (
                         <>
-                          <span className="text-red-500">₫{b.discountPrice.toLocaleString()}</span>
+                          <span className="text-red-500">₫{b.purchasePrice.toLocaleString()}</span>
                           <span className="text-xs line-through text-zinc-500">
-                            ₫{b.salePrice.toLocaleString()}
+                            ₫{b.sellingPrice.toLocaleString()}
                           </span>
-                          <Badge variant="destructive">{b.discountPercent}%</Badge>
+                          <Badge variant="destructive">
+                            {(((b.sellingPrice - b.purchasePrice) / b.sellingPrice) * 100).toFixed(
+                              0
+                            )}
+                            %
+                          </Badge>
                         </>
                       ) : (
-                        <span>₫{b.discountPrice.toLocaleString()}</span>
+                        <span>₫{b.purchasePrice.toLocaleString()}</span>
                       )}
                     </div>
 

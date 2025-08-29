@@ -4,11 +4,7 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import type { VoucherPromotionDetail } from '@/models/promotionVoucher';
-import {
-  mapVoucherPromotionDetailFromDto,
-  mapVoucherPromotionDetailToDto,
-} from '@/models/promotionVoucher';
+import { Voucher } from '@/models/voucher';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -31,14 +27,14 @@ export default function VoucherPromotionDetail() {
     ]);
   }, [setBreadcrumbs]);
 
-  const [data, setData] = useState<VoucherPromotionDetail>();
+  const [data, setData] = useState<Voucher>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function onSubmit(data: VoucherPromotionDetail) {
+  async function onSubmit(data: Voucher) {
     if (!authData.userId) return;
     setIsSubmitting(true);
     try {
-      const updateData = mapVoucherPromotionDetailToDto(data, authData.userId);
+      const updateData = { ...data, staffId: authData.userId };
       await api.put(`/vouchers/${id}`, updateData);
       toast.success('Cập nhật thành công!');
       router.back();
@@ -53,7 +49,7 @@ export default function VoucherPromotionDetail() {
     if (!authData.userId) return;
 
     const now = new Date();
-    const start = data?.startAt;
+    const start = data?.startDate;
 
     if (start && start <= now) {
       toast.error('Không thể xoá vì mã giảm giá đã hoặc đang diễn ra!');
@@ -76,7 +72,7 @@ export default function VoucherPromotionDetail() {
       if (!id) return;
       try {
         const res = await api.get(`/vouchers/${id}`);
-        const { data } = mapVoucherPromotionDetailFromDto(res.data);
+        const data = res.data;
         setData(data);
       } catch {
         toast.error('Không tìm thấy mã giảm!');
@@ -89,6 +85,7 @@ export default function VoucherPromotionDetail() {
   useEffect(() => {
     getData();
   }, [getData]);
+
   if (!data) return <VoucherPromotionFormLoading />;
   else
     return (
@@ -98,7 +95,7 @@ export default function VoucherPromotionDetail() {
             onSubmit={onSubmit}
             defaultValues={data}
             onDelete={onDelete}
-            isViewing={!!data?.startAt && data.startAt < new Date()}
+            isViewing={!!data?.startDate && data.startDate < new Date()}
           />
 
           <div className="absolute top-6 right-6">

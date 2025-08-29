@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Loader from '@/components/utils/loader';
-import { Category, mapCategoryToDto } from '@/models/categories';
+import { Category } from '@/models/category';
 import CategoryFormLoading from './category-form-loading';
 import CategoryForm from './category-form';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
@@ -35,9 +35,9 @@ export default function CategoryDetail() {
       const data = res.data;
 
       setData({
-        id: data.TL_id,
-        name: data.TL_ten,
-        parentId: data.TL_idTL ?? null,
+        categoryId: data.categoryId,
+        name: data.name,
+        parentId: data.parentId ?? null,
       });
     } catch {
       toast.error('Không tìm thấy thể loại!');
@@ -51,7 +51,7 @@ export default function CategoryDetail() {
 
   async function handleSubmit(data: Category) {
     if (!authData.userId) return;
-    const apiData = mapCategoryToDto(data, authData.userId);
+    const apiData = { name: data.name, parentId: data.parentId, staffId: authData.userId };
 
     setIsSubmitting(true);
 

@@ -7,7 +7,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { BookStatus } from '../schemas/sach.schema';
 
 export class CreateSachDto {
@@ -26,69 +26,85 @@ export class CreateSachDto {
     return [];
   })
   @IsArray()
+  @Expose({ name: 'categoryIds' })
   TL_id: number[];
 
   @IsEnum(BookStatus)
   @IsOptional()
+  @Expose({ name: 'status' })
   S_trangThai?: BookStatus;
 
-  @IsString()
   @MaxLength(120)
+  @Expose({ name: 'title' })
   S_ten: string;
 
+  @Expose({ name: 'summary' })
   @IsString()
   @MaxLength(1200)
   S_tomTat: string;
 
-  @IsString()
+  @Expose({ name: 'description' })
   @IsOptional()
   @MaxLength(3000)
   S_moTa?: string;
 
+  @Expose({ name: 'author' })
   @IsString()
   S_tacGia: string;
 
+  @Expose({ name: 'publisher' })
   @IsString()
   S_nhaXuatBan: string;
 
+  @Expose({ name: 'publishYear' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_namXuatBan: number;
 
+  @Expose({ name: 'page' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_soTrang: number;
 
+  @Expose({ name: 'isbn' })
   @IsString()
   S_isbn: string;
 
+  @Expose({ name: 'translator' })
   @IsString()
   @IsOptional()
   S_nguoiDich?: string;
 
+  @Expose({ name: 'language' })
   @IsString()
   S_ngonNgu: string;
 
+  @Expose({ name: 'sellingPrice' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_giaBan: number;
 
+  @Expose({ name: 'importPrice' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_giaNhap: number;
 
+  @Expose({ name: 'inventory' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_tonKho: number;
 
+  @Expose({ name: 'weight' })
   @Transform(({ value }) => Number(value))
   @IsNumber()
   S_trongLuong: number;
 
+  @Expose({ name: 'size' })
   @IsString()
   S_kichThuoc: string;
 
   @IsString()
+  @Expose({ name: 'staffId' })
   @IsNotEmpty()
   NV_id: string;
 }

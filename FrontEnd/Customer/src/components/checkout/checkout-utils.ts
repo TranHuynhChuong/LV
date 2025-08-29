@@ -1,37 +1,15 @@
 import { Cart } from '@/models/cart';
+import { Shipping } from '@/models/shipping';
 import { Voucher } from '@/models/voucher';
 import { useMemo } from 'react';
 
-export type ShippingPolicy = {
-  extraUnitGrams: number;
-  baseWeightLimitKg: number;
-  baseFee: number;
-  extraFeePerUnit: number;
-};
-
-export type ShippingApiResponse = {
-  PVC_dvpp: number;
-  PVC_ntl: number;
-  PVC_phi: number;
-  PVC_phuPhi: number;
-};
-
-export function mapShippingPolicyFromApi(api: ShippingApiResponse): ShippingPolicy {
-  return {
-    extraUnitGrams: api.PVC_dvpp,
-    baseWeightLimitKg: api.PVC_ntl,
-    baseFee: api.PVC_phi,
-    extraFeePerUnit: api.PVC_phuPhi,
-  };
-}
-
-export function calculateShippingFee(books: Cart[], policy: ShippingPolicy): number {
+export function calculateShippingFee(books: Cart[], policy: Shipping): number {
   const totalWeightGrams = books.reduce((total, p) => total + p.weight * p.quantity, 0);
-  const baseLimitGrams = policy.baseWeightLimitKg * 1000;
+  const baseLimitGrams = policy.baseWeightLimit * 1000;
   if (totalWeightGrams <= baseLimitGrams) return policy.baseFee;
   const excessGrams = totalWeightGrams - baseLimitGrams;
-  const extraUnits = Math.ceil(excessGrams / policy.extraUnitGrams);
-  return policy.baseFee + extraUnits * policy.extraFeePerUnit;
+  const extraUnits = Math.ceil(excessGrams / (policy.extraUnit ?? 1));
+  return policy.baseFee + extraUnits * (policy.extraFeePerUnit ?? 1);
 }
 
 export function calculateDiscounts(
@@ -42,10 +20,10 @@ export function calculateDiscounts(
   let productDiscount = 0;
   let shippingDiscount = 0;
   for (const v of vouchers) {
-    if (orderTotal < v.minOrderValue) continue;
+    if (v.minValue && orderTotal < v.minValue) continue;
     const base = v.type === 'hd' ? orderTotal : shippingFee;
-    let discount = v.isPercentage ? Math.floor((v.discountValue / 100) * base) : v.discountValue;
-    if (v.maxDiscount !== undefined) discount = Math.min(discount, v.maxDiscount);
+    let discount = v.isPercentage ? Math.floor((v.value / 100) * base) : v.value;
+    if (v.maxValue !== undefined) discount = Math.min(discount, v.maxValue);
     if (v.type === 'hd') productDiscount += discount;
     else if (v.type === 'vc') shippingDiscount += discount;
   }
@@ -53,16 +31,17 @@ export function calculateDiscounts(
   return { productDiscount, shippingDiscount };
 }
 
-export function mapToDataCheck(carts: Cart[], vouchers: { code: string; type: string }[]) {
-  const CTDH = carts.map((c) => ({
-    S_id: c.id,
-    CTDH_soLuong: c.quantity,
-    CTDH_giaNhap: c.costPrice,
-    CTDH_giaBan: c.salePrice,
-    CTDH_giaMua: c.discountPrice,
+export function mapToDataCheck(carts: Cart[], voucherlist: { voucherId: string; type: string }[]) {
+  const orderDetails = carts.map((c) => ({
+    bookId: c.bookId,
+    quantity: c.quantity,
+    importPrice: c.importPrice,
+    sellingPrice: c.sellingPrice,
+    purchasePrice: c.purchasePrice,
   }));
-  const MG = vouchers.length > 0 ? vouchers.map((v) => ({ MG_id: v.code })) : undefined;
-  return { CTDH, MG };
+  const vouchers =
+    voucherlist.length > 0 ? voucherlist.map((v) => ({ voucherId: v.voucherId })) : undefined;
+  return { orderDetails, vouchers };
 }
 
 export const formatCurrency = (value: number) =>
@@ -70,23 +49,23 @@ export const formatCurrency = (value: number) =>
 
 export const useOrderSummary = (
   carts: Cart[],
-  shippingPolicy: ShippingPolicy | undefined,
+  shipping: Shipping | undefined,
   vouchers: Voucher[]
 ) => {
   const orderTotal = useMemo(
-    () => carts.reduce((sum, c) => sum + c.discountPrice * c.quantity, 0),
+    () => carts.reduce((sum, c) => sum + c.purchasePrice * c.quantity, 0),
     [carts]
   );
   const shippingFee = useMemo(
-    () => (shippingPolicy ? calculateShippingFee(carts, shippingPolicy) : 0),
-    [carts, shippingPolicy]
+    () => (shipping ? calculateShippingFee(carts, shipping) : 0),
+    [carts, shipping]
   );
   const { productDiscount, shippingDiscount } = useMemo(
     () => calculateDiscounts(vouchers, orderTotal, shippingFee),
     [vouchers, orderTotal, shippingFee]
   );
   const orderTotalUnit = useMemo(
-    () => carts.reduce((sum, c) => sum + c.salePrice * c.quantity, 0),
+    () => carts.reduce((sum, c) => sum + c.sellingPrice * c.quantity, 0),
     [carts]
   );
   const total = orderTotal + shippingFee - productDiscount - shippingDiscount;

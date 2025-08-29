@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { TheLoaiService } from './the-loai.service';
 
-import { TheLoai } from './schemas/the-loai.schema';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 import { CreateTheLoaiDto } from './dto/create-the-loai.dto';
 import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
@@ -38,10 +37,10 @@ export class TheLoaiController {
   /**
    * Lấy danh sách tất cả thể loại chưa bị xoá.
    *
-   * @returns {Promise<Partial<TheLoai>[]>} Danh sách thể loại
+   * @returns  Danh sách thể loại
    */
   @Get()
-  async findAll(): Promise<Partial<TheLoai>[]> {
+  async findAll() {
     return await this.TheLoaiService.findAll();
   }
 
@@ -59,10 +58,10 @@ export class TheLoaiController {
    * Lấy thể loại theo ID.
    *
    * @param {number} id - ID thể loại
-   * @returns {Promise<any>} Thể loại tương ứng hoặc null nếu không tìm thấy
+   * @returns Thể loại tương ứng hoặc null nếu không tìm thấy
    */
   @Get('/:id')
-  async findById(@Param('id', ParseIntPipe) id: number): Promise<any> {
+  async findById(@Param('id', ParseIntPipe) id: number) {
     return await this.TheLoaiService.findById(id);
   }
 

@@ -13,8 +13,8 @@ import {
 import { Input } from '@/components/ui/input';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
-import { BookOverView } from '@/models/books';
-import { BookPromotionDetail } from '@/models/promotionBook';
+import { Book } from '@/models/book';
+import { Promotion, PromotionDetail } from '@/models/promotion';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
@@ -23,79 +23,78 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import BookDiscountTable from './book-discount-table';
 
-const BookPromotionSchema: z.Schema<BookPromotionDetail> = z
+export const PromotionDetailSchema: z.Schema<PromotionDetail> = z.object({
+  bookId: z.number(),
+  percentageBased: z.boolean(),
+  value: z.number(),
+  purchasePrice: z.number(),
+});
+
+const BookPromotionSchema: z.Schema<Promotion> = z
   .object({
-    name: z.string().max(128).optional(),
-    from: z.date({ required_error: 'Không được để trống' }),
-    to: z.date({ required_error: 'Không được để trống' }),
-    details: z.array(
-      z.object({
-        bookId: z.number(),
-        isPercent: z.boolean(),
-        value: z.number(),
-        salePrice: z.number().optional(),
-      })
-    ),
+    promotionName: z.string().max(128).optional(),
+    startDate: z.date({
+      required_error: 'Không được để trống',
+      invalid_type_error: 'Ngày không hợp lệ',
+    }),
+    endDate: z.date({
+      required_error: 'Không được để trống',
+      invalid_type_error: 'Ngày không hợp lệ',
+    }),
+    detail: z.array(PromotionDetailSchema),
   })
   .superRefine((data, ctx) => {
     const now = new Date();
-
-    if (data.from && data.from <= now) {
+    if (data.startDate && data.startDate <= now) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Thời gian bắt đầu phải lớn hơn hiện tại',
-        path: ['from'],
+        path: ['startDate'],
       });
     }
 
-    if (data.from && data.to && data.to <= data.from) {
+    if (data.startDate && data.endDate && data.endDate <= data.startDate) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Thời gian kết thúc phải sau thời gian bắt đầu',
-        path: ['to'],
+        path: ['endDate'],
       });
     }
   });
 
 type Props = {
-  defaultValues?: BookPromotionDetail;
-  availableBooks?: BookOverView[];
-  onSubmit?: (data: BookPromotionDetail) => void;
+  defaultValues?: Promotion;
+  dataSelected?: Book[];
+  onSubmit?: (data: Promotion) => void;
   onDelete?: () => void;
   isViewing?: boolean;
 };
 
-type Detail = {
-  value: number;
-  bookId: number;
-  salePrice?: number;
-  isPercent: boolean;
-};
-
 export default function BookPromotionForm({
   defaultValues,
-  availableBooks,
+  dataSelected,
   onSubmit,
   onDelete,
   isViewing = false,
 }: Readonly<Props>) {
-  const form = useForm<BookPromotionDetail>({
+  const form = useForm<Promotion>({
     resolver: zodResolver(BookPromotionSchema),
     defaultValues: {
       ...defaultValues,
+      startDate: defaultValues?.startDate ? new Date(defaultValues.startDate) : undefined,
+      endDate: defaultValues?.endDate ? new Date(defaultValues.endDate) : undefined,
     },
   });
-
   const { control, register, watch, setValue } = form;
   const isEditing = Boolean(defaultValues && Object.keys(defaultValues).length > 0);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [formDataToSubmit, setFormDataToSubmit] = useState<BookPromotionDetail | null>(null);
+  const [formDataToSubmit, setFormDataToSubmit] = useState<Promotion | null>(null);
   const [openBookTable, setOpenBookTable] = useState<boolean>(false);
-  const [selectedData, setSelectedData] = useState<BookOverView[]>(availableBooks ?? []);
-  const [detail, setDetail] = useState<Detail[]>(defaultValues?.details ?? []);
+  const [selectedData, setSelectedData] = useState<Book[]>(dataSelected ?? []);
+  const [detail, setDetail] = useState<PromotionDetail[]>(defaultValues?.detail ?? []);
 
-  const handleSubmit = (data: BookPromotionDetail) => {
+  const handleSubmit = (data: Promotion) => {
     setFormDataToSubmit(data);
     setConfirmDialogOpen(true);
   };
@@ -112,156 +111,154 @@ export default function BookPromotionForm({
     setDeleteDialogOpen(false);
   };
 
-  const handleSelect = (selecData: BookOverView[]) => {
-    const filteredNewBooks = selecData.filter((p) => !selectedData.some((sd) => sd.id === p.id));
+  const handleSelect = (selecData: Book[]) => {
+    const filteredNewBooks = selecData.filter(
+      (p) => !selectedData.some((sd) => sd.bookId === p.bookId)
+    );
     setSelectedData([...selectedData, ...filteredNewBooks]);
     const newDetails = filteredNewBooks.map((b) => ({
-      bookId: b.id,
-      isPercent: true,
+      bookId: b.bookId,
+      percentageBased: true,
       value: 0,
-      salePrice: undefined,
+      purchasePrice: undefined,
     }));
-    const currentDetails = watch('details') || [];
-    setValue('details', [...currentDetails, ...newDetails]);
+    const currentDetails = watch('detail') || [];
+    setValue('detail', [...currentDetails, ...newDetails]);
     setDetail([...detail, ...newDetails]);
     setOpenBookTable(false);
   };
 
   const handleRemove = (id: number) => {
-    setSelectedData((prev) => prev.filter((p) => p.id !== id));
+    setSelectedData((prev) => prev.filter((p) => p.bookId !== id));
     setDetail((prev) => prev.filter((p) => p.bookId !== id));
-    const currentDetail = watch('details') || [];
-    const newDetail = currentDetail.filter((d: Detail) => d.bookId !== id);
-    setValue('details', newDetail);
+    const currentDetail = watch('detail') || [];
+    const newDetail = currentDetail.filter((d: PromotionDetail) => d.bookId !== id);
+    setValue('detail', newDetail);
   };
 
   return (
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4" noValidate>
-          <fieldset className="space-y-4">
-            <section className="p-6 space-y-4 bg-white rounded-sm shadow">
-              <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
+          <section className="p-6 space-y-4 bg-white rounded-sm shadow">
+            <h3 className={`font-medium ${isEditing ? 'pb-6' : ''}`}>Thông tin cơ bản</h3>
+            <FormField
+              control={control}
+              name="promotionName"
+              render={({ field }) => (
+                <FormItem className="flex flex-col sm:flex-row ">
+                  <FormLabel className="items-start w-32 mt-2 sm:justify-end">
+                    Tên khuyến mãi
+                  </FormLabel>
+                  <div className="flex flex-col flex-1 space-y-1">
+                    <FormControl>
+                      <div className="relative w-full ">
+                        <Input
+                          value={field.value ?? ''}
+                          maxLength={128}
+                          onChange={field.onChange}
+                          className="pr-18"
+                          readOnly={isViewing}
+                        />
+                        <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
+                          {field.value?.length ?? 0} / 48
+                        </span>
+                      </div>
+                    </FormControl>
+                    <div className="flex justify-between">
+                      <FormMessage />
+                    </div>
+                  </div>
+                </FormItem>
+              )}
+            />
+            <div className="flex flex-wrap gap-4 ">
               <FormField
                 control={control}
-                name="name"
+                name="startDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col sm:flex-row ">
-                    <FormLabel className="items-start w-32 mt-2 sm:justify-end">
-                      Tên khuyến mãi
-                    </FormLabel>
+                  <FormItem className="flex flex-col sm:flex-row">
+                    <FormLabel className="items-start w-32 mt-2 sm:justify-end">Bắt đầu</FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
-                      <FormControl>
-                        <div className="relative w-full ">
-                          <Input
-                            value={field.value ?? ''}
-                            maxLength={128}
-                            onChange={field.onChange}
-                            className="pr-18"
-                            readOnly={isViewing}
-                          />
-                          <span className="absolute text-sm -translate-y-1/2 top-1/2 right-3 text-muted-foreground whitespace-nowrap">
-                            {field.value?.length ?? 0} / 48
-                          </span>
-                        </div>
+                      <FormControl className="w-fit">
+                        <Input
+                          type="datetime-local"
+                          min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                          value={
+                            field.value ? format(new Date(field.value), "yyyy-MM-dd'T'HH:mm") : ''
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            field.onChange(val ? new Date(val) : null);
+                          }}
+                          readOnly={isViewing}
+                        />
                       </FormControl>
-                      <div className="flex justify-between">
-                        <FormMessage />
-                      </div>
+                      <FormMessage />
                     </div>
                   </FormItem>
                 )}
               />
-              <div className="flex flex-wrap gap-4 ">
-                <FormField
-                  control={control}
-                  name="from"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col sm:flex-row">
-                      <FormLabel className="items-start w-32 mt-2 sm:justify-end">
-                        Bắt đầu
-                      </FormLabel>
-                      <div className="flex flex-col flex-1 space-y-1">
-                        <FormControl className="w-fit">
-                          <Input
-                            type="datetime-local"
-                            min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                            value={
-                              field.value instanceof Date && !isNaN(field.value.getTime())
-                                ? format(field.value, "yyyy-MM-dd'T'HH:mm")
-                                : ''
-                            }
-                            onChange={(e) => field.onChange(new Date(e.target.value))}
-                            readOnly={isViewing}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="to"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col sm:flex-row">
-                      <FormLabel className="items-start w-32 mt-2 sm:justify-end">
-                        Kết thúc
-                      </FormLabel>
-                      <div className="flex flex-col flex-1 space-y-1">
-                        <FormControl className="w-fit">
-                          <Input
-                            type="datetime-local"
-                            min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                            value={
-                              field.value instanceof Date && !isNaN(field.value.getTime())
-                                ? format(field.value, "yyyy-MM-dd'T'HH:mm")
-                                : ''
-                            }
-                            onChange={(e) => field.onChange(new Date(e.target.value))}
-                            readOnly={isViewing}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </section>
-            <section className="p-6 space-y-6 bg-white rounded-sm shadow">
-              <div className="flex justify-between flex-1">
-                <div>
-                  <h2 className="font-medium">Sách khuyến mãi</h2>
-                  <p className="text-xs">
-                    Tổng cộng <strong>{selectedData.length}</strong> sách
-                  </p>
-                </div>
-                <Button
-                  className="font-normal cursor-pointer border-zinc-700"
-                  variant="outline"
-                  type="button"
-                  onClick={() => setOpenBookTable(true)}
-                  disabled={isViewing}
-                >
-                  <Plus className="w-4 h-4 mr-2" /> Thêm sách
-                </Button>
-              </div>
-              <BookDiscountTable
-                isViewing={isViewing}
-                books={selectedData}
-                detail={detail}
-                register={register}
-                watch={watch}
-                setValue={setValue}
-                onRemove={handleRemove}
+              <FormField
+                control={control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col sm:flex-row">
+                    <FormLabel className="items-start w-32 mt-2 sm:justify-end">Kết thúc</FormLabel>
+                    <div className="flex flex-col flex-1 space-y-1">
+                      <FormControl className="w-fit">
+                        <Input
+                          type="datetime-local"
+                          min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                          value={
+                            field.value ? format(new Date(field.value), "yyyy-MM-dd'T'HH:mm") : ''
+                          }
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            field.onChange(val ? new Date(val) : null);
+                          }}
+                          readOnly={isViewing}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
               />
-            </section>
-          </fieldset>
+            </div>
+          </section>
+          <section className="p-6 space-y-6 bg-white rounded-sm shadow w-full">
+            <div className="flex justify-between flex-1">
+              <div>
+                <h2 className="font-medium">Sách khuyến mãi</h2>
+                <p className="text-xs">
+                  Tổng cộng <strong>{selectedData.length}</strong> sách
+                </p>
+              </div>
+              <Button
+                className="font-normal cursor-pointer border-zinc-700"
+                variant="outline"
+                type="button"
+                onClick={() => setOpenBookTable(true)}
+                disabled={isViewing}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Thêm sách
+              </Button>
+            </div>
+            <BookDiscountTable
+              isViewing={isViewing}
+              books={selectedData}
+              detail={detail}
+              register={register}
+              watch={watch}
+              setValue={setValue}
+              onRemove={handleRemove}
+            />
+          </section>
           <FormFooterActions
             isEditing={isEditing}
-            {...(watch('from') &&
-              watch('from') > new Date() && {
+            {...(watch('endDate') &&
+              watch('endDate') > new Date() && {
                 onDelete: () => setDeleteDialogOpen(true),
               })}
             isViewing={isViewing}

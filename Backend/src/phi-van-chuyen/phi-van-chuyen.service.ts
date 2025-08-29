@@ -15,6 +15,8 @@ import { DiaChiService } from '../dia-chi/dia-chi.service';
 import { getNextSequence } from 'src/Util/counter.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { plainToInstance } from 'class-transformer';
+import { ResponsePhiVanChuyenDto } from './dto/response-phi-van-chuyen.dto';
 
 @Injectable()
 export class PhiVanChuyenService {
@@ -104,7 +106,7 @@ export class PhiVanChuyenService {
    *
    * @returns Danh sách phí vận chuyển.
    */
-  async getAll(): Promise<Partial<PhiVanChuyen & { T_ten: string }>[]> {
+  async getAll() {
     const data = await this.PhiVanChuyenRepo.findAll();
     const result = await Promise.all(
       data.map(async (item) => {
@@ -118,7 +120,9 @@ export class PhiVanChuyenService {
         };
       })
     );
-    return result;
+    return plainToInstance(ResponsePhiVanChuyenDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -134,7 +138,9 @@ export class PhiVanChuyenService {
         'Tìm phí vận chuyển - Không tồn tại phí vận chuyển'
       );
     }
-    return result;
+    return plainToInstance(ResponsePhiVanChuyenDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -143,7 +149,7 @@ export class PhiVanChuyenService {
    * @param id - T_id khu vực.
    * @returns Phí vận chuyển tương ứng.
    */
-  async getByProvinceId(id: number): Promise<PhiVanChuyen> {
+  async getByProvinceId(id: number) {
     let result = await this.PhiVanChuyenRepo.findByProvinceId(id);
     result ??= await this.PhiVanChuyenRepo.findByProvinceId(0);
     if (!result) {
@@ -151,7 +157,9 @@ export class PhiVanChuyenService {
         'Tìm phí vận chuyển - Chưa tồn tại phí vận chuyển nào'
       );
     }
-    return result;
+    return plainToInstance(ResponsePhiVanChuyenDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**

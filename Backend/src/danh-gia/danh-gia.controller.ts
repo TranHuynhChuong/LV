@@ -105,8 +105,8 @@ export class DanhGiaController {
   @Get('customer/:customerId')
   getReviewsOfCustomer(
     @Param('customerId', ParseIntPipe) customerId: number,
-    @Query('page', ParseIntPipe) page = 1,
-    @Query('limit', ParseIntPipe) limit = 12
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(12), ParseIntPipe) limit: number
   ) {
     return this.DanhGiaService.findAllOfCustomer(customerId, page, limit);
   }

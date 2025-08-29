@@ -1,32 +1,17 @@
-import api from '@/lib/axios-client';
-import { mappedReviewOverviewFromDto, ReviewOverview } from '@/models/review';
+import { Review } from '@/models/review';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
 import { ChevronDown } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 type Props = {
-  orderId: string;
+  reviews: Review[];
 };
 
-export default function ReviewOrderList({ orderId }: Readonly<Props>) {
-  const [reviews, setReviews] = useState<ReviewOverview[]>([]);
+export default function ReviewOrderList({ reviews }: Readonly<Props>) {
   const [showAll, setShowAll] = useState(false);
   const [expanded, setExpanded] = useState<{ [key: number]: boolean }>({});
   const visibleReviews = showAll ? reviews : reviews.slice(0, 1);
-  useEffect(() => {
-    async function getData() {
-      try {
-        const res = await api.get(`/reviews/order/${orderId}`);
-        const data = res.data;
-        setReviews(mappedReviewOverviewFromDto(data));
-      } catch {
-        setReviews([]);
-      }
-    }
-
-    getData();
-  }, [orderId]);
 
   const toggleExpand = (index: number) => {
     setExpanded((prev) => ({
@@ -46,18 +31,18 @@ export default function ReviewOrderList({ orderId }: Readonly<Props>) {
           const isExpanded = expanded[index] ?? false;
           return (
             <li key={index} className="py-2 space-y-1">
-              <p className="text-sm">{review.bookName}</p>
+              <p className="text-sm">{review.title}</p>
               <div className="flex text-xs space-x-2 ">
                 <p>⭐{review.rating}/5</p>
                 <p>-</p>
-                <p>{format(new Date(review.createdAt), 'dd/MM/yyyy', { locale: vi })}</p>
+                <p>{format(new Date(review.createAt), 'dd/MM/yyyy', { locale: vi })}</p>
               </div>
-              {review.comment && (
+              {review.content && (
                 <>
                   <p className={`text-xs text-gray-600 ${!isExpanded ? 'line-clamp-2' : ''}`}>
-                    {review.comment}
+                    {review.content}
                   </p>
-                  {review.comment.length > 100 && (
+                  {review.content.length > 100 && (
                     <button
                       onClick={() => toggleExpand(index)}
                       className="text-xs cursor-pointer hover:underline mt-0"

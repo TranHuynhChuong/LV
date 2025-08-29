@@ -17,6 +17,8 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { getNextSequence } from 'src/Util/counter.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { plainToInstance } from 'class-transformer';
+import { KhuyenMaiResponseDto } from './dto/response-khuyen-mai.dto';
 
 @Injectable()
 export class KhuyenMaiUtilService {
@@ -150,7 +152,13 @@ export class KhuyenMaiService {
     limit: number;
     filterType?: PromotionFilterType;
   }) {
-    return this.KhuyenMaiRepo.findAll(params);
+    const { data, paginationInfo } = await this.KhuyenMaiRepo.findAll(params);
+    return {
+      data: plainToInstance(KhuyenMaiResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**
@@ -168,7 +176,10 @@ export class KhuyenMaiService {
     if (!result) {
       throw new NotFoundException('Tìm khuyến mãi - Khuyến mãi không tồn tại');
     }
-    return result;
+
+    return plainToInstance(KhuyenMaiResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**

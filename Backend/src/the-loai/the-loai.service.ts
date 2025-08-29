@@ -35,6 +35,8 @@ import { UpdateTheLoaiDto } from './dto/update-th-loai.dto';
 import { getNextSequence } from 'src/Util/counter.service';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { plainToInstance } from 'class-transformer';
+import { ResponseTheLoaiDto } from './dto/response-the-loai.dto';
 @Injectable()
 export class TheLoaiService {
   constructor(
@@ -145,22 +147,27 @@ export class TheLoaiService {
    *
    * @returns Promise trả về mảng các thể loại (dưới dạng Partial, chỉ chứa một số trường)
    */
-  async findAll(): Promise<Partial<TheLoai>[]> {
-    return this.TheLoaiRepo.findAll();
+  async findAll() {
+    const result = await this.TheLoaiRepo.findAll();
+    return plainToInstance(ResponseTheLoaiDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
    * Tìm thể loại theo ID và chưa bị xoá.
    *
    * @param {number} id - ID của thể loại cần tìm
-   * @returns {Promise<TheLoai | null>} Promise trả về thể loại nếu tìm thấy, ngược lại null
+   * @returns Trả về thể loại nếu tìm thấy, ngược lại null
    */
-  async findById(id: number): Promise<any> {
+  async findById(id: number) {
     const result = await this.TheLoaiRepo.findById(id);
     if (!result) {
       throw new NotFoundException();
     }
-    return result;
+    return plainToInstance(ResponseTheLoaiDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**

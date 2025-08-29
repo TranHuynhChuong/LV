@@ -15,16 +15,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import AddressSelect from '@/components/utils/address-select';
-import { Address } from '@/models/address';
+
 import { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { Address } from '@/models/address';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Họ tên không được để trống'),
+  fullName: z.string().min(1, 'Họ tên không được để trống'),
   phone: z.string().min(1, 'Số điện thoại không được để trống'),
   provinceId: z.number({ required_error: 'Vui lòng chọn địa chỉ' }),
   wardId: z.number({ required_error: 'Vui lòng chọn địa chỉ' }),
   note: z.string().optional(),
-  default: z.boolean().optional(),
+  isDefault: z.boolean().optional(),
 });
 
 export type AddressFormData = z.infer<typeof formSchema>;
@@ -43,24 +44,24 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
     const form = useForm<AddressFormData>({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        name: defaultValue?.name ?? '',
+        fullName: defaultValue?.fullName ?? '',
         phone: defaultValue?.phone ?? '',
         provinceId: defaultValue?.provinceId ?? undefined,
         wardId: defaultValue?.wardId ?? undefined,
         note: defaultValue?.note ?? '',
-        default: defaultValue?.default ?? false,
+        isDefault: defaultValue?.isDefault ?? false,
       },
     });
 
     useEffect(() => {
       if (!defaultValue) return;
       form.reset({
-        name: defaultValue.name ?? '',
+        fullName: defaultValue.fullName ?? '',
         phone: defaultValue.phone ?? '',
         provinceId: defaultValue.provinceId ?? undefined,
         wardId: defaultValue.wardId ?? undefined,
         note: defaultValue.note ?? '',
-        default: defaultValue.default ?? false,
+        isDefault: defaultValue.isDefault ?? false,
       });
 
       if (defaultValue.provinceId) {
@@ -84,7 +85,7 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
         <form className="space-y-4 bg-white">
           <FormField
             control={form.control}
-            name="name"
+            name="fullName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Họ tên</FormLabel>
@@ -160,7 +161,7 @@ const AddressForm = forwardRef<AddressFormHandle, Props>(
           {!isComponent && (
             <FormField
               control={form.control}
-              name="default"
+              name="isDefault"
               render={({ field }) => (
                 <FormItem className="flex items-center gap-2 space-y-0">
                   <FormControl>

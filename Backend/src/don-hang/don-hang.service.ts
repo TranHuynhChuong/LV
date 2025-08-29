@@ -36,6 +36,8 @@ import { getNextSequence } from 'src/Util/counter.service';
 import * as moment from 'moment';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { DonHangResponseDto } from './dto/response-don-hang.dto';
+import { plainToInstance } from 'class-transformer';
 @Injectable()
 export class DonHangService {
   constructor(
@@ -480,7 +482,9 @@ export class DonHangService {
       id,
       'DonHang'
     );
-    return result;
+    return plainToInstance(DonHangResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -491,18 +495,12 @@ export class DonHangService {
    * @returns Thông tin đơn hàng rút gọn hoặc null nếu không tìm thấy
    */
   async searchOrder(id: string): Promise<any> {
-    const order = await this.DonHangRepo.findById(id);
-    if (!order) return null;
-    delete order.lichSuThaoTac;
-    delete order.DH_HD;
-    order.thongTinNhanHang = await this.NhanHangDHService.findByDHId(
-      order.DH_id
-    );
-    const payment = await this.ZaloPayService.queryOrder(order.DH_id);
-    if (payment !== null) {
-      order.DH_thanhToan = payment;
-    }
-    return order;
+    const result = await this.DonHangRepo.findById(id);
+    if (!result) return null;
+    delete result.DH_HD;
+    return plainToInstance(DonHangResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -528,7 +526,7 @@ export class DonHangService {
     userId?: number;
   }) {
     const { page, limit = 12, filterType, orderId, from, to, userId } = options;
-    const result = await this.DonHangRepo.findAll({
+    const { paginationInfo, data } = await this.DonHangRepo.findAll({
       page: page,
       limit: limit,
       filterType: filterType,
@@ -537,15 +535,12 @@ export class DonHangService {
       to,
       userId: userId,
     });
-    for (const order of result.data as any[]) {
-      delete order?.thongTinNhanHang;
-
-      const payment = await this.ZaloPayService.queryOrder(order.DH_id);
-      if (payment !== null) {
-        order.DH_thanhToan = payment;
-      }
-    }
-    return result;
+    return {
+      data: plainToInstance(DonHangResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**

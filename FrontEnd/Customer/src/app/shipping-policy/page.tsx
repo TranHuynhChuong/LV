@@ -1,27 +1,21 @@
-'use client';
+import { Shipping } from '@/models/shipping';
 
-import { useEffect, useState } from 'react';
-import api from '@/lib/axios-client';
-import { mapShippingFeeFromDto, ShippingFee } from '@/models/shipping';
-import { toast } from 'sonner';
+export default async function ShippingPolicyPage() {
+  let shippingFees: Shipping[] = [];
 
-export default function ShippingPolicyPage() {
-  const [shippingFees, setShippingFees] = useState<ShippingFee[]>([]);
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BE_API}/api/shipping`, {
+      cache: 'no-store',
+    });
 
-  useEffect(() => {
-    const fetchShippingFees = async () => {
-      try {
-        const res = await api.get('/shipping');
-        const dtoList = res.data || [];
-        const mappedList = await Promise.all(dtoList.map(mapShippingFeeFromDto));
-        setShippingFees(mappedList);
-      } catch {
-        toast.error('Lỗi khi lấy danh sách phí vận chuyển');
-      }
-    };
+    if (!res.ok) {
+      throw new Error('Failed to fetch');
+    }
 
-    fetchShippingFees();
-  }, []);
+    shippingFees = await res.json();
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách phí vận chuyển:', error);
+  }
 
   return (
     <div className="w-full p-6 space-y-6 bg-white border rounded-md shadoe ">
@@ -70,13 +64,13 @@ export default function ShippingPolicyPage() {
             </thead>
             <tbody className="text-sm border divide-y divide-zinc-700 border-zinc-700">
               {shippingFees.map((fee, index) => (
-                <tr key={fee.id ?? index}>
-                  <td className="px-4 py-3">{fee.province}</td>
+                <tr key={fee.shippingFeeId ?? index}>
+                  <td className="px-4 py-3">{fee.provinceName}</td>
                   <td className="px-4 py-3">
-                    {fee.fee?.toLocaleString()} VNĐ / {fee.weight ?? 0}kg
-                    {fee.surcharge && fee.surchargeUnit
-                      ? ` (+${fee.surcharge.toLocaleString()} VNĐ mỗi ${
-                          fee.surchargeUnit ?? 0
+                    {fee.baseFee?.toLocaleString()} VNĐ / {fee.baseWeightLimit ?? 0}kg
+                    {fee.extraFeePerUnit && fee.extraUnit
+                      ? ` (+${fee.extraFeePerUnit.toLocaleString()} VNĐ mỗi ${
+                          fee.extraUnit ?? 0
                         }g tiếp theo)`
                       : ''}
                   </td>

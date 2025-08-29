@@ -2,7 +2,7 @@
 
 import OrderInf from '@/components/profile/order/order-inf';
 import api from '@/lib/axios-client';
-import { mapOrderFromDto, Order } from '@/models/order';
+import { Order } from '@/models/order';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,8 +18,7 @@ export default function OrderDetail() {
       try {
         const res = await api.get(`orders/detail/${id}`);
         const item = res.data;
-        const mapped = await mapOrderFromDto(item);
-        setData(mapped);
+        setData(item);
       } catch {
         toast.error('Không tìm thấy đơn hàng!');
         router.back();

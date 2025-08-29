@@ -1,3 +1,4 @@
+import { DanhGiaResponseDto } from './dto/response-danh-gia.dto';
 import {
   BadRequestException,
   Injectable,
@@ -12,6 +13,7 @@ import { Connection } from 'mongoose';
 import { DanhGia } from './schemas/danh-gia.schema';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class DanhGiaServiceUtil {
@@ -60,7 +62,6 @@ export class DanhGiaService {
               created.DG_diem,
               session
             );
-
             createdDanhGias.push(created);
           }
           return createdDanhGias;
@@ -86,7 +87,15 @@ export class DanhGiaService {
    * @returns Danh sách đánh giá tương ứng
    */
   async findAllOfBook(bookId: number, page: number, limit = 24) {
-    return this.DanhGiaRepo.findAllOfBook(bookId, page, limit);
+    const { data, rating, paginationInfo } =
+      await this.DanhGiaRepo.findAllOfBook(bookId, page, limit);
+    return {
+      data: plainToInstance(DanhGiaResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      rating,
+      paginationInfo,
+    };
   }
 
   /**
@@ -104,7 +113,7 @@ export class DanhGiaService {
     status?: 'all' | 'visible' | 'hidden';
   }) {
     const { page, limit = 24, rating, from, to, status } = option;
-    const result = await this.DanhGiaRepo.findAll(
+    const { data, paginationInfo } = await this.DanhGiaRepo.findAll(
       page,
       limit,
       rating,
@@ -112,7 +121,12 @@ export class DanhGiaService {
       to,
       status
     );
-    return result;
+    return {
+      data: plainToInstance(DanhGiaResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**
@@ -121,7 +135,10 @@ export class DanhGiaService {
    * @param orderId Mã đơn hàng
    */
   async findAllOfOrder(orderId: string) {
-    return this.DanhGiaRepo.findAllOfOrder(orderId);
+    const result = await this.DanhGiaRepo.findAllOfOrder(orderId);
+    return plainToInstance(DanhGiaResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -133,7 +150,17 @@ export class DanhGiaService {
    * @returns Danh sách đánh giá, phân trang
    */
   async findAllOfCustomer(customerId: number, page: number, limit?: number) {
-    return this.DanhGiaRepo.findAllOfCustomer(customerId, page, limit);
+    const { data, paginationInfo } = await this.DanhGiaRepo.findAllOfCustomer(
+      customerId,
+      page,
+      limit
+    );
+    return {
+      data: plainToInstance(DanhGiaResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**

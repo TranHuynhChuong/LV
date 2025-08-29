@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/lib/axios-client';
 import { cn } from '@/lib/utils';
-import { Category, CategoryDto } from '@/models/categories';
+import { Category } from '@/models/category';
 import { Check } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -32,7 +32,7 @@ function buildTreeData(
 ): (Category & { depth: number })[] {
   return categories
     .filter((c) => c.parentId === parentId)
-    .flatMap((c) => [{ ...c, depth }, ...buildTreeData(categories, c.id, depth + 1)]);
+    .flatMap((c) => [{ ...c, depth }, ...buildTreeData(categories, c.categoryId, depth + 1)]);
 }
 
 export default function CategoryCombobox({
@@ -42,30 +42,30 @@ export default function CategoryCombobox({
   excludeId,
   className,
 }: Readonly<Props>) {
-  const [categoriesRaw, setCategoriesRaw] = useState<CategoryDto[] | null>(null);
+  const [categories, setCategories] = useState<Category[] | null>(null);
   useEffect(() => {
     api
       .get('/categories')
       .then((res) => {
-        const data = res.data as CategoryDto[];
-        setCategoriesRaw(data.length > 0 ? data : []);
+        const data = res.data;
+        setCategories(data.length > 0 ? data : []);
       })
       .catch(() => {
-        setCategoriesRaw([]);
+        setCategories([]);
       });
   }, []);
   const flatCategories: Category[] = useMemo(() => {
-    if (!categoriesRaw) return [];
-    return categoriesRaw.map(({ TL_id, TL_ten, TL_idTL }) => ({
-      id: TL_id,
-      name: TL_ten,
-      parentId: TL_idTL,
+    if (!categories) return [];
+    return categories.map(({ categoryId, name, parentId }) => ({
+      categoryId: categoryId,
+      name: name,
+      parentId: parentId,
     }));
-  }, [categoriesRaw]);
+  }, [categories]);
   const treeCategories = useMemo(() => {
     return buildTreeData(flatCategories).map((cat) => ({
       ...cat,
-      isLeaf: !flatCategories.some((c) => c.parentId === cat.id),
+      isLeaf: !flatCategories.some((c) => c.parentId === cat.categoryId),
     }));
   }, [flatCategories]);
   const selectedIds = useMemo(() => {
@@ -73,7 +73,7 @@ export default function CategoryCombobox({
     return Array.isArray(value) ? value : [value];
   }, [value]);
   const selectedCategories = useMemo(() => {
-    return treeCategories.filter((c) => selectedIds.includes(c.id ?? 0));
+    return treeCategories.filter((c) => selectedIds.includes(c.categoryId ?? 0));
   }, [treeCategories, selectedIds]);
   const calledOnInitRef = useRef(false);
 
@@ -85,7 +85,7 @@ export default function CategoryCombobox({
       treeCategories.length > 0
     ) {
       const labels = treeCategories
-        .filter((c) => selectedIds.includes(c.id ?? 0))
+        .filter((c) => selectedIds.includes(c.categoryId ?? 0))
         .map((c) => c.name);
 
       onLabelChange(labels);
@@ -106,16 +106,16 @@ export default function CategoryCombobox({
           className={`flex flex-wrap items-center justify-start w-full font-normal h-fit px-2.5 cursor-pointer ${
             className ?? ''
           }`}
-          disabled={!categoriesRaw}
+          disabled={!categories}
         >
-          {!categoriesRaw ? (
+          {!categories ? (
             <Skeleton className="w-24 h-5" />
           ) : selectedCategories.length === 0 ? (
             <span className="cursor-pointer text-zinc-500">Chọn thể loại ... </span>
           ) : (
             selectedCategories.map((c) => (
               <span
-                key={c.id}
+                key={c.categoryId}
                 className="px-2 text-sm rounded cursor-pointer bg-muted whitespace-nowrap"
               >
                 {c.name}
@@ -125,7 +125,7 @@ export default function CategoryCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 min-w-fit" style={{ width: triggerRef.current?.offsetWidth }}>
-        {!categoriesRaw ? (
+        {!categories ? (
           <div className="p-4 space-y-2">
             {[...Array(5)].map((_, i) => (
               <Skeleton key={i} className="w-full h-5 rounded-md" />
@@ -138,23 +138,23 @@ export default function CategoryCombobox({
               <CommandEmpty>Không tìm thấy thể loại nào.</CommandEmpty>
               <CommandGroup>
                 {treeCategories.map((category) => {
-                  const isSelected = selectedIds.includes(category.id ?? 0);
-                  const isDisabled = category.id === excludeId;
+                  const isSelected = selectedIds.includes(category.categoryId ?? 0);
+                  const isDisabled = category.categoryId === excludeId;
                   return (
                     <CommandItem
-                      key={category.id}
+                      key={category.categoryId}
                       value={category.name}
                       disabled={isDisabled}
                       onSelect={() => {
                         let updatedIds: number[];
                         if (isSelected) {
-                          updatedIds = selectedIds.filter((id) => id !== category.id);
+                          updatedIds = selectedIds.filter((id) => id !== category.categoryId);
                         } else {
-                          updatedIds = [...selectedIds, category.id ?? 0];
+                          updatedIds = [...selectedIds, category.categoryId ?? 0];
                         }
                         onChange(updatedIds);
                         const updatedLabels = treeCategories
-                          .filter((c) => updatedIds.includes(c.id ?? 0))
+                          .filter((c) => updatedIds.includes(c.categoryId ?? 0))
                           .map((c) => c.name);
                         onLabelChange?.(updatedLabels);
                       }}

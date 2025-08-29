@@ -9,18 +9,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BookPromotionOverview } from '@/models/promotionBook';
+import { Promotion } from '@/models/promotion';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { BadgePercent } from 'lucide-react';
 import Link from 'next/link';
 
 type Props = {
-  data: BookPromotionOverview[];
+  data: Promotion[];
   onDelete?: (code: number) => void;
 };
 
 export default function BookPromotionsTable({ data }: Readonly<Props>) {
-  const columns: ColumnDef<BookPromotionOverview>[] = [
+  const columns: ColumnDef<Promotion>[] = [
     {
       accessorKey: 'name',
       header: 'Khuyến mãi',
@@ -36,16 +36,16 @@ export default function BookPromotionsTable({ data }: Readonly<Props>) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="text-sm leading-5 truncate max-w-36 lg:max-w-none">
-                      {item.name}
+                      {item.promotionName}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p> {item.name}</p>
+                    <p> {item.promotionName}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
-              <div className="text-xs text-muted-foreground">#{item.id}</div>
+              <div className="text-xs text-muted-foreground">#{item.promotionId}</div>
             </div>
           </div>
         );
@@ -55,14 +55,14 @@ export default function BookPromotionsTable({ data }: Readonly<Props>) {
       accessorKey: 'totalBooks',
       header: 'Tổng sách',
       cell: ({ row }) => {
-        return <div>{row.original.totalBooks}</div>;
+        return <div>{row.original.totalQuantity}</div>;
       },
     },
     {
       accessorKey: 'startAt',
       header: 'Bắt đầu',
       cell: ({ row }) => {
-        const date = new Date(row.original.startAt).toLocaleString('vi-VN');
+        const date = new Date(row.original.startDate).toLocaleString('vi-VN');
         return <div>{date}</div>;
       },
     },
@@ -70,7 +70,7 @@ export default function BookPromotionsTable({ data }: Readonly<Props>) {
       accessorKey: 'endAt',
       header: 'Kết thúc',
       cell: ({ row }) => {
-        const date = new Date(row.original.endAt).toLocaleString('vi-VN');
+        const date = new Date(row.original.endDate).toLocaleString('vi-VN');
         return <div>{date}</div>;
       },
     },
@@ -80,13 +80,16 @@ export default function BookPromotionsTable({ data }: Readonly<Props>) {
       cell: ({ row }) => {
         const item = row.original;
         const now = new Date();
-        const from = new Date(item.startAt);
+        const from = new Date(item.startDate);
 
         const canUpdate = from > now;
 
         return (
           <div className="flex flex-col space-y-1.5">
-            <Link className="cursor-pointer hover:underline " href={`/promotions/books/${item.id}`}>
+            <Link
+              className="cursor-pointer hover:underline "
+              href={`/promotions/books/${item.promotionId}`}
+            >
               {canUpdate ? 'Cập nhật' : 'Chi tiết'}
             </Link>
           </div>

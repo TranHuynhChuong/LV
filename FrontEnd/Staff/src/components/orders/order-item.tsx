@@ -1,7 +1,7 @@
 'use client';
 
 import eventBus from '@/lib/event-bus';
-import { OrderOverview } from '@/models/orders';
+import { Order } from '@/models/order';
 import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
@@ -20,11 +20,11 @@ export const statusMap: Record<string, string> = {
   DaHuy: 'Đã hủy',
 };
 
-export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>) {
+export default function OrderItem({ order }: Readonly<{ order: Order }>) {
   const [expanded, setExpanded] = useState(false);
   const displayedBooks = expanded ? order.orderDetails : order.orderDetails.slice(0, 1);
   const total =
-    order.orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0) -
+    order.orderDetails.reduce((sum, p) => sum + p.purchasePrice * p.quantity, 0) -
     order.discountInvoice -
     order.discountShipping +
     order.shippingFee;
@@ -48,7 +48,7 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
 
               <p>{statusMap[order.status] || 'Không xác định'}</p>
             </span>
-            {order.requestInvoice && (
+            {order.invoice && (
               <Badge variant="outline" className="whitespace-nowrap">
                 Yêu cầu xuất hóa đơn
               </Badge>
@@ -68,8 +68,8 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
               >
                 <div className="flex items-center gap-2 py-2">
                   <Image
-                    src={item.bookImage}
-                    alt={item.bookName}
+                    src={item.image}
+                    alt={item.title}
                     width={56}
                     height={56}
                     priority
@@ -77,22 +77,22 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
                   />
                   <div className="flex flex-col justify-between flex-1 h-14">
                     <div className="flex justify-between ">
-                      <div className=" line-clamp-2">{item.bookName}</div>
+                      <div className=" line-clamp-2">{item.title}</div>
                       <div className="text-sm text-muted-foreground">x {item.quantity}</div>
                     </div>
                     <div className="flex items-end justify-end gap-1">
-                      {item.priceSell !== item.priceBuy ? (
+                      {item.sellingPrice !== item.purchasePrice ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.sellingPrice)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                         </span>
                       )}
                     </div>

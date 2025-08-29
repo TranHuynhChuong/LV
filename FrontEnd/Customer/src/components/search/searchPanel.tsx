@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import PaginationControls from '@/components/utils/pagination-controls';
 import api from '@/lib/axios-client';
-import { BookOverview, BookSortType, mapBookOverviewListFromDto } from '@/models/book';
+import { Book, BookSortType } from '@/models/book';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -28,7 +28,7 @@ export default function SearchPanel() {
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [books, setBooks] = useState<BookOverview[] | []>([]);
+  const [books, setBooks] = useState<Book[] | []>([]);
   const pageSize = 20;
 
   const getData = useCallback(async () => {
@@ -44,7 +44,7 @@ export default function SearchPanel() {
       const res = await api.get('/books/search', { params });
       const data = res.data;
 
-      setBooks(mapBookOverviewListFromDto(data.data));
+      setBooks(data.data);
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
       setTotalPages(data.paginationInfo.totalPages);

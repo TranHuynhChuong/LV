@@ -4,10 +4,10 @@ import { useState } from 'react';
 
 type Props = {
   summary: string;
-  name: string;
+  title: string;
   description?: string;
 };
-export default function BookInfDescription({ summary, name, description }: Readonly<Props>) {
+export default function BookInfDescription({ summary, title, description }: Readonly<Props>) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="whitespace-pre-line bg-white rounded-md shadow">
@@ -22,7 +22,7 @@ export default function BookInfDescription({ summary, name, description }: Reado
           <p className="text-sm text-zinc-700">{summary}</p>
         </div>
         <div>
-          <h3 className="font-medium ">{name}</h3>
+          <h3 className="font-medium ">{title}</h3>
           <p className="text-sm text-zinc-700">{description}</p>
         </div>
       </div>

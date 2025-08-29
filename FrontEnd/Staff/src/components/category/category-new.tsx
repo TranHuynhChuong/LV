@@ -7,7 +7,7 @@ import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import Loader from '@/components/utils/loader';
-import { Category, mapCategoryToDto } from '@/models/categories';
+import { Category } from '@/models/category';
 import CategoryForm from './category-form';
 
 export default function CategoryNew() {
@@ -26,7 +26,7 @@ export default function CategoryNew() {
   async function handleSubmit(data: Category) {
     if (!authData.userId) return;
 
-    const apiData = mapCategoryToDto(data, authData.userId);
+    const apiData = { name: data.name, parentId: data.parentId, staffId: authData.userId };
     setIsSubmitting(true);
 
     try {

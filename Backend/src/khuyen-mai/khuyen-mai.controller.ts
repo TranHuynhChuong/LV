@@ -26,7 +26,7 @@ export class KhuyenMaiController {
    * Tạo mới một khuyến mãi.
    *
    * @param {CreateKhuyenMaiDto} data - Dữ liệu khuyến mãi cần tạo.
-   * @returns {Promise<any>} Đối tượng khuyến mãi vừa được tạo.
+   * @returns  Đối tượng khuyến mãi vừa được tạo.
    */
   @UseGuards(XacThucGuard)
   @Roles(1, 2)
@@ -41,7 +41,6 @@ export class KhuyenMaiController {
    * @param {string} page - Số trang hiện tại (bắt đầu từ 1).
    * @param {string} limit - Số lượng bản ghi mỗi trang.
    * @param {PromotionFilterType} [filterType] - (Tùy chọn) Loại khuyến mãi để lọc.
-   * @returns {Promise<any>} Danh sách khuyến mãi phù hợp.
    */
   @Get()
   findAll(
@@ -86,7 +85,7 @@ export class KhuyenMaiController {
    *
    * @param {number} id - ID của khuyến mãi cần cập nhật.
    * @param {UpdateKhuyenMaiDto} data - Dữ liệu cập nhật.
-   * @returns {Promise<any>} Đối tượng khuyến mãi sau khi cập nhật thành công.
+   * @returns  Đối tượng khuyến mãi sau khi cập nhật thành công.
    */
   @UseGuards(XacThucGuard)
   @Roles(1, 2)
@@ -102,7 +101,7 @@ export class KhuyenMaiController {
    * Xóa khuyến mãi theo ID, nếu khuyến mãi chưa hoặc không còn hiệu lực.
    *
    * @param {number} id - ID của khuyến mãi cần xóa.
-   * @returns {Promise<void>} Xóa thành công sẽ không trả về dữ liệu.
+   * @returns Xóa thành công sẽ không trả về dữ liệu.
    */
   @UseGuards(XacThucGuard)
   @Roles(1, 2)

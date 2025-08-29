@@ -16,7 +16,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import AddressForm, { AddressFormHandle } from '@/components/profile/address/address-form';
-import { mapAddressToDto } from '@/models/address';
 
 export default function AddressNew() {
   const router = useRouter();
@@ -27,7 +26,7 @@ export default function AddressNew() {
   const handleSubmit = async () => {
     const data = await formRef.current?.submit();
     if (data) {
-      const mapped = mapAddressToDto(data, authData.userId ?? undefined);
+      const mapped = { ...data, customerId: authData.userId ?? undefined };
       api
         .post(`/addresses`, mapped)
         .then(() => {

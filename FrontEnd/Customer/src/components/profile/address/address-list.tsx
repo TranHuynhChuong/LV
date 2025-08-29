@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import { cn } from '@/lib/utils';
-import { Address, mapAddressListFromDto } from '@/models/address';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Badge } from '../../ui/badge';
+import { Address } from '@/models/address';
 
 type AddressItemProps = {
   address: Address;
@@ -34,11 +34,11 @@ export function AddressItem({
     >
       <div className="flex justify-between flex-1 text-sm font-semibold">
         <span className="flex flex-wrap gap-1">
-          <p className="whitespace-nowrap">{address.name}</p>
+          <p className="whitespace-nowrap">{address.fullName}</p>
           <p className="font-normal whitespace-nowrap text-muted-foreground">{address.phone}</p>
         </span>
         {!isComponent ? (
-          <Link href={`/profile/address/${address.id}`} className="h-fit">
+          <Link href={`/profile/address/${address.addressId}`} className="h-fit">
             <Button variant="outline" size="sm" className="cursor-pointer">
               Chỉnh sửa
             </Button>
@@ -47,9 +47,9 @@ export function AddressItem({
           selected && <CheckCircle className="w-4 h-4 mt-1 text-blue-500" />
         )}
       </div>
-      <div className="text-sm">{address.fullName}</div>
+      <div className="text-sm">{address.address}</div>
       {address.note && <div className="text-xs italic text-muted-foreground">{address.note}</div>}
-      {address.default && <Badge className="bg-zinc-600">Mặc định</Badge>}
+      {address.isDefault && <Badge className="bg-zinc-600">Mặc định</Badge>}
     </div>
   );
 }
@@ -67,9 +67,7 @@ export default function AddressList({ isComponent, onSelectAddress }: Readonly<A
   useEffect(() => {
     if (!authData.userId) return;
     api.get(`addresses/${authData.userId}`).then((res) => {
-      mapAddressListFromDto(res.data).then((mapped) => {
-        setAddresses(mapped);
-      });
+      setAddresses(res.data);
     });
   }, [authData.userId]);
 
@@ -84,10 +82,10 @@ export default function AddressList({ isComponent, onSelectAddress }: Readonly<A
       <div className="space-y-2">
         {addresses.map((a) => (
           <AddressItem
-            key={a.id}
+            key={a.addressId}
             address={a}
             isComponent={isComponent}
-            selected={selected?.id === a.id}
+            selected={selected?.addressId === a.addressId}
             onSelect={() => setSelected(a)}
           />
         ))}

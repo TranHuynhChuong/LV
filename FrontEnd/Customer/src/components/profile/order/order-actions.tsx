@@ -89,7 +89,7 @@ const actionMap: Record<
 export default function OrderActions({
   id,
   status,
-  reviewed = false,
+  reviewed = true,
   onSuccess,
   showView = true,
 }: Readonly<{

@@ -123,21 +123,6 @@ export class DonHangRepository {
         },
       },
       {
-        $lookup: {
-          from: 'danhgias',
-          localField: 'DH_id',
-          foreignField: 'DH_id',
-          as: 'danhGias',
-        },
-      },
-      {
-        $addFields: {
-          daDanhGia: {
-            $cond: [{ $gt: [{ $size: '$danhGias' }, 0] }, true, false],
-          },
-        },
-      },
-      {
         $group: {
           _id: '$_id',
           DH_id: { $first: '$DH_id' },
@@ -147,7 +132,6 @@ export class DonHangRepository {
           DH_giamHD: { $first: '$DH_giamHD' },
           DH_giamVC: { $first: '$DH_giamVC' },
           DH_phiVC: { $first: '$DH_phiVC' },
-          DH_daDanhGia: { $first: '$daDanhGia' },
           DH_HD: { $first: '$DH_HD' },
           KH_id: { $first: '$KH_id' },
           KH_email: { $first: '$KH_email' },

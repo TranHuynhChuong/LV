@@ -4,11 +4,11 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { mapShippingFeeToDto, ShippingFee } from '@/models/shipping';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import ShippingFeeForm from './shipping-form';
+import { Shipping } from '@/models/shipping';
 
 export default function ShippingNew() {
   const router = useRouter();
@@ -24,9 +24,9 @@ export default function ShippingNew() {
     ]);
   }, [setBreadcrumbs]);
 
-  const handleSubmit = (data: ShippingFee) => {
+  const handleSubmit = (data: Shipping) => {
     if (!authData.userId) return;
-    const apiData = mapShippingFeeToDto(data, authData.userId);
+    const apiData = { ...data, staffId: authData.userId };
     setIsSubmitting(true);
     api
       .post('/shipping', apiData)

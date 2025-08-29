@@ -69,7 +69,7 @@ export default function PaginationControls({
         ))}
 
         {/* Ellipsis nếu còn khoảng cách phía sau */}
-        {pages.length > 0 && pages[pages.length - 1] < totalPages - 1 && (
+        {pages[pages.length - 1] < totalPages - 1 && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>

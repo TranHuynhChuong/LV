@@ -23,6 +23,8 @@ import { KhuyenMaiUtilService } from 'src/khuyen-mai/khuyen-mai.service';
 import { getNextSequence } from 'src/Util/counter.service';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { plainToInstance } from 'class-transformer';
+import { SachResponseDto } from './dto/response-sach.dto';
 
 const folderPrefix = 'Books';
 
@@ -351,13 +353,18 @@ export class SachService {
       filterType,
       limit = 24,
     } = options;
-    const result = await this.SachRepo.findAll(
+    const { data, paginationInfo } = await this.SachRepo.findAll(
       page,
       sortType,
       filterType,
       limit
     );
-    return result;
+    return {
+      data: plainToInstance(SachResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**
@@ -391,7 +398,7 @@ export class SachService {
     const categoryIds = categoryId
       ? [categoryId, ...(await this.TheLoai.findAllChildren(categoryId))]
       : undefined;
-    const result = await this.SachRepo.search(
+    const { data, paginationInfo } = await this.SachRepo.search(
       page,
       sortType,
       filterType,
@@ -399,7 +406,12 @@ export class SachService {
       keyword,
       categoryIds
     );
-    return result;
+    return {
+      data: plainToInstance(SachResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**
@@ -422,7 +434,14 @@ export class SachService {
    * @returns Mảng sách được sắp xếp theo điểm tương đồng giảm dần
    */
   async findByVector(queryVector: number[], limit?: number, minScore?: number) {
-    return this.SachRepo.findByVector(queryVector, limit, minScore);
+    const result = await this.SachRepo.findByVector(
+      queryVector,
+      limit,
+      minScore
+    );
+    return plainToInstance(SachResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -433,7 +452,10 @@ export class SachService {
    * @returns Thông tin sách đầu tiên tìm thấy hoặc null nếu không tìm thấy
    */
   async findByIsbn(id: string, filterType?: BookFilterType): Promise<any> {
-    return this.SachRepo.findByIsbn(id, filterType);
+    const result = await this.SachRepo.findByIsbn(id, filterType);
+    return plainToInstance(SachResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -461,8 +483,17 @@ export class SachService {
       // Lọc bỏ sản phẩm trùng id
       const S_tuongTu = S_tuongTuRaw.filter((sp) => sp.S_id !== id);
       delete result.S_eTomTat;
-      return { ...result, S_tuongTu };
-    } else return result;
+      return plainToInstance(
+        SachResponseDto,
+        { ...result, S_tuongTu },
+        {
+          excludeExtraneousValues: true,
+        }
+      );
+    } else
+      return plainToInstance(SachResponseDto, result, {
+        excludeExtraneousValues: true,
+      });
   }
 
   /**

@@ -170,14 +170,16 @@ export class KhachHangService {
    * @returns Khách hàng tương ứng với ID.
    * @throws NotFoundException Nếu không tìm thấy khách hàng.
    */
-  async findById(id: number): Promise<KhachHang> {
+  async findById(id: number) {
     const result = await this.KhachHangRepo.findById(id);
     if (!result) {
       throw new NotFoundException(
         'Tìm khách hàng - Không thể tìm thấy khách hàng'
       );
     }
-    return result;
+    return plainToInstance(KhachHangResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**

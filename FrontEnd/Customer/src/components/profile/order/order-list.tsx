@@ -1,10 +1,10 @@
 'use client';
 
-import { OrderOverview } from '@/models/order';
+import { Order } from '@/models/order';
 import OrderItem from './order-item';
 
 type OrderListProps = {
-  orders: OrderOverview[];
+  orders: Order[];
 };
 
 export default function OrderList({ orders }: Readonly<OrderListProps>) {

@@ -20,7 +20,7 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
-import { Category } from '@/models/categories';
+import { Category } from '@/models/category';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -47,8 +47,8 @@ function getAllChildrenIds(parentId: number, categories: Category[]): number[] {
     result.push(current);
     const children = categories.filter((cat) => cat.parentId === current);
     for (const child of children) {
-      if (typeof child.id === 'number') {
-        stack.push(child.id);
+      if (typeof child.categoryId === 'number') {
+        stack.push(child.categoryId);
       }
     }
   }
@@ -68,9 +68,9 @@ export default function CategoryTable({ data, levelOptions }: Readonly<Props>) {
 
   const columns: ColumnDef<Category>[] = [
     {
-      accessorKey: 'id',
+      accessorKey: 'categoryId',
       header: 'Mã',
-      cell: ({ row }) => <div className="pl-3">{row.getValue('id')}</div>,
+      cell: ({ row }) => <div className="pl-3">{row.getValue('categoryId')}</div>,
       enableHiding: false,
       enableColumnFilter: true,
       filterFn: (row, columnId, filterValue) => {
@@ -109,11 +109,14 @@ export default function CategoryTable({ data, levelOptions }: Readonly<Props>) {
         const item = row.original;
         return (
           <div className="flex flex-col items-start space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/categories/${item.id}`}>
+            <Link
+              className="cursor-pointer hover:underline"
+              href={`/categories/${item.categoryId}`}
+            >
               Cập nhật
             </Link>
             <DeleteActionCell
-              resourceId={item.id?.toString()}
+              resourceId={item.categoryId?.toString()}
               onDelete={async (id) => {
                 await api.delete(`/categories/${id}?staffId=${authData.userId}`);
                 EventBus.emit('category:refetch');
@@ -185,7 +188,7 @@ export default function CategoryTable({ data, levelOptions }: Readonly<Props>) {
           </Select>
           <Select
             onValueChange={(value) => {
-              const column = table.getColumn('id');
+              const column = table.getColumn('categoryId');
               if (!column) return;
               column.setFilterValue(
                 value === '0' ? undefined : getAllChildrenIds(Number(value), data)
@@ -198,7 +201,7 @@ export default function CategoryTable({ data, levelOptions }: Readonly<Props>) {
             <SelectContent>
               <SelectItem value="0">Tất cả thể loại</SelectItem>
               {data.map((cat) => (
-                <SelectItem key={cat.id} value={String(cat.id)}>
+                <SelectItem key={cat.categoryId} value={String(cat.categoryId)}>
                   {cat.name}
                 </SelectItem>
               ))}

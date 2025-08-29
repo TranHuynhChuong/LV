@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
-import { Category } from '@/models/categories';
+import { Category } from '@/models/category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -19,7 +19,7 @@ import { z } from 'zod';
 import CategoryCombobox from './category-combobox';
 
 const formSchema: z.Schema<Category> = z.object({
-  id: z.number().nullable().optional(),
+  categoryId: z.number().nullable().optional(),
   name: z.string().min(2, 'Tên tối thiểu 2 ký tự').max(48, 'Tên tối đa 48 ký tự'),
   parentId: z.number().nullable().optional(),
 });
@@ -39,7 +39,7 @@ export default function CategoryForm({ defaultValues, onSubmit, onDelete }: Read
   const form = useForm<Category>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: null,
+      categoryId: null,
       name: '',
       parentId: null,
       ...defaultValues,
@@ -72,7 +72,7 @@ export default function CategoryForm({ defaultValues, onSubmit, onDelete }: Read
             {isEditing && (
               <FormField
                 control={form.control}
-                name="id"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mã thể loại</FormLabel>
@@ -105,8 +105,14 @@ export default function CategoryForm({ defaultValues, onSubmit, onDelete }: Read
                   <FormControl>
                     <CategoryCombobox
                       value={field.value ?? null}
-                      onChange={(val) => field.onChange(val?.[0])}
-                      excludeId={form.getValues('id') ?? null}
+                      onChange={(val) => {
+                        if (!val || val.length === 0) {
+                          field.onChange(null);
+                        } else {
+                          field.onChange(val[0]);
+                        }
+                      }}
+                      excludeId={form.getValues('categoryId') ?? null}
                     />
                   </FormControl>
                   <FormMessage />

@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { BookList } from '@/components/book/book-list';
-import { BookOverview } from '@/models/book';
+import { Book } from '@/models/book';
 import { Button } from '../ui/button';
 
 type HomeSectionProps = {
   title: string;
-  books: BookOverview[];
+  books: Book[];
   showViewMore?: boolean;
   viewMoreLink?: string;
 };

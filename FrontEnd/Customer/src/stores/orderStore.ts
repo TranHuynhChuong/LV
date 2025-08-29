@@ -14,11 +14,11 @@ export const useOrderStore = create<OrderState>()(
       orders: [],
 
       addOrder: (order) => {
-        const existing = get().orders.find((o) => o.id === order.id);
+        const existing = get().orders.find((o) => o.bookId === order.bookId);
         if (existing) {
           set({
             orders: get().orders.map((o) =>
-              o.id === order.id ? { ...o, quantity: o.quantity + order.quantity } : o
+              o.bookId === order.bookId ? { ...o, quantity: o.quantity + order.quantity } : o
             ),
           });
         } else {

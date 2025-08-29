@@ -49,7 +49,7 @@ export default function VoucherSection({
         <div className="flex items-center justify-end flex-1 gap-2">
           <div className="flex gap-1 text-xs">
             {selectedVouchers.map((v) => (
-              <div key={v.code} className="flex items-center gap-1">
+              <div key={v.voucherId} className="flex items-center gap-1">
                 <span className="px-4 py-2 rounded-sm text-primary bg-zinc-200 whitespace-nowrap">
                   {v.type === 'vc' ? 'Giảm vận chuyển' : 'Giảm hóa đơn'}
                 </span>

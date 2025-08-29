@@ -1,5 +1,5 @@
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
 
 import { CreateSachDto } from './create-sach.dto';
@@ -7,6 +7,7 @@ import { CreateSachDto } from './create-sach.dto';
 export class UpdateSachDto extends PartialType(CreateSachDto) {
   @IsString()
   @IsNotEmpty()
+  @Expose({ name: 'staffId' })
   NV_id: string;
 
   @Transform(({ value }) => {

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import PaginationControls from '@/components/utils/pagination-controls';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { BookPromotionOverview, mapBookPromotionsFromDto } from '@/models/promotionBook';
+import { Promotion } from '@/models/promotion';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,7 +27,7 @@ export default function BookPromotionPanel() {
     setBreadcrumbs([{ label: 'Trang chủ', href: '/' }, { label: 'Giảm giá sách' }]);
   }, [setBreadcrumbs]);
 
-  const [data, setData] = useState<BookPromotionOverview[]>([]);
+  const [data, setData] = useState<Promotion[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -42,8 +42,8 @@ export default function BookPromotionPanel() {
       try {
         if (promotionId) {
           const res = await api.get(`promotions/${promotionId}?filterType=${filterType}`);
-          const item = res.data;
-          setData(mapBookPromotionsFromDto([item]));
+          const data = res.data;
+          setData([data]);
           setPageNumbers([]);
           setTotalPages(1);
           setTotalItems(1);
@@ -58,7 +58,7 @@ export default function BookPromotionPanel() {
 
         const res = await api.get('/promotions', { params });
         const { data, paginationInfo } = res.data;
-        setData(mapBookPromotionsFromDto(data));
+        setData(data);
         setPageNumbers(paginationInfo.pageNumbers);
         setTotalPages(paginationInfo.totalPages);
         setTotalItems(paginationInfo.totalItems);

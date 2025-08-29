@@ -4,9 +4,8 @@ import Loader from '@/components/utils/loader';
 import { useAuth } from '@/contexts/auth-context';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
-import { BookOverView } from '@/models/books';
-import type { BookPromotionDetail } from '@/models/promotionBook';
-import { mapBookPromotionDetailFromDto, mapBookPromotionDetailToDto } from '@/models/promotionBook';
+import { Book } from '@/models/book';
+import { Promotion } from '@/models/promotion';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,14 +29,14 @@ export default function BookPromotionDetail() {
   }, [setBreadcrumbs]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [data, setData] = useState<BookPromotionDetail>();
-  const [books, setBooks] = useState<BookOverView[]>([]);
+  const [data, setData] = useState<Promotion>();
+  const [books, setBooks] = useState<Book[]>([]);
 
   const getData = useCallback(async () => {
     if (!id) return;
     try {
       const res = await api.get(`/promotions/${id}`);
-      const { data, books } = mapBookPromotionDetailFromDto(res.data);
+      const { books, ...data } = res.data;
       setData(data);
       setBooks(books);
     } catch {
@@ -50,12 +49,12 @@ export default function BookPromotionDetail() {
     getData();
   }, [getData]);
 
-  async function onSubmit(data: BookPromotionDetail) {
+  async function onSubmit(data: Promotion) {
     if (!id) return;
     if (!authData.userId) return;
     try {
       setIsSubmitting(true);
-      const apiData = mapBookPromotionDetailToDto(data, authData.userId);
+      const apiData = { ...data, staffId: authData.userId };
       await api.put(`/promotions/${id}`, apiData);
       toast.success('Cập nhật thành công');
       router.back();
@@ -70,7 +69,7 @@ export default function BookPromotionDetail() {
     if (!authData.userId) return;
 
     const now = new Date();
-    const start = data?.from;
+    const start = data?.startDate;
 
     if (start && start <= now) {
       toast.error('Không thể xoá vì khuyến mãi đã hoặc đang diễn ra!');
@@ -95,8 +94,8 @@ export default function BookPromotionDetail() {
           <BookPromotionForm
             onSubmit={onSubmit}
             defaultValues={data}
-            availableBooks={books}
-            isViewing={!!data?.from && data.from < new Date()}
+            dataSelected={books}
+            isViewing={!!data?.startDate && data.startDate < new Date()}
             onDelete={onDelete}
           />
           <div className="absolute top-6 right-6">

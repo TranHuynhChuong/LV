@@ -11,8 +11,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { PhiVanChuyenService } from './phi-van-chuyen.service';
-
-import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
 import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
 import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
@@ -41,7 +39,7 @@ export class PhiVanChuyenController {
    * @returns Mảng các bản ghi phí vận chuyển.
    */
   @Get()
-  async findAllBasic(): Promise<Partial<PhiVanChuyen>[]> {
+  async findAll() {
     return await this.PhiVanChuyenService.getAll();
   }
 

@@ -27,7 +27,7 @@ export default function VoucherPromotionFormLoading() {
       <div className="p-6 bg-white rounded-sm shadow space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <Skeleton className="w-32 h-6" />
-          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 flex-1" />
         </div>
         <div className="flex items-center gap-4">
           <Skeleton className="w-32 h-6" />

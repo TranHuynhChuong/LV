@@ -20,28 +20,43 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
+import { Book } from '@/models/book';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import CurrencyInput from 'react-currency-input-field';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import CustomCurrencyInput from '../ui/custom-currency-input';
 
 const MAX_PRODUCT_IMAGES = 14;
 let IS_EDITING = false;
-
+let IS_COVER_IMAGE_DELETED = false;
 const BookSchema = z.object({
-  coverImageFile: z
-    .union([z.instanceof(File), z.undefined(), z.null()])
-    .refine((file) => IS_EDITING || file instanceof File, {
+  coverImageFile: z.union([z.instanceof(File), z.null(), z.undefined()]).refine(
+    (file) => {
+      if (!IS_EDITING) {
+        // Thêm mới -> phải có File
+        return file instanceof File;
+      } else {
+        // Cập nhật -> nếu cover bị xóa thì phải có File mới
+        if (IS_COVER_IMAGE_DELETED) {
+          return file instanceof File;
+        } else {
+          // cover còn -> file có thể null
+          return true;
+        }
+      }
+    },
+    {
       message: 'Không được để trống',
-    }),
-  imageFiles: z.array(z.instanceof(File)).optional(),
-  name: z.string({ required_error: 'Không được để trống' }).max(128),
-  status: z.string(),
-  category: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
+    }
+  ),
 
+  imageFiles: z.array(z.instanceof(File)).optional(),
+  title: z.string({ required_error: 'Không được để trống' }).max(128),
+  status: z.string(),
+  categoryIds: z.array(z.number()).nonempty({ message: 'Không được để trống' }),
   summary: z.string({ required_error: 'Không được để trống' }),
   description: z.string().max(3000).optional(),
   author: z.string({ required_error: 'Không được để trống' }),
@@ -58,7 +73,7 @@ const BookSchema = z.object({
   language: z.string({ required_error: 'Không được để trống' }),
   translator: z.string().optional(),
   size: z.string({ required_error: 'Không được để trống' }),
-  salePrice: z.preprocess(
+  sellingPrice: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
@@ -66,7 +81,7 @@ const BookSchema = z.object({
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
-  costPrice: z.preprocess(
+  importPrice: z.preprocess(
     (val) => (val === '' || val === undefined || val === null ? undefined : Number(val)),
     z.number({ required_error: 'Không được để trống' })
   ) as z.ZodType<number | undefined>,
@@ -78,30 +93,8 @@ const BookSchema = z.object({
 
 export type BookFormValues = z.infer<typeof BookSchema>;
 
-export type BookFormType = {
-  name: string;
-  category: number[];
-  status: string;
-  summary: string;
-  description?: string;
-  author: string;
-  publisher: string;
-  size: string;
-  publishYear: number;
-  page: number;
-  isbn: string;
-  language: string;
-  translator: string;
-  salePrice: number;
-  inventory: number;
-  costPrice: number;
-  weight: number;
-  coverImage: string;
-  images: string[] | null;
-};
-
 type Props = {
-  defaultValue?: BookFormType | null;
+  defaultValue?: Book | null;
   onSubmit?: (newData: BookFormValues, images?: string[]) => void;
   onDelete?: () => void;
 };
@@ -111,7 +104,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
     resolver: zodResolver(BookSchema),
     defaultValues: {
       status: 'Hien',
-      category: [],
+      categoryIds: [],
       ...defaultValue,
     },
   });
@@ -126,16 +119,16 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [formDataToSubmit, setFormDataToSubmit] = useState<BookFormValues | null>(null);
-  const [categoryLabels, setCategoryLabels] = useState<string[]>([]); // giữ lại state
+  const [categoryLabels, setCategoryLabels] = useState<string[]>([]);
   const [manualSummary, setManualSummary] = useState('');
-  const name = watch('name') ?? '';
+  const title = watch('title') ?? '';
   const author = watch('author') ?? '';
   const publisher = watch('publisher') ?? '';
 
   const autoSummary = useMemo(() => {
     return (
       [
-        name && `${name}`,
+        title && `${title}`,
         categoryLabels.length && `${categoryLabels.join(', ')}`,
         author && `${author}`,
         publisher && `${publisher}`,
@@ -143,7 +136,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
         .filter(Boolean)
         .join('. ') + '.'
     );
-  }, [name, author, publisher, categoryLabels]);
+  }, [title, author, publisher, categoryLabels]);
 
   useEffect(() => {
     setValue('summary', `${autoSummary.trim()}\n\n${manualSummary.trim()}`);
@@ -151,14 +144,24 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
 
   useEffect(() => {
     if (!defaultValue) return;
-    setCoverImage(defaultValue.coverImage ?? null);
-    setimages(defaultValue.images || []);
+    if (Array.isArray(defaultValue.images)) {
+      const cover = defaultValue.images.find((img) => typeof img !== 'string' && img.isCover);
+      setCoverImage(cover ? cover.url : null);
+
+      const otherImages = defaultValue.images
+        .filter((img) => (typeof img !== 'string' ? !img.isCover : true))
+        .map((img) => (typeof img === 'string' ? img : img.url));
+
+      setimages(otherImages);
+    } else {
+      setCoverImage(null);
+      setimages([]);
+    }
+
     const summary = defaultValue.summary ?? '';
     if (summary && autoSummary && summary.startsWith(autoSummary)) {
       const extracted = summary.slice(autoSummary.length).trimStart();
       setManualSummary(extracted);
-    } else {
-      setManualSummary(summary);
     }
   }, [defaultValue, autoSummary]);
 
@@ -192,6 +195,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
   const deleteCoverImage = () => {
     if (coverImage) {
       setCoverImage(null);
+      IS_COVER_IMAGE_DELETED = true;
     } else {
       setCoverImageFile(null);
     }
@@ -204,7 +208,8 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
 
   const handleConfirmSubmit = () => {
     if (formDataToSubmit) {
-      onSubmit?.(formDataToSubmit, images ?? []);
+      const allImages: string[] = coverImage ? [coverImage, ...(images ?? [])] : images ?? [];
+      onSubmit?.(formDataToSubmit, allImages);
       setConfirmDialogOpen(false);
     }
   };
@@ -363,7 +368,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
             />
             <FormField
               control={control}
-              name="name"
+              name="title"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
                   <FormLabel className="items-start mt-2 w-26 sm:justify-end">
@@ -385,7 +390,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
             />
             <FormField
               control={control}
-              name="category"
+              name="categoryIds"
               render={({ field, fieldState }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
                   <FormLabel className="items-start mt-2 w-26 sm:justify-end">
@@ -415,9 +420,7 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               name="status"
               render={({ field }) => (
                 <FormItem className="flex flex-col sm:flex-row ">
-                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">
-                    <span className="text-red-500">*</span>Trạng thái
-                  </FormLabel>
+                  <FormLabel className="items-start mt-2 w-26 sm:justify-end">Trạng thái</FormLabel>
                   <div className="flex flex-col flex-1 space-y-1">
                     <FormControl>
                       <Select value={field.value ?? ''} onValueChange={field.onChange}>
@@ -457,7 +460,6 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
                         onChange={(e) => {
                           const newManual = e.target.value;
                           setManualSummary(newManual);
-                          field.onChange(`${autoSummary} ${newManual}`.trim().replace(/\s+/g, ' '));
                         }}
                         className="h-40 resize-none"
                         placeholder="Thêm mô tả chi tiết nội dung sách..."
@@ -649,26 +651,24 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={control}
-                name="salePrice"
-                render={({ field }) => (
+                name="sellingPrice"
+                render={({ field, fieldState }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Giá bán
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <CurrencyInput
+                        <CustomCurrencyInput
                           id={field.name}
                           name={field.name}
-                          className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
                           value={field.value ?? ''}
                           decimalsLimit={0}
                           groupSeparator="."
                           decimalSeparator=","
                           prefix="₫"
-                          onValueChange={(value) =>
-                            field.onChange({ target: { name: field.name, value } })
-                          }
+                          isInvalid={!!fieldState.error}
+                          onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -678,26 +678,24 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               />
               <FormField
                 control={control}
-                name="costPrice"
-                render={({ field }) => (
+                name="importPrice"
+                render={({ field, fieldState }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Giá nhập
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <CurrencyInput
+                        <CustomCurrencyInput
                           id={field.name}
                           name={field.name}
-                          className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
                           value={field.value ?? ''}
                           decimalsLimit={0}
                           groupSeparator="."
                           decimalSeparator=","
                           prefix="₫"
-                          onValueChange={(value) =>
-                            field.onChange({ target: { name: field.name, value } })
-                          }
+                          isInvalid={!!fieldState.error}
+                          onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -708,18 +706,22 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               <FormField
                 control={control}
                 name="inventory"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Tồn kho
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="numeric"
+                        <CustomCurrencyInput
+                          id={field.name}
+                          name={field.name}
                           value={field.value ?? ''}
-                          onChange={field.onChange}
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          isInvalid={!!fieldState.error}
+                          onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -730,27 +732,23 @@ export default function BookForm({ defaultValue, onSubmit, onDelete }: Readonly<
               <FormField
                 control={control}
                 name="weight"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem className="flex flex-col sm:flex-row ">
                     <FormLabel className="items-start w-24 mt-2 sm:justify-end">
                       <span className="text-red-500">*</span>Trọng lượng
                     </FormLabel>
                     <div className="flex flex-col flex-1 space-y-1">
                       <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            inputMode="numeric"
-                            className="pl-13"
-                            value={field.value ?? ''}
-                            onChange={field.onChange}
-                          />
-                          <div className="absolute top-0 flex items-center h-full w-fit left-2">
-                            <span className="border-r-1 border-zinc-400 text-xs py-0.5 pr-2 text-zinc-400">
-                              Gram
-                            </span>
-                          </div>
-                        </div>
+                        <CustomCurrencyInput
+                          id={field.name}
+                          name={field.name}
+                          value={field.value ?? ''}
+                          decimalsLimit={0}
+                          groupSeparator="."
+                          decimalSeparator=","
+                          isInvalid={!!fieldState.error}
+                          onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </div>

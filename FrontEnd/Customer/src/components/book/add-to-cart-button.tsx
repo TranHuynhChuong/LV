@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import { emitCartChange } from '@/lib/cart-events';
-import { mapCartFronDto, mapCartToDto } from '@/models/cart';
 import { useCartStore } from '@/stores/cart.store';
 import clsx from 'clsx';
 import { Minus, Plus } from 'lucide-react';
@@ -38,34 +37,26 @@ export default function AddToCartButton({ inventory, id }: Readonly<Props>) {
   const handleAddToCart = async () => {
     try {
       const res = await api.post('/carts', {
-        KH_id: authData.userId ?? -1,
-        S_id: id,
-        GH_soLuong: quantity,
+        customerId: authData.userId ?? -1,
+        bookId: id,
+        quantity: quantity,
       });
 
       const data = res.data;
       if (data && data.length === 0) {
-        const cartsToSend = mapCartToDto(carts);
-        const response = await api.post('/carts/get-carts', cartsToSend);
+        const response = await api.post('/carts/get-carts', carts);
         const validProducts = response.data.filter(Boolean);
-        const cartsRecive = mapCartFronDto(validProducts);
-        replaceCart(
-          cartsRecive.map((c) => ({
-            id: c.id,
-            quantity: c.quantity,
-            dateTime: new Date(c.dateTime).toISOString(),
-          }))
-        );
+        replaceCart(validProducts);
 
-        if (cartsRecive.length >= 99) {
+        if (validProducts.length >= 99) {
           toast.error('Vui lòng xóa bớt sách trong giỏ hàng');
           return;
         }
 
         addToCart({
-          id: id,
+          bookId: id,
           quantity: quantity,
-          dateTime: new Date().toISOString(),
+          addedAt: new Date().toISOString(),
         });
       }
       toast.success('Sách đã thêm vào giỏ hàng');

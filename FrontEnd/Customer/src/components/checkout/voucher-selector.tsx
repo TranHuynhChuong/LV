@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import Overlay from '@/components/utils/overLay';
 import api from '@/lib/axios-client';
 import { cn } from '@/lib/utils';
-import { mapVouchersFromDto, Voucher } from '@/models/voucher';
+import { Voucher } from '@/models/voucher';
 import { BadgePercent, Ticket, Truck, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -30,7 +30,7 @@ export default function VoucherSelector({
     const fetchVouchers = async () => {
       try {
         const res = await api.get('/vouchers/all-valid');
-        setVouchers(mapVouchersFromDto(res.data));
+        setVouchers(res.data);
       } catch (error) {
         console.error('Lỗi lấy danh sách voucher:', error);
       } finally {
@@ -44,14 +44,14 @@ export default function VoucherSelector({
   const toggle = (id: string, disabled: boolean) => {
     if (disabled) return;
 
-    const clicked = vouchers.find((v) => v.code === id);
+    const clicked = vouchers.find((v) => v.voucherId === id);
     if (!clicked) return;
 
     setSelected((prev) => {
-      const isSelected = prev.some((v) => v.code === id);
+      const isSelected = prev.some((v) => v.voucherId === id);
 
       if (isSelected) {
-        return prev.filter((v) => v.code !== id);
+        return prev.filter((v) => v.voucherId !== id);
       }
 
       return [...prev.filter((v) => v.type !== clicked.type), clicked];
@@ -126,12 +126,12 @@ function VoucherGroup({ title, vouchers, selected, orderTotal, onToggle }: Reado
     <div className="space-y-2">
       <h3 className="text-sm text-accent-foreground">{title}</h3>
       {vouchers.map((voucher) => {
-        const isDisabled = orderTotal < voucher.minOrderValue;
-        const isChecked = selected.some((s) => s.code === voucher.code);
+        const isDisabled = orderTotal < (voucher.minValue ?? 0);
+        const isChecked = selected.some((s) => s.voucherId === voucher.voucherId);
 
         return (
           <div
-            key={voucher.code}
+            key={voucher.voucherId}
             className={cn(
               'flex items-center justify-between py-1 pl-1 pr-3 rounded border shadow-sm gap-4',
               isDisabled ? 'opacity-50 cursor-not-allowed bg-zinc-100' : 'hover:bg-zinc-50'
@@ -160,26 +160,26 @@ function VoucherGroup({ title, vouchers, selected, orderTotal, onToggle }: Reado
                 <p className="font-medium text-accent-foreground">
                   Giảm{' '}
                   {voucher.isPercentage
-                    ? `${voucher.discountValue}%`
-                    : `₫${voucher.discountValue.toLocaleString()}`}
-                  {voucher.isPercentage && voucher.maxDiscount
-                    ? ` (Tối đa ₫${voucher.maxDiscount.toLocaleString()})`
+                    ? `${voucher.value}%`
+                    : `₫${voucher.value.toLocaleString()}`}
+                  {voucher.isPercentage && voucher.maxValue
+                    ? ` (Tối đa ₫${voucher.maxValue.toLocaleString()})`
                     : ''}
                 </p>
 
                 <p className="text-muted-foreground">
-                  Đơn tối thiểu ₫{voucher.minOrderValue.toLocaleString()}
+                  Đơn tối thiểu ₫{(voucher.minValue ?? 0).toLocaleString()}
                 </p>
 
                 <p className="text-muted-foreground">
-                  HSD: {voucher.to.toLocaleDateString('vi-VN')}
+                  HSD: {voucher.endDate.toLocaleDateString('vi-VN')}
                 </p>
               </div>
 
               <Checkbox
                 checked={isChecked}
                 disabled={isDisabled}
-                onCheckedChange={() => onToggle(voucher.code, isDisabled)}
+                onCheckedChange={() => onToggle(voucher.voucherId, isDisabled)}
               />
             </div>
           </div>

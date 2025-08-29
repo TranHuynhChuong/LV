@@ -8,7 +8,7 @@ export class KhachHangResponseDto {
   email: string;
 
   @Expose({ name: 'KH_hoTen' })
-  name: string;
+  fullName: string;
 
   @Expose({ name: 'KH_ngayTao' })
   createAt: Date;

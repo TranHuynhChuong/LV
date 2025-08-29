@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
-import { mappedReviewFromDto, Review } from '@/models/review';
+import { Review } from '@/models/review';
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import PaginationControls from '../utils/pagination-controls';
@@ -28,9 +28,9 @@ export default function ReviewUserList() {
           params: { page, limit },
         });
         const { data, paginationInfo } = res.data;
-        setData(mappedReviewFromDto(data));
+        setData(data);
         setPageNumbers(paginationInfo.pageNumbers);
-        setTotalPages(paginationInfo.totalPage);
+        setTotalPages(paginationInfo.totalPages);
         setTotalItems(paginationInfo.totalItems);
       } catch {
         setData([]);
@@ -62,44 +62,48 @@ export default function ReviewUserList() {
   return (
     <div className="rounded-md bg-white border p-6 space-y-2 w-full">
       <h3 className="font-medium text-lg">Đánh giá của tôi ({totalItems})</h3>
-      <ul className="list-none grid grid-cols-1 md:grid-cols-2 divide-y divide-zinc-300">
+      <ul className="list-none grid grid-cols-1 md:grid-cols-2 gap-1">
         {data.map((review, index) => {
           const isExpanded = expanded[index] ?? false;
           return (
-            <li key={index} className="py-3 px-2">
+            <li key={index} className="p-2 border rounded-sm">
               <div className="flex gap-3">
                 <div className="relative w-20 h-20 shrink-0">
                   <Image
-                    src={review.bookImage}
-                    alt={review.bookName}
+                    src={review.image ?? '/icon.png'}
+                    alt={review.title ?? 'Ảnh sách'}
                     sizes="80px"
                     fill
-                    className="object-cover rounded-md border"
+                    className="object-cover rounded-sm "
                   />
                 </div>
                 <div className="space-y-1 ">
-                  <p className="text-sm">{review.bookName}</p>
+                  <p className="text-sm">{review.title}</p>
                   <div className="flex text-xs space-x-2">
                     <p>⭐{review.rating}/5</p>
                     <p>-</p>
-                    <p>{format(new Date(review.createdAt), 'dd/MM/yyyy', { locale: vi })}</p>
+                    <p>{format(new Date(review.createAt), 'dd/MM/yyyy', { locale: vi })}</p>
                     <p>-</p>
                     <p>{review.orderId}</p>
                   </div>
-                  {review.comment && (
-                    <>
-                      <p className={`text-xs text-gray-600 ${!isExpanded ? 'line-clamp-2' : ''}`}>
-                        {review.comment}
+                  {review.content && (
+                    <div className="flex flex-col">
+                      <p
+                        className={`text-xs mb-0 text-gray-600 ${
+                          !isExpanded ? 'line-clamp-1' : ''
+                        }`}
+                      >
+                        {review.content}
                       </p>
-                      {review.comment.length > 100 && (
+                      {review.content.length > 50 && (
                         <button
                           onClick={() => toggleExpand(index)}
-                          className="text-xs cursor-pointer hover:underline mt-0"
+                          className="text-xs text-gray-600 cursor-pointer hover:underline mt-0"
                         >
                           {isExpanded ? 'Thu gọn' : 'Xem thêm'}
                         </button>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               </div>

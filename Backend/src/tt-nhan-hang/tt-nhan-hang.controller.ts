@@ -12,6 +12,8 @@ import {
 import { TTNhanHangKHService } from './tt-nhan-hang.service';
 import { TTNhanHangKH } from './schemas/tt-nhan-hang-kh.schema';
 import { XacThucGuard } from 'src/xac-thuc/xac-thuc.guard';
+import { CreateTTNhanHangDto } from './dto/create-tt-nhan-hang.dto';
+import { UpdateTTNhanHangDto } from './dto/update-tt-nhan-hang.dto';
 
 @UseGuards(XacThucGuard)
 @Controller('api/addresses')
@@ -25,68 +27,66 @@ export class TTNhanHangController {
    * @returns Địa chỉ nhận hàng mới được tạo.
    */
   @Post()
-  async create(@Body() data: any): Promise<TTNhanHangKH> {
+  async create(@Body() data: CreateTTNhanHangDto): Promise<TTNhanHangKH> {
     return this.service.create(data);
   }
 
   /**
    * Lấy thông tin một địa chỉ nhận hàng cụ thể của khách hàng.
    *
-   * @param NH_id - ID địa chỉ nhận hàng.
-   * @param KH_id - ID khách hàng.
+   * @param id - ID địa chỉ nhận hàng.
+   * @param customerId - ID khách hàng.
    * @returns Thông tin địa chỉ nhận hàng.
    */
-  @Get(':KH_id/:NH_id')
+  @Get(':customerId/:id')
   async findOne(
-    @Param('NH_id', ParseIntPipe) NH_id: number,
-    @Param('KH_id', ParseIntPipe) KH_id: number
-  ): Promise<TTNhanHangKH> {
-    return this.service.findOne(NH_id, KH_id);
+    @Param('id', ParseIntPipe) id: number,
+    @Param('customerId', ParseIntPipe) customerId: number
+  ) {
+    return this.service.findOne(id, customerId);
   }
 
   /**
    * Lấy tất cả địa chỉ nhận hàng của một khách hàng.
    *
-   * @param KH_id - ID khách hàng.
+   * @param customerId - ID khách hàng.
    * @returns Danh sách địa chỉ nhận hàng.
    */
-  @Get('/:KH_id')
-  async findAll(
-    @Param('KH_id', ParseIntPipe) KH_id: number
-  ): Promise<TTNhanHangKH[]> {
-    return this.service.findAll(KH_id);
+  @Get('/:customerId')
+  async findAll(@Param('customerId', ParseIntPipe) customerId: number) {
+    return this.service.findAll(customerId);
   }
 
   /**
    * Cập nhật thông tin địa chỉ nhận hàng của khách hàng.
    *
-   * @param NH_id - ID địa chỉ nhận hàng.
-   * @param KH_id - ID khách hàng.
+   * @param id - ID địa chỉ nhận hàng.
+   * @param customerId - ID khách hàng.
    * @param data - Dữ liệu cập nhật.
    * @returns Thông tin địa chỉ sau khi cập nhật.
    */
 
-  @Put(':KH_id/:NH_id')
+  @Put(':customerId/:id')
   async update(
-    @Param('NH_id', ParseIntPipe) NH_id: number,
-    @Param('KH_id', ParseIntPipe) KH_id: number,
-    @Body() data: Partial<TTNhanHangKH>
+    @Param('id', ParseIntPipe) id: number,
+    @Param('customerId', ParseIntPipe) customerId: number,
+    @Body() data: UpdateTTNhanHangDto
   ): Promise<TTNhanHangKH> {
-    return this.service.update(NH_id, KH_id, data);
+    return this.service.update(id, customerId, data);
   }
 
   /**
    * Xóa một địa chỉ nhận hàng của khách hàng.
    *
-   * @param NH_id - ID địa chỉ nhận hàng.
-   * @param KH_id - ID khách hàng.
+   * @param id - ID địa chỉ nhận hàng.
+   * @param customerId - ID khách hàng.
    * @returns Kết quả xóa.
    */
-  @Delete(':KH_id/:NH_id')
+  @Delete(':customerId/:id')
   async delete(
-    @Param('NH_id', ParseIntPipe) NH_id: number,
-    @Param('KH_id', ParseIntPipe) KH_id: number
+    @Param('id', ParseIntPipe) id: number,
+    @Param('customerId', ParseIntPipe) customerId: number
   ) {
-    return this.service.delete(NH_id, KH_id);
+    return this.service.delete(id, customerId);
   }
 }

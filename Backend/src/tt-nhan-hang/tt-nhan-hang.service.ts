@@ -11,6 +11,8 @@ import { TTNhanHangKHRepository } from './repositories/tt-nhan-hang-kh.repositor
 import { TTNhanHangKH } from './schemas/tt-nhan-hang-kh.schema';
 import { TTNhanHangDH } from './schemas/tt-nhan-hang-dh.schema';
 import { DiaChiService } from 'src/dia-chi/dia-chi.service';
+import { plainToInstance } from 'class-transformer';
+import { ResponseTTNhanHangDto } from './dto/response-tt-nhan-hang.dto';
 @Injectable()
 export class TTNhanHangDHService {
   constructor(
@@ -141,7 +143,9 @@ export class TTNhanHangKHService {
         };
       })
     );
-    return resultsWithAddress;
+    return plainToInstance(ResponseTTNhanHangDto, resultsWithAddress, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -160,10 +164,17 @@ export class TTNhanHangKHService {
       data.T_id,
       data.X_id
     );
-    return {
-      ...data,
-      NH_diaChi,
-    };
+
+    return plainToInstance(
+      ResponseTTNhanHangDto,
+      {
+        ...data,
+        NH_diaChi,
+      },
+      {
+        excludeExtraneousValues: true,
+      }
+    );
   }
 
   /**

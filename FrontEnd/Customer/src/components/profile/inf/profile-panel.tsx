@@ -39,10 +39,10 @@ export default function ProfilePanel() {
       .then((res) => {
         const data = res.data;
         setProfile({
-          fullName: data.KH_hoTen ?? '',
-          email: data.KH_email ?? '',
-          gender: data.KH_gioiTinh ?? '',
-          dob: data.KH_ngaySinh ? new Date(data.KH_ngaySinh) : null,
+          fullName: data.fullName ?? '',
+          email: data.email ?? '',
+          gender: data.gender ?? '',
+          dob: data.dob ? new Date(data.dob) : null,
         });
       })
       .catch(() => router.back());
@@ -53,10 +53,10 @@ export default function ProfilePanel() {
     setLoading(true);
 
     const payload = {
-      KH_hoTen: profile.fullName,
-      KH_email: profile.email,
-      KH_gioiTinh: profile.gender,
-      KH_ngaySinh: profile.dob ? profile.dob.toISOString() : null,
+      fullName: profile.fullName,
+      email: profile.email,
+      gender: profile.gender,
+      dob: profile.dob ? profile.dob.toISOString() : null,
     };
 
     if (!authData.userId) return;

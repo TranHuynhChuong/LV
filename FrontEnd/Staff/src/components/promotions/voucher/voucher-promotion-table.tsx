@@ -8,26 +8,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { VoucherPromotionOverview } from '@/models/promotionVoucher';
+import { Voucher } from '@/models/voucher';
+
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { TicketPercent } from 'lucide-react';
 import Link from 'next/link';
 
 type Props = {
-  data: VoucherPromotionOverview[];
+  data: Voucher[];
 };
 
 export default function VoucherPromotionsTable({ data }: Readonly<Props>) {
-  const columns: ColumnDef<VoucherPromotionOverview>[] = [
+  const columns: ColumnDef<Voucher>[] = [
     {
-      accessorKey: 'id',
+      accessorKey: 'voucherId',
       header: 'Mã giảm',
       cell: ({ row }) => {
         const item = row.original;
         return (
           <div className="flex items-center gap-2 rounded-md ">
             <TicketPercent />
-            <div className="text-sm">#{item.id}</div>
+            <div className="text-sm">#{item.voucherId}</div>
           </div>
         );
       },
@@ -43,18 +44,18 @@ export default function VoucherPromotionsTable({ data }: Readonly<Props>) {
     },
 
     {
-      accessorKey: 'startAt',
+      accessorKey: 'startDate',
       header: 'Bắt đầu',
       cell: ({ row }) => {
-        const date = new Date(row.original.startAt).toLocaleString('vi-VN');
+        const date = new Date(row.original.startDate).toLocaleString('vi-VN');
         return <div>{date}</div>;
       },
     },
     {
-      accessorKey: 'endAt',
+      accessorKey: 'endDate',
       header: 'Kết thúc',
       cell: ({ row }) => {
-        const date = new Date(row.original.endAt).toLocaleString('vi-VN');
+        const date = new Date(row.original.endDate).toLocaleString('vi-VN');
         return <div>{date}</div>;
       },
     },
@@ -64,13 +65,13 @@ export default function VoucherPromotionsTable({ data }: Readonly<Props>) {
       cell: ({ row }) => {
         const item = row.original;
         const now = new Date();
-        const from = new Date(item.startAt);
+        const from = new Date(item.startDate);
         const canUpdate = from > now;
         return (
           <div className="flex flex-col space-y-1.5">
             <Link
               className="cursor-pointer hover:underline "
-              href={`/promotions/vouchers/${item.id}`}
+              href={`/promotions/vouchers/${item.voucherId}`}
             >
               {canUpdate ? 'Cập nhật' : 'Chi tiết'}
             </Link>

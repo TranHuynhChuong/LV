@@ -13,7 +13,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   submitting?: boolean;
-  isHidden: boolean;
+  isHiddend: boolean;
 };
 
 export default function ConfirmToggleReviewDialog({
@@ -21,15 +21,15 @@ export default function ConfirmToggleReviewDialog({
   onOpenChange,
   onConfirm,
   submitting,
-  isHidden,
+  isHiddend,
 }: Readonly<Props>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Xác nhận {isHidden ? 'hiện' : 'ẩn'} đánh giá</DialogTitle>
+          <DialogTitle>Xác nhận {isHiddend ? 'hiện' : 'ẩn'} đánh giá</DialogTitle>
           <DialogDescription>
-            Bạn có chắc chắn muốn {isHidden ? 'hiển thị' : 'ẩn'} đánh giá này không?
+            Bạn có chắc chắn muốn {isHiddend ? 'hiển thị' : 'ẩn'} đánh giá này không?
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4">

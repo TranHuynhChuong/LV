@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import eventBus from '@/lib/event-bus';
-import { Review } from '@/models/reviews';
+import { Review } from '@/models/review';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale/vi';
 import { Eye, EyeOff, MessageCircleMore } from 'lucide-react';
@@ -28,19 +28,19 @@ const ReviewItem: FC<Props> = ({ review }) => {
     if (!authData?.userId) return;
     setIsSubmitting(true);
     setOpenConfirm(false);
-    const endpoint = review.isHidden ? '/reviews/show' : '/reviews/hide';
+    const endpoint = review.isHiddend ? '/reviews/show' : '/reviews/hide';
 
     const body = {
-      DH_id: review.orderId,
-      S_id: review.bookId,
-      KH_id: review.customerId,
-      NV_id: authData.userId,
+      orderId: review.orderId,
+      bookId: review.bookId,
+      customerId: review.customerId,
+      staffId: authData.userId,
     };
 
     api
       .patch(endpoint, body)
       .then(() => {
-        toast.success(review.isHidden ? 'Hiện đánh giá thành công' : 'Đã ẩn đánh giá');
+        toast.success(review.isHiddend ? 'Hiện đánh giá thành công' : 'Đã ẩn đánh giá');
         eventBus.emit('review:refetch');
       })
       .catch(() => {
@@ -53,12 +53,12 @@ const ReviewItem: FC<Props> = ({ review }) => {
     <div className="flex flex-col gap-4 p-4 bg-white border rounded-md md:flex-row">
       {isSubmitting && <Loader />}
       <div className="flex-col flex-1">
-        <h2 className="pb-2  text-sm "> {review.bookName}</h2>
+        <h2 className="pb-2  text-sm "> {review.title}</h2>
         <div className="flex space-x-2">
           <div className="relative w-20 h-20 shrink-0">
             <Image
-              src={review.bookImage}
-              alt={review.bookName}
+              src={review.image ?? 'icon.png'}
+              alt={review.title ?? ''}
               sizes="80px"
               fill
               className="object-cover rounded-sm border"
@@ -67,7 +67,7 @@ const ReviewItem: FC<Props> = ({ review }) => {
           <div className="flex-1 space-y-1">
             <div className="text-sm flex space-x-2">
               <p>Điểm: {review.rating}/5 </p>
-              {review.comment && (
+              {review.content && (
                 <HoverCard>
                   <HoverCardTrigger>
                     <span className="text-xs cursor-pointer">
@@ -75,15 +75,15 @@ const ReviewItem: FC<Props> = ({ review }) => {
                     </span>
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80" side="top">
-                    <p className="text-xs">{review.comment}</p>
+                    <p className="text-xs">{review.content}</p>
                   </HoverCardContent>
                 </HoverCard>
               )}
             </div>
             <div className="text-xs text-muted-foreground">Mã đơn hàng: {review.orderId}</div>
-            <div className="text-xs text-muted-foreground">Người đánh giá: {review.name}</div>
+            <div className="text-xs text-muted-foreground">Người đánh giá: {review.title}</div>
             <div className="text-xs text-muted-foreground">
-              Ngày: {format(new Date(review.createdAt), 'dd/MM/yyyy', { locale: vi })}
+              Ngày: {format(new Date(review.createAt), 'dd/MM/yyyy', { locale: vi })}
             </div>
           </div>
         </div>
@@ -91,11 +91,11 @@ const ReviewItem: FC<Props> = ({ review }) => {
       <div className="flex justify-end">
         <div className={authData.role === 1 ? 'mr-12' : ''}>
           <Button
-            variant={review.isHidden ? 'outline' : 'default'}
+            variant={review.isHiddend ? 'outline' : 'default'}
             onClick={() => setOpenConfirm(true)}
             className="cursor-pointer"
           >
-            {review.isHidden ? (
+            {review.isHiddend ? (
               <>
                 <Eye className="w-4 h-4 mr-1" /> Hiện
               </>
@@ -110,7 +110,7 @@ const ReviewItem: FC<Props> = ({ review }) => {
             onOpenChange={setOpenConfirm}
             onConfirm={handleToggleVisibility}
             submitting={isSubmitting}
-            isHidden={review.isHidden}
+            isHiddend={review.isHiddend ?? true}
           />
         </div>
         <div className="relative">

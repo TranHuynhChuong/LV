@@ -4,7 +4,7 @@ import { Star } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import PaginationControls from '@/components/utils/pagination-controls';
 import api from '@/lib/axios-client';
-import { ReviewOverview, ReviewOverviewDto, mappedReviewOverviewFromDto } from '@/models/review';
+import { Review } from '@/models/review';
 
 type ReviewsSection = {
   bookId: number;
@@ -15,7 +15,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
-  const [reviews, setReviews] = useState<ReviewOverview[] | []>([]);
+  const [reviews, setReviews] = useState<Review[] | []>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [stars, setStars] = useState<{
     s1: number;
@@ -41,8 +41,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
       };
       const res = await api.get(`/reviews/book/${bookId}`, { params });
       const data = res.data;
-      const reviews: ReviewOverviewDto[] = Array.isArray(data.data) ? data.data : [data.data];
-      setReviews(mappedReviewOverviewFromDto(reviews));
+      setReviews(data.data);
       setPageNumbers(data.paginationInfo.pageNumbers);
       setTotalItems(data.paginationInfo.totalItems);
       setTotalPages(data.paginationInfo.totalPages);
@@ -76,7 +75,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
     setCurrentPage(targetPage);
   };
 
-  const CommentItem = ({ comment, name, rating, createdAt }: ReviewOverview) => {
+  const CommentItem = ({ content, customerName, rating, createAt }: Review) => {
     const ref = useRef<HTMLDivElement>(null);
     const [showExpand, setShowExpand] = useState(false);
     const [expanded, setExpanded] = useState(false);
@@ -93,13 +92,13 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
           }
         });
       });
-    }, [comment]);
+    }, [content]);
 
     return (
       <div className="flex space-x-4">
         <div className="justify-start space-y-2 w-32">
-          <p className="text-sm font-medium text-zinc-700 break-words">{name}</p>
-          <p className="text-xs text-zinc-500">{new Date(createdAt).toLocaleDateString('vi-VN')}</p>
+          <p className="text-sm font-medium text-zinc-700 break-words">{customerName}</p>
+          <p className="text-xs text-zinc-500">{new Date(createAt).toLocaleDateString('vi-VN')}</p>
         </div>
 
         <div className="flex-1 space-y-2">
@@ -116,7 +115,7 @@ export default function ReviewsSection({ bookId, rating }: Readonly<ReviewsSecti
                 expanded ? '' : 'line-clamp-3'
               }`}
             >
-              {comment?.trim()}
+              {content?.trim()}
             </div>
             {!expanded && showExpand && (
               <button

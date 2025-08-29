@@ -2,9 +2,9 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { OrderOverview } from '@/models/order';
 import OrderActions from './order-actions';
 import eventBus from '@/lib/event-bus';
+import { Order } from '@/models/order';
 
 export const statusMap: Record<string, string> = {
   ChoXacNhan: 'Chờ xác nhận',
@@ -16,12 +16,12 @@ export const statusMap: Record<string, string> = {
   DaHuy: 'Đã hủy',
 };
 
-export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>) {
+export default function OrderItem({ order }: Readonly<{ order: Order }>) {
   const [expanded, setExpanded] = useState(false);
   const displayedProducts = expanded ? order.orderDetails : order.orderDetails.slice(0, 1);
 
   const total =
-    order.orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0) -
+    order.orderDetails.reduce((sum, p) => sum + p.purchasePrice * p.quantity, 0) -
     order.discountInvoice -
     order.discountShipping +
     order.shippingFee;
@@ -34,13 +34,6 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
           <div className="text-sm font-medium whitespace-nowrap">Mã đơn: {order.orderId}</div>
 
           <span className="text-sm whitespace-nowrap space-x-2 flex">
-            {order.payment && (
-              <>
-                <p>{order.payment.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
-                <p>|</p>
-              </>
-            )}
-
             <p>{statusMap[order.status] || 'Không xác định'}</p>
           </span>
         </div>
@@ -59,8 +52,8 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
               >
                 <div className="flex items-center gap-2 py-2">
                   <Image
-                    src={item.bookImage}
-                    alt={item.bookName}
+                    src={item.image}
+                    alt={item.title}
                     width={56}
                     height={56}
                     priority
@@ -68,24 +61,24 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
                   />
                   <div className="flex flex-col justify-between flex-1 h-14">
                     <div className="flex justify-between ">
-                      <div className="line-clamp-2 ">{item.bookName}</div>
+                      <div className="line-clamp-2 ">{item.title}</div>
                       <div className="flex-shrink-0 text-sm text-muted-foreground">
                         x {item.quantity}
                       </div>
                     </div>
                     <div className="flex items-end justify-end gap-1">
-                      {item.priceSell !== item.priceBuy ? (
+                      {item.sellingPrice !== item.purchasePrice ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.sellingPrice)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                         </span>
                       )}
                     </div>
@@ -124,7 +117,6 @@ export default function OrderItem({ order }: Readonly<{ order: OrderOverview }>)
             id={order.orderId}
             status={order.status}
             onSuccess={() => eventBus.emit('order:refetch')}
-            reviewed={order.reviewed}
           />
         </div>
       </div>

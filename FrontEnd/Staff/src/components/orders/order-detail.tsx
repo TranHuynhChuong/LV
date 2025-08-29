@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
-import { mapOrderFromDto, Order } from '@/models/orders';
+import { Order } from '@/models/order';
 import OrderInfLoading from './order-inf-loading';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 import OrderInf from './order-inf';
@@ -29,9 +29,8 @@ export default function OrderDetail() {
     async (id: string) => {
       try {
         const res = await api.get(`orders/detail/${id}`);
-        const item = res.data;
-        const mapped = await mapOrderFromDto(item);
-        setData(mapped);
+        const data = res.data;
+        setData(data);
       } catch {
         toast.error('Không tìm thấy đơn hàng!');
         router.back();

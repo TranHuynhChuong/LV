@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
-import { ShippingFee } from '@/models/shipping';
+import { Shipping } from '@/models/shipping';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -33,7 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import DeleteActionCell from '../utils/delete-action-cell';
 
 type Props = {
-  data: ShippingFee[];
+  data: Shipping[];
 };
 
 export default function ShippingTable({ data }: Readonly<Props>) {
@@ -47,32 +47,28 @@ export default function ShippingTable({ data }: Readonly<Props>) {
     async function fetchProvinces() {
       const res = await api.get('/location/0');
       const data = res.data;
-      const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
-        code: item.T_id,
-        name: item.T_ten,
-      }));
-      setProvinces(mapped);
+      setProvinces(data);
     }
     fetchProvinces();
   }, []);
 
-  const columns: ColumnDef<ShippingFee>[] = [
+  const columns: ColumnDef<Shipping>[] = [
     {
-      accessorKey: 'id',
+      accessorKey: 'shippingFeeId',
       header: 'ID',
       enableColumnFilter: true,
-      cell: ({ row }) => <div className="pl-2">{row.getValue('id')}</div>,
+      cell: ({ row }) => <div className="pl-2">{row.getValue('shippingFeeId')}</div>,
       enableHiding: false,
     },
     {
-      accessorKey: 'province',
+      accessorKey: 'provinceName',
       header: 'Khu vực',
       enableColumnFilter: true,
-      cell: ({ row }) => <div className="pl-2">{row.getValue('province')}</div>,
+      cell: ({ row }) => <div className="pl-2">{row.getValue('provinceName')}</div>,
       enableHiding: false,
     },
     {
-      accessorKey: 'fee',
+      accessorKey: 'baseFee',
       header: () => (
         <HoverCard>
           <HoverCardTrigger>
@@ -97,12 +93,12 @@ export default function ShippingTable({ data }: Readonly<Props>) {
           {new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-          }).format(row.getValue('fee')) ?? '-'}
+          }).format(row.getValue('baseFee')) ?? '-'}
         </div>
       ),
     },
     {
-      accessorKey: 'weight',
+      accessorKey: 'baseWeightLimit',
       header: () => (
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -122,10 +118,10 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         </HoverCard>
       ),
       enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('weight') ?? '-'}</div>,
+      cell: ({ row }) => <div>{row.getValue('baseWeightLimit') ?? '-'}</div>,
     },
     {
-      accessorKey: 'surcharge',
+      accessorKey: 'extraFeePerUnit',
       header: () => (
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -149,12 +145,12 @@ export default function ShippingTable({ data }: Readonly<Props>) {
           {new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-          }).format(row.getValue('surcharge')) ?? '-'}
+          }).format(row.getValue('extraFeePerUnit')) ?? '-'}
         </div>
       ),
     },
     {
-      accessorKey: 'surchargeUnit',
+      accessorKey: 'extraUnit',
       header: () => (
         <HoverCard>
           <HoverCardTrigger asChild>
@@ -174,7 +170,7 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         </HoverCard>
       ),
       enableHiding: false,
-      cell: ({ row }) => <div>{row.getValue('surchargeUnit') ?? '-'}</div>,
+      cell: ({ row }) => <div>{row.getValue('extraUnit') ?? '-'}</div>,
     },
     {
       id: 'actions',
@@ -184,12 +180,15 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         const item = row.original;
         return (
           <div className="flex flex-col items-start space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/shipping/${item.id}`}>
+            <Link
+              className="cursor-pointer hover:underline"
+              href={`/shipping/${item.shippingFeeId}`}
+            >
               Cập nhật
             </Link>
 
             <DeleteActionCell
-              resourceId={item.id?.toString()}
+              resourceId={item.shippingFeeId?.toString()}
               onDelete={async (id) => {
                 await api.delete(`/shipping/${id}?staffId=${authData.userId}`);
                 EventBus.emit('shipping:refetch');
@@ -240,7 +239,7 @@ export default function ShippingTable({ data }: Readonly<Props>) {
         <div>
           <Select
             onValueChange={(value) =>
-              table.getColumn('province')?.setFilterValue(value === 'all' ? undefined : value)
+              table.getColumn('provinceName')?.setFilterValue(value === 'all' ? undefined : value)
             }
           >
             <SelectTrigger className="w-[200px]">

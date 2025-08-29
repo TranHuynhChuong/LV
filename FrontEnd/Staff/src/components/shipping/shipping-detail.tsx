@@ -7,11 +7,10 @@ import api from '@/lib/axios-client';
 import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import { useAuth } from '@/contexts/auth-context';
 import Loader from '@/components/utils/loader';
-import { mapShippingFeeFromDto, mapShippingFeeToDto } from '@/models/shipping';
-import type { ShippingFee } from '@/models/shipping';
 import ShippingFeeForm from './shipping-form';
 import { ActionHistorySheet } from '../utils/activitylog-sheet-dynamic-import';
 import ShippingFeeFormLoading from './shipping-form-loading';
+import { Shipping } from '@/models/shipping';
 
 export default function ShippingDetail() {
   const router = useRouter();
@@ -19,7 +18,7 @@ export default function ShippingDetail() {
   const id = params?.id as string;
   const { authData } = useAuth();
   const { setBreadcrumbs } = useBreadcrumb();
-  const [data, setData] = useState<ShippingFee>();
+  const [data, setData] = useState<Shipping>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function ShippingDetail() {
       try {
         const res = await api.get(`/shipping/${id}`);
         const data = res.data;
-        setData(mapShippingFeeFromDto(data));
+        setData(data);
       } catch {
         toast.error('Đã xảy ra lỗi!');
         router.back();
@@ -49,10 +48,10 @@ export default function ShippingDetail() {
     getData();
   }, [getData]);
 
-  async function handleSubmit(data: ShippingFee) {
+  async function handleSubmit(data: Shipping) {
     if (!authData.userId) return;
 
-    const apiData = mapShippingFeeToDto(data, authData.userId);
+    const apiData = { ...data, staffId: authData.userId };
     setIsSubmitting(true);
 
     try {

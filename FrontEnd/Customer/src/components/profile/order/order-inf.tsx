@@ -11,9 +11,10 @@ import { statusMap } from './order-item';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Loader from '@/components/utils/loader';
 import ReviewOrderList from '@/components/review/review-order';
+import { Review } from '@/models/review';
 
 type OrderDetailProps = {
   data: Order;
@@ -31,13 +32,12 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
     discountInvoice,
     discountShipping,
     shippingFee,
-    reviewed,
     invoice,
     payment,
   } = data;
 
   const total =
-    orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0) -
+    orderDetails.reduce((sum, p) => sum + p.purchasePrice * p.quantity, 0) -
     discountInvoice -
     discountShipping +
     shippingFee;
@@ -69,6 +69,21 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
     }
   };
 
+  const [reviews, setReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    async function getData() {
+      try {
+        const res = await api.get(`/reviews/order/${orderId}`);
+        const data = res.data;
+        setReviews(data);
+      } catch {
+        setReviews([]);
+      }
+    }
+    getData();
+  }, [orderId]);
+
   return (
     <div className="space-y-2">
       {isSubmitting && <Loader />}
@@ -86,7 +101,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
         </span>
       </div>
 
-      {invoice.taxCode && (
+      {invoice && invoice.taxCode && (
         <div className="p-6 bg-white border rounded-md ">
           <h4 className="font-medium">Yêu cầu xuất hóa đơn</h4>
           <div className="flex pt-2 pl-2 text-sm font-normal">
@@ -109,11 +124,11 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
             <MapPin size={16} className="mt-1 text-muted-foreground" />
             <div className="space-y-2">
               <p>
-                {shippingInfo.recipientName}
+                {shippingInfo.fullName}
                 <span className="ml-2 text-muted-foreground">| {shippingInfo.phoneNumber}</span>
               </p>
               <div>
-                <p className=" text-muted-foreground">{`${shippingInfo.addressInfo.fullText}`}</p>
+                <p className=" text-muted-foreground">{`${shippingInfo.address}`}</p>
                 <p className=" text-muted-foreground">{shippingInfo.note}</p>
               </div>
               <p className=" text-muted-foreground">Email: {customerEmail}</p>
@@ -169,8 +184,8 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
               >
                 <div className="flex items-center gap-2 py-2">
                   <Image
-                    src={item.bookImage}
-                    alt={item.bookName}
+                    src={item.image}
+                    alt={item.title}
                     width={56}
                     height={56}
                     priority
@@ -178,24 +193,24 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
                   />
                   <div className="flex flex-col justify-between flex-1 h-14">
                     <div className="flex justify-between ">
-                      <div className="line-clamp-2 ">{item.bookName}</div>
+                      <div className="line-clamp-2 ">{item.title}</div>
                       <div className="flex-shrink-0 text-sm text-muted-foreground">
                         x {item.quantity}
                       </div>
                     </div>
                     <div className="flex items-end justify-end gap-1">
-                      {item.priceSell !== item.priceBuy ? (
+                      {item.sellingPrice !== item.purchasePrice ? (
                         <>
                           <span className="text-xs line-through text-muted-foreground">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceSell)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.sellingPrice)} đ
                           </span>
                           <span className="text-sm font-medium">
-                            {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                            {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                           </span>
                         </>
                       ) : (
                         <span className="text-sm font-medium">
-                          {new Intl.NumberFormat('vi-VN').format(item.priceBuy)} đ
+                          {new Intl.NumberFormat('vi-VN').format(item.purchasePrice)} đ
                         </span>
                       )}
                     </div>
@@ -229,7 +244,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
             <span className="text-gray-600">Tiền hàng</span>
             <span>
               {new Intl.NumberFormat('vi-VN').format(
-                orderDetails.reduce((sum, p) => sum + p.priceBuy * p.quantity, 0)
+                orderDetails.reduce((sum, p) => sum + p.purchasePrice * p.quantity, 0)
               )}{' '}
               đ
             </span>
@@ -256,7 +271,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
         </div>
       </div>
 
-      <ReviewOrderList orderId={orderId} />
+      <ReviewOrderList reviews={reviews} />
       <div className="flex justify-between flex-1 w-full gap-2 p-6 bg-white border rounded-md">
         <Button
           variant="outline"
@@ -276,12 +291,12 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
           )}
           <OrderActions
             showView={false}
-            reviewed={reviewed}
             id={orderId}
             status={status}
             onSuccess={() => {
               router.back();
             }}
+            reviewed={reviews.length > 0}
           />
         </div>
       </div>

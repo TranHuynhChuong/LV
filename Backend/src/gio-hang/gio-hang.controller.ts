@@ -13,6 +13,7 @@ import { GioHang } from './schemas/gio-hang.schema';
 import { parsePositiveInt } from 'src/Util/convert';
 import { CreateGioHangDto } from './dto/create-gio-hang.dto';
 import { UpdateGioHangDto } from './dto/update-gio-hang.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('/api/carts')
 export class GioHangController {
@@ -25,8 +26,8 @@ export class GioHangController {
    * @returns Danh sách giỏ hàng sau khi cập nhật.
    */
   @Post()
-  async create(@Body() dto: CreateGioHangDto): Promise<CartReturn[]> {
-    return this.GioHangService.create(dto);
+  async create(@Body() carts: CreateGioHangDto): Promise<CartReturn[]> {
+    return this.GioHangService.create(carts);
   }
 
   /**
@@ -36,35 +37,40 @@ export class GioHangController {
    * @returns Danh sách giỏ hàng sau khi cập nhật.
    */
   @Put()
-  async update(@Body() dto: UpdateGioHangDto): Promise<CartReturn[]> {
-    return this.GioHangService.update(dto);
+  async update(@Body() carts: UpdateGioHangDto): Promise<CartReturn[]> {
+    return this.GioHangService.update(carts);
   }
 
   /**
-   * Xóa một mục giỏ hàng cụ thể theo KH_id và S_id.
+   * Xóa một mục giỏ hàng cụ thể theo customerId và bookId.
    *
-   * @param KH_id ID khách hàng.
-   * @param S_id ID sản phẩm cần xóa khỏi giỏ.
+   * @param customerId ID khách hàng.
+   * @param bookId ID sản phẩm cần xóa khỏi giỏ.
    * @returns Mục giỏ hàng đã bị xóa.
    */
   @Delete()
   async delete(
-    @Query('KH_id') KH_id: number,
-    @Query('S_id') S_id: number
+    @Query('customerId') customerId: number,
+    @Query('bookId') bookId: number
   ): Promise<GioHang> {
-    return this.GioHangService.delete(KH_id, Number(S_id));
+    return this.GioHangService.delete(customerId, Number(bookId));
   }
 
   /**
-   * Xóa nhiều mục giỏ hàng cùng lúc theo danh sách S_id.
+   * Xóa nhiều mục giỏ hàng cùng lúc theo danh sách bookId.
    *
-   * @param body Dữ liệu gồm KH_id và danh sách S_id cần xóa.
+   * @param body Dữ liệu gồm customerId và danh sách bookId cần xóa.
    * @returns Số lượng mục đã xóa thành công.
    */
   @Post('/delete')
-  async deleteMultipleItems(@Body() body: { KH_id: number; S_id: number[] }) {
-    const { KH_id, S_id } = body;
-    const deletedCount = await this.GioHangService.deleteMany(KH_id, S_id);
+  async deleteMultipleItems(
+    @Body() body: { customerId: number; bookId: number[] }
+  ) {
+    const { customerId, bookId } = body;
+    const deletedCount = await this.GioHangService.deleteMany(
+      customerId,
+      bookId
+    );
     return { deletedCount };
   }
 
@@ -76,7 +82,7 @@ export class GioHangController {
    * @throws Error nếu userId không hợp lệ.
    */
   @Get('/:userId')
-  async findUserCarts(@Param('userId') userId: string): Promise<CartReturn[]> {
+  async findUserCarts(@Param('userId') userId: string) {
     const parsedId = parsePositiveInt(userId);
     if (parsedId === undefined) {
       throw new Error('Invalid userId');
@@ -91,7 +97,8 @@ export class GioHangController {
    * @returns Danh sách các mục giỏ hàng tương ứng.
    */
   @Post('/get-carts')
-  async getCarts(@Body() carts: Partial<GioHang>[]): Promise<CartReturn[]> {
-    return this.GioHangService.getCarts(carts);
+  async getCarts(@Body() carts: CreateGioHangDto[]) {
+    const dto = plainToInstance(CreateGioHangDto, carts);
+    return this.GioHangService.getCarts(dto);
   }
 }

@@ -10,7 +10,6 @@ import OverLay from '@/components/utils/overLay';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import { emitCartChange } from '@/lib/cart-events';
-import { Address, mapAddressListFromDto, mapAddressToDto } from '@/models/address';
 import { Cart } from '@/models/cart';
 import { Voucher } from '@/models/voucher';
 import { useCartStore } from '@/stores/cart.store';
@@ -20,13 +19,7 @@ import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import {
-  formatCurrency,
-  mapShippingPolicyFromApi,
-  mapToDataCheck,
-  ShippingPolicy,
-  useOrderSummary,
-} from './checkout-utils';
+import { formatCurrency, mapToDataCheck, useOrderSummary } from './checkout-utils';
 import type { InvoiceFormHandle } from '@/components/checkout/invoice-section';
 import InvoiceForm from '@/components/checkout/invoice-section';
 import PaymentMethod from './payment-methods';
@@ -34,6 +27,8 @@ import OrderErrorDialog from './order-error-dialog';
 import OrderSuccessDialog from './order-success-dialog';
 import VoucherSection from './voucher-section';
 import AddressList from '../profile/address/address-list';
+import { Address } from '@/models/address';
+import { Shipping } from '@/models/shipping';
 
 export default function CheckOutPanel() {
   const [address, setAddress] = useState<Address>();
@@ -47,7 +42,7 @@ export default function CheckOutPanel() {
   const orders = useOrderStore((state) => state.orders);
   const clearOrder = useOrderStore((state) => state.clearOrder);
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
-  const [shippingPolicy, setShippingPolicy] = useState<ShippingPolicy>();
+  const [shippingPolicy, setShippingPolicy] = useState<Shipping>();
   const [books, setBooks] = useState<Cart[]>([]);
   const [guestEmail, setGuestEmail] = useState('');
   const [guestEmailErr, setGuestEmailErr] = useState(false);
@@ -62,8 +57,8 @@ export default function CheckOutPanel() {
     async (userId: number) => {
       try {
         const res = await api.get(`addresses/${userId}`);
-        const mapped = await mapAddressListFromDto(res.data);
-        const defaultAddress = mapped.find((a) => a.default);
+        const data = res.data;
+        const defaultAddress = data.find((a: Address) => a.isDefault);
         setAddress(defaultAddress);
       } catch {
         router.back();
@@ -118,41 +113,41 @@ export default function CheckOutPanel() {
       }
       return;
     }
-    const rawAddress = mapAddressToDto(
-      {
+    const rawAddress = {
+      ...{
         ...addressData,
         provinceId: addressData.provinceId,
         wardId: addressData.wardId,
       },
-      authData.userId ?? undefined
-    );
-    delete rawAddress.KH_id;
-    delete rawAddress.NH_macDinh;
+      customerId: authData.userId ?? undefined,
+    };
+    delete rawAddress.customerId;
+    delete rawAddress.isDefault;
     const invoiceData = showInvoiceForm ? await invoiceRef.current?.submit() : null;
     const payload = {
-      NH: rawAddress,
-      DH: {
-        DH_phiVC: shippingFee,
-        KH_id: authData.userId ?? undefined,
-        KH_email: authData.userId ? undefined : guestEmail,
-        CTDH: books.map((c) => ({
-          S_id: c.id,
-          CTDH_soLuong: c.quantity,
-          CTDH_giaNhap: c.costPrice,
-          CTDH_giaBan: c.salePrice,
-          CTDH_giaMua: c.discountPrice,
+      shippingInfo: rawAddress,
+      order: {
+        shippingFee: shippingFee,
+        customerId: authData.userId ?? undefined,
+        customerEmail: authData.userId ? undefined : guestEmail,
+        orderDetails: books.map((c) => ({
+          bookId: c.bookId,
+          quantity: c.quantity,
+          importPrice: c.importPrice,
+          sellingPrice: c.sellingPrice,
+          purchasePrice: c.purchasePrice,
         })),
       },
-      HD: invoiceData
+      invoice: invoiceData
         ? {
-            HD_hoTen: invoiceData.name,
-            HD_diaChi: invoiceData.address,
-            HD_mst: invoiceData.taxCode,
-            HD_email: invoiceData.email,
+            fullName: invoiceData.name,
+            address: invoiceData.address,
+            taxCode: invoiceData.taxCode,
+            email: invoiceData.email,
           }
         : undefined,
-      MG: selectedVouchers.map((v) => ({ MG_id: v.code })),
-      ...(paymentMethod !== 'COD' && { PhuongThucThanhToan: paymentMethod }),
+      vouchers: selectedVouchers.map((v) => ({ voucherId: v.voucherId })),
+      ...(paymentMethod !== 'COD' && { paymentMethod: paymentMethod }),
     };
     setIsSubmitting(true);
     api
@@ -200,9 +195,9 @@ export default function CheckOutPanel() {
   useEffect(() => {
     async function handleCartUpdate() {
       if (createSuccess) {
-        const ids = books.map((b) => b.id);
+        const ids = books.map((b) => b.bookId);
         if (!authData?.userId) {
-          removeFromCartByIds(books.map((b) => b.id));
+          removeFromCartByIds(books.map((b) => b.bookId));
         } else {
           try {
             await api.post('/carts/delete', { KH_id: authData.userId, S_id: ids });
@@ -263,7 +258,7 @@ export default function CheckOutPanel() {
           defaultValue={address}
           onProvinceChange={(provinceId) => {
             api.get(`/shipping/inf/${provinceId}`).then((res) => {
-              if (res.data) setShippingPolicy(mapShippingPolicyFromApi(res.data));
+              if (res.data) setShippingPolicy(res.data);
             });
           }}
         />

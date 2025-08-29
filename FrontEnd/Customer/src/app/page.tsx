@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { AxiosServer } from '@/lib/axios-server';
-import { BookSortType, mapBookOverviewListFromDto } from '@/models/book';
+import { BookSortType } from '@/models/book';
 import HomeComponent from '@/components/home/home';
 
 export default async function HomePage() {
@@ -18,7 +18,7 @@ export default async function HomePage() {
           limit: pageSize,
         },
       });
-      return mapBookOverviewListFromDto(res.data.data);
+      return res.data.data;
     } catch {
       return [];
     }

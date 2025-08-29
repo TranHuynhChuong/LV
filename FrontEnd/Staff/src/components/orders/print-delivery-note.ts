@@ -2,6 +2,7 @@
 import { PDFDocument, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { numberToVietnameseCurrencyWords } from './number-to-vietnamese-currency-words';
+import { Order } from '@/models/order';
 
 function wrapText(text: string, maxCharsPerLine: number): string[] {
   const words = text.split(' ');
@@ -21,7 +22,7 @@ function wrapText(text: string, maxCharsPerLine: number): string[] {
   return lines;
 }
 
-export async function generateDeliveryNotePdf(order: any) {
+export async function generateDeliveryNotePdf(order: Order) {
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
 
@@ -74,11 +75,11 @@ export async function generateDeliveryNotePdf(order: any) {
   centerText('PHIẾU GIAO HÀNG', 13, true);
   y -= 10;
 
-  drawText(`Khách hàng: ${order.shippingInfo.recipientName}`, 8, MARGIN);
+  drawText(`Khách hàng: ${order.shippingInfo.fullName}`, 8, MARGIN);
   y -= LINE_HEIGHT;
   drawText(`SĐT: ${order.shippingInfo.phoneNumber}`, 8, MARGIN);
   y -= LINE_HEIGHT;
-  drawText(`Địa chỉ: ${order.shippingInfo.addressInfo.fulltext}`, 8, MARGIN);
+  drawText(`Địa chỉ: ${order.shippingInfo.address}`, 8, MARGIN);
   y -= LINE_HEIGHT;
   drawText(`Ghi chú: ${order.shippingInfo.note || '-'}`, 8, MARGIN);
   y -= LINE_HEIGHT;
@@ -114,13 +115,13 @@ export async function generateDeliveryNotePdf(order: any) {
   y -= LINE_HEIGHT;
   let totalBook = 0;
 
-  order.orderDetails.forEach((item: any, index: number) => {
+  order.orderDetails.forEach((item, index: number) => {
     const cols = [
       (index + 1).toString(),
-      item.bookName,
+      item.title,
       item.quantity.toString(),
       `${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
-        item.priceBuy * item.quantity
+        item.purchasePrice * item.quantity
       )}`,
     ];
 
@@ -146,7 +147,7 @@ export async function generateDeliveryNotePdf(order: any) {
       x += TABLE_COLS[i];
     });
 
-    totalBook += item.priceBuy * item.quantity;
+    totalBook += item.purchasePrice * item.quantity;
     y -= rowHeight + 4;
   });
 

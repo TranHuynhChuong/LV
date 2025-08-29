@@ -32,11 +32,7 @@ export default function AddressSelect({
     async function fetchProvinces() {
       const res = await api.get(`/location/0`);
       const data = res.data;
-      const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
-        code: item.T_id,
-        name: item.T_ten,
-      }));
-      setProvincesData(mapped);
+      setProvincesData(data);
     }
     fetchProvinces();
   }, []);
@@ -48,11 +44,7 @@ export default function AddressSelect({
         if (!valueProvinceId) return;
         const res = await api.get(`/location/${valueProvinceId}`);
         const data = res.data;
-        const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
-          code: item.X_id,
-          name: item.X_ten,
-        }));
-        setWardsData(mapped);
+        setWardsData(data);
       } catch (err) {
         console.error('Lỗi khi lấy dữ liệu xã/phường:', err);
         setWardsData([]);
@@ -71,11 +63,7 @@ export default function AddressSelect({
       if (!provinceId) return;
       const res = await api.get(`/location/${provinceId}`);
       const data = res.data;
-      const mapped = data.map((item: { X_id: number; X_ten: string }) => ({
-        code: item.X_id,
-        name: item.X_ten,
-      }));
-      setWardsData(mapped);
+      setWardsData(data);
     } catch (err) {
       console.error('Lỗi khi lấy dữ liệu xã/phường:', err);
       setWardsData([]);

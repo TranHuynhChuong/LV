@@ -13,7 +13,7 @@ export default function FormFooterActions({
   isEditing = false,
   isViewing = false,
   onDelete,
-}: Props) {
+}: Readonly<Props>) {
   const router = useRouter();
 
   return (

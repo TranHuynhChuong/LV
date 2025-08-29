@@ -7,6 +7,9 @@ import {
 import { GioHangRepository } from './repositories/gio-hang.repository';
 import { GioHang } from './schemas/gio-hang.schema';
 import { SachUtilService } from 'src/sach/sach.service';
+import { plainToInstance } from 'class-transformer';
+import { GioHangResponseDto } from './dto/response-gio-hang.dto';
+import { CreateGioHangDto } from './dto/create-gio-hang.dto';
 
 export interface CartReturn {
   S_id: number;
@@ -43,11 +46,7 @@ export class GioHangService {
    * @throws NotFoundException khi sản phẩm không tồn tại
    * @throws BadRequestException khi cập nhật hoặc tạo mới giỏ hàng thất bại
    */
-  async create(dto: {
-    KH_id: number;
-    S_id: number;
-    GH_soLuong: number;
-  }): Promise<CartReturn[]> {
+  async create(dto: CreateGioHangDto): Promise<CartReturn[]> {
     const { KH_id, S_id, GH_soLuong } = dto;
     const userCarts = await this.findUserCarts(KH_id);
     if (userCarts && userCarts.length >= 99) {
@@ -67,7 +66,7 @@ export class GioHangService {
           'Thêm giỏ hàng - Cập nhật giỏi hàng thất bại'
         );
       }
-      return this.getCarts([updated]);
+      return this.checkCarts([updated]);
     }
     const create = await this.GioHangRepo.create(dto);
     if (!create) {
@@ -75,7 +74,7 @@ export class GioHangService {
         'Thêm giỏ hàng - Thêm mới giỏi hàng thất bại'
       );
     }
-    return this.getCarts([create]);
+    return this.checkCarts([create]);
   }
 
   /**
@@ -88,16 +87,9 @@ export class GioHangService {
    * @returns Mảng CartReturn thể hiện trạng thái giỏ hàng sau cập nhật
    * @throws BadRequestException nếu cập nhật giỏ hàng thất bại
    */
-  async update({
-    KH_id,
-    S_id,
-    GH_soLuong,
-  }: {
-    KH_id: number;
-    S_id: number;
-    GH_soLuong: number;
-  }): Promise<CartReturn[]> {
-    const item = await this.getCarts([
+  async update(dto: CreateGioHangDto): Promise<CartReturn[]> {
+    const { KH_id, S_id, GH_soLuong } = dto;
+    const item = await this.checkCarts([
       {
         KH_id,
         S_id,
@@ -124,13 +116,13 @@ export class GioHangService {
   /**
    * Xóa một mục giỏ hàng của khách hàng theo mã khách hàng và mã sách.
    *
-   * @param KH_id Mã khách hàng
-   * @param S_id Mã sách cần xóa trong giỏ hàng
+   * @param customerId Mã khách hàng
+   * @param bookId Mã sách cần xóa trong giỏ hàng
    * @returns Đối tượng GioHang đã bị xóa
    * @throws BadRequestException nếu xóa thất bại hoặc không tìm thấy mục giỏ hàng
    */
-  async delete(KH_id: number, S_id: number): Promise<GioHang> {
-    const deleted = await this.GioHangRepo.delete(KH_id, S_id);
+  async delete(customerId: number, bookId: number): Promise<GioHang> {
+    const deleted = await this.GioHangRepo.delete(customerId, bookId);
     if (!deleted) {
       throw new BadRequestException('Xóa giỏ hàng - Xóa giỏ hàng thất bại');
     }
@@ -140,12 +132,12 @@ export class GioHangService {
   /**
    * Xóa nhiều sản phẩm khỏi giỏ hàng của một khách hàng.
    *
-   * @param KH_id Mã khách hàng cần xóa giỏ hàng.
-   * @param S_id Danh sách mã sách cần xóa khỏi giỏ hàng.
+   * @param customerId Mã khách hàng cần xóa giỏ hàng.
+   * @param bookId Danh sách mã sách cần xóa khỏi giỏ hàng.
    * @returns Số lượng bản ghi đã bị xóa.
    */
-  async deleteMany(KH_id: number, S_id: number[]): Promise<number> {
-    const deleted = await this.GioHangRepo.deleteMany(KH_id, S_id);
+  async deleteMany(customerId: number, bookId: number[]): Promise<number> {
+    const deleted = await this.GioHangRepo.deleteMany(customerId, bookId);
     return deleted.deletedCount ?? 0;
   }
 
@@ -155,9 +147,9 @@ export class GioHangService {
    * @param id Mã người dùng (Customer ID) cần lấy giỏ hàng.
    * @returns Danh sách giỏ hàng đã được kiểm tra và đồng bộ.
    */
-  async findUserCarts(id: number): Promise<CartReturn[]> {
+  async findUserCarts(id: number) {
     const carts = await this.GioHangRepo.findAll(id);
-    const newCart = await this.getCarts(carts);
+    const newCart = await this.checkCarts(carts);
     const updatedCarts: {
       KH_id: number;
       S_id: number;
@@ -179,7 +171,9 @@ export class GioHangService {
     if (updatedCarts.length > 0) {
       await this.GioHangRepo.updateMany(updatedCarts);
     }
-    return newCart;
+    return plainToInstance(GioHangResponseDto, newCart, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -192,7 +186,7 @@ export class GioHangService {
    * @param carts Mảng các mục giỏ hàng cần lấy thông tin chi tiết.
    * @returns Danh sách mục giỏ hàng đã chuẩn hóa và đầy đủ thông tin.
    */
-  async getCarts(carts: Partial<GioHang>[]): Promise<CartReturn[]> {
+  async checkCarts(carts: Partial<GioHang>[]) {
     const bookds = carts
       .map((c) => c.S_id)
       .filter((id): id is number => id !== undefined);
@@ -226,5 +220,22 @@ export class GioHangService {
         return bTime - aTime;
       }) as CartReturn[];
     return result;
+  }
+
+  /**
+   * Lấy thông tin chi tiết các mục giỏ hàng từ danh sách đầu vào.
+   *
+   * Nhận vào danh sách giỏ hàng với các thông tin cơ bản
+   * đầy đủ của sách tương ứng. Kết quả sẽ được chuẩn hóa để đảm bảo sự tồn tại và số lượng
+   * không vượt quá tồn kho, và sắp xếp theo thời gian thêm giỏ hàng giảm dần.
+   *
+   * @param carts Mảng các mục giỏ hàng cần lấy thông tin chi tiết.
+   * @returns Danh sách mục giỏ hàng đã chuẩn hóa và đầy đủ thông tin.
+   */
+  async getCarts(carts: Partial<GioHang>[]) {
+    const result = await this.checkCarts(carts);
+    return plainToInstance(GioHangResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 }

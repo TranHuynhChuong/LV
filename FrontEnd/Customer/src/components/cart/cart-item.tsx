@@ -26,11 +26,11 @@ export default function CartItem({
   const quantity = cart.quantity;
 
   const handleMinus = () => {
-    onQuantityChange(cart.id, String(quantity - 1));
+    onQuantityChange(cart.bookId, String(quantity - 1));
   };
 
   const handleAdd = () => {
-    onQuantityChange(cart.id, String(quantity + 1));
+    onQuantityChange(cart.bookId, String(quantity + 1));
   };
 
   const isOutOfStock = quantity === 0;
@@ -39,11 +39,11 @@ export default function CartItem({
     <div className="flex flex-col gap-4 pt-2 pb-4 pl-3 pr-6 bg-white rounded shadow-sm md:items-center md:flex-row md:pb-2">
       <div className="flex items-center flex-1 gap-2">
         <Checkbox checked={isSelected} onCheckedChange={onToggle} disabled={isOutOfStock} />
-        <Link href={`/book/${cart.id}`}>
+        <Link href={`/book/${cart.bookId}`}>
           <div className="relative w-16 h-16 ">
             <Image
-              src={cart.cover}
-              alt={cart.name}
+              src={cart.image}
+              alt={cart.title}
               fill
               sizes="64px"
               priority
@@ -53,36 +53,39 @@ export default function CartItem({
         </Link>
         <div className="flex-1">
           <div className="space-y-1">
-            <Link href={`/book/${cart.id}`}>
+            <Link href={`/book/${cart.bookId}`}>
               <p
                 className={`line-clamp-2 h-[3em] text-sm font-light ${
                   isOutOfStock ? 'text-zinc-400' : ''
                 }`}
               >
-                {cart.name}
+                {cart.title}
               </p>
             </Link>
           </div>
           <div className="flex items-center gap-2 h-fit">
-            {cart.isOnSale ? (
+            {cart.sellingPrice !== cart.purchasePrice ? (
               <div className="flex items-center gap-2 h-fit">
                 <span className={`font-medium ${isOutOfStock ? 'text-zinc-400' : 'text-red-500'}`}>
-                  {cart.discountPrice.toLocaleString()}₫
+                  {cart.purchasePrice.toLocaleString()}₫
                 </span>
                 <span
                   className={`text-xs line-through h-fit ${
                     isOutOfStock ? 'text-zinc-300' : 'text-zinc-400'
                   }`}
                 >
-                  {cart.salePrice.toLocaleString()}₫
+                  {cart.sellingPrice.toLocaleString()}₫
                 </span>
                 <Badge variant={isOutOfStock ? 'secondary' : 'destructive'}>
-                  {cart.discountPercent}%
+                  {(((cart.sellingPrice - cart.purchasePrice) / cart.sellingPrice) * 100).toFixed(
+                    0
+                  )}
+                  %
                 </Badge>
               </div>
             ) : (
               <span className={`font-medium ${isOutOfStock ? 'text-zinc-400' : ''}`}>
-                {cart.salePrice.toLocaleString()}₫
+                {cart.sellingPrice.toLocaleString()}₫
               </span>
             )}
           </div>
@@ -124,9 +127,9 @@ export default function CartItem({
         <span
           className={`w-24 items-center flex-1 text-right ${isOutOfStock ? 'text-zinc-400' : ''}`}
         >
-          {(cart.discountPrice * quantity).toLocaleString()}₫
+          {(cart.purchasePrice * quantity).toLocaleString()}₫
         </span>
-        <Button size="sm" onClick={() => onRemove(cart.id)} className="cursor-pointer">
+        <Button size="sm" onClick={() => onRemove(cart.bookId)} className="cursor-pointer">
           <Trash2 />
         </Button>
       </div>

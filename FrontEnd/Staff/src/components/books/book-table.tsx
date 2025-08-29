@@ -14,14 +14,14 @@ import {
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import PaginationControls from '@/components/utils/pagination-controls';
-import { BookOverView } from '@/models/books';
+import { Book } from '@/models/book';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import DeleteActionCell from '../utils/delete-action-cell';
 
 type Props = {
-  data: BookOverView[];
+  data: Book[];
   loading?: boolean;
   onDelete?: (code: number) => void;
   isComponent: boolean;
@@ -31,8 +31,8 @@ type Props = {
   currentPage: number;
   onPageChange: (page: number) => void;
   onClose?: () => void;
-  selectedData?: BookOverView[];
-  onConfirmSelect?: (selecData: BookOverView[]) => void;
+  selectedData?: Book[];
+  onConfirmSelect?: (selecData: Book[]) => void;
 };
 
 export default function BookTable({
@@ -50,30 +50,39 @@ export default function BookTable({
   onConfirmSelect,
 }: Readonly<Props>) {
   const [rowSelection, setRowSelection] = useState({});
-  const [selectData, setSelectData] = useState<BookOverView[]>([]);
+  const [selectData, setSelectData] = useState<Book[]>([]);
 
-  let columns: ColumnDef<BookOverView>[] = [
+  let columns: ColumnDef<Book>[] = [
     {
-      accessorKey: 'name',
+      accessorKey: 'title',
       header: 'Sách',
       cell: ({ row }) => {
         const book = row.original;
         return (
           <div className="flex gap-4 rounded-sm ">
             <Avatar className="h-12 w-fit rounded-xs">
-              <AvatarImage src={book.image} alt={book.name} />
-              <AvatarFallback>#{book.id}</AvatarFallback>
+              <AvatarImage
+                src={
+                  typeof book.images === 'string'
+                    ? book.images
+                    : Array.isArray(book.images)
+                    ? book.images.find((img) => img.isCover)?.url ?? book.images[0]?.url
+                    : 'icon.png'
+                }
+                alt={book.title}
+              />
+              <AvatarFallback>#{book.bookId}</AvatarFallback>
             </Avatar>
             <div className="text-sm">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="text-sm leading-5 truncate max-w-36 lg:max-w-90 ">
-                      {book.name}
+                      {book.title}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p> {book.name}</p>
+                    <p> {book.title}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -94,24 +103,24 @@ export default function BookTable({
       cell: ({ row }) => <div>{row.getValue('sold')}</div>,
     },
     {
-      accessorKey: 'salePrice',
+      accessorKey: 'sellingPrice',
       header: 'Giá bán',
       cell: ({ row }) => (
         <div>
           {new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND',
-          }).format(row.getValue('salePrice'))}
+          }).format(row.getValue('sellingPrice'))}
         </div>
       ),
     },
     {
-      accessorKey: 'costPrice',
+      accessorKey: 'importPrice',
       header: !isComponent ? undefined : 'Giá nhập',
       enableHiding: false,
       cell: ({ row }) => {
         if (!isComponent) return undefined;
-        const value = row.getValue<number>('costPrice');
+        const value = row.getValue<number>('importPrice');
         return (
           <div>
             {new Intl.NumberFormat('vi-VN', {
@@ -130,12 +139,12 @@ export default function BookTable({
         const book = row.original;
         return (
           <div className="flex flex-col items-start space-y-1">
-            <Link className="cursor-pointer hover:underline" href={`/books/${book.id}`}>
+            <Link className="cursor-pointer hover:underline" href={`/books/${book.bookId}`}>
               Cập nhật
             </Link>
             {book.status === 'An' && (
               <DeleteActionCell
-                resourceId={book.id?.toString()}
+                resourceId={book.bookId?.toString()}
                 onDelete={async (id) => {
                   onDelete?.(Number(id));
                 }}
@@ -154,8 +163,8 @@ export default function BookTable({
         header: '',
         cell: ({ row }) => {
           const book = row.original;
-          const selectedIds = new Set(selectedData?.map((b) => b.id) || []);
-          const isPreSelected = selectedIds.has(book.id);
+          const selectedIds = new Set(selectedData?.map((b) => b.bookId) || []);
+          const isPreSelected = selectedIds.has(book.bookId);
           return (
             <Checkbox
               checked={row.getIsSelected()}
@@ -179,14 +188,14 @@ export default function BookTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
     enableRowSelection: true,
-    getRowId: (row) => row.id.toString(),
+    getRowId: (row) => row.bookId.toString(),
     onRowSelectionChange: (updater) => {
       const newRowSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
       setRowSelection(newRowSelection);
       const selected = Object.keys(newRowSelection).map((rowId) =>
-        [...data, ...selectData].find((item) => item.id.toString() === rowId)
+        [...data, ...selectData].find((item) => item.bookId.toString() === rowId)
       );
-      setSelectData(selected.filter(Boolean) as BookOverView[]);
+      setSelectData(selected.filter(Boolean) as Book[]);
     },
     state: {
       rowSelection,
@@ -196,7 +205,7 @@ export default function BookTable({
   useEffect(() => {
     const defaultRowSelection: Record<string, boolean> = {};
     [...(selectedData || [])].forEach((item) => {
-      defaultRowSelection[item.id.toString()] = true;
+      defaultRowSelection[item.bookId.toString()] = true;
     });
     setRowSelection(defaultRowSelection);
   }, [selectedData]);
@@ -266,15 +275,16 @@ export default function BookTable({
         <div className="flex items-center justify-between flex-1">
           <div className="flex-1 pl-2 text-sm text-muted-foreground">
             {(selectedData?.length ?? 0) +
-              selectData.filter((item) => !new Set(selectedData?.map((b) => b.id)).has(item.id))
-                .length}
+              selectData.filter(
+                (item) => !new Set(selectedData?.map((b) => b.bookId)).has(item.bookId)
+              ).length}
             / {total + (selectedData?.length ?? 0)} đã chọn.
           </div>
           <div className="space-x-2">
             <Button
               onClick={() => {
-                const selectedIds = new Set(selectedData?.map((b) => b.id));
-                const newSelected = selectData.filter((item) => !selectedIds.has(item.id));
+                const selectedIds = new Set(selectedData?.map((b) => b.bookId));
+                const newSelected = selectData.filter((item) => !selectedIds.has(item.bookId));
                 onConfirmSelect?.(newSelected);
               }}
               className="cursor-pointer"

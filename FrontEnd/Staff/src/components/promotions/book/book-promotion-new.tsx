@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Loader from '@/components/utils/loader';
-import { mapBookPromotionDetailToDto, BookPromotionDetail } from '@/models/promotionBook';
+import { Promotion } from '@/models/promotion';
 import BookPromotionForm from './book-promotion-form';
 
 export default function BookPromotionNew() {
@@ -24,11 +24,11 @@ export default function BookPromotionNew() {
     ]);
   }, [setBreadcrumbs]);
 
-  async function onSubmit(data: BookPromotionDetail) {
+  async function onSubmit(data: Promotion) {
     try {
       if (!authData.userId) return;
       setIsSubmitting(true);
-      const apiData = mapBookPromotionDetailToDto(data, authData.userId);
+      const apiData = { ...data, staffId: authData.userId };
       await api.post('/promotions', apiData);
       toast.success('Thêm mới thành công');
       router.back();

@@ -28,31 +28,44 @@ export default function BookNew() {
   async function onSubmit(values: BookFormValues) {
     const formData = new FormData();
 
-    if (values.name) formData.append('S_ten', values.name);
-    if (values.status !== undefined && values.status !== null)
-      formData.append('S_trangThai', values.status.toString());
-    if (values.summary) formData.append('S_tomTat', values.summary);
-    if (values.description) formData.append('S_moTa', values.description);
-    if (values.category) formData.append('TL_id', JSON.stringify(values.category));
-    if (values.author) formData.append('S_tacGia', values.author);
-    if (values.publisher) formData.append('S_nhaXuatBan', values.publisher);
-    if (values.isbn) formData.append('S_isbn', values.isbn);
-    if (values.language) formData.append('S_ngonNgu', values.language);
-    if (values.translator) formData.append('S_nguoiDich', values.translator);
-    if (values.size) formData.append('S_kichThuoc', values.size);
-    if (values.publishYear !== undefined && values.publishYear !== null)
-      formData.append('S_namXuatBan', values.publishYear.toString());
-    if (values.page !== undefined && values.page !== null)
-      formData.append('S_soTrang', values.page.toString());
-    if (values.salePrice !== undefined && values.salePrice !== null)
-      formData.append('S_giaBan', values.salePrice.toString());
-    if (values.inventory !== undefined && values.inventory !== null)
-      formData.append('S_tonKho', values.inventory.toString());
-    if (values.costPrice !== undefined && values.costPrice !== null)
-      formData.append('S_giaNhap', values.costPrice.toString());
-    if (values.weight !== undefined && values.weight !== null)
-      formData.append('S_trongLuong', values.weight.toString());
-    if (authData.userId) formData.append('NV_id', authData.userId);
+    const appendIfValid = (
+      key: string,
+      value: number | string | File | number[] | undefined | null
+    ) => {
+      if (value === undefined || value === null || value === '') return;
+
+      if (value instanceof File) {
+        formData.append(key, value);
+      } else if (typeof value === 'object') {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, String(value));
+      }
+    };
+
+    appendIfValid('title', values.title);
+    appendIfValid('status', values.status);
+    appendIfValid('summary', values.summary);
+    appendIfValid('description', values.description);
+    appendIfValid('author', values.author);
+    appendIfValid('publisher', values.publisher);
+    appendIfValid('isbn', values.isbn);
+    appendIfValid('language', values.language);
+    appendIfValid('translator', values.translator);
+    appendIfValid('size', values.size);
+    appendIfValid('publishYear', values.publishYear);
+    appendIfValid('page', values.page);
+    appendIfValid('sellingPrice', values.sellingPrice);
+    appendIfValid('inventory', values.inventory);
+    appendIfValid('importPrice', values.importPrice);
+    appendIfValid('weight', values.weight);
+
+    if (values.categoryIds?.length) {
+      formData.append('categoryIds', JSON.stringify(values.categoryIds));
+    }
+
+    appendIfValid('staffId', authData.userId);
+
     if (values.coverImageFile) {
       formData.append('coverImageFile', values.coverImageFile);
     }

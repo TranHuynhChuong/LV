@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import { emitCartChange } from '@/lib/cart-events';
-import { Cart, mapCartFronDto, mapCartToDto } from '@/models/cart';
+import { Cart } from '@/models/cart';
 import { useCartStore } from '@/stores/cart.store';
 import { useOrderStore } from '@/stores/orderStore';
 import clsx from 'clsx';
@@ -42,35 +42,27 @@ export default function CartPanel() {
       setLoading(true);
       try {
         if (!authData.userId) {
-          const cartsToSend = mapCartToDto(localCarts);
+          const cartsToSend = localCarts;
           if (cartsToSend.length > 0) {
             const res = await api.post('/carts/get-carts', cartsToSend);
             const validProducts = res.data.filter(Boolean);
-            const cartsRecive = mapCartFronDto(validProducts);
-            setCarts(cartsRecive);
+            setCarts(validProducts);
 
             if (bookId) {
               const id = Number(bookId);
-              const match = cartsRecive.find((c) => c.id === id);
+              const match = validProducts.find((c: Cart) => c.bookId === id);
               if (match) setSelected([id]);
             }
-            replaceCart(
-              cartsRecive.map((c) => ({
-                id: c.id,
-                quantity: c.quantity,
-                dateTime: new Date(c.dateTime).toISOString(),
-              }))
-            );
+            replaceCart(validProducts);
           }
         } else {
           const res = await api.get(`/carts/${authData.userId}`);
           const validProducts = res.data.filter(Boolean);
-          const cartsRecive = mapCartFronDto(validProducts);
-          setCarts(cartsRecive);
+          setCarts(validProducts);
           const bookId = searchParams.get('id');
           if (bookId) {
             const id = Number(bookId);
-            const match = cartsRecive.find((c) => c.id === id);
+            const match = validProducts.find((c: Cart) => c.bookId === id);
             if (match) setSelected([id]);
           }
         }
@@ -92,45 +84,43 @@ export default function CartPanel() {
 
   const handleQuantityChange = async (id: number, value: string) => {
     const quantity = Math.max(1, Number(value) || 1);
-    const cart = carts.find((c) => c.id === id);
+    const cart = carts.find((c: Cart) => c.bookId === id);
     if (!cart) return;
     if (!authData?.userId) {
       try {
-        const response = await api.post('/carts/get-carts', [{ S_id: id, GH_soLuong: quantity }]);
+        const response = await api.post('/carts/get-carts', [{ bookId: id, quantity: quantity }]);
         const updated = response.data ?? null;
         if (!updated) {
           removeFromCart(id);
-          setCarts((prev) => prev.filter((c) => c.id !== id));
+          setCarts((prev) => prev.filter((c: Cart) => c.bookId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          const newCart = mapCartFronDto(updated);
-          updateQuantity(id, newCart[0].quantity);
-          setCarts((prev) => prev.map((c) => (c.id === id ? newCart[0] : c)));
+          updateQuantity(id, updated[0].quantity);
+          setCarts((prev) => prev.map((c: Cart) => (c.bookId === id ? updated[0] : c)));
         }
-      } catch {
+      } catch (error) {
+        console.log(error);
         toast.error('Lỗi cập nhật số lượng:');
-        router.back();
       }
     } else {
       try {
         const response = await api.put('/carts', {
-          KH_id: authData.userId,
-          S_id: id,
-          GH_soLuong: quantity,
+          customerId: authData.userId,
+          bookId: id,
+          quantity: quantity,
         });
         emitCartChange();
         const updated = response.data ?? null;
         if (!updated) {
-          setCarts((prev) => prev.filter((c) => c.id !== id));
+          setCarts((prev) => prev.filter((c: Cart) => c.bookId !== id));
           setSelected((prev) => prev.filter((spid) => spid !== id));
         } else {
-          const newCart = mapCartFronDto(updated);
-          updateQuantity(id, newCart[0].quantity);
-          setCarts((prev) => prev.map((c) => (c.id === id ? newCart[0] : c)));
+          updateQuantity(id, updated[0].quantity);
+          setCarts((prev) => prev.map((c: Cart) => (c.bookId === id ? updated[0] : c)));
         }
-      } catch {
+      } catch (error) {
+        console.log(error);
         toast.error('Lỗi cập nhật số lượng:');
-        router.back();
       }
     }
   };
@@ -138,7 +128,7 @@ export default function CartPanel() {
   const handleRemove = async (id: number) => {
     if (!authData?.userId) {
       removeFromCart(id);
-      setCarts((prev) => prev.filter((c) => c.id !== id));
+      setCarts((prev) => prev.filter((c: Cart) => c.bookId !== id));
       setSelected((prev) => prev.filter((spid) => spid !== id));
     } else {
       try {
@@ -146,7 +136,7 @@ export default function CartPanel() {
           params: { KH_id: authData.userId, S_id: id },
         });
         emitCartChange();
-        setCarts((prev) => prev.filter((c) => c.id !== id));
+        setCarts((prev) => prev.filter((c: Cart) => c.bookId !== id));
         setSelected((prev) => prev.filter((spid) => spid !== id));
       } catch {
         toast.error('Lỗi cập nhật số lượng:');
@@ -156,7 +146,7 @@ export default function CartPanel() {
   };
 
   const handleCheckout = () => {
-    const selectedItems = carts.filter((c) => selected.includes(c.id));
+    const selectedItems = carts.filter((c) => selected.includes(c.bookId));
     clearOrder();
     selectedItems.forEach((item) => {
       addOrder(item);
@@ -214,7 +204,7 @@ export default function CartPanel() {
                   if (selected.length === inStockCarts.length) {
                     setSelected([]);
                   } else {
-                    setSelected(inStockCarts.map((c) => c.id));
+                    setSelected(inStockCarts.map((c) => c.bookId));
                   }
                 }}
               />
@@ -227,10 +217,10 @@ export default function CartPanel() {
           <div className="space-y-2">
             {inStockCarts.map((c) => (
               <CartItem
-                key={c.id}
+                key={c.bookId}
                 cart={c}
-                isSelected={selected.includes(c.id)}
-                onToggle={() => toggleSelect(c.id)}
+                isSelected={selected.includes(c.bookId)}
+                onToggle={() => toggleSelect(c.bookId)}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}
               />
@@ -241,10 +231,10 @@ export default function CartPanel() {
               <div>Tạm hết hàng</div>
               {outStockCarts.map((c) => (
                 <CartItem
-                  key={c.id}
+                  key={c.bookId}
                   cart={c}
-                  isSelected={selected.includes(c.id)}
-                  onToggle={() => toggleSelect(c.id)}
+                  isSelected={selected.includes(c.bookId)}
+                  onToggle={() => toggleSelect(c.bookId)}
                   onQuantityChange={handleQuantityChange}
                   onRemove={handleRemove}
                 />
@@ -265,8 +255,8 @@ export default function CartPanel() {
             <span className="text-lg font-semibold text-red-500">
               {selected
                 .reduce((sum, id) => {
-                  const cart = inStockCarts.find((c) => c.id === id);
-                  return sum + (cart?.discountPrice ?? 0) * (cart?.quantity ?? 1);
+                  const cart = inStockCarts.find((c) => c.bookId === id);
+                  return sum + (cart?.purchasePrice ?? 0) * (cart?.quantity ?? 1);
                 }, 0)
                 .toLocaleString()}
               ₫

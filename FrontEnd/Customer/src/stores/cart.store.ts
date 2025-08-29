@@ -12,7 +12,7 @@ interface CartState {
 }
 
 const sortByTimeDesc = (items: CartItem[]): CartItem[] =>
-  [...items].sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime());
+  [...items].sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -21,13 +21,13 @@ export const useCartStore = create<CartState>()(
 
       addToCart: (item) => {
         const now = new Date().toISOString();
-        const existing = get().carts.find((c) => c.id === item.id);
+        const existing = get().carts.find((c) => c.bookId === item.bookId);
 
         let updatedCarts: CartItem[];
 
         if (existing) {
           updatedCarts = get().carts.map((c) =>
-            c.id === item.id
+            c.bookId === item.bookId
               ? {
                   ...c,
                   quantity: c.quantity + item.quantity,
@@ -36,7 +36,7 @@ export const useCartStore = create<CartState>()(
               : c
           );
         } else {
-          updatedCarts = [...get().carts, { ...item, dateTime: now }];
+          updatedCarts = [...get().carts, { ...item, addedAt: now }];
         }
 
         set({ carts: sortByTimeDesc(updatedCarts) });
@@ -45,16 +45,16 @@ export const useCartStore = create<CartState>()(
       updateQuantity: (id, quantity) => {
         const now = new Date().toISOString();
         const updated = get().carts.map((c) =>
-          c.id === id ? { ...c, quantity, dateTime: now } : c
+          c.bookId === id ? { ...c, quantity, dateTime: now } : c
         );
         set({ carts: sortByTimeDesc(updated) });
       },
 
-      removeFromCart: (id) => set({ carts: get().carts.filter((c) => c.id !== id) }),
+      removeFromCart: (id) => set({ carts: get().carts.filter((c) => c.bookId !== id) }),
 
       removeFromCartByIds: (ids: number[]) =>
         set({
-          carts: get().carts.filter((c) => !ids.includes(c.id)),
+          carts: get().carts.filter((c) => !ids.includes(c.bookId)),
         }),
 
       replaceCart: (items: CartItem[]) =>

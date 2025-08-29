@@ -19,23 +19,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { BookOverView } from '@/models/books';
-import { BookPromotionDetail } from '@/models/promotionBook';
+import { Book } from '@/models/book';
+import { Promotion, PromotionDetail } from '@/models/promotion';
 import { Trash2 } from 'lucide-react';
 import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import CurrencyInput from 'react-currency-input-field';
 
 type Props = {
-  books?: BookOverView[];
-  detail?: {
-    bookId: number;
-    isPercent: boolean;
-    value: number;
-    salePrice?: number;
-  }[];
-  watch: UseFormWatch<BookPromotionDetail>;
-  register: UseFormRegister<BookPromotionDetail>;
-  setValue: UseFormSetValue<BookPromotionDetail>;
+  books?: Book[];
+  detail?: PromotionDetail[];
+  watch: UseFormWatch<Promotion>;
+  register: UseFormRegister<Promotion>;
+  setValue: UseFormSetValue<Promotion>;
   onRemove?: (id: number) => void;
   isViewing?: boolean;
 };
@@ -55,8 +50,9 @@ export default function BookDiscountTable({
     }
     return Math.max(0, price - value);
   }
+
   const mergedData = detail?.map((item) => {
-    const book = books?.find((p) => p.id === item.bookId);
+    const book = books?.find((b) => b.bookId === item.bookId);
     return {
       detail: item,
       book,
@@ -65,7 +61,7 @@ export default function BookDiscountTable({
   if (mergedData?.length === 0) return null;
   else {
     return (
-      <div className="max-w-full overflow-x-auto bg-white border rounded-sm">
+      <div className="bg-white border rounded-sm overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow className="text-center">
@@ -82,13 +78,13 @@ export default function BookDiscountTable({
           <TableBody>
             {mergedData?.map(({ detail: item, book }, index) => {
               if (!book) return null;
-              const isPercent = watch(`details.${index}.isPercent`) ?? true;
-              const rawValue = watch(`details.${index}.value`);
+              const isPercent = watch(`detail.${index}.percentageBased`) ?? true;
+              const rawValue = watch(`detail.${index}.value`);
               const value = isNaN(Number(rawValue)) ? 0 : Number(rawValue);
-              const salePricePath = `details.${index}.salePrice` as const;
-              const valuePath = `details.${index}.value` as const;
-              const percentPath = `details.${index}.isPercent` as const;
-              const idPath = `details.${index}.bookId` as const;
+              const purchasePricePath = `detail.${index}.purchasePrice` as const;
+              const valuePath = `detail.${index}.value` as const;
+              const percentPath = `detail.${index}.percentageBased` as const;
+              const idPath = `detail.${index}.bookId` as const;
 
               return (
                 <TableRow key={item.bookId} className="align-middle">
@@ -96,22 +92,24 @@ export default function BookDiscountTable({
                     <input type="hidden" {...register(idPath)} value={item.bookId} />
                     <div className="flex gap-2 ">
                       <Avatar className="w-10 h-10 rounded-sm">
-                        <AvatarImage src={book.image} alt={book.name} />
-                        <AvatarFallback>#{book.id}</AvatarFallback>
+                        <AvatarImage
+                          src={typeof book.images === 'string' ? book.images : book.images[0].url}
+                          alt={book.title}
+                        />
+                        <AvatarFallback>#{book.bookId}</AvatarFallback>
                       </Avatar>
-                      <div className="max-w-48 min-w-32">
+                      <div className="max-w-26 md:max-w-48">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="text-xs truncate cursor-default">{book.name}</div>
+                              <div className="text-xs truncate cursor-default">{book.title}</div>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p> {book.name}</p>
+                              <p> {book.title}</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-
-                        <div className="text-xs text-muted-foreground">#{book.id}</div>
+                        <div className="text-xs text-muted-foreground">#{book.bookId}</div>
                       </div>
                     </div>
                   </TableCell>
@@ -123,7 +121,7 @@ export default function BookDiscountTable({
                       decimalSeparator=","
                       prefix="₫"
                       readOnly
-                      value={book.costPrice}
+                      value={book.importPrice}
                     />
                   </TableCell>
                   <TableCell>
@@ -134,7 +132,7 @@ export default function BookDiscountTable({
                       decimalSeparator=","
                       prefix="₫"
                       readOnly
-                      value={book.salePrice}
+                      value={book.sellingPrice}
                     />
                   </TableCell>
                   <TableCell>
@@ -148,7 +146,10 @@ export default function BookDiscountTable({
                         onChange={(e) => {
                           const parsed = Number(e.target.value);
                           setValue(valuePath, parsed);
-                          setValue(salePricePath, calcFinalPrice(book.salePrice, parsed, true));
+                          setValue(
+                            purchasePricePath,
+                            calcFinalPrice(book.sellingPrice, parsed, true)
+                          );
                         }}
                         className="w-26"
                       />
@@ -164,7 +165,10 @@ export default function BookDiscountTable({
                         onValueChange={(value) => {
                           const parsed = Number(value ?? 0);
                           setValue(valuePath, parsed);
-                          setValue(salePricePath, calcFinalPrice(book.salePrice, parsed, false));
+                          setValue(
+                            purchasePricePath,
+                            calcFinalPrice(book.sellingPrice, parsed, false)
+                          );
                         }}
                       />
                     )}
@@ -175,8 +179,8 @@ export default function BookDiscountTable({
                       onValueChange={(val) => {
                         setValue(percentPath, val === 'percent');
                         setValue(
-                          salePricePath,
-                          calcFinalPrice(book.salePrice, value, val === 'percent')
+                          purchasePricePath,
+                          calcFinalPrice(book.sellingPrice, value, val === 'percent')
                         );
                       }}
                       value={isPercent ? 'percent' : 'amount'}
@@ -202,7 +206,7 @@ export default function BookDiscountTable({
                       decimalSeparator=","
                       prefix="₫"
                       readOnly
-                      value={calcFinalPrice(book.salePrice, value, isPercent)}
+                      value={calcFinalPrice(book.sellingPrice, value, isPercent)}
                     />
                   </TableCell>
                   <TableCell>
@@ -216,7 +220,7 @@ export default function BookDiscountTable({
                   <TableCell>
                     <Button
                       variant="outline"
-                      onClick={() => onRemove?.(book.id)}
+                      onClick={() => onRemove?.(book.bookId)}
                       size="icon"
                       className="cursor-pointer"
                       disabled={isViewing}

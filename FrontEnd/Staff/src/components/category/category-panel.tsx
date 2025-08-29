@@ -4,14 +4,14 @@ import { useBreadcrumb } from '@/contexts/breadcrumb-context';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
 import { useEffect, useState } from 'react';
-import { Category, CategoryDto } from '@/models/categories';
+import { Category } from '@/models/category';
 import CategoriesTable from './category-table';
 
-function computeLevel(categories: CategoryDto[], categoryId: number) {
+function computeLevel(categories: Category[], categoryId: number) {
   let level = 1;
-  let current = categories.find((c) => c.TL_id === categoryId);
-  while (current && current.TL_idTL !== null) {
-    const parent = categories.find((c) => c.TL_id === current?.TL_idTL);
+  let current = categories.find((c) => c.categoryId === categoryId);
+  while (current && current.categoryId !== null) {
+    const parent = categories.find((c) => c.categoryId === current?.parentId);
     if (parent) {
       level++;
       current = parent;
@@ -28,18 +28,18 @@ export default function CategoryPanel() {
   const getData = async () => {
     try {
       const res = await api.get('/categories');
-      const categoriesRaw: CategoryDto[] = res.data;
+      const categoriesRaw: Category[] = res.data;
       if (!categoriesRaw) return;
       const categoriesMapped: Category[] = categoriesRaw.map((cat) => {
-        const parentCategory = categoriesRaw.find((c) => c.TL_id === cat.TL_idTL);
-        const childrenCount = categoriesRaw.filter((c) => c.TL_idTL === cat.TL_id).length;
+        const parentCategory = categoriesRaw.find((c) => c.categoryId === cat.parentId);
+        const childrenCount = categoriesRaw.filter((c) => c.parentId === cat.categoryId).length;
         return {
-          id: cat.TL_id,
-          name: cat.TL_ten,
-          parentId: cat.TL_idTL ?? null,
-          parent: parentCategory ? parentCategory.TL_ten : '',
+          categoryId: cat.categoryId,
+          name: cat.name,
+          parentId: cat.parentId ?? null,
+          parent: parentCategory ? parentCategory.name : '',
           childrenCount,
-          level: computeLevel(categoriesRaw, cat.TL_id ?? 0),
+          level: computeLevel(categoriesRaw, cat.categoryId ?? 0),
         };
       });
       const uniqueLevels = Array.from(

@@ -18,6 +18,8 @@ import { ClientSession, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
+import { plainToInstance } from 'class-transformer';
+import { MaGiamResponseDto } from './dto/response-ma-giam.dto';
 
 @Injectable()
 export class MaGiamUtilService {
@@ -116,14 +118,23 @@ export class MaGiamService {
     filterType?: VoucherFilterType;
     type?: VoucherType;
   }) {
-    return this.MaGiamRepo.findAll(params);
+    const { data, paginationInfo } = await this.MaGiamRepo.findAll(params);
+    return {
+      data: plainToInstance(MaGiamResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      paginationInfo,
+    };
   }
 
   /**
    * Lấy tất cả mã giảm còn hiệu lực.
    */
   async getAllValid() {
-    return this.MaGiamRepo.findAllValid();
+    const result = await this.MaGiamRepo.findAllValid();
+    return plainToInstance(MaGiamResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**
@@ -143,7 +154,9 @@ export class MaGiamService {
     if (!result) {
       throw new NotFoundException('Tìm mã giảm - Mã giảm không tồn tại');
     }
-    return result;
+    return plainToInstance(MaGiamResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   /**

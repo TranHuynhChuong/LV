@@ -14,16 +14,10 @@ import { ChevronRight, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-type CategoryDto = {
-  TL_id: number;
-  TL_ten: string;
-  TL_idTL?: number;
-};
-
 type Categories = {
   name: string;
-  id: number;
-  parent: string;
+  categoryId: number;
+  parentId: number | null;
 };
 
 type CategoryNode = {
@@ -34,19 +28,19 @@ type CategoryNode = {
 
 function buildCategoryTree(flatList: Categories[]): CategoryNode[] {
   const idMap = new Map<number, CategoryNode>();
-  const nameToId = new Map<string, number>();
+  const idToName = new Map<number, string>();
   const tree: CategoryNode[] = [];
   flatList.forEach((cat) => {
-    idMap.set(cat.id, { id: cat.id, name: cat.name, children: [] });
-    nameToId.set(cat.name, cat.id);
+    idMap.set(cat.categoryId, { id: cat.categoryId, name: cat.name, children: [] });
+    idToName.set(cat.categoryId, cat.name);
   });
   flatList.forEach((cat) => {
-    const node = idMap.get(cat.id)!;
-    if (!cat.parent) {
+    const node = idMap.get(cat.categoryId)!;
+    if (cat.parentId === null) {
       tree.push(node);
     } else {
-      const parentId = nameToId.get(cat.parent);
-      const parentNode = parentId ? idMap.get(parentId) : null;
+      const parentName = idToName.get(cat.parentId);
+      const parentNode = parentName ? idMap.get(cat.parentId) : null;
       if (parentNode) {
         parentNode.children.push(node);
       }
@@ -187,13 +181,8 @@ export default function CategoryList() {
     const getData = async () => {
       try {
         const res = await api.get('/categories');
-        const data = res.data as CategoryDto[];
-        const categoriesMapped = data.map((cat) => ({
-          id: cat.TL_id,
-          name: cat.TL_ten,
-          parent: data.find((c) => c.TL_id === cat.TL_idTL)?.TL_ten || '',
-        }));
-        setData(categoriesMapped);
+        const data = res.data;
+        setData(data);
       } catch {
         setData([]);
       }

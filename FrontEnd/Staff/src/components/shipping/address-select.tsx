@@ -16,11 +16,7 @@ export default function AddressSelect({ onChange, value }: Readonly<Props>) {
     async function fetchProvinces() {
       const res = await api.get('/location/0');
       const data = res.data;
-      const mapped = data.map((item: { T_id: number; T_ten: string }) => ({
-        code: item.T_id,
-        name: item.T_ten,
-      }));
-      setProvincesData(mapped);
+      setProvincesData(data);
     }
     fetchProvinces();
   }, []);

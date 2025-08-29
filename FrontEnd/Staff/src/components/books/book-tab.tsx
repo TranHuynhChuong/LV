@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import api from '@/lib/axios-client';
 import EventBus from '@/lib/event-bus';
-import { BookFilterType, BookOverView, mapBooksOverviewFromDto } from '@/models/books';
+import { Book, BookFilterType } from '@/models/book';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -23,9 +23,9 @@ type Prop = {
   onClearSearch?: () => void;
   onPageChange?: (page: number) => void;
   onClose?: () => void;
-  selectedData?: BookOverView[];
-  products?: BookOverView[];
-  onConfirmSelect?: (selecData: BookOverView[]) => void;
+  selectedData?: Book[];
+  products?: Book[];
+  onConfirmSelect?: (selecData: Book[]) => void;
 };
 
 function buildFilterType(status: string, type: string): BookFilterType {
@@ -59,7 +59,7 @@ export default function BookTab({
   selectedData,
   onConfirmSelect,
 }: Readonly<Prop>) {
-  const [data, setData] = useState<BookOverView[]>([]);
+  const [data, setData] = useState<Book[]>([]);
   const [pageNumbers, setPageNumbers] = useState<number[]>([1]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -92,7 +92,7 @@ export default function BookTab({
           });
           const item = res.data;
           if (!item) throw new Error();
-          setData(mapBooksOverviewFromDto([item]));
+          setData([item]);
           setPageNumbers([]);
           setTotalPages(1);
           setTotalItems(1);
@@ -115,7 +115,7 @@ export default function BookTab({
         const url = keyword || categoryId ? '/books/search' : '/books';
         const res = await api.get(url, { params });
         const { data, paginationInfo } = res.data;
-        setData(mapBooksOverviewFromDto(data));
+        setData(data);
         setPageNumbers(paginationInfo.pageNumbers);
         setTotalPages(paginationInfo.totalPages);
         setTotalItems(paginationInfo.totalItems);

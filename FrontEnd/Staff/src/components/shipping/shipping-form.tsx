@@ -14,37 +14,35 @@ import {
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { CircleHelp } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-
 import AddressSelect from './address-select';
 import ConfirmDialog from '@/components/utils/confirm-dialog';
 import FormFooterActions from '@/components/utils/form-footer-actions';
-import { ShippingFee } from '@/models/shipping';
-import CurrencyInput from 'react-currency-input-field';
+import { Shipping } from '@/models/shipping';
+import CustomCurrencyInput from '../ui/custom-currency-input';
 
-const formSchema: z.Schema<ShippingFee> = z
+const formSchema: z.Schema<Shipping> = z
   .object({
     provinceId: z.preprocess(
       (val) => (val === '' || val === undefined ? undefined : Number(val)),
       z.number().optional()
     ) as z.ZodType<number | undefined>,
-    fee: z.number({ required_error: 'Không được để trống' }),
-    weight: z.number({ required_error: 'Không được để trống' }),
-
-    surcharge: z.number({ required_error: 'Không được để trống' }),
-    surchargeUnit: z.number({ required_error: 'Không được để trống' }),
+    baseFee: z.number().min(1000, { message: 'Giá trị phải lớn hơn 1.000' }),
+    baseWeightLimit: z.number().min(1, { message: 'Giá trị phải lớn hơn 1' }),
+    extraFeePerUnit: z.number({ required_error: 'Không được để trống' }),
+    extraUnit: z.number({ required_error: 'Không được để trống' }),
   })
-  .refine((data) => data.surcharge === undefined || data.surchargeUnit !== undefined, {
+  .refine((data) => data.extraFeePerUnit === undefined || data.extraUnit !== undefined, {
     message: 'Vui lòng nhập đơn vị phụ phí nếu có phụ phí',
     path: ['surchargeUnit'],
   })
-  .refine((data) => data.surchargeUnit === undefined || data.surcharge !== undefined, {
+  .refine((data) => data.extraUnit === undefined || data.extraFeePerUnit !== undefined, {
     message: 'Vui lòng nhập phụ phí nếu có đơn vị phụ phí',
     path: ['surcharge'],
   });
 
 type Props = {
-  defaultValues?: Partial<ShippingFee>;
-  onSubmit?: (data: ShippingFee) => void;
+  defaultValues?: Partial<Shipping>;
+  onSubmit?: (data: Shipping) => void;
   onDelete?: () => void;
 };
 
@@ -79,28 +77,27 @@ export default function ShippingFeeForm({
   const isEditing = Boolean(Object.keys(defaultValues).length);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [formDataToSubmit, setFormDataToSubmit] = useState<ShippingFee | null>(null);
-
-  const form = useForm<ShippingFee>({
+  const [formDataToSubmit, setFormDataToSubmit] = useState<Shipping | null>(null);
+  const form = useForm<Shipping>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       provinceId: defaultValues.provinceId,
-      fee: defaultValues.fee ?? 0,
-      weight: defaultValues.weight ?? 0,
-      surcharge: defaultValues.surcharge ?? 0,
-      surchargeUnit: defaultValues.surchargeUnit ?? 0,
+      baseFee: defaultValues.baseFee ?? 0,
+      baseWeightLimit: defaultValues.baseWeightLimit ?? 0,
+      extraFeePerUnit: defaultValues.extraFeePerUnit ?? 0,
+      extraUnit: defaultValues.extraFeePerUnit ?? 0,
     },
   });
 
-  const surchargeValue = form.watch('surcharge');
+  const surchargeValue = form.watch('extraFeePerUnit');
 
   useEffect(() => {
     if (!surchargeValue) {
-      form.setValue('surchargeUnit', undefined);
+      form.setValue('extraUnit', undefined);
     }
   }, [surchargeValue, form]);
 
-  const handleSubmit = useCallback((data: ShippingFee) => {
+  const handleSubmit = useCallback((data: Shipping) => {
     setFormDataToSubmit(data);
     setConfirmDialogOpen(true);
   }, []);
@@ -139,8 +136,8 @@ export default function ShippingFeeForm({
 
           <FormField
             control={form.control}
-            name="fee"
-            render={({ field }) => (
+            name="baseFee"
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>
                   <InfoLabel
@@ -150,16 +147,15 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <CurrencyInput
+                  <CustomCurrencyInput
                     id={field.name}
                     name={field.name}
-                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
-                    value={field.value ?? 0}
+                    value={field.value ?? ''}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
-                    prefix="₫"
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    isInvalid={!!fieldState.error}
+                    onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -169,8 +165,8 @@ export default function ShippingFeeForm({
 
           <FormField
             control={form.control}
-            name="weight"
-            render={({ field }) => (
+            name="baseWeightLimit"
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>
                   <InfoLabel
@@ -180,15 +176,15 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <CurrencyInput
+                  <CustomCurrencyInput
                     id={field.name}
                     name={field.name}
-                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
-                    value={field.value ?? 0}
+                    value={field.value ?? ''}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    isInvalid={!!fieldState.error}
+                    onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -198,8 +194,8 @@ export default function ShippingFeeForm({
 
           <FormField
             control={form.control}
-            name="surcharge"
-            render={({ field }) => (
+            name="extraFeePerUnit"
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>
                   <InfoLabel
@@ -209,16 +205,16 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <CurrencyInput
+                  <CustomCurrencyInput
                     id={field.name}
                     name={field.name}
-                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
-                    value={field.value ?? 0}
+                    value={field.value ?? ''}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
                     prefix="₫"
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    isInvalid={!!fieldState.error}
+                    onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -228,8 +224,8 @@ export default function ShippingFeeForm({
 
           <FormField
             control={form.control}
-            name="surchargeUnit"
-            render={({ field }) => (
+            name="extraUnit"
+            render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel>
                   <InfoLabel
@@ -239,15 +235,16 @@ export default function ShippingFeeForm({
                   />
                 </FormLabel>
                 <FormControl>
-                  <CurrencyInput
+                  <CustomCurrencyInput
                     id={field.name}
                     name={field.name}
-                    className=" w-full pl-2.5 py-1.5 border-[0.5px] rounded-md"
                     value={field.value ?? ''}
                     decimalsLimit={0}
                     groupSeparator="."
                     decimalSeparator=","
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    prefix="₫"
+                    isInvalid={!!fieldState.error}
+                    onValueChange={(value) => field.onChange(value ? Number(value) : 0)}
                   />
                 </FormControl>
                 <FormMessage />
