@@ -29,7 +29,7 @@ export default function StaffNew() {
     delete payload.id;
     setIsSubmitting(true);
     try {
-      await api.post('/users/staff', payload);
+      await api.post('/users/staffs', payload);
       toast.success('Thêm mới thành công!');
       router.back();
     } catch (error) {

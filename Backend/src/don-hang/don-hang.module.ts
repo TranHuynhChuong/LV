@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { DonHangService } from './don-hang.service';
-import { DonHangController } from './don-hang.controller';
+import { DonHangService } from './services/don-hang.service';
+import { DonHangController } from './controllers/don-hang.controller';
 import { DonHangRepository } from './repositories/don-hang.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DonHang, DonHangSchema } from './schemas/don-hang.schema';

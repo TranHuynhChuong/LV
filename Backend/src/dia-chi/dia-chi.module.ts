@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { DiaChiController } from './dia-chi.controller';
-import { DiaChiService } from './dia-chi.service';
-import { DiaChiRepository } from './dia-chi.repository';
+import { DiaChiController } from './controllers/dia-chi.controller';
+import { DiaChiService } from './services/dia-chi.service';
+import { DiaChiRepository } from './repositories/dia-chi.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TinhThanh, TinhThanhSchema } from './schemas/dia-chi.schema';
 

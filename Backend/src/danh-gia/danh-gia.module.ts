@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DanhGiaService, DanhGiaServiceUtil } from './danh-gia.service';
-import { DanhGiaController } from './danh-gia.controller';
+import {
+  DanhGiaService,
+  DanhGiaServiceUtil,
+} from './services/danh-gia.service';
+import { DanhGiaController } from './controllers/danh-gia.controller';
 import { SachModule } from 'src/sach/sach.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DanhGia, DanhGiaSchema } from './schemas/danh-gia.schema';

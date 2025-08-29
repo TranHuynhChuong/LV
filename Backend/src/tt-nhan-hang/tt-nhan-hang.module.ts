@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { TTNhanHangController } from './tt-nhan-hang.controller';
+import { TTNhanHangController } from './controllers/tt-nhan-hang.controller';
 import {
   TTNhanHangDHService,
   TTNhanHangKHService,
-} from './tt-nhan-hang.service';
+} from './services/tt-nhan-hang.service';
 import {
   TTNhanHangDH,
   TTNhanHangDHSchema,

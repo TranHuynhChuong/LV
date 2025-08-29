@@ -1,6 +1,6 @@
 import { Expose } from 'class-transformer';
 import { IsBoolean, IsOptional } from 'class-validator';
-import { ActivityLog } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { ActivityLog } from 'src/lich-su-thao-tac/services/lich-su-thao-tac.service';
 
 export class NhanVienResponseDto {
   @Expose({ name: 'NV_id' })

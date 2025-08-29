@@ -3,20 +3,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   KhachHangService,
   KhachHangUtilService,
-} from './khach-hang/khach-hang.service';
+} from './khach-hang/services/khach-hang.service';
 import { KhachHangRepository } from './khach-hang/repositories/khach-hang.repository';
 import {
   KhachHang,
   KhachHangSchema,
 } from './khach-hang/schemas/khach-hang.schema';
-import { NguoiDungController } from './nguoi-dung.controller';
+import { NguoiDungController } from './controllers/nguoi-dung.controller';
 import {
   NhanVienService,
   NhanVienUtilService,
-} from './nhan-vien/nhan-vien.service';
+} from './nhan-vien/services/nhan-vien.service';
 import { NhanVienRepository } from './nhan-vien/repositories/nhan-vien.repository';
 import { NhanVien, NhanVienSchema } from './nhan-vien/schemas/nhan-vien.schema';
 import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.module';
+import { KhachHangController } from './khach-hang/controllers/khach-hang.controller';
+import { NhanVienController } from './nhan-vien/controllers/nhan-vien.controller';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { LichSuThaoTacModule } from 'src/lich-su-thao-tac/lich-su-thao-tac.modul
     ]),
     forwardRef(() => LichSuThaoTacModule),
   ],
-  controllers: [NguoiDungController],
+  controllers: [NguoiDungController, KhachHangController, NhanVienController],
   providers: [
     KhachHangService,
     KhachHangUtilService,

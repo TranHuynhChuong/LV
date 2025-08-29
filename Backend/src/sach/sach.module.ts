@@ -1,7 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { SachController } from './sach.controller';
-import { SachService, SachUtilService } from './sach.service';
+import { SachController } from './controllers/sach.controller';
+import { SachService, SachUtilService } from './services/sach.service';
 import { SachRepository } from './repositories/sach.repository';
 import { Sach, SachSchema } from './schemas/sach.schema';
 import { TheLoaiModule } from 'src/the-loai/the-loai.module';

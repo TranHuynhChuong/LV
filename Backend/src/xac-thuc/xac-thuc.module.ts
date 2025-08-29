@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { XacThucService } from './xac-thuc.service';
-import { XacThucController } from './xac-thuc.controller';
+import { XacThucService } from './services/xac-thuc.service';
+import { XacThucController } from './controllers/xac-thuc.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { XacThucGuard } from './xac-thuc.guard';

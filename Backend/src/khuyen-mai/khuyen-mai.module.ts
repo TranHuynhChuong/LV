@@ -2,8 +2,11 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { KhuyenMai, KhuyenMaiSchema } from './schemas/khuyen-mai.schema';
 import { KhuyenMaiRepository } from './repositories/khuyen-mai.repository';
-import { KhuyenMaiService, KhuyenMaiUtilService } from './khuyen-mai.service';
-import { KhuyenMaiController } from './khuyen-mai.controller';
+import {
+  KhuyenMaiService,
+  KhuyenMaiUtilService,
+} from './services/khuyen-mai.service';
+import { KhuyenMaiController } from './controllers/khuyen-mai.controller';
 import {
   ChiTietKhuyenMai,
   ChiTietKhuyenMaiSchema,

@@ -11,10 +11,10 @@ import { PhiVanChuyenRepository } from './repositories/phi-van-chuyen.repository
 import { PhiVanChuyen } from './schemas/phi-van-chuyen.schema';
 import { CreatePhiVanChuyenDto } from './dto/create-phi-van-chuyen.dto';
 import { UpdatePhiVanChuyenDto } from './dto/update-phi-van-chuyen.dto';
-import { DiaChiService } from '../dia-chi/dia-chi.service';
+import { DiaChiService } from '../dia-chi/services/dia-chi.service';
 import { getNextSequence } from 'src/Util/counter.service';
 import { DULIEU } from 'src/lich-su-thao-tac/schemas/lich-su-thao-tac.schema';
-import { LichSuThaoTacService } from 'src/lich-su-thao-tac/lich-su-thao-tac.service';
+import { LichSuThaoTacService } from 'src/lich-su-thao-tac/services/lich-su-thao-tac.service';
 import { plainToInstance } from 'class-transformer';
 import { ResponsePhiVanChuyenDto } from './dto/response-phi-van-chuyen.dto';
 

@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MaGiam, MaGiamSchema } from './schemas/ma-giam.schema';
 import { MaGiamRepository } from './repositories/ma-giam.repository';
-import { MaGiamService, MaGiamUtilService } from './ma-giam.service';
-import { MaGiamController } from './ma-giam.controller';
+import { MaGiamService, MaGiamUtilService } from './services/ma-giam.service';
+import { MaGiamController } from './controllers/ma-giam.controller';
 
 import {
   MaGiamDonHang,

@@ -1,7 +1,10 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { TheLoaiController } from './the-loai.controller';
-import { TheLoaiService, TheLoaiUtilService } from './the-loai.service';
+import { TheLoaiController } from './controllers/the-loai.controller';
+import {
+  TheLoaiService,
+  TheLoaiUtilService,
+} from './services/the-loai.service';
 import { TheLoaiRepository } from './repositories/the-loai.repository';
 import { TheLoai, TheLoaiSchema } from './schemas/the-loai.schema';
 import { SachModule } from 'src/sach/sach.module';

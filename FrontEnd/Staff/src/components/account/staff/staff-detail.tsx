@@ -32,7 +32,7 @@ export default function StaffDetail() {
   const getData = useCallback(async () => {
     if (!id) return;
     try {
-      const res = await api.get(`/users/staff/${id}`);
+      const res = await api.get(`/users/staffs/${id}`);
       const data = res.data;
       setData(data);
     } catch (error) {
@@ -52,7 +52,7 @@ export default function StaffDetail() {
     delete payload.id;
     setIsSubmitting(true);
     try {
-      await api.put(`/users/staff/${id}`, payload);
+      await api.put(`/users/staffs/${id}`, payload);
       toast.success('Cập nhật thành công');
       router.back();
     } catch (error) {

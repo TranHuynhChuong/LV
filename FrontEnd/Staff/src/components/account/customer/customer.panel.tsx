@@ -39,7 +39,7 @@ export default function CustomerPanel() {
 
   async function getByEmail(email: string) {
     try {
-      const res = await api.get(`/users/customer/${email}`);
+      const res = await api.get(`/users/customers/${email}`);
       const result = res.data;
       if (!result) {
         setData([]);
