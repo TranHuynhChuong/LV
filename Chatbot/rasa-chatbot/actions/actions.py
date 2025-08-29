@@ -55,17 +55,17 @@ class ActionFindBooks(Action):
                     elements = []
                     for book in books:
                         # map thông tin
-                        book_id = book.get("S_id", "0")
-                        name = book.get("S_ten", UNKNOW)
-                        price = book.get("S_giaGiam", book.get("S_giaBan", UNKNOW))
-                        image_url = book.get("S_anh", "https://via.placeholder.com/150")
-                        categories_raw = book.get("S_TL", [])
-                        if isinstance(categories_raw, list):
-                            categories = ", ".join(categories_raw)
+                        book_id = book.get("bookId", "0")
+                        title = book.get("title", UNKNOW)
+                        price = book.get("purchasePrice", book.get("sellingPrice", UNKNOW))
+                        image_url = book.get("images", "https://via.placeholder.com/150")
+                        categories = book.get("categories", [])
+                        if isinstance(categories, list):
+                            categories = ", ".join(categories)
                         else:
-                            categories = str(categories_raw)
-                        auther = book.get("S_tacGia", UNKNOW)
-                        publisher = book.get("S_nhaXuatBan", UNKNOW)
+                            categories = str(categories)
+                        auther = book.get("auther", UNKNOW)
+                        publisher = book.get("publisher", UNKNOW)
                         subtitle = (
                             f"Tác giả: {auther}  \n"
                             f"Thể loại: {categories}  \n"
@@ -74,7 +74,7 @@ class ActionFindBooks(Action):
 
                         # Tạo carousel phản hổi kết quả tìm sách 
                         elements.append({
-                            "title": name,
+                            "title": title,
                             "subtitle": subtitle,
                             "image_url": image_url,
                             "buttons": [
@@ -165,23 +165,23 @@ class ActionCheckOrder(Action):
                 return [SlotSet("orderId", None)]
 
             # 1. Map trạng thái
-            raw_status = order.get("DH_trangThai", UNKNOW)
+            raw_status = order.get("status", UNKNOW)
             trang_thai = TRANG_THAI_DON_HANG.get(raw_status, raw_status)
 
             # 2. Ngày tạo
-            ngay_tao_raw = order.get("DH_ngayTao")
+            ngay_tao_raw = order.get("createdAt")
             ngay_tao = datetime.fromisoformat(ngay_tao_raw.rstrip("Z")).strftime("%d/%m/%Y %H:%M") if ngay_tao_raw else UNKNOW
 
             # 3. Họ tên người đặt
-            ho_ten = order.get("thongTinNhanHang", {}).get("NH_hoTen", UNKNOW)
+            ho_ten = order.get("shippingInfo", {}).get("fullName", UNKNOW)
 
             # 4. Tổng thanh toán = sum(giá mua * số lượng) + phí VC - giảm giá HD - giảm giá VC
-            chi_tiet = order.get("chiTietDonHang", [])
-            tong_san_pham = sum(sp.get("CTDH_giaMua", 0) * sp.get("CTDH_soLuong", 0) for sp in chi_tiet)
+            chi_tiet = order.get("orderDetails", [])
+            tong_san_pham = sum(sp.get("purchasePrice", 0) * sp.get("quantity", 0) for sp in chi_tiet)
 
-            phi_vc = order.get("DH_phiVC", 0)
-            giam_hd = order.get("DH_giamHD", 0)
-            giam_vc = order.get("DH_giamVC", 0)
+            phi_vc = order.get("shippingFee", 0)
+            giam_hd = order.get("discountInvoice", 0)
+            giam_vc = order.get("discountShipping", 0)
 
             tong_thanh_toan = tong_san_pham + phi_vc - giam_hd - giam_vc
 
@@ -189,9 +189,9 @@ class ActionCheckOrder(Action):
             # 5. Danh sách sách
             ds_sach = []
             for s in chi_tiet:
-                ten = s.get("S_ten", UNKNOW)
-                sl = s.get("CTDH_soLuong", 0)
-                gia = s.get("CTDH_giaMua", 0)
+                ten = s.get("title", UNKNOW)
+                sl = s.get("quantity", 0)
+                gia = s.get("purchasePrice", 0)
                 ds_sach.append(f"  - {ten}: {sl} x {gia:,}₫")
 
             s_text = "\n".join(ds_sach)
