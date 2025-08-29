@@ -62,7 +62,8 @@ src/
 
 ```plaintext
 <module-name>/
-├── <module-name>.controller.ts       # Định nghĩa các API endpoint cho module
+├── controllers/
+│   └── <module-name>.controller.ts   # Định nghĩa các API endpoint cho module
 ├── dto/                              # Chứa các lớp để validate dữ liệu đầu vào (DTO)
 │   ├── create-<module-name>.dto.ts   # Dữ liệu tạo mới
 │   └── update-<module-name>.dto.ts   # Dữ liệu cập nhật
@@ -70,7 +71,8 @@ src/
 │   └── <module-name>.schema.ts
 ├── repositories/                     # Giao tiếp trực tiếp với MongoDB thông qua Mongoose Model
 │   └── <module-name>.repository.ts
-├── <module-name>.service.ts          # Chứa các logic xử lý chính của module
+├── services/
+│   └── <module-name>.service.ts      # Chứa các logic xử lý chính của module
 └── <module-name>.module.ts           # Định nghĩa module, import controller, service, schema,...
 ```
 
