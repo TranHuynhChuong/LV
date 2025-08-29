@@ -8,11 +8,12 @@ export class ThanhToanController {
   async remakePayment(
     @Query('orderId') orderId: string,
     @Query('amount') amountStr: string,
-    @Query('userId') userIdStr: string
+    @Query('userId') userIdStr: string,
+    @Query('method') method: string
   ) {
     const amount = parseInt(amountStr);
     const userId = parseInt(userIdStr);
 
-    return await this.ThanhToanService.update(orderId, amount, userId);
+    return await this.ThanhToanService.update(orderId, amount, userId, method);
   }
 }

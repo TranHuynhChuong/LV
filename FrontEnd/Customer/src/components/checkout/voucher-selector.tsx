@@ -172,7 +172,7 @@ function VoucherGroup({ title, vouchers, selected, orderTotal, onToggle }: Reado
                 </p>
 
                 <p className="text-muted-foreground">
-                  HSD: {voucher.endDate.toLocaleDateString('vi-VN')}
+                  HSD: {new Date(voucher.endDate).toLocaleDateString('vi-VN')}
                 </p>
               </div>
 

@@ -35,7 +35,7 @@ export default function ProfilePanel() {
   useEffect(() => {
     if (!authData.userId) return;
     api
-      .get(`/users/customer/inf/${authData.userId}`)
+      .get(`/users/customers/inf/${authData.userId}`)
       .then((res) => {
         const data = res.data;
         setProfile({
@@ -62,7 +62,7 @@ export default function ProfilePanel() {
     if (!authData.userId) return;
 
     api
-      .put(`/users/customer/${authData.userId}`, payload)
+      .put(`/users/customers/${authData.userId}`, payload)
       .then(() => {
         toast.success('Cập nhật thành công');
         router.refresh();

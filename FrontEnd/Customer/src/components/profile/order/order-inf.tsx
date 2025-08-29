@@ -54,6 +54,7 @@ export default function OrderInf({ data }: Readonly<OrderDetailProps>) {
           orderId: orderId,
           amount: total,
           userId: authData.userId,
+          method: payment.method,
         },
       });
       const orderUrl = res.data.order_url;

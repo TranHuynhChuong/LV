@@ -200,7 +200,7 @@ export default function CheckOutPanel() {
           removeFromCartByIds(books.map((b) => b.bookId));
         } else {
           try {
-            await api.post('/carts/delete', { KH_id: authData.userId, S_id: ids });
+            await api.post('/carts/delete', { customerId: authData.userId, bookId: ids });
             emitCartChange();
           } catch {
             toast.error('Lỗi cập nhật số lượng giỏ hàng');

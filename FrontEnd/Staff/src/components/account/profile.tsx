@@ -26,7 +26,7 @@ export default function Profile() {
     const getData = async () => {
       if (!authData.userId) return;
       try {
-        const res = await api.get(`/users/staff/${authData.userId}`);
+        const res = await api.get(`/users/staffs/${authData.userId}`);
         const staff = res.data;
         setData(staff);
       } catch (error) {
