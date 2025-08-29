@@ -65,6 +65,7 @@ src/
 ├── controllers/
 │   └── <module-name>.controller.ts   # Định nghĩa các API endpoint cho module
 ├── dto/                              # Chứa các lớp để validate dữ liệu đầu vào (DTO)
+│   ├── response-<module-name>.dto.ts # Dữ liệu phản hồi
 │   ├── create-<module-name>.dto.ts   # Dữ liệu tạo mới
 │   └── update-<module-name>.dto.ts   # Dữ liệu cập nhật
 ├── schemas/                          # Định nghĩa schema Mongoose cho module
