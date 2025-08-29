@@ -1,4 +1,5 @@
 import { Shipping } from '@/models/shipping';
+export const dynamic = 'force-dynamic';
 
 export default async function ShippingPolicyPage() {
   let shippingFees: Shipping[] = [];

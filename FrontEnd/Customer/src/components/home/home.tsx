@@ -1,11 +1,11 @@
-import { BookOverview } from '@/models/book';
+import { Book } from '@/models/book';
 import HomeSection from './home-section';
 import HomeSlidingBanner from './home-sliding-banner';
 
 type HomeComponentProps = {
-  mostRated: BookOverview[];
-  latest: BookOverview[];
-  bestSelling: BookOverview[];
+  mostRated: Book[];
+  latest: Book[];
+  bestSelling: Book[];
 };
 
 export default function HomeComponent({
