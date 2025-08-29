@@ -201,7 +201,6 @@ export class SachRepository {
     const filter = this.getFilter(filterType, categoryIds);
     const sort = this.getSort(sortType);
     const skip = (page - 1) * limit;
-    const project = this.getProject();
     const needDiscountEarly =
       sortType === BookSortType.PriceAsc || sortType === BookSortType.PriceDesc;
     const preStages: PipelineStage[] = [];
@@ -225,7 +224,7 @@ export class SachRepository {
     if (!ExcludeUnexpiredPromotion && !needDiscountEarly) {
       dataPipeline.push(...this.buildPromotionStages());
     }
-    dataPipeline.push({ $project: project });
+    dataPipeline.push({ $project: { _id: 0, S_id: 1 } });
     return { dataPipeline, countPipeline };
   }
 
@@ -260,13 +259,25 @@ export class SachRepository {
                       },
                     },
                   },
+                  {
+                    $project: {
+                      KM_id: 1,
+                    },
+                  },
                 ],
                 as: 'km',
               },
             },
             {
               $match: {
-                $expr: { $gt: [{ $size: '$km' }, 0] }, // Chỉ giữ CTKM có KM hiệu lực
+                $expr: { $gt: [{ $size: '$km' }, 0] },
+              },
+            },
+            {
+              $project: {
+                S_id: 1,
+                CTKM_giaSauGiam: 1,
+                KM_id: 1,
               },
             },
           ],
@@ -316,6 +327,7 @@ export class SachRepository {
                 },
               },
             },
+
             {
               $lookup: {
                 from: 'khuyenmais',
@@ -331,6 +343,11 @@ export class SachRepository {
                       },
                     },
                   },
+                  {
+                    $project: {
+                      KM_id: 1,
+                    },
+                  },
                 ],
                 as: 'km',
               },
@@ -340,6 +357,12 @@ export class SachRepository {
                 $expr: {
                   $gt: [{ $size: '$km' }, 0], // Có KM chưa kết thúc
                 },
+              },
+            },
+            {
+              $project: {
+                S_id: 1,
+                KM_id: 1,
               },
             },
           ],
@@ -502,13 +525,30 @@ export class SachRepository {
       sortType,
       filterType,
     });
-    return paginateRawAggregate({
+    const { data, paginationInfo } = await paginateRawAggregate({
       model: this.SachModel,
       page,
       limit,
       dataPipeline,
       countPipeline,
     });
+
+    let books: any[] = [];
+    if (data && data.length > 0) {
+      const ids = data.map((item: { S_id: number }) => item.S_id);
+      const result = await this.SachModel.find(
+        { S_id: { $in: ids } },
+        this.getProject()
+      )
+        .lean()
+        .exec();
+      books = result;
+    }
+
+    return {
+      data: books,
+      paginationInfo,
+    };
   }
 
   /**
@@ -538,13 +578,30 @@ export class SachRepository {
       categoryIds,
       keyword,
     });
-    return paginateRawAggregate({
+    const { data, paginationInfo } = await paginateRawAggregate({
       model: this.SachModel,
       page,
       limit,
       dataPipeline,
       countPipeline,
     });
+
+    let books: any[] = [];
+    if (data && data.length > 0) {
+      const ids = data.map((item: { S_id: number }) => item.S_id);
+      const result = await this.SachModel.find(
+        { S_id: { $in: ids } },
+        this.getProject()
+      )
+        .lean()
+        .exec();
+      books = result;
+    }
+
+    return {
+      data: books,
+      paginationInfo,
+    };
   }
 
   /**
@@ -647,7 +704,6 @@ export class SachRepository {
         ...discountStages,
         {
           $project: {
-            lichSuThaoTac: 0,
             S_TL_info: 0,
             khuyenMai: 0,
           },

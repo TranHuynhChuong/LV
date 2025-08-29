@@ -439,6 +439,7 @@ export class SachService {
       limit,
       minScore
     );
+
     return plainToInstance(SachResponseDto, result, {
       excludeExtraneousValues: true,
     });

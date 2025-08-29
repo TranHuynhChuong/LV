@@ -44,7 +44,7 @@ export const ChiTietKhuyenMaiSchema =
 ChiTietKhuyenMaiSchema.index({ KM_id: 1 });
 ChiTietKhuyenMaiSchema.index({
   S_id: 1,
-  CTKM_daXoa: 1,
-  CTKM_tamNgung: 1,
-  KM_id: 1,
+});
+ChiTietKhuyenMaiSchema.index({
+  CTKM_giaSauGiam: 1,
 });

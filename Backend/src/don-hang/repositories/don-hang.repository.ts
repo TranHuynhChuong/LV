@@ -79,7 +79,13 @@ export class DonHangRepository {
     if (filter && Object.keys(filter).length > 0) {
       pipeline.push({ $match: filter });
     }
-    pipeline.push(
+    pipeline.push({ $project: { _id: 0, DH_id: 1 } });
+    return pipeline;
+  }
+
+  // 1️⃣ Hàm trả pipeline chi tiết sách & thông tin nhận hàng, không có match
+  protected getOrderDetailPipelineCore(): PipelineStage[] {
+    return [
       {
         $lookup: {
           from: 'chitietdonhangs',
@@ -89,10 +95,7 @@ export class DonHangRepository {
         },
       },
       {
-        $unwind: {
-          path: '$chiTietDonHang',
-          preserveNullAndEmptyArrays: true,
-        },
+        $unwind: { path: '$chiTietDonHang', preserveNullAndEmptyArrays: true },
       },
       {
         $lookup: {
@@ -102,12 +105,7 @@ export class DonHangRepository {
           as: 'sach',
         },
       },
-      {
-        $unwind: {
-          path: '$sach',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: '$sach', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'ttnhanhangdhs',
@@ -116,12 +114,7 @@ export class DonHangRepository {
           as: 'nhanHang',
         },
       },
-      {
-        $unwind: {
-          path: '$nhanHang',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: '$nhanHang', preserveNullAndEmptyArrays: true } },
       {
         $group: {
           _id: '$_id',
@@ -166,9 +159,15 @@ export class DonHangRepository {
             },
           },
         },
-      }
-    );
-    return pipeline;
+      },
+    ];
+  }
+
+  protected getOrderDetailPipeline(ids: string[]): PipelineStage[] {
+    return [
+      { $match: { DH_id: { $in: ids } } },
+      ...this.getOrderDetailPipelineCore(),
+    ];
   }
 
   /**
@@ -231,7 +230,7 @@ export class DonHangRepository {
    * @param {Date} [options.from] - Ngày bắt đầu của khoảng thời gian lọc.
    * @param {Date} [options.to] - Ngày kết thúc của khoảng thời gian lọc.
    * @param {number} [options.userId] - ID của khách hàng cần lọc.
-   * @returns {Promise<PaginatedResult<any>>} Kết quả truy vấn phân trang từ MongoDB aggregation pipeline.
+   * @returns  Kết quả truy vấn phân trang từ MongoDB aggregation pipeline.
    */
   async findAll(options: {
     page: number;
@@ -250,13 +249,24 @@ export class DonHangRepository {
     const skip = (page - 1) * limit;
     dataPipeline.push({ $sort: { DH_ngayCapNhat: -1 } });
     dataPipeline.push({ $skip: skip }, { $limit: limit });
-    return paginateRawAggregate({
+    const { data, paginationInfo } = await paginateRawAggregate({
       model: this.DonHangModel,
       page,
       limit,
       dataPipeline,
       countPipeline,
     });
+    let orders: any[] = [];
+    if (data && data.length > 0) {
+      const ids = data.map((item: { DH_id: string }) => item.DH_id);
+      const detailPipeline = this.getOrderDetailPipeline(ids);
+      orders = await this.DonHangModel.aggregate(detailPipeline).exec();
+    }
+
+    return {
+      data: orders,
+      paginationInfo,
+    };
   }
 
   /**
@@ -268,11 +278,14 @@ export class DonHangRepository {
    */
   async findById(orderId: string, filterType?: OrderStatus): Promise<any> {
     const filter = this.getFilter(filterType);
+
     const pipeline: PipelineStage[] = [
-      { $match: { DH_id: orderId } },
-      ...this.getOrderPipeline(filter),
+      { $match: { DH_id: orderId, ...filter } },
+      ...this.getOrderDetailPipelineCore(),
     ];
+
     const result = await this.DonHangModel.aggregate(pipeline).exec();
+
     return result && result.length > 0 ? result[0] : null;
   }
 

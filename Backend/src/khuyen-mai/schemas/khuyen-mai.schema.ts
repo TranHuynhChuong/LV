@@ -36,7 +36,6 @@ export class KhuyenMai {
 export const KhuyenMaiSchema = SchemaFactory.createForClass(KhuyenMai);
 
 KhuyenMaiSchema.index({
-  KM_id: 1,
   KM_batDau: 1,
   KM_ketThuc: 1,
 });
