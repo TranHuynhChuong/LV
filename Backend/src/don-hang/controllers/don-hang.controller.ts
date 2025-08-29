@@ -74,6 +74,7 @@ export class DonHangController {
    * @param to - Ngày kết thúc (tùy chọn)
    * @returns Danh sách đơn hàng
    */
+  @UseGuards(XacThucGuard)
   @Get()
   async findAll(
     @Query('page') page: string,
@@ -105,6 +106,7 @@ export class DonHangController {
    * @param orderId - Mã đơn hàng cần tìm (tùy chọn)
    * @returns Danh sách đơn hàng
    */
+  @UseGuards(XacThucGuard)
   @Get('/user')
   async findAllOfUser(
     @Query('page') page: string,
